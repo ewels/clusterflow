@@ -1,0 +1,20 @@
+#/usr/bin/perl
+use warnings;
+use strict;
+
+load_params();
+
+# If we haven't been given any parameters to suffix the filename with, just return the filename
+if(!defined $parameters || length($parameters) == 0){
+	foreach(@files){
+		print RUN "$job_id:$_\n";
+	}
+} else {
+	foreach(@files){
+		$new_fn = $_.$parameters.".txt";
+		rename $_ $new_fn or die "could not move file";
+		print RUN "$job_id:$new_fn\n";
+	}
+}
+
+close_module();

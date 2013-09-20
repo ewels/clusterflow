@@ -1,0 +1,15 @@
+/*
+test_pipeline_1_run_1.run
+Created 14:08 20-09-2013
+*/
+
+@genome				/bi/scratch/Genomes/Mouse/GRCm38/Mus_musculus.GRCm38
+@static_config		suffix_static
+
+#rename_files_0001:rename_files suffix_one
+	#rename_files_0003:rename_files suffix_one_one
+		#rename_files_0006:rename_files suffix_one_one_one
+
+start_0000	test_file_1_1.txt
+start_0000	test_file_1_2.txt
+start_0000	test_file_1_3.txt
