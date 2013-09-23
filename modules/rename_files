@@ -1,8 +1,12 @@
 #/usr/bin/perl
 use warnings;
 use strict;
+use clusterflow;
 
-load_params();
+my ($files_ref, $runfile, $job_id, $prev_job_id, $parameters) = clusterflow::load_params();
+my @files = @$files_ref;
+
+open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
 
 # If we haven't been given any parameters to suffix the filename with, just return the filename
 if(!defined $parameters || length($parameters) == 0){
@@ -11,10 +15,10 @@ if(!defined $parameters || length($parameters) == 0){
 	}
 } else {
 	foreach(@files){
-		$new_fn = $_.$parameters.".txt";
-		rename $_ $new_fn or die "could not move file";
-		print RUN "$job_id:$new_fn\n";
+		my $new_fn = $_.$parameters.".txt";
+		rename $_, $new_fn or die "could not move file $_ to $new_fn";
+		print RUN "$job_id\t$new_fn\n";
 	}
 }
 
-close_module();
+close (RUN);

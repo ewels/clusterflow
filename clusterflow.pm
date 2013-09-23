@@ -3,33 +3,47 @@ use warnings;
 use strict;
 use Exporter;
 
+our @ISA = qw(Exporter);
+our @EXPORT_OK = qw(load_params);
+
 package clusterflow;
 
 sub load_params {
-	my ($runfile, $job_id, $prev_id, $parameters) = @ARGV;
-	unless (defined $prev_id && length($prev_id) > 0) {
+	my ($runfile, $job_id, $prev_job_id, $parameters) = @ARGV;
+	unless (defined $prev_job_id && length($prev_job_id) > 0) {
 		die "Previous job ID not specified\n";
 	}
+	
+	warn "\nRun File:\t\t$runfile\nJob ID:\t\t\t$job_id\nPrevious Job ID:\t$prev_job_id\nParameters:\t\t$parameters\n\n";
 
 	open (RUN,$runfile) or die "Can't read $runfile: $!";
 
-	$my @files;
-	while(<>){
+	my @files;
+	my $comment_block = 0;
+	while(<RUN>){
 		chomp;
-		my @sections = split(/\t/, $_, 2);
-		if($sections[0] eq $prev_id){
-			push(@files, $sections[1]);
+		if($_ =~ /^\/\*/){
+			$comment_block = 1;
+			next;
+		}
+		if($_ =~ /^\*\//){
+			$comment_block = 0;
+			next;
+		}
+		if($_ =~ /^[^@#]/ && !$comment_block){
+			my @sections = split(/\t/, $_, 2);
+			if($sections[0] eq $prev_job_id){
+				push(@files, $sections[1]);
+			}
 		}
 	}
 	
 	close(RUN);
 	
-	open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
+	return (\@files, $runfile, $job_id, $prev_job_id, $parameters);
 }
 
-sub close_module {
-	close (RUN);
-}
+
 
 
 1; # Must return a true value
