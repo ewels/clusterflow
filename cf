@@ -1,0 +1,79 @@
+#/usr/bin/perl
+use warnings;
+use strict;
+use Getopt::Long;
+use POSIX qw(strftime);
+use clusterflow;
+use Data::Dumper;
+
+my $version = '0.0.1';
+
+# Get command line parameters
+my $pipeline = shift(@ARGV);
+my @files = @ARGV;
+my $split_files = 1;
+my $verbose;
+my $help;
+my $result = GetOptions ("split_files=i" => \$split_files, "verbose"  => \$verbose, "help" => \$help);
+
+if($help){
+	print "Cluster Flow v$version\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n";
+	exit;
+}
+if(!$pipeline){
+	die("Error - no pipeline specified. Use --help for instructions.\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n")
+}
+
+# Start the runfile
+my $runfn = $pipeline.".run";
+my $date = strftime "%H:%M %d-%m-%Y", localtime;
+my $runfile = "/*\n$runfn\nCreated $date\n*/\n\n";
+
+# Load in the pipeline config file
+open (CONFIG,'pipelines/'.$pipeline.'.config') or die "Can't read pipelines/$pipeline.config: $!";
+
+my %module_tree;
+my @indents;
+push @indents, \%module_tree;
+my $comment_block = 0;
+
+while(<CONFIG>){
+	chomp;
+	s/\n//;
+	s/\r//;
+	
+	# Add to runfile string
+	$runfile .= "$_\n";
+	
+	# Ignore comment blocks
+	if($_ =~ /^\/\*/){
+		$comment_block = 1;
+		next;
+	}
+	if($_ =~ /^\*\//){
+		$comment_block = 0;
+		next;
+	}
+	
+	# Read the pipeline tree
+	if($_ =~ /^(\t*)#/){
+		s/^(\t*)#//;
+		splice @indents, length($1)+1;
+		push @indents, $indents[$#indents]->{$_} = {};
+	}
+	
+}
+
+# Add the starting filenames to the run file
+foreach(@files){
+	$runfile .= "start_0000\t$_\n";
+}
+
+# Write out the run file
+open (RUNOUT,'>',$runfn) or die "Can't write to $runfn: $!";
+print RUNOUT $runfile;
+close(RUNOUT);
+
+print "Module tree:\n\n";
+print Dumper (\%module_tree);
+

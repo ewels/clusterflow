@@ -1,0 +1,25 @@
+#/usr/bin/perl
+use warnings;
+use strict;
+use clusterflow;
+use File::Copy qw(copy);
+
+my ($files_ref, $runfile, $job_id, $prev_job_id, $parameters) = clusterflow::load_params();
+my @files = @$files_ref;
+
+open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
+
+# If we haven't been given any parameters to suffix the filename with, just return the filename
+if(!defined $parameters || length($parameters) == 0){
+	foreach(@files){
+		print RUN "$job_id:$_\n";
+	}
+} else {
+	foreach(@files){
+		my $new_fn = $_.$parameters.".txt";
+		copy $old_file, $new_file or die "could not copy file $_ to $new_fn";
+		print RUN "$job_id\t$new_fn\n";
+	}
+}
+
+close (RUN);
