@@ -1,10 +1,13 @@
 #/usr/bin/perl
 use warnings;
 use strict;
-use clusterflow;
+use FindBin qw($Bin);
+use lib "$FindBin::Bin/..";
+use Clusterflow;
 use File::Copy qw(copy);
 
-my ($files_ref, $runfile, $job_id, $prev_job_id, $parameters) = clusterflow::load_params();
+# Read in the input files from the run file
+my ($files_ref, $runfile, $job_id, $prev_job_id, $parameters) = Clusterflow::load_params(@ARGV);
 my @files = @$files_ref;
 
 open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
@@ -16,8 +19,8 @@ if(!defined $parameters || length($parameters) == 0){
 	}
 } else {
 	foreach(@files){
-		my $new_fn = $_.$parameters.".txt";
-		copy $old_file, $new_file or die "could not copy file $_ to $new_fn";
+		my $new_fn = $_.'_'.$parameters.".txt";
+		copy $_, $new_fn or die "could not copy file $_ to $new_fn";
 		print RUN "$job_id\t$new_fn\n";
 	}
 }

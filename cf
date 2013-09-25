@@ -3,8 +3,8 @@ use warnings;
 use strict;
 use Getopt::Long;
 use POSIX qw(strftime);
-use clusterflow;
-use Data::Dumper;
+use FindBin qw($Bin);
+use lib "$Bin/Clusterflow";
 
 my $version = '0.0.1';
 
@@ -24,14 +24,19 @@ if(!$pipeline){
 	die("Error - no pipeline specified. Use --help for instructions.\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n")
 }
 
-# Start the runfile
-my $runfn = $pipeline.".run";
-my $date = strftime "%H:%M %d-%m-%Y", localtime;
-my $runfile = "/*\n$runfn\nCreated $date\n*/\n\n";
-
 # Load in the pipeline config file
-open (CONFIG,'pipelines/'.$pipeline.'.config') or die "Can't read pipelines/$pipeline.config: $!";
+my @pipeline_folders = ('./', '~/clusterflow/pipelines/', "$Bin/pipelines/");
+foreach (@pipeline_folders){
+	if(-e $_."$pipeline.config"){
+		open (CONFIG,$_."$pipeline.config") or die "Can't read ".$_."$pipeline.config: $!";
+		last;
+	}
+}
+if(tell(CONFIG) == -1){
+	die "Can't find pipeline config file $pipeline.config";
+}
 
+my $runfile;
 my %module_tree;
 my @indents;
 push @indents, \%module_tree;
@@ -64,16 +69,80 @@ while(<CONFIG>){
 	
 }
 
-# Add the starting filenames to the run file
+close(CONFIG);
+
+
+
+# Go through the supplied starting files
+my @qsubs;
+my @job_ids;
 foreach(@files){
-	$runfile .= "start_0000\t$_\n";
+
+	# Make the run file
+	my $runfn = $_."_$pipeline.run";
+	my $date = strftime "%H:%M %d-%m-%Y", localtime;
+	my $this_runfile = "/*\n$runfn\nCreated $date\n*/\n\n".$runfile."\n\n";
+
+	# Add the starting filename to the run file
+	$this_runfile .= "start_0000\t$_\n";
+
+	# Write out the run file
+	open (RUNOUT,'>',$runfn) or die "Can't write to $runfn: $!";
+	print RUNOUT $this_runfile;
+	close(RUNOUT);
+	
+	# Make up qsub jobs
+	my $outfn = $_."_$pipeline.out";
+	make_qsubs (\%module_tree, 'start_0000', $runfn, $outfn);
+	
+	# Final qsub job to e-mail on completion
+	my $email_qsub = "echo \"mail -s 'Run ${pipeline}_${_}.run Complete' phil.ewels\@babraham.ac.uk < $outfn\" | qsub -cwd -V -o $outfn -j y -N email_complete -hold_jid ".join(",", @job_ids);
+	push @qsubs, $email_qsub;
 }
 
-# Write out the run file
-open (RUNOUT,'>',$runfn) or die "Can't write to $runfn: $!";
-print RUNOUT $runfile;
-close(RUNOUT);
+sub make_qsubs {
+	# Set up parameters for this branch
+	my ($mod_tree, $prev_job, $runfn, $outfn) = @_;
+	
+	# Run through leaves
+	foreach ( keys %{$mod_tree} ){
+	
+		# Set up parameters for these leaves
+		my ($module, $parameters) = split(/\s+/, $_, 2);
+		my $job_id = $module.'_'.int(rand(9999));
+		
+		# Find the module file
+		my @module_folders = ('./', '~/clusterflow/modules/', "$Bin/modules/");
+		my $module_fn;
+		foreach (@module_folders){
+			if(-e $_."$module"){
+				$module_fn = $_."$module";
+				last;
+			}
+		}
+		if(!$module_fn){
+			die "Can't find pipeline config file $pipeline.config";
+		}
+		
+		# Create qsub command
+		my $qsub = "echo \"perl $module_fn $runfn $job_id $prev_job $parameters\" | qsub -cwd -V -o $outfn -j y -N $job_id";
+		if(length($prev_job) > 0 && $prev_job ne 'start_0000'){
+			$qsub .= " -hold_jid $prev_job";
+		}
+		push @qsubs, $qsub;
+		push @job_ids, $job_id;
+		
+		# Recursively call this function if we're not at the end of a branch
+		if ( ref $mod_tree->{$_} eq 'HASH') {
+			make_qsubs ( $mod_tree->{$_}, $job_id, $runfn, $outfn ) ;
+		}
+	}
+}
 
-print "Module tree:\n\n";
-print Dumper (\%module_tree);
 
+
+# Print qsub jobs to the terminal
+foreach(@qsubs){
+	# print "$_\n";
+	system $_;
+}

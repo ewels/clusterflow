@@ -3,13 +3,13 @@ use warnings;
 use strict;
 use Exporter;
 
-our @ISA = qw(Exporter);
-our @EXPORT_OK = qw(load_params);
+# our @ISA = qw(Exporter);
+# our @EXPORT_OK = qw(load_params);
 
-package clusterflow;
+package Clusterflow;
 
 sub load_params {
-	my ($runfile, $job_id, $prev_job_id, $parameters) = @ARGV;
+	my ($runfile, $job_id, $prev_job_id, $parameters) = @_;
 	unless (defined $prev_job_id && length($prev_job_id) > 0) {
 		die "Previous job ID not specified\n";
 	}
