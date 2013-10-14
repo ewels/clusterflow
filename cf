@@ -1,31 +1,115 @@
-#/usr/bin/perl
+#!/usr/bin/perl
 use warnings;
 use strict;
 use Getopt::Long;
 use POSIX qw(strftime);
 use FindBin qw($Bin);
-use lib "$Bin/Clusterflow";
+use lib "$FindBin::Bin/";
+# use File::HomeDir;
+use Clusterflow;
+use Data::Dumper;
 
 my $version = '0.0.1';
 
+# my $homedir = File::HomeDir->my_home;
+my $homedir = $ENV{"HOME"};
+
+# Read global config variables in. Do in order so that local prefs overwrite.
+my %config;
+my @config_files = ("$FindBin::Bin/clusterflow.config", "$homedir/clusterflow.config", './clusterflow.config');
+foreach my $config_file (@config_files){
+	if(-e $config_file){
+		open (CONFIG, $config_file) or die "Can't read $config_file: $!";
+		my $comment_block = 0;
+		while (<CONFIG>) {
+			chomp;
+			s/\n//;
+			s/\r//;
+			if($_ =~ /^\/\*/){
+				$comment_block = 1;
+				next;
+			}
+			if($_ =~ /^\*\//){
+				$comment_block = 0;
+				next;
+			}
+			if($_ =~ /^\@/ && !$comment_block){
+				my @sections = split(/:/, $_, 2);
+				$config{substr($sections[0], 1)} = $sections[1];
+			}
+		}
+		close(CONFIG);
+	}
+}
+
 # Get command line parameters
+my $split_files = 1;
+my $file_list;
+my $cl_email;
+my $cl_priority;
+my $cl_total_cores;
+my $cl_total_mem;
+my $cl_notifications;
+my $cl_dryrun;
+my $cl_version;
+my $cl_help;
+
+my $config_result = GetOptions(
+	"split_files=i" => \$split_files,
+	"file_list=s" => \$file_list,
+	"email=s" => \$cl_email,
+	"priority=s" => \$cl_priority,
+	"cores=i" => \$cl_total_cores,
+	"mem=s" => \$cl_total_mem,
+	"notifications=s"  => \$cl_notifications,
+	"dryrun" => \$cl_dryrun,
+	"version" => \$cl_version,
+	"help" => \$cl_help
+);
+
+die "Could not parse options" unless ($config_result);
+
+# Get the file list
 my $pipeline = shift(@ARGV);
 my @files = @ARGV;
-my $split_files = 1;
-my $verbose;
-my $help;
-my $result = GetOptions ("split_files=i" => \$split_files, "verbose"  => \$verbose, "help" => \$help);
 
-if($help){
+if($cl_dryrun){
+	print "Cluster Flow running in Dry Run mode. No cluster jobs will be set off, only printed.\n\n";
+	exit;
+}
+if($cl_version){
+	print "Cluster Flow v$version\n\n";
+	exit;
+}
+if($cl_help){
 	print "Cluster Flow v$version\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n";
 	exit;
 }
 if(!$pipeline){
-	die("Error - no pipeline specified. Use --help for instructions.\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n")
+	die("Error - no pipeline specified. Use --help for instructions.\nSyntax: cf [flags] pipeline_name file_1 file_2..\n")
 }
 
+# Set up parameters
+if($cl_email){
+	$config{email} = $cl_email;
+}
+if($cl_priority){
+	$config{priority} = $cl_priority;
+}
+if($cl_total_cores){
+	$config{total_cores} = $cl_total_cores;
+}
+if($cl_total_mem){
+	$config{total_mem} = $cl_total_mem;
+}
+
+if($cl_notifications){
+	$config{notifications} = $cl_notifications;
+}
+my @notifications = split(",", $config{notifications});
+
 # Load in the pipeline config file
-my @pipeline_folders = ('./', '~/clusterflow/pipelines/', "$Bin/pipelines/");
+my @pipeline_folders = ('./', "$homedir/clusterflow/pipelines/", "$Bin/pipelines/");
 foreach (@pipeline_folders){
 	if(-e $_."$pipeline.config"){
 		open (CONFIG,$_."$pipeline.config") or die "Can't read ".$_."$pipeline.config: $!";
@@ -71,33 +155,101 @@ while(<CONFIG>){
 
 close(CONFIG);
 
-
+# If we have a file list input file, take input from there
+my @download_fns;
+if($file_list){
+	unless(-e $file_list){
+		print "Error - file list not found: $file_list\nExiting...\n\n";
+		exit;
+	}
+	@files = ();
+	open (FILES, $file_list) or die "Can't read $file_list: $!";
+	while (<FILES>) {
+		chomp;
+		my @sections = split(/\t/);
+		push @files, $sections[0];
+		if(defined($sections[1])){
+			push @download_fns, $sections[1];
+		} else {
+			push @download_fns, 0;
+		}
+	}
+	close(FILES);
+}
 
 # Go through the supplied starting files
 my @qsubs;
 my @job_ids;
-foreach(@files){
-
+my %run_job_ids;
+my $job_id;
+my $prev_dl_id;
+my @outfns;
+foreach my $i (0..$#files){
+	my $fn = $files[$i];
+	my $outfn = $fn."_$pipeline.out";
+	
 	# Make the run file
-	my $runfn = $_."_$pipeline.run";
+	my $runfn = $fn."_$pipeline.run";
 	my $date = strftime "%H:%M %d-%m-%Y", localtime;
 	my $this_runfile = "/*\n$runfn\nCreated $date\n*/\n\n".$runfile."\n\n";
-
-	# Add the starting filename to the run file
-	$this_runfile .= "start_0000\t$_\n";
-
+	
+	# Is this filename a URL?
+	if ($fn =~ /^(((ht|f)tp(s?))\:\/\/)/){
+		
+		# Find download filename if it exists
+		my $dl_fn;
+		if($download_fns[$i]){
+			$dl_fn = $download_fns[$i];
+		} else {
+			my @parts = split("/", $fn);
+			$dl_fn = pop(@parts);
+		}
+		$runfn = $dl_fn."_$pipeline.run";
+		$this_runfile = "/*\n$runfn\nFile $dl_fn downloaded from $fn\nCreated $date\n*/\n\n".$runfile."\n\n";
+		$outfn = $dl_fn."_$pipeline.out";
+		push @outfns, $outfn;
+		
+		# URL - set up download module qsub job, dependent on previous download job
+		$job_id = 'download_'.int(rand(9999));
+		$this_runfile .= "$job_id\t$dl_fn\n";
+		my $qsub = "echo \"perl download $runfn $job_id null $dl_fn\" | qsub -cwd -V -pe orte 1 -l vf=1G -o $outfn -j y -N $job_id";
+		if($prev_dl_id && length($prev_dl_id) > 0 && $prev_dl_id ne 'start_0000'){
+			$qsub .= " -hold_jid $prev_dl_id";
+		}
+		push @qsubs, $qsub;
+		push @job_ids, $job_id;
+		$prev_dl_id = $job_id;
+		
+		# Done with the download URL. Call $fn for later stuff
+		$fn = $dl_fn;
+	
+	} elsif(-e $fn) { # Not a URL. Does this file exist?
+		# Add the starting filename to the run file
+		$job_id = 'start_0000';
+		$this_runfile .= "$job_id\t$fn\n";
+	
+	} else { # Not a URL, file doesn't exist
+		print "File $fn doesn't exist.. Skipping..\n";
+		next;
+	}
+	
 	# Write out the run file
 	open (RUNOUT,'>',$runfn) or die "Can't write to $runfn: $!";
 	print RUNOUT $this_runfile;
 	close(RUNOUT);
 	
 	# Make up qsub jobs
-	my $outfn = $_."_$pipeline.out";
-	make_qsubs (\%module_tree, 'start_0000', $runfn, $outfn);
+	make_qsubs (\%module_tree, $job_id, $runfn, $outfn);
 	
-	# Final qsub job to e-mail on completion
-	my $email_qsub = "echo \"mail -s 'Run ${pipeline}_${_}.run Complete' phil.ewels\@babraham.ac.uk < $outfn\" | qsub -cwd -V -o $outfn -j y -N email_complete -hold_jid ".join(",", @job_ids);
-	push @qsubs, $email_qsub;
+	# Qsub job to e-mail on completion of this run
+	my $run_email_qsub = "echo \"mail -s 'Run ${pipeline}_$fn.run Complete' phil.ewels\@babraham.ac.uk < $outfn\" | qsub -cwd -V -o $outfn -j y -N email_run_complete_$fn -hold_jid ".join(",", @{$run_job_ids{$runfn}});
+	push @qsubs, $run_email_qsub;
+	
+	# Final qsub job to e-mail on completion of ALL JOBS
+	if($i == $#files){
+		my $final_email_qsub = "echo \"tail -n +1 ".join(" ", @outfns)." | mail -s 'Pipeline ${pipeline} Complete' phil.ewels\@babraham.ac.uk\" | qsub -cwd -V -o $outfn -j y -N email_pipeline_complete -hold_jid ".join(",", @job_ids);
+		push @qsubs, $final_email_qsub;
+	}
 }
 
 sub make_qsubs {
@@ -112,7 +264,7 @@ sub make_qsubs {
 		my $job_id = $module.'_'.int(rand(9999));
 		
 		# Find the module file
-		my @module_folders = ('./', '~/clusterflow/modules/', "$Bin/modules/");
+		my @module_folders = ('./', "$homedir/clusterflow/modules/", "$Bin/modules/");
 		my $module_fn;
 		foreach (@module_folders){
 			if(-e $_."$module"){
@@ -124,13 +276,25 @@ sub make_qsubs {
 			die "Can't find pipeline config file $pipeline.config";
 		}
 		
+		# Get options for module
+		my $cores = `$module_fn --cores 4`;
+		my $mem = `$module_fn --mem`;
+		
+		if(!$mem || length($mem) == 0){
+			$mem = $config{default_mem};
+		}
+		
 		# Create qsub command
-		my $qsub = "echo \"perl $module_fn $runfn $job_id $prev_job $parameters\" | qsub -cwd -V -o $outfn -j y -N $job_id";
+		my $qsub = "echo \"perl $module_fn $runfn $job_id $prev_job $parameters\" | qsub -cwd -V -pe orte $cores -l vf=$mem -o $outfn -j y -N $job_id";
 		if(length($prev_job) > 0 && $prev_job ne 'start_0000'){
 			$qsub .= " -hold_jid $prev_job";
 		}
 		push @qsubs, $qsub;
 		push @job_ids, $job_id;
+		unless(defined $run_job_ids{$runfn}){
+			$run_job_ids{$runfn} = ();
+		}
+		push @{$run_job_ids{$runfn}}, $job_id;
 		
 		# Recursively call this function if we're not at the end of a branch
 		if ( ref $mod_tree->{$_} eq 'HASH') {
@@ -143,6 +307,6 @@ sub make_qsubs {
 
 # Print qsub jobs to the terminal
 foreach(@qsubs){
-	# print "$_\n";
-	system $_;
+	print "$_\n\n";
+	# system $_;
 }

@@ -1,6 +1,7 @@
-#!perl
+#!/usr/bin/perl
 use warnings;
 use strict;
+use FindBin qw($Bin);
 use Exporter;
 
 # our @ISA = qw(Exporter);
@@ -8,7 +9,7 @@ use Exporter;
 
 package Clusterflow;
 
-sub load_params {
+sub load_runfile_params {
 	my ($runfile, $job_id, $prev_job_id, $parameters) = @_;
 	unless (defined $prev_job_id && length($prev_job_id) > 0) {
 		die "Previous job ID not specified\n";
@@ -22,6 +23,8 @@ sub load_params {
 	my $comment_block = 0;
 	while(<RUN>){
 		chomp;
+		s/\n//;
+		s/\r//;
 		if($_ =~ /^\/\*/){
 			$comment_block = 1;
 			next;
