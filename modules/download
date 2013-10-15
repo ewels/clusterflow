@@ -1,0 +1,41 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+use Getopt::Long;
+use FindBin qw($Bin);
+use lib "$FindBin::Bin/..";
+use Clusterflow;
+use Net::FTP;
+
+# Get Options
+my $cores;
+my $mem = '';
+my $result = GetOptions ("cores=i" => \$cores, "mem" => \$mem);
+
+# QSUB SETUP
+# --cores i = offered cores. Return number of required cores.
+if($cores){
+	print 1;
+	exit;
+}
+# --mem. Return the required memory allocation.
+if($mem){
+	print '300M';
+	exit;
+}
+
+# MODULE
+# Read in the input files from the run file
+my ($runfile, $job_id, $url, $dl_fn) = @ARGV;
+
+open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
+
+if(!system ("wget -nv --tries=10 --output-document=$dl_fn $url")){
+	# Download worked - print resulting filename to results file
+	print RUN "$job_id\t$dl_fn\n";
+} else {
+	# Download failed - don't print a filename so that child processes exit silently
+	print "Download failed: $? $!\n";
+}
+
+close (RUN);

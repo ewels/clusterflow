@@ -1,0 +1,44 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+use Getopt::Long;
+use FindBin qw($Bin);
+use lib "$FindBin::Bin/..";
+use Clusterflow;
+
+# Get Options
+my $cores;
+my $mem = '';
+my $result = GetOptions ("cores=i" => \$cores, "mem" => \$mem);
+
+# QSUB SETUP
+# --cores i = offered cores. Return number of required cores.
+if($cores){
+	print 1;
+	exit;
+}
+# --mem. Return the required memory allocation.
+if($mem){
+	print '300M';
+	exit;
+}
+
+# MODULE
+# Read in the input files from the run file
+my ($files, $runfile, $job_id, $prev_job_id, $parameters, $config_ref) = Clusterflow::load_runfile_params(@ARGV);
+my %config = %$config_ref;
+
+open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
+
+# Go through each supplied file and run FastQC.
+system ("module load fastqc");
+foreach my $file (@$files){
+	
+	if(!system ("fastqc $file")){
+		print RUN "$job_id\t$file\n";
+	} else {
+		print "FastQC Failed: $? $!\n";
+	}
+}
+
+close (RUN);

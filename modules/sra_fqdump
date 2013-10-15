@@ -1,0 +1,67 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+use Getopt::Long;
+use FindBin qw($Bin);
+use lib "$FindBin::Bin/..";
+use Clusterflow;
+
+# Get Options
+my $cores;
+my $mem = '';
+my $result = GetOptions ("cores=i" => \$cores, "mem" => \$mem);
+
+# QSUB SETUP
+# --cores i = offered cores. Return number of required cores.
+if($cores){
+	print 1;
+	exit;
+}
+# --mem. Return the required memory allocation.
+if($mem){
+	print '4G';
+	exit;
+}
+
+# MODULE
+# Read in the input files from the run file
+my ($files, $runfile, $job_id, $prev_job_id, $parameters, $config_ref) = Clusterflow::load_runfile_params(@ARGV);
+my %config = %$config_ref;
+
+open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
+
+# Go through each supplied file and run fastq-dump.
+system ("module load sratoolkit");
+foreach my $file (@$files){
+
+	my $fn_base = substr($file, 0, -4);
+	my @outputfiles = ($fn_base."_1.fastq", $fn_base."_2.fastq");
+	
+	my $attempt = 1;
+	
+	while($attempt < 6){
+		if(!system ("fastq-dump --split-files ./$file")){
+		
+			# FastQ Dump worked - print out resulting filenames
+			foreach my $output_fn (@outputfiles){
+				if(-e $output_fn){
+					print RUN "$job_id\t$output_fn\n";
+				}
+			}
+			last;
+			
+		} else {
+			
+			# FastQ Dump failed - clean up partially dumped files
+			foreach my $output_fn (@outputfiles){
+				if(-e $output_fn){
+					unlink $output_fn or die "Could not delete $output_fn : $!";
+				}
+			}
+			print "FastQ Dump failed on attempt $attempt: $? $!\n";
+			
+		}
+	}
+}
+
+close (RUN);

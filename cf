@@ -74,8 +74,7 @@ my $pipeline = shift(@ARGV);
 my @files = @ARGV;
 
 if($cl_dryrun){
-	print "Cluster Flow running in Dry Run mode. No cluster jobs will be set off, only printed.\n\n";
-	exit;
+	print "Cluster Flow is running in Dry Run mode. No cluster jobs will be set off, only printed. Run files will be created.\n\n";
 }
 if($cl_version){
 	print "Cluster Flow v$version\n\n";
@@ -126,6 +125,11 @@ my @indents;
 push @indents, \%module_tree;
 my $comment_block = 0;
 
+# Write all config variables to runfile header
+foreach my $key ( keys %config ) {
+	$runfile .= '@'.$key.":".$config{$key}."\n";
+}
+
 while(<CONFIG>){
 	chomp;
 	s/\n//;
@@ -166,6 +170,7 @@ if($file_list){
 	open (FILES, $file_list) or die "Can't read $file_list: $!";
 	while (<FILES>) {
 		chomp;
+		if ($_ =~ /^$/) { next; } # Skip blank lines
 		my @sections = split(/\t/);
 		push @files, $sections[0];
 		if(defined($sections[1])){
@@ -211,8 +216,7 @@ foreach my $i (0..$#files){
 		
 		# URL - set up download module qsub job, dependent on previous download job
 		$job_id = 'download_'.int(rand(9999));
-		$this_runfile .= "$job_id\t$dl_fn\n";
-		my $qsub = "echo \"perl download $runfn $job_id null $dl_fn\" | qsub -cwd -V -pe orte 1 -l vf=1G -o $outfn -j y -N $job_id";
+		my $qsub = "echo \"$Bin/modules/download $runfn $job_id $fn $dl_fn\" | qsub -cwd -V -pe orte 1 -l vf=1G -o $outfn -j y -N $job_id";
 		if($prev_dl_id && length($prev_dl_id) > 0 && $prev_dl_id ne 'start_0000'){
 			$qsub .= " -hold_jid $prev_dl_id";
 		}
@@ -233,6 +237,9 @@ foreach my $i (0..$#files){
 		next;
 	}
 	
+	# Write status update (now that we have a solid filename)
+	warn "Processing file ".($i+1)." - $fn\n";
+	
 	# Write out the run file
 	open (RUNOUT,'>',$runfn) or die "Can't write to $runfn: $!";
 	print RUNOUT $this_runfile;
@@ -242,12 +249,12 @@ foreach my $i (0..$#files){
 	make_qsubs (\%module_tree, $job_id, $runfn, $outfn);
 	
 	# Qsub job to e-mail on completion of this run
-	my $run_email_qsub = "echo \"mail -s 'Run ${pipeline}_$fn.run Complete' phil.ewels\@babraham.ac.uk < $outfn\" | qsub -cwd -V -o $outfn -j y -N email_run_complete_$fn -hold_jid ".join(",", @{$run_job_ids{$runfn}});
+	my $run_email_qsub = "echo \"mail -s 'Run ${pipeline}_$fn.run Complete' ".$config{email}." < $outfn || echo 'DID NOT WORK!'\" | qsub -cwd -V -o $outfn -j y -N email_run_complete_$fn -hold_jid ".join(",", @{$run_job_ids{$runfn}});
 	push @qsubs, $run_email_qsub;
 	
 	# Final qsub job to e-mail on completion of ALL JOBS
 	if($i == $#files){
-		my $final_email_qsub = "echo \"tail -n +1 ".join(" ", @outfns)." | mail -s 'Pipeline ${pipeline} Complete' phil.ewels\@babraham.ac.uk\" | qsub -cwd -V -o $outfn -j y -N email_pipeline_complete -hold_jid ".join(",", @job_ids);
+		my $final_email_qsub = "echo \"tail -n +1 ".join(" ", @outfns)." | mail -s 'Pipeline ${pipeline} Complete' ".$config{email}."\" | qsub -cwd -V -o $outfn -j y -N email_pipeline_complete -hold_jid ".join(",", @job_ids);
 		push @qsubs, $final_email_qsub;
 	}
 }
@@ -263,8 +270,12 @@ sub make_qsubs {
 		my ($module, $parameters) = split(/\s+/, $_, 2);
 		my $job_id = $module.'_'.int(rand(9999));
 		
+		unless($parameters) {
+			$parameters = '';
+		}
+		
 		# Find the module file
-		my @module_folders = ('./', "$homedir/clusterflow/modules/", "$Bin/modules/");
+		my @module_folders = ('./', "$homedir/cf/modules/", "$Bin/modules/");
 		my $module_fn;
 		foreach (@module_folders){
 			if(-e $_."$module"){
@@ -285,7 +296,7 @@ sub make_qsubs {
 		}
 		
 		# Create qsub command
-		my $qsub = "echo \"perl $module_fn $runfn $job_id $prev_job $parameters\" | qsub -cwd -V -pe orte $cores -l vf=$mem -o $outfn -j y -N $job_id";
+		my $qsub = "echo \"$module_fn $runfn $job_id $prev_job $parameters\" | qsub -cwd -V -pe orte $cores -l vf=$mem -o $outfn -j y -N $job_id";
 		if(length($prev_job) > 0 && $prev_job ne 'start_0000'){
 			$qsub .= " -hold_jid $prev_job";
 		}
@@ -307,6 +318,9 @@ sub make_qsubs {
 
 # Print qsub jobs to the terminal
 foreach(@qsubs){
-	print "$_\n\n";
-	# system $_;
+	if($cl_dryrun){
+		print "$_\n\n";
+	} else {
+		system $_;
+	}
 }
