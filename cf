@@ -4,46 +4,50 @@ use strict;
 use Getopt::Long;
 use POSIX qw(strftime);
 use FindBin qw($Bin);
-use lib "$FindBin::Bin/";
-# use File::HomeDir;
+use lib "$FindBin::Bin/source";
+# use lib "$Bin/../source";
+use Constants;
 use Clusterflow;
 use Data::Dumper;
 
 my $version = '0.0.1';
 
-# my $homedir = File::HomeDir->my_home;
-my $homedir = $ENV{"HOME"};
+our $homedir = $Constants::homedir;
+our %config = %Constants::config;
 
 # Read global config variables in. Do in order so that local prefs overwrite.
-my %config;
-my @config_files = ("$FindBin::Bin/clusterflow.config", "$homedir/clusterflow/clusterflow.config", './clusterflow.config');
-foreach my $config_file (@config_files){
-	if(-e $config_file){
-		open (CONFIG, $config_file) or die "Can't read $config_file: $!";
-		my $comment_block = 0;
-		while (<CONFIG>) {
-			chomp;
-			s/\n//;
-			s/\r//;
-			if($_ =~ /^\/\*/){
-				$comment_block = 1;
-				next;
-			}
-			if($_ =~ /^\*\//){
-				$comment_block = 0;
-				next;
-			}
-			if($_ =~ /^\@/ && !$comment_block){
-				my @sections = split(/:/, $_, 2);
-				$config{substr($sections[0], 1)} = $sections[1];
-			}
-		}
-		close(CONFIG);
-	}
-}
+# our %config;
+# my @config_files = ("$FindBin::Bin/clusterflow.config", "$homedir/clusterflow/clusterflow.config", './clusterflow.config');
+# foreach my $config_file (@config_files){
+	# if(-e $config_file){
+		# open (CONFIG, $config_file) or die "Can't read $config_file: $!";
+		# my $comment_block = 0;
+		# while (<CONFIG>) {
+			# chomp;
+			# s/\n//;
+			# s/\r//;
+			# if($_ =~ /^\/\*/){
+				# $comment_block = 1;
+				# next;
+			# }
+			# if($_ =~ /^\*\//){
+				# $comment_block = 0;
+				# next;
+			# }
+			# if($_ =~ /^\@/ && !$comment_block){
+				# my @sections = split(/:/, $_, 2);
+				# $config{substr($sections[0], 1)} = $sections[1];
+			# }
+		# }
+		# close(CONFIG);
+	# }
+# }
+
 
 # Get command line parameters
 my $split_files = 1;
+my $cl_paired_end;
+my $cl_single_end;
 my $file_list;
 my $cl_email;
 my $cl_priority;
@@ -58,6 +62,8 @@ my $cl_help;
 
 my $config_result = GetOptions(
 	"split_files=i" => \$split_files,
+	"p" => \$cl_paired_end,
+	"s" => \$cl_single_end,
 	"file_list=s" => \$file_list,
 	"email=s" => \$cl_email,
 	"priority=s" => \$cl_priority,
@@ -77,6 +83,7 @@ die "Could not parse options" unless ($config_result);
 my $pipeline = shift(@ARGV);
 my @files = @ARGV;
 
+# Printing command line options
 if($cl_list_pipelines){
 	my @pipeline_folders = ('./', "$homedir/clusterflow/pipelines/", "$Bin/pipelines/");
 	print "\nCluster Flow pipeline directories:\n\t- ".join("\n\t- ",@pipeline_folders)."\n\n";

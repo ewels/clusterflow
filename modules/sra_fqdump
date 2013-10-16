@@ -5,6 +5,7 @@ use Getopt::Long;
 use FindBin qw($Bin);
 use lib "$FindBin::Bin/..";
 use Clusterflow;
+use Constants;
 
 # Get Options
 my $cores;
@@ -31,7 +32,6 @@ my %config = %$config_ref;
 open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
 
 # Go through each supplied file and run fastq-dump.
-system ("module load sratoolkit");
 foreach my $file (@$files){
 
 	my $fn_base = substr($file, 0, -4);

@@ -5,7 +5,7 @@ use Getopt::Long;
 use FindBin qw($Bin);
 use lib "$FindBin::Bin/..";
 use Clusterflow;
-use Net::FTP;
+use Constants;
 use POSIX qw(strftime);
 
 # Get Options

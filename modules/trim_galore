@@ -1,0 +1,103 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+use Getopt::Long;
+use FindBin qw($Bin);
+use lib "$FindBin::Bin/..";
+use Clusterflow;
+use Constants;
+use Data::Dumper;
+
+# Get Options
+my $cores;
+my $mem = '';
+my $result = GetOptions ("cores=i" => \$cores, "mem" => \$mem);
+
+# QSUB SETUP
+# --cores i = offered cores. Return number of required cores.
+if($cores){
+	print 3;
+	exit;
+}
+# --mem. Return the required memory allocation.
+if($mem){
+	print '3G';
+	exit;
+}
+
+# MODULE
+# Read in the input files from the run file
+my ($files, $runfile, $job_id, $prev_job_id, $parameters, $config_ref) = Clusterflow::load_runfile_params(@ARGV);
+my %config = %$config_ref;
+
+open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
+
+# Separate file names into single end and paired end
+my ($se_files, $pe_files) = Clusterflow::is_paired_end(@$files);
+
+# Go through each single end files and run trim galore
+if($se_files && scalar(@$se_files) > 0){
+	foreach my $file (@$se_files){
+
+		my $output_fn = trim_galore_basename($file).'_trimmed.fq.gz';
+		
+		if(!system ("trim_galore --gzip --fastqc $file")){
+			# Trim Galore worked - print out resulting filenames
+			warn "Trim galore (SE mode) successfully exited..\n";
+			if(-e $output_fn){
+				print RUN "$job_id\t$output_fn\n";
+			} else {
+				warn "\nTrim Galore output file $output_fn not found..\n";
+			}
+		}
+	}
+}
+
+# Go through the paired end files and run trim galore
+if($pe_files && scalar(@$pe_files) > 0){
+	foreach my $files_ref (@$pe_files){
+		my @files = @$files_ref;
+		if(scalar(@files) == 2){
+		
+			my $output_fn_1 = trim_galore_basename($files[0]).'_val_1.fq.gz';
+			my $output_fn_2 = trim_galore_basename($files[1]).'_val_2.fq.gz';
+			
+			if(!system ("trim_galore --paired --trim1 --gzip --fastqc ".$files[0]." ".$files[1])){
+				# Trim Galore worked - print out resulting filenames
+				warn "Trim galore (PE mode) successfully exited..\n";
+				if(-e $output_fn_1){
+					print RUN "$job_id\t$output_fn_1\n";
+				} else {
+					warn "\nTrim Galore output file $output_fn_1 not found..\n";
+				}
+				if(-e $output_fn_2){
+					print RUN "$job_id\t$output_fn_2\n";
+				} else {
+					warn "\nTrim Galore output file $output_fn_2 not found..\n";
+				}
+			}
+		} else {
+			warn "\nTrim Galore paired end files had ".scalar(@files)." input files instead of 2..\n";
+		}
+	}
+}
+
+sub trim_galore_basename {
+	
+	my $fn = $_;
+	
+	if ($fn =~ /\.fastq$/){
+		$fn =~ s/\.fastq$//;
+	} elsif ($fn =~ /\.fastq\.gz$/){
+		$fn =~ s/\.fastq\.gz$//;
+	} elsif ($fn =~ /\.fq$/){
+		$fn =~ s/\.fq$//;
+	} elsif ($fn =~ /\.fq\.gz$/){
+		$fn =~ s/\.fq\.gz$//;
+	}
+	
+	return $fn;
+}
+
+
+close (RUN);

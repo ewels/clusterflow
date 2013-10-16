@@ -5,6 +5,7 @@ use Getopt::Long;
 use FindBin qw($Bin);
 use lib "$FindBin::Bin/..";
 use Clusterflow;
+use Constants;
 
 # Get Options
 my $cores;
@@ -31,7 +32,6 @@ my %config = %$config_ref;
 open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
 
 # Go through each supplied file and run FastQC.
-system ("module load fastqc");
 foreach my $file (@$files){
 	
 	if(!system ("fastqc $file")){
