@@ -64,7 +64,7 @@ sub load_runfile_params {
 	
 	# If we don't have any input files, bail now
 	if($num_input_files == 0){
-		print "Error - no input files found.\n";
+		print "\n###  Error - no input files found. Exiting... ###\n\n";
 		exit;
 	}
 	

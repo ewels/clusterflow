@@ -6,6 +6,7 @@ use FindBin qw($Bin);
 use lib "$FindBin::Bin/..";
 use Clusterflow;
 use Net::FTP;
+use POSIX qw(strftime);
 
 # Get Options
 my $cores;
@@ -28,6 +29,8 @@ if($mem){
 # Read in the input files from the run file
 my ($runfile, $job_id, $url, $dl_fn) = @ARGV;
 
+warn "\n---------------------\nDownloading $dl_fn from $url\nStarted at ".strftime("%H:%M, %A - %d/%m/%Y", localtime)."\n";
+
 open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
 
 if(!system ("wget -nv --tries=10 --output-document=$dl_fn $url")){
@@ -35,7 +38,8 @@ if(!system ("wget -nv --tries=10 --output-document=$dl_fn $url")){
 	print RUN "$job_id\t$dl_fn\n";
 } else {
 	# Download failed - don't print a filename so that child processes exit silently
-	print "Download failed: $? $!\n";
+	warn "Download failed: $? $!\n";
 }
+warn "\nDownload module finished at ".date('H:i, l \t\h\e jS F Y')."\n---------------------\n";
 
 close (RUN);

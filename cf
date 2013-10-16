@@ -16,7 +16,7 @@ my $homedir = $ENV{"HOME"};
 
 # Read global config variables in. Do in order so that local prefs overwrite.
 my %config;
-my @config_files = ("$FindBin::Bin/clusterflow.config", "$homedir/clusterflow.config", './clusterflow.config');
+my @config_files = ("$FindBin::Bin/clusterflow.config", "$homedir/clusterflow/clusterflow.config", './clusterflow.config');
 foreach my $config_file (@config_files){
 	if(-e $config_file){
 		open (CONFIG, $config_file) or die "Can't read $config_file: $!";
@@ -50,6 +50,8 @@ my $cl_priority;
 my $cl_total_cores;
 my $cl_total_mem;
 my $cl_notifications;
+my $cl_list_pipelines;
+my $cl_list_modules;
 my $cl_dryrun;
 my $cl_version;
 my $cl_help;
@@ -62,6 +64,8 @@ my $config_result = GetOptions(
 	"cores=i" => \$cl_total_cores,
 	"mem=s" => \$cl_total_mem,
 	"notifications=s"  => \$cl_notifications,
+	"list_pipelines" => \$cl_list_pipelines,
+	"list_modules" => \$cl_list_modules,
 	"dryrun" => \$cl_dryrun,
 	"version" => \$cl_version,
 	"help" => \$cl_help
@@ -73,6 +77,42 @@ die "Could not parse options" unless ($config_result);
 my $pipeline = shift(@ARGV);
 my @files = @ARGV;
 
+if($cl_list_pipelines){
+	my @pipeline_folders = ('./', "$homedir/clusterflow/pipelines/", "$Bin/pipelines/");
+	print "\nCluster Flow pipeline directories:\n\t- ".join("\n\t- ",@pipeline_folders)."\n\n";
+	print "Installed pipelines:\n";
+	foreach my $folder (@pipeline_folders){
+		if(-e $folder){
+			opendir (DIR, $folder) or die $!;
+			while (my $file = readdir(DIR)) {
+				if(substr($file, -7) eq ".config"){
+					print "\t- ".substr($file, 0, -7)."\n";
+				}
+			}
+			closedir(DIR);
+		}
+	}
+	print "\n";
+	exit;
+}
+if($cl_list_modules){
+	my @module_folders = ("$homedir/clusterflow/modules/", "$Bin/modules/");
+	print "\nCluster Flow module directories:\n\t- ".join("\n\t- ",@module_folders)."\n\n";
+	print "Available modules:\n";
+	foreach my $folder (@module_folders){
+		if(-e $folder){
+			opendir (DIR, $folder) or die $!;
+			while (my $file = readdir(DIR)) {
+				if($file ne "." && $file ne ".." && $file ne ".svn"){
+					print "\t- $file\n";
+				}
+			}
+			closedir(DIR);
+		}
+	}
+	print "\n";
+	exit;
+}
 if($cl_dryrun){
 	print "Cluster Flow is running in Dry Run mode. No cluster jobs will be set off, only printed. Run files will be created.\n\n";
 }
@@ -109,9 +149,9 @@ my @notifications = split(",", $config{notifications});
 
 # Load in the pipeline config file
 my @pipeline_folders = ('./', "$homedir/clusterflow/pipelines/", "$Bin/pipelines/");
-foreach (@pipeline_folders){
-	if(-e $_."$pipeline.config"){
-		open (CONFIG,$_."$pipeline.config") or die "Can't read ".$_."$pipeline.config: $!";
+foreach my $folder (@pipeline_folders){
+	if(-e $folder."$pipeline.config"){
+		open (CONFIG,$folder."$pipeline.config") or die "Can't read ".$folder."$pipeline.config: $!";
 		last;
 	}
 }
@@ -254,7 +294,7 @@ foreach my $i (0..$#files){
 	
 	# Final qsub job to e-mail on completion of ALL JOBS
 	if($i == $#files){
-		my $final_email_qsub = "echo \"tail -n +1 ".join(" ", @outfns)." | mail -s 'Pipeline ${pipeline} Complete' ".$config{email}."\" | qsub -cwd -V -o $outfn -j y -N email_pipeline_complete -hold_jid ".join(",", @job_ids);
+		my $final_email_qsub = "echo \"tail -n +1 ".join(" ", @outfns)." | mail -s 'Pipeline ${pipeline} Complete' ".$config{email}."\" | qsub -cwd -V -o $outfn -j y -N email_pipeline_complete -m eas -M ".$config{email}." -hold_jid ".join(",", @job_ids);
 		push @qsubs, $final_email_qsub;
 	}
 }

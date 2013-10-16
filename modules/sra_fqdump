@@ -41,11 +41,13 @@ foreach my $file (@$files){
 	
 	while($attempt < 6){
 		if(!system ("fastq-dump --split-files ./$file")){
-		
+			warn "\nFastQ Dump successfully exited on attempt $attempt\n";
 			# FastQ Dump worked - print out resulting filenames
 			foreach my $output_fn (@outputfiles){
 				if(-e $output_fn){
 					print RUN "$job_id\t$output_fn\n";
+				} else {
+					warn "\nSRA dump file $output_fn not found..\n";
 				}
 			}
 			last;
@@ -58,7 +60,7 @@ foreach my $file (@$files){
 					unlink $output_fn or die "Could not delete $output_fn : $!";
 				}
 			}
-			print "FastQ Dump failed on attempt $attempt: $? $!\n";
+			warn "FastQ Dump failed on attempt $attempt: $? $!\n";
 			
 		}
 	}
