@@ -3,27 +3,10 @@ use warnings;
 use strict;
 use Getopt::Long;
 use FindBin qw($Bin);
-use lib "$FindBin::Bin/..";
-use Clusterflow;
-use Constants;
+use lib "$FindBin::Bin/../source";
+use CF::Constants;
+use CF::Helpers;
 use POSIX qw(strftime);
-
-# Get Options
-my $cores;
-my $mem = '';
-my $result = GetOptions ("cores=i" => \$cores, "mem" => \$mem);
-
-# QSUB SETUP
-# --cores i = offered cores. Return number of required cores.
-if($cores){
-	print 1;
-	exit;
-}
-# --mem. Return the required memory allocation.
-if($mem){
-	print '300M';
-	exit;
-}
 
 # MODULE
 # Read in the input files from the run file

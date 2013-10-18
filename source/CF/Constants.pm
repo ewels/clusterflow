@@ -4,6 +4,7 @@ package Constants;
 use warnings;
 use strict;
 use FindBin;
+use Exporter;
 
 
 
@@ -22,8 +23,10 @@ our %config;
 # Empty config vars
 our $EMAIL;
 our @NOTIFICATIONS;
+our %GENOME_PATHS;
 
 # Hard coded defaults
+our $SPLIT_FILES = 1;
 our $PRIORITY = -500;
 our $TOTAL_CORES = 64;
 our $DEFAULT_MEM = '4G';
@@ -60,7 +63,7 @@ sub parse_conf_file {
 					next;
 				}
 				if($_ =~ /^\@/ && !$comment_block){
-					my @sections = split(/:/, $_, 2);
+					my @sections = split(/\t/, $_);
 					$config{substr($sections[0], 1)} = $sections[1];
 					my $name = substr($sections[0], 1);
 					my $val = $sections[1];
@@ -69,6 +72,10 @@ sub parse_conf_file {
 						$EMAIL = $val;
 					} elsif($name eq 'notification'){
 						push @NOTIFICATIONS, $val;
+					} elsif($name eq 'genome_path'){
+						$GENOME_PATHS{$val} = $sections[2];
+					} elsif($name eq 'split_files'){
+						$SPLIT_FILES = $val;
 					} elsif($name eq 'priority'){
 						$PRIORITY = $val;
 					} elsif($name eq 'total_cores'){

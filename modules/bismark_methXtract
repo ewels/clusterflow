@@ -1,0 +1,107 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+use Getopt::Long;
+use FindBin qw($Bin);
+use lib "$FindBin::Bin/../source";
+use CF::Constants;
+use CF::Helpers;
+
+# Get Options
+my $required_cores;
+my $required_mem = '';
+my $result = GetOptions ("cores=i" => \$required_cores, "mem" => \$required_mem);
+
+# QSUB SETUP
+# --cores i = offered cores. Return number of required cores.
+if($required_cores){
+	print 3;
+	exit;
+}
+# --mem. Return the required memory allocation.
+if($required_mem){
+	print '3G';
+	exit;
+}
+
+# MODULE
+# Read in the input files from the run file
+my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
+my %config = %$config_ref;
+
+open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
+
+# Set buffer size
+my $buffer = "";
+if($mem =~ /G$/){
+	($buffer = $mem) =~ s/G//;
+	$buffer = "--buffer ".($buffer - 1)."G";
+}
+
+
+
+# Go through each file and deduplicate
+if($files && scalar(@$files) > 0){
+	foreach my $file (@$files){
+		
+		# Find if PE or SE from input BAM file
+		if(CF::Helpers::is_bam_paired_end($file)){
+		
+			# Paired End BAM file
+			if(!system ("bismark_methylation_extractor --bedGraph --counts $buffer --gzip -p --no_overlap --report $file")){
+				# Bismark worked - print out resulting filenames
+				warn "Bismark methylation extractor (PE mode) successfully exited..\n";
+				my @output_fns = find_Xtracted_fns($file);
+				if(scalar(@output_fns) > 0){
+					foreach(@output_fns){
+						print RUN "$job_id\t$_\n"; 
+					}
+				} else {
+					warn "\nNo bismark meth extrator output files found..\n";
+				}
+			}
+			
+		} else {
+		
+			# Single End BAM file
+			if(!system ("bismark_methylation_extractor --bedGraph --counts $buffer --gzip -s --report $file")){
+				# Bismark worked - print out resulting filenames
+				warn "Bismark methylation extractor (SE mode) successfully exited..\n";
+				my @output_fns = find_Xtracted_fns($file);
+				if(scalar(@output_fns) > 0){
+					foreach(@output_fns){
+						print RUN "$job_id\t$_\n"; 
+					}
+				} else {
+					warn "\nNo bismark meth extrator output files found..\n";
+				}
+			}
+			
+		}
+	}
+}
+
+sub find_Xtracted_fns {
+
+	my ($file) = @_;
+	
+	# strip BAM / SAM file extension
+	$file =~ s/.[bs]am$//; 
+	
+	my @files;
+	
+	# loop through all files in directory looking for matching filenames
+	foreach (glob('*.txt *.gz')) {
+		# \Q .. \E provides $file as a literal
+		if(/^(CpG|Non_CpG|CHG|CHH)_[COBT]+_\Q$file\E\.txt(\.gz)?$/){
+			push @files, $_;
+		}
+	}
+	
+	return @files;
+	
+}
+
+
+
+close (RUN);

@@ -3,37 +3,36 @@ use warnings;
 use strict;
 use Getopt::Long;
 use FindBin qw($Bin);
-use lib "$FindBin::Bin/..";
-use Clusterflow;
-use Constants;
-use Data::Dumper;
+use lib "$FindBin::Bin/../source";
+use CF::Constants;
+use CF::Helpers;
 
 # Get Options
-my $cores;
-my $mem = '';
-my $result = GetOptions ("cores=i" => \$cores, "mem" => \$mem);
+my $required_cores;
+my $required_mem = '';
+my $result = GetOptions ("cores=i" => \$required_cores, "mem" => \$required_mem);
 
 # QSUB SETUP
 # --cores i = offered cores. Return number of required cores.
-if($cores){
+if($required_cores){
 	print 3;
 	exit;
 }
 # --mem. Return the required memory allocation.
-if($mem){
+if($required_mem){
 	print '3G';
 	exit;
 }
 
 # MODULE
 # Read in the input files from the run file
-my ($files, $runfile, $job_id, $prev_job_id, $parameters, $config_ref) = Clusterflow::load_runfile_params(@ARGV);
+my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
 my %config = %$config_ref;
 
 open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
 
 # Separate file names into single end and paired end
-my ($se_files, $pe_files) = Clusterflow::is_paired_end(@$files);
+my ($se_files, $pe_files) = CF::Helpers::is_paired_end(@$files);
 
 # Go through each single end files and run trim galore
 if($se_files && scalar(@$se_files) > 0){

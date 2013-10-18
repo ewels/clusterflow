@@ -6,46 +6,21 @@ use POSIX qw(strftime);
 use FindBin qw($Bin);
 use lib "$FindBin::Bin/source";
 # use lib "$Bin/../source";
-use Constants;
-use Clusterflow;
-use Data::Dumper;
+use CF::Constants;
+use CF::Helpers;
 
-my $version = '0.0.1';
+no warnings qw(once);
 
-our $homedir = $Constants::homedir;
-our %config = %Constants::config;
-
-# Read global config variables in. Do in order so that local prefs overwrite.
-# our %config;
-# my @config_files = ("$FindBin::Bin/clusterflow.config", "$homedir/clusterflow/clusterflow.config", './clusterflow.config');
-# foreach my $config_file (@config_files){
-	# if(-e $config_file){
-		# open (CONFIG, $config_file) or die "Can't read $config_file: $!";
-		# my $comment_block = 0;
-		# while (<CONFIG>) {
-			# chomp;
-			# s/\n//;
-			# s/\r//;
-			# if($_ =~ /^\/\*/){
-				# $comment_block = 1;
-				# next;
-			# }
-			# if($_ =~ /^\*\//){
-				# $comment_block = 0;
-				# next;
-			# }
-			# if($_ =~ /^\@/ && !$comment_block){
-				# my @sections = split(/:/, $_, 2);
-				# $config{substr($sections[0], 1)} = $sections[1];
-			# }
-		# }
-		# close(CONFIG);
-	# }
-# }
-
+my $CF_VERSION = $CF::Constants::CF_VERSION;
+my $homedir = $ENV{"HOME"}; #$CF::Constants::homedir;
+my %config = %CF::Constants::config;
+my @pipeline_folders = ('./', "$homedir/clusterflow/pipelines/", "$Bin/pipelines/");
+my @module_folders = ("$homedir/clusterflow/modules/", "$Bin/modules/");
 
 # Get command line parameters
-my $split_files = 1;
+my $GENOME;
+my $cl_genome_path;
+my $SPLIT_FILES = 1;
 my $cl_paired_end;
 my $cl_single_end;
 my $file_list;
@@ -61,7 +36,9 @@ my $cl_version;
 my $cl_help;
 
 my $config_result = GetOptions(
-	"split_files=i" => \$split_files,
+	"genome=s" => \$GENOME,
+	"genome_path=s" => \$cl_genome_path,
+	"split_files=i" => \$SPLIT_FILES,
 	"p" => \$cl_paired_end,
 	"s" => \$cl_single_end,
 	"file_list=s" => \$file_list,
@@ -85,7 +62,6 @@ my @files = @ARGV;
 
 # Printing command line options
 if($cl_list_pipelines){
-	my @pipeline_folders = ('./', "$homedir/clusterflow/pipelines/", "$Bin/pipelines/");
 	print "\nCluster Flow pipeline directories:\n\t- ".join("\n\t- ",@pipeline_folders)."\n\n";
 	print "Installed pipelines:\n";
 	foreach my $folder (@pipeline_folders){
@@ -103,7 +79,6 @@ if($cl_list_pipelines){
 	exit;
 }
 if($cl_list_modules){
-	my @module_folders = ("$homedir/clusterflow/modules/", "$Bin/modules/");
 	print "\nCluster Flow module directories:\n\t- ".join("\n\t- ",@module_folders)."\n\n";
 	print "Available modules:\n";
 	foreach my $folder (@module_folders){
@@ -124,11 +99,11 @@ if($cl_dryrun){
 	print "Cluster Flow is running in Dry Run mode. No cluster jobs will be set off, only printed. Run files will be created.\n\n";
 }
 if($cl_version){
-	print "Cluster Flow v$version\n\n";
+	print "Cluster Flow v$CF_VERSION\n\n";
 	exit;
 }
 if($cl_help){
-	print "Cluster Flow v$version\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n";
+	print "Cluster Flow v$CF_VERSION\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n";
 	exit;
 }
 if(!$pipeline){
@@ -136,26 +111,35 @@ if(!$pipeline){
 }
 
 # Set up parameters
+my $EMAIL = $CF::Constants::EMAIL;
+my @NOTIFICATIONS = @CF::Constants::NOTIFICATIONS;
+my %GENOME_PATHS = %CF::Constants::GENOME_PATHS;
+my $PRIORITY = $CF::Constants::PRIORITY;
+my $TOTAL_CORES = $CF::Constants::TOTAL_CORES;
+my $DEFAULT_MEM = $CF::Constants::DEFAULT_MEM;
+
 if($cl_email){
-	$config{email} = $cl_email;
+	$EMAIL = $cl_email;
+}
+if($cl_notifications){
+	@NOTIFICATIONS = split(",", $cl_notifications);
+}
+if($cl_genome_path){
+	$GENOME_PATHS{$cl_genome_path} = {$cl_genome_path};
+	$GENOME = $cl_genome_path;
 }
 if($cl_priority){
-	$config{priority} = $cl_priority;
+	$PRIORITY = $cl_priority;
 }
 if($cl_total_cores){
-	$config{total_cores} = $cl_total_cores;
+	$TOTAL_CORES = $cl_total_cores;
 }
 if($cl_total_mem){
-	$config{total_mem} = $cl_total_mem;
+	$DEFAULT_MEM = $cl_total_mem;
 }
 
-if($cl_notifications){
-	$config{notifications} = $cl_notifications;
-}
-my @notifications = split(",", $config{notifications});
 
 # Load in the pipeline config file
-my @pipeline_folders = ('./', "$homedir/clusterflow/pipelines/", "$Bin/pipelines/");
 foreach my $folder (@pipeline_folders){
 	if(-e $folder."$pipeline.config"){
 		open (CONFIG,$folder."$pipeline.config") or die "Can't read ".$folder."$pipeline.config: $!";
@@ -171,13 +155,14 @@ my %module_tree;
 my @indents;
 push @indents, \%module_tree;
 my $comment_block = 0;
+my $require_genome = 0;
 
 # Write all config variables to runfile header
 foreach my $key ( keys %config ) {
 	$runfile .= '@'.$key.":".$config{$key}."\n";
 }
 
-while(<CONFIG>){
+while (<CONFIG>){
 	chomp;
 	s/\n//;
 	s/\r//;
@@ -195,8 +180,20 @@ while(<CONFIG>){
 		next;
 	}
 	
+	# Required variables
+	if($_ =~ /^\@require_genome/ && !$comment_block){
+		if(!defined $GENOME){
+			warn "\n### Error - The pipeline $pipeline requires a genome to be set with --genome or --genome_path. Exiting... ### \n\n";
+			exit;
+		} elsif(!defined $GENOME_PATHS{$GENOME}){
+			warn "\n### Error - No genome path found for $GENOME. Exiting... ### \n\n";
+			exit;
+		}
+		$require_genome = 1;
+	}
+	
 	# Read the pipeline tree
-	if($_ =~ /^(\t*)#/){
+	if($_ =~ /^(\t*)#/ && !$comment_block){
 		s/^(\t*)#//;
 		splice @indents, length($1)+1;
 		push @indents, $indents[$#indents]->{$_} = {};
@@ -245,6 +242,10 @@ foreach my $i (0..$#files){
 	my $date = strftime "%H:%M %d-%m-%Y", localtime;
 	my $this_runfile = "/*\n$runfn\nCreated $date\n*/\n\n".$runfile."\n\n";
 	
+	if($require_genome){
+		$this_runfile .= "@genome_path	".$GENOME_PATHS{$GENOME}."\n\n";
+	}
+	
 	# Is this filename a URL?
 	if ($fn =~ /^(((ht|f)tp(s?))\:\/\/)/){
 		
@@ -280,7 +281,7 @@ foreach my $i (0..$#files){
 		$this_runfile .= "$job_id\t$fn\n";
 	
 	} else { # Not a URL, file doesn't exist
-		print "File $fn doesn't exist.. Skipping..\n";
+		print "\nFile $fn doesn't exist.. Skipping..\n\n";
 		next;
 	}
 	
@@ -335,15 +336,15 @@ sub make_qsubs {
 		}
 		
 		# Get options for module
-		my $cores = `$module_fn --cores 4`;
-		my $mem = `$module_fn --mem`;
+		my $cores = `$module_fn --cores $TOTAL_CORES`;
+		my $mem = `$module_fn --mem $DEFAULT_MEM`;
 		
 		if(!$mem || length($mem) == 0){
 			$mem = $config{default_mem};
 		}
 		
 		# Create qsub command
-		my $qsub = "echo \"$module_fn $runfn $job_id $prev_job $parameters\" | qsub -cwd -V -pe orte $cores -l vf=$mem -o $outfn -j y -N $job_id";
+		my $qsub = "echo \"$module_fn $runfn $job_id $prev_job $cores $mem $parameters\" | qsub -cwd -V -pe orte $cores -l vf=$mem -o $outfn -j y -N $job_id";
 		if(length($prev_job) > 0 && $prev_job ne 'start_0000'){
 			$qsub .= " -hold_jid $prev_job";
 		}

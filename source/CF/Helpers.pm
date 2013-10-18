@@ -7,23 +7,18 @@ use FindBin qw($Bin);
 use Exporter;
 use Data::Dumper;
 
-# our @ISA = qw(Exporter);
-# our @EXPORT_OK = qw(load_params);
-
-
-
 sub load_runfile_params {
-	my ($runfile, $job_id, $prev_job_id, $parameters) = @_;
+	my ($runfile, $job_id, $prev_job_id, $cores, $mem, @parameters) = @_;
 	unless (defined $prev_job_id && length($prev_job_id) > 0) {
 		die "Previous job ID not specified\n";
 	}
-	unless ($parameters) {
-		$parameters = '';
+	unless (@parameters) {
+		@parameters = ();
 	}
 	
 	my $num_input_files = 0;
 	
-	warn "\nRun File:\t\t$runfile\nJob ID:\t\t\t$job_id\nPrevious Job ID:\t$prev_job_id\nParameters:\t\t$parameters\n\n";
+	warn "\nRun File:\t\t$runfile\nJob ID:\t\t\t$job_id\nPrevious Job ID:\t$prev_job_id\nParameters:\t\t".join(", ", @parameters)."\n\n";
 
 	open (RUN,$runfile) or die "Can't read $runfile: $!";
 
@@ -75,7 +70,7 @@ sub load_runfile_params {
 		exit;
 	}
 	
-	return (\@files, $runfile, $job_id, $prev_job_id, $parameters, \%config);
+	return (\@files, $runfile, $job_id, $prev_job_id, $cores, $mem, \@parameters, \%config);
 }
 
 
@@ -106,6 +101,54 @@ sub is_paired_end {
 	
 	return (\@se_files, \@pe_files);
 }
+
+
+# Function to look into BAM/SAM header to see whether it's paired end or not
+sub is_bam_paired_end {
+
+	my ($file) = @_;
+	
+	unless($file =~ /.bam$/ || $file =~ /.sam$/){
+		warn "\n$file is not a .bam or .sam file - can't figure out PE / SE mode..\nExiting..\n\n";
+		die;
+	}
+	
+	my $headers = `samtools view -H $file`;
+	
+	my $paired_end;
+	my $header_found;
+	foreach (split("\n", $headers)){
+		if(/^\@PG/){
+			if(/-1/ && /-2/){
+				$paired_end = 1;
+				$header_found = 1;
+			} else {
+				$paired_end = 0;
+				$header_found = 1;
+			}
+		}
+	}
+	
+	if(!$header_found){
+		warn "\nCould not find BAM \@PG header, so could not determine read type.\nExiting...\n\n";
+		die;
+	}
+	
+	return $paired_end;
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 1; # Must return a true value

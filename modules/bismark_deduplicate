@@ -31,39 +31,44 @@ my %config = %$config_ref;
 
 open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
 
-# Go through each supplied file and run fastq-dump.
-foreach my $file (@$files){
 
-	my $fn_base = substr($file, 0, -4);
-	my @outputfiles = ($fn_base."_1.fastq", $fn_base."_2.fastq");
-	
-	my $attempt = 1;
-	
-	while($attempt < 6){
-		if(!system ("fastq-dump --split-files ./$file")){
-			warn "\nFastQ Dump successfully exited on attempt $attempt\n";
-			# FastQ Dump worked - print out resulting filenames
-			foreach my $output_fn (@outputfiles){
+
+# Go through each file and deduplicate
+if($files && scalar(@$files) > 0){
+	foreach my $file (@$files){
+		
+		my $output_fn = $file."_deduplicated.bam";
+		
+		# Find if PE or SE from input BAM file
+		if(CF::Helpers::is_bam_paired_end($file)){
+		
+			# Paired End BAM file
+			if(!system ("deduplicate_bismark -p --bam $file")){
+				# Bismark worked - print out resulting filenames
+				warn "Bismark deduplication (PE mode) successfully exited..\n";
 				if(-e $output_fn){
-					print RUN "$job_id\t$output_fn\n";
+					print RUN "$job_id\t$output_fn\n"; 
 				} else {
-					warn "\nSRA dump file $output_fn not found..\n";
+					warn "\nBismark output file $output_fn not found..\n";
 				}
 			}
-			last;
 			
 		} else {
-			
-			# FastQ Dump failed - clean up partially dumped files
-			foreach my $output_fn (@outputfiles){
+		
+			# Single End BAM file
+			if(!system ("deduplicate_bismark -s --bam $file")){
+				# Bismark worked - print out resulting filenames
+				warn "Bismark deduplication (SE mode) successfully exited..\n";
 				if(-e $output_fn){
-					unlink $output_fn or die "Could not delete $output_fn : $!";
+					print RUN "$job_id\t$output_fn\n"; 
+				} else {
+					warn "\nBismark output file $output_fn not found..\n";
 				}
 			}
-			warn "FastQ Dump failed on attempt $attempt: $? $!\n";
 			
 		}
 	}
 }
+
 
 close (RUN);
