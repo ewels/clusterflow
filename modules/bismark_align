@@ -47,11 +47,11 @@ my ($se_files, $pe_files) = CF::Helpers::is_paired_end(@$files);
 #
 #   BT2 and PBAT as options NEED TO BE READ FROM config file
 #	
-my $bt2_config = 1;
+my $bt1_config = 0;
 my $pbat_config = 0;
 
 my $bt2;
-if($bt2_config){
+if(!$bt1_config){
 	$bt2 = "--bowtie2";
 } else {
 	$bt2 = "";

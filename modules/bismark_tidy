@@ -1,0 +1,69 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+use Getopt::Long;
+use FindBin qw($Bin);
+use lib "$FindBin::Bin/../source";
+use CF::Constants;
+use CF::Helpers;
+use File::Copy;
+
+# Get Options
+my $required_cores;
+my $required_mem = '';
+my $result = GetOptions ("cores=i" => \$required_cores, "mem" => \$required_mem);
+
+# QSUB SETUP
+# --cores i = offered cores. Return number of required cores.
+if($required_cores){
+	print 1;
+	exit;
+}
+# --mem. Return the required memory allocation.
+if($required_mem){
+	print '1G';
+	exit;
+}
+
+# MODULE
+# Read in the input files from the run file
+my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
+my %config = %$config_ref;
+
+
+for j in *dedup.log; do f=${j:0:(${#j}-41)}; s=${j:0:9}; mkdir ${f}; mv *${s}* ${f}/; done;
+for d in *; do cd ${d}; bismark2report; cd ../; done/
+
+# make directories
+my @dirs;
+foreach (glob('*bam')) {
+	my $dir;
+	if(/_bismark_bt2.bam$/){
+		$dir = substr 0, -16;
+	} elsif(/_bismark.bam$/) {
+		$dir = substr 0, -12;
+	} else {
+		next;
+	}
+	mkdir $dir;
+	push (@dirs, $dir);
+}
+
+# move everything into those directories
+foreach my $file (glob('*')) {
+	foreach my $dir (@dirs) {
+		unless($file eq $dir){
+			if($file =~ /^$dir/){
+				move $file $dir."/".$file;
+			}
+		}
+	}
+}
+
+
+# run bismark2report in each directory
+foreach my $dir (@dirs) {
+	chdir ($dir);
+	system ("bismark2report");
+	chdir ("../");
+}
