@@ -83,7 +83,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 
 sub trim_galore_basename {
 	
-	my $fn = $_;
+	my ($fn) = @_;
 	
 	if ($fn =~ /\.fastq$/){
 		$fn =~ s/\.fastq$//;

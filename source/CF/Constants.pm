@@ -1,16 +1,10 @@
 #!/usr/bin/perl
-package Constants;
-
 use warnings;
 use strict;
 use FindBin;
 use Exporter;
 
-
-
-# This is the global version for Cluster Flow; it is updated
-# manually in new releases.  You don't need to (and
-# shouldn't) edit this yourself
+package CF::Constants;
 
 our $CF_VERSION = "0.1 devel";
 
@@ -34,11 +28,8 @@ our $DEFAULT_MEM = '4G';
 
 
 
-
-
-
-
 parse_conf_file ();
+
 
 sub parse_conf_file {
 	
@@ -54,11 +45,14 @@ sub parse_conf_file {
 				chomp;
 				s/\n//;
 				s/\r//;
-				if($_ =~ /^\/\*/){
+				
+				if($_ =~ /^\/\*.*\*\/$/){	# one line comments
+					$comment_block = 0;
+					next;
+				} elsif($_ =~ /^\/\*/){		# multiline comments start
 					$comment_block = 1;
 					next;
-				}
-				if($_ =~ /^\*\//){
+				} elsif($_ =~ /^\*\//){		# multiline comments start
 					$comment_block = 0;
 					next;
 				}
@@ -88,7 +82,27 @@ sub parse_conf_file {
 			close(CONFIG);
 		}
 	}
+}
 
+
+sub runfile_constants {
+
+	my $output;
+	
+	$output = <<"EOT";
+\@email	$EMAIL
+\@split_files	$SPLIT_FILES
+\@priority	$PRIORITY
+\@total_cores	$TOTAL_CORES
+\@default_mem	$DEFAULT_MEM
+EOT
+	
+	foreach (@NOTIFICATIONS){
+		$output .= "\@notification\t$_\n";
+	}
+		
+	return ($output);
+	
 }
 
 

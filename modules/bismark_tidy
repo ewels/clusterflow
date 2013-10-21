@@ -31,9 +31,6 @@ my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_
 my %config = %$config_ref;
 
 
-for j in *dedup.log; do f=${j:0:(${#j}-41)}; s=${j:0:9}; mkdir ${f}; mv *${s}* ${f}/; done;
-for d in *; do cd ${d}; bismark2report; cd ../; done/
-
 # make directories
 my @dirs;
 foreach (glob('*bam')) {
@@ -54,7 +51,7 @@ foreach my $file (glob('*')) {
 	foreach my $dir (@dirs) {
 		unless($file eq $dir){
 			if($file =~ /^$dir/){
-				move $file $dir."/".$file;
+				move ($file, $dir."/".$file);
 			}
 		}
 	}

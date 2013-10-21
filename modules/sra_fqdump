@@ -47,7 +47,7 @@ foreach my $file (@$files){
 				if(-e $output_fn){
 					print RUN "$job_id\t$output_fn\n";
 				} else {
-					warn "\nSRA dump file $output_fn not found..\n";
+					warn "\nSRA dump file $output_fn not found.. (Probably single end?)\n\n";
 				}
 			}
 			last;

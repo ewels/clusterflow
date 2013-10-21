@@ -158,8 +158,12 @@ my $comment_block = 0;
 my $require_genome = 0;
 
 # Write all config variables to runfile header
-foreach my $key ( keys %config ) {
-	$runfile .= '@'.$key.":".$config{$key}."\n";
+# foreach my $key ( keys %config ) {
+	# $runfile .= '@'.$key.":".$config{$key}."\n";
+# }
+$runfile = CF::Constants::runfile_constants();
+if(defined($GENOME) && defined($GENOME_PATHS{$GENOME})){
+	$runfile .= "\@genome_path\t".$GENOME_PATHS{$GENOME}."\n\n";
 }
 
 while (<CONFIG>){
@@ -186,7 +190,11 @@ while (<CONFIG>){
 			warn "\n### Error - The pipeline $pipeline requires a genome to be set with --genome or --genome_path. Exiting... ### \n\n";
 			exit;
 		} elsif(!defined $GENOME_PATHS{$GENOME}){
-			warn "\n### Error - No genome path found for $GENOME. Exiting... ### \n\n";
+			warn "\n### Error ###\nNo genome path found for $GENOME.\n\nAvailable genome paths:\n";
+			while ( (my $genome, my $path) = each %GENOME_PATHS ) {
+			  warn "\tGenome: $genome, Path: $GENOME_PATHS{$genome}\n";
+			}
+			warn "\n\nExiting...\n\n";
 			exit;
 		}
 		$require_genome = 1;
@@ -239,12 +247,9 @@ foreach my $i (0..$#files){
 	
 	# Make the run file
 	my $runfn = $fn."_$pipeline.run";
-	my $date = strftime "%H:%M %d-%m-%Y", localtime;
-	my $this_runfile = "/*\n$runfn\nCreated $date\n*/\n\n".$runfile."\n\n";
+	my $date = strftime "%H:%M, %d-%m-%Y", localtime;
+	my $this_runfile = "/*\n$runfn\nCreated at $date\n*/\n\n".$runfile."\n\n";
 	
-	if($require_genome){
-		$this_runfile .= "@genome_path	".$GENOME_PATHS{$GENOME}."\n\n";
-	}
 	
 	# Is this filename a URL?
 	if ($fn =~ /^(((ht|f)tp(s?))\:\/\/)/){
@@ -339,6 +344,9 @@ sub make_qsubs {
 		my $cores = `$module_fn --cores $TOTAL_CORES`;
 		my $mem = `$module_fn --mem $DEFAULT_MEM`;
 		
+		if(!$cores || length($cores) == 0){
+			$cores = 1;
+		}
 		if(!$mem || length($mem) == 0){
 			$mem = $config{default_mem};
 		}

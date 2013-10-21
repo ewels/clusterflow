@@ -23,6 +23,7 @@ if(!system ("wget -nv --tries=10 --output-document=$dl_fn $url")){
 	# Download failed - don't print a filename so that child processes exit silently
 	warn "Download failed: $? $!\n";
 }
-warn "\nDownload module finished at ".date('H:i, l \t\h\e jS F Y')."\n---------------------\n";
+my $date = strftime "%H:%M %d-%m-%Y", localtime;
+warn "\nDownload module finished at $date\n---------------------\n";
 
 close (RUN);
