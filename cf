@@ -178,7 +178,7 @@ my @indents;
 push @indents, \%module_tree;
 my $comment_block = 0;
 
-# Write all config variables to runfile header
+# Write config variables to runfile header
 $runfile = CF::Constants::runfile_constants();
 if(defined($GENOME) && defined($GENOME_PATHS{$GENOME})){
 	$runfile .= "\@genome_path\t".$GENOME_PATHS{$GENOME}."\n\n";
