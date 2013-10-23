@@ -169,7 +169,7 @@ SYNTAX
 	cf [flags] pipeline_name file_1 file_2..
 
 EXAMPLE
-	cf --genome NCBMI37 sra_bismark *.sra
+	cf --genome NCBIM37 sra_bismark *.sra
 
 SPECIFIC PIPELINE / MODULE HELP
 	To see specific help about a pipeline or module, use
