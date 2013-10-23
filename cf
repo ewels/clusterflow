@@ -128,6 +128,8 @@ if(!$file_list && scalar(@files) == 0){
 my $EMAIL = $CF::Constants::EMAIL;
 my @NOTIFICATIONS = @CF::Constants::NOTIFICATIONS;
 my %GENOME_PATHS = %CF::Constants::GENOME_PATHS;
+my %BOWTIE_PATHS = %CF::Constants::BOWTIE_PATHS;
+my %GTF_PATHS = %CF::Constants::GTF_PATHS;
 my $PRIORITY = $CF::Constants::PRIORITY;
 my $TOTAL_CORES = $CF::Constants::TOTAL_CORES;
 my $DEFAULT_MEM = $CF::Constants::DEFAULT_MEM;
