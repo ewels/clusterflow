@@ -18,8 +18,8 @@ our %config;
 our $EMAIL;
 our @NOTIFICATIONS;
 our %GENOME_PATHS;
-our %BOWTIE_PATH;
-our %GTF_PATH;
+our %BOWTIE_PATHS;
+our %GTF_PATHS;
 
 # Hard coded defaults
 our $SPLIT_FILES = 1;
@@ -71,9 +71,9 @@ sub parse_conf_file {
 					} elsif($name eq 'genome_path'){
 						$GENOME_PATHS{$val} = $sections[2];
 					} elsif($name eq 'bowtie_path'){
-						$BOWTIE_PATH{$val} = $sections[2];
+						$BOWTIE_PATHS{$val} = $sections[2];
 					} elsif($name eq 'gtf_path'){
-						$GTF_PATH{$val} = $sections[2];
+						$GTF_PATHS{$val} = $sections[2];
 					} elsif($name eq 'split_files'){
 						$SPLIT_FILES = $val;
 					} elsif($name eq 'priority'){
@@ -169,7 +169,7 @@ SYNTAX
 	cf [flags] pipeline_name file_1 file_2..
 
 EXAMPLE
-	cf sra_bismark *.sra
+	cf --genome NCBMI37 sra_bismark *.sra
 
 SPECIFIC PIPELINE / MODULE HELP
 	To see specific help about a pipeline or module, use
@@ -187,12 +187,22 @@ AVAILABLE FLAGS
 
 	--genome <ID>
 		ID of a genome referred to in clusterflow.config
+		This genome ID is used to specify genome paths, bowtie
+		index basenames and GTF file paths.
 		
 	--genome_path <path>
-		Path to a genome to be used for alignment
+		Path to a genome to be used for alignment. Overrides --genome
+		
+	--bowtie_path <path>
+		Path to a bowtie index basename to be used for alignment.
+		Overrides any bowtie path set with --genome
+		
+	--gtf_path <path>
+		Path to a GTF file to be used for alignment (eg. Tophat).
+		Overrides any GTF path set with --genome
 		
 	--p
-		Force paired-end mode (sets --split-files to 2)
+		Force paired-end mode (also sets --split-files to 2)
 		
 	--s
 		Force single-end mode
@@ -223,6 +233,9 @@ AVAILABLE FLAGS
 		
 	--list_modules
 		Print available modules
+		
+	--list_genomes
+		Print available genomes
 		
 	--dryrun
 		Prints jobs to terminal instead of submitting them to the cluster

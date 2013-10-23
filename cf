@@ -33,6 +33,7 @@ my $cl_total_mem;
 my $cl_notifications;
 my $cl_list_pipelines;
 my $cl_list_modules;
+my $cl_list_genomes;
 my $cl_dryrun;
 my $cl_version;
 my $cl_help;
@@ -53,6 +54,7 @@ my $config_result = GetOptions(
 	"notifications=s"  => \$cl_notifications,
 	"list_pipelines" => \$cl_list_pipelines,
 	"list_modules" => \$cl_list_modules,
+	"list_genomes" => \$cl_list_genomes,
 	"dryrun" => \$cl_dryrun,
 	"version" => \$cl_version,
 	"help" => \$cl_help
@@ -63,66 +65,6 @@ die "Could not parse options" unless ($config_result);
 # Get the file list
 my $pipeline = shift(@ARGV);
 my @files = @ARGV;
-
-# Printing command line options
-if($cl_list_pipelines){
-	print "\nCluster Flow pipeline directories:\n\t- ".join("\n\t- ",@pipeline_folders)."\n\n";
-	print "Installed pipelines:\n";
-	foreach my $folder (@pipeline_folders){
-		if(-e $folder){
-			opendir (DIR, $folder) or die $!;
-			my @dir_files = sort readdir(DIR);
-			while ( my $file = shift @dir_files ) {
-				if(substr($file, -7) eq ".config" && substr($file, 0, -7) ne "clusterflow"){
-					print "\t- ".substr($file, 0, -7)."\n";
-				}
-			}
-			closedir(DIR);
-		}
-	}
-	print "\n";
-	exit;
-}
-if($cl_list_modules){
-	print "\nCluster Flow module directories:\n\t- ".join("\n\t- ",@module_folders)."\n\n";
-	print "Available modules:\n";
-	foreach my $folder (@module_folders){
-		if(-e $folder){
-			opendir (DIR, $folder) or die $!;
-			my @dir_files = sort readdir(DIR);
-			while ( my $file = shift @dir_files ) {
-				if($file ne "." && $file ne ".." && $file ne ".svn"){
-					print "\t- $file\n";
-				}
-			}
-			closedir(DIR);
-		}
-	}
-	print "\n";
-	exit;
-}
-if($cl_dryrun){
-	print "Cluster Flow is running in Dry Run mode. No cluster jobs will be set off, only printed. Run files will be created.\n\n";
-}
-if($cl_version){
-	print "Cluster Flow v$CF_VERSION\n\n";
-	exit;
-}
-if($cl_help){
-	if($pipeline){
-		print "\n".CF::Constants::clusterflow_pipeline_help($pipeline)."\n";
-	} else {
-		print CF::Constants::clusterflow_help();
-	}
-	exit;
-}
-if(!$pipeline){
-	die("Error - no pipeline specified. Use --help for instructions.\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n");
-}
-
-if(!$file_list && scalar(@files) == 0){
-	die("Error - no input files specified. Use --help for instructions.\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n");
-}
 
 # Set up parameters
 my $EMAIL = $CF::Constants::EMAIL;
@@ -161,6 +103,89 @@ if($cl_total_cores){
 if($cl_total_mem){
 	$DEFAULT_MEM = $cl_total_mem;
 }
+
+# Printing command line options
+if($cl_list_pipelines){
+	print "".("=" x 32)."\nCluster Flow - available pipelines\n".("=" x 32)."\n";
+	print "\nCluster Flow pipeline directories:\n\t- ".join("\n\t- ",@pipeline_folders)."\n\n";
+	print "Installed pipelines:\n";
+	foreach my $folder (@pipeline_folders){
+		if(-e $folder){
+			opendir (DIR, $folder) or die $!;
+			my @dir_files = sort readdir(DIR);
+			while ( my $file = shift @dir_files ) {
+				if(substr($file, -7) eq ".config" && substr($file, 0, -7) ne "clusterflow"){
+					print "\t- ".substr($file, 0, -7)."\n";
+				}
+			}
+			closedir(DIR);
+		}
+	}
+	print "\n";
+	exit;
+}
+if($cl_list_modules){
+	print "".("=" x 32)."\nCluster Flow - available modules\n".("=" x 32)."\n";
+	print "\nCluster Flow module directories:\n\t- ".join("\n\t- ",@module_folders)."\n\n";
+	print "Available modules:\n";
+	foreach my $folder (@module_folders){
+		if(-e $folder){
+			opendir (DIR, $folder) or die $!;
+			my @dir_files = sort readdir(DIR);
+			while ( my $file = shift @dir_files ) {
+				if($file ne "." && $file ne ".." && $file ne ".svn"){
+					print "\t- $file\n";
+				}
+			}
+			closedir(DIR);
+		}
+	}
+	print "\n";
+	exit;
+}
+if($cl_list_genomes){
+	print "".("=" x 32)."\nCluster Flow - available genomes\n".("=" x 32)."\n";
+	print "\nGenome Paths:\n";
+	foreach my $key (sort keys %GENOME_PATHS ) {
+		my $spaces = " " x (20 - length($key));
+		print "\t$key:$spaces$GENOME_PATHS{$key}\n";
+	}
+	print "\nBowtie Index Base Paths:\n";
+	foreach my $key (sort keys %BOWTIE_PATHS ) {
+		my $spaces = " " x (20 - length($key));
+		print "\t$key:$spaces$BOWTIE_PATHS{$key}\n";
+	}
+	print "\nGTF File Paths:\n";
+	foreach my $key (sort keys %GTF_PATHS ) {
+		my $spaces = " " x (20 - length($key));
+		print "\t$key:$spaces$GTF_PATHS{$key}\n";
+	}
+	print "\n";
+	exit;
+}
+if($cl_dryrun){
+	print "Cluster Flow is running in Dry Run mode. No cluster jobs will be set off, only printed. Run files will be created.\n\n";
+}
+if($cl_version){
+	print "Cluster Flow v$CF_VERSION\n\n";
+	exit;
+}
+if($cl_help){
+	if($pipeline){
+		print "\n".CF::Constants::clusterflow_pipeline_help($pipeline)."\n";
+	} else {
+		print CF::Constants::clusterflow_help();
+	}
+	exit;
+}
+if(!$pipeline){
+	die("Error - no pipeline specified. Use --help for instructions.\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n");
+}
+
+if(!$file_list && scalar(@files) == 0){
+	die("Error - no input files specified. Use --help for instructions.\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n");
+}
+
 
 
 # Load in the pipeline config file
