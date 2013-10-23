@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use warnings;
 use strict;
-use FindBin;
+use FindBin qw($Bin);
 use Exporter;
 
 package CF::Constants;
@@ -18,6 +18,8 @@ our %config;
 our $EMAIL;
 our @NOTIFICATIONS;
 our %GENOME_PATHS;
+our %BOWTIE_PATH;
+our %GTF_PATH;
 
 # Hard coded defaults
 our $SPLIT_FILES = 1;
@@ -68,6 +70,10 @@ sub parse_conf_file {
 						push @NOTIFICATIONS, $val;
 					} elsif($name eq 'genome_path'){
 						$GENOME_PATHS{$val} = $sections[2];
+					} elsif($name eq 'bowtie_path'){
+						$BOWTIE_PATH{$val} = $sections[2];
+					} elsif($name eq 'gtf_path'){
+						$GTF_PATH{$val} = $sections[2];
 					} elsif($name eq 'split_files'){
 						$SPLIT_FILES = $val;
 					} elsif($name eq 'priority'){
@@ -103,6 +109,141 @@ EOT
 		
 	return ($output);
 	
+}
+
+# Prints help for a specific module or pipeline
+sub clusterflow_pipeline_help {
+	
+	my ($pipeline) = @_;
+	
+	my $help;
+	
+	my @pipelines = ('./$pipeline.config', "$homedir/clusterflow/pipelines/$pipeline.config", "$FindBin::Bin/pipelines/$pipeline.config");
+	my @modules = ("$homedir/clusterflow/modules/$pipeline", "$FindBin::Bin/modules/$pipeline");
+	foreach my $pipeline (@pipelines){
+		if(-e $pipeline){
+			open (PIPELINE, $pipeline) or die "Can't read $pipeline: $!";
+			my $comment_block = 0;
+			while (<PIPELINE>) {
+				chomp;
+				s/\n//;
+				s/\r//;
+				if($_ =~ /^\/\*/){		# multiline comments start
+					$comment_block = 1;
+				} elsif($_ =~ /^\*\//){		# multiline comments start
+					$comment_block = 0;
+				} elsif($comment_block){
+					$help .= $_."\n";
+				}
+			}
+			close(PIPELINE);
+		}
+		if($help){
+			return ($help);
+		}
+	}
+	
+	foreach my $module (@modules){
+		if(-e $module){
+			$help = `$module --help`;
+			return ($help);
+		}
+	}
+	
+	return ($help);
+	
+}
+
+# Prints main cluster flow help
+sub clusterflow_help {
+
+	my $help;
+	
+	$help = <<"EOT";
+
+Cluster Flow Help
+=================
+Running Cluster Flow version $CF_VERSION
+
+SYNTAX
+	cf [flags] pipeline_name file_1 file_2..
+
+EXAMPLE
+	cf sra_bismark *.sra
+
+SPECIFIC PIPELINE / MODULE HELP
+	To see specific help about a pipeline or module, use
+	cf --help followed by a pipeline or module name.
+
+INTRODUCTION
+	Cluster Flow is simple package to run pipelines in a cluster environment.
+	
+	Cluster Flow will set off multiple queued jobs on the cluster with queue 
+	dependencies as defined in the pipeline.
+
+AVAILABLE FLAGS
+	For a full description of the avilable flags and how to use them, see
+	the Cluster Flow documentation.
+
+	--genome <ID>
+		ID of a genome referred to in clusterflow.config
+		
+	--genome_path <path>
+		Path to a genome to be used for alignment
+		
+	--p
+		Force paired-end mode (sets --split-files to 2)
+		
+	--s
+		Force single-end mode
+		
+	--file_list
+		Text file containing input files or download URLs
+		
+	--split-files <num>
+		Create one run per <num> files
+		
+	--email <email>
+		Set the e-mail address for notifications
+		
+	--priority <num>
+		Set the queue priority for cluster jobs
+		
+	--cores <num>
+		Set the maximum number of cores to use for all runs
+		
+	--mem <string>
+		Set the maximum memory to use for all runs
+		
+	--notifications <eas>
+		Specify desired notifications
+		
+	--list_pipelines
+		Print available pipelines
+		
+	--list_modules
+		Print available modules
+		
+	--dryrun
+		Prints jobs to terminal instead of submitting them to the cluster
+		
+	--version
+		Print version of Cluster Flow installed
+		
+	--help
+		Print this help message
+
+
+AUTHOR
+	Written by Phil Ewels, Babraham Institute.
+	
+SEE ALSO
+	There is a full Cluster Flow manual available.
+
+EOT
+	
+	return ($help);
+
 }
 
 

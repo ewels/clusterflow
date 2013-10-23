@@ -28,39 +28,34 @@ if($required_mem){
 # MODULE
 # Read in the input files from the run file
 my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
-my %config = %$config_ref;
+
+# Strip off all of the bismark stuff from the input filename
+my $dir = ${$files}[0];
+$dir =~ s/.gz$//;
+$dir =~ s/.txt$//; 
+$dir =~ s/.deduplicated$//;
+$dir =~ s/_bt2$//;
+$dir =~ s/_bismark$//;
+$dir =~ s/.gz$//;
+$dir =~ s/.fq$//;
+$dir =~ s/_val_[12]$//;
+$dir =~ s/_trimmed$//;
+$dir =~ s/_[12]$//;
+$dir =~ s/^(CpG|Non_CpG|CHG|CHH)_//;
+$dir =~ s/^[COBT]+_//; 
 
 
-# make directories
-my @dirs;
-foreach (glob('*bam')) {
-	my $dir;
-	if(/_bismark_bt2.bam$/){
-		$dir = substr 0, -16;
-	} elsif(/_bismark.bam$/) {
-		$dir = substr 0, -12;
-	} else {
-		next;
-	}
-	mkdir $dir;
-	push (@dirs, $dir);
-}
+# make directory
+mkdir $dir;
 
-# move everything into those directories
+# move matching files into this directory
 foreach my $file (glob('*')) {
-	foreach my $dir (@dirs) {
-		unless($file eq $dir){
-			if($file =~ /^$dir/){
-				move ($file, $dir."/".$file);
-			}
-		}
+	if($file =~ /$dir/){
+		move ($file, $dir."/".$file);
 	}
 }
 
-
-# run bismark2report in each directory
-foreach my $dir (@dirs) {
-	chdir ($dir);
-	system ("bismark2report");
-	chdir ("../");
-}
+# run bismark2report in directory
+chdir ($dir);
+system ("bismark2report");
+chdir ("../");

@@ -20,6 +20,8 @@ my @module_folders = ("$homedir/clusterflow/modules/", "$Bin/modules/");
 # Get command line parameters
 my $GENOME;
 my $cl_genome_path;
+my $cl_bowtie_path;
+my $cl_gtf_path;
 my $SPLIT_FILES = 1;
 my $cl_paired_end;
 my $cl_single_end;
@@ -38,6 +40,8 @@ my $cl_help;
 my $config_result = GetOptions(
 	"genome=s" => \$GENOME,
 	"genome_path=s" => \$cl_genome_path,
+	"bowtie_path=s" => \$cl_bowtie_path,
+	"gtf_path=s" => \$cl_gtf_path,
 	"split_files=i" => \$SPLIT_FILES,
 	"p" => \$cl_paired_end,
 	"s" => \$cl_single_end,
@@ -67,8 +71,9 @@ if($cl_list_pipelines){
 	foreach my $folder (@pipeline_folders){
 		if(-e $folder){
 			opendir (DIR, $folder) or die $!;
-			while (my $file = readdir(DIR)) {
-				if(substr($file, -7) eq ".config"){
+			my @dir_files = sort readdir(DIR);
+			while ( my $file = shift @dir_files ) {
+				if(substr($file, -7) eq ".config" && substr($file, 0, -7) ne "clusterflow"){
 					print "\t- ".substr($file, 0, -7)."\n";
 				}
 			}
@@ -84,7 +89,8 @@ if($cl_list_modules){
 	foreach my $folder (@module_folders){
 		if(-e $folder){
 			opendir (DIR, $folder) or die $!;
-			while (my $file = readdir(DIR)) {
+			my @dir_files = sort readdir(DIR);
+			while ( my $file = shift @dir_files ) {
 				if($file ne "." && $file ne ".." && $file ne ".svn"){
 					print "\t- $file\n";
 				}
@@ -103,11 +109,19 @@ if($cl_version){
 	exit;
 }
 if($cl_help){
-	print "Cluster Flow v$CF_VERSION\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n";
+	if($pipeline){
+		print "\n".CF::Constants::clusterflow_pipeline_help($pipeline)."\n";
+	} else {
+		print CF::Constants::clusterflow_help();
+	}
 	exit;
 }
 if(!$pipeline){
-	die("Error - no pipeline specified. Use --help for instructions.\nSyntax: cf [flags] pipeline_name file_1 file_2..\n")
+	die("Error - no pipeline specified. Use --help for instructions.\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n");
+}
+
+if(!$file_list && scalar(@files) == 0){
+	die("Error - no input files specified. Use --help for instructions.\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n");
 }
 
 # Set up parameters
@@ -126,6 +140,14 @@ if($cl_notifications){
 }
 if($cl_genome_path){
 	$GENOME_PATHS{$cl_genome_path} = {$cl_genome_path};
+	$GENOME = $cl_genome_path;
+}
+if($cl_bowtie_path){
+	$BOWTIE_PATHS{$cl_bowtie_path} = {$cl_bowtie_path};
+	$GENOME = $cl_genome_path;
+}
+if($cl_gtf_path){
+	$GTF_PATHS{$cl_gtf_path} = {$cl_gtf_path};
 	$GENOME = $cl_genome_path;
 }
 if($cl_priority){
@@ -155,17 +177,20 @@ my %module_tree;
 my @indents;
 push @indents, \%module_tree;
 my $comment_block = 0;
-my $require_genome = 0;
 
 # Write all config variables to runfile header
-# foreach my $key ( keys %config ) {
-	# $runfile .= '@'.$key.":".$config{$key}."\n";
-# }
 $runfile = CF::Constants::runfile_constants();
 if(defined($GENOME) && defined($GENOME_PATHS{$GENOME})){
 	$runfile .= "\@genome_path\t".$GENOME_PATHS{$GENOME}."\n\n";
 }
+if(defined($GENOME) && defined($BOWTIE_PATHS{$GENOME})){
+	$runfile .= "\@bowtie_path\t".$BOWTIE_PATHS{$GENOME}."\n\n";
+}
+if(defined($GENOME) && defined($GTF_PATHS{$GENOME})){
+	$runfile .= "\@gtf_path\t".$GTF_PATHS{$GENOME}."\n\n";
+}
 
+# Parse pipeline config file
 while (<CONFIG>){
 	chomp;
 	s/\n//;
@@ -197,7 +222,32 @@ while (<CONFIG>){
 			warn "\n\nExiting...\n\n";
 			exit;
 		}
-		$require_genome = 1;
+	}
+	if($_ =~ /^\@require_bowtie/ && !$comment_block){
+		if(!defined $GENOME){
+			warn "\n### Error - The pipeline $pipeline requires a genome to be set with --genome or --bowtie_path. Exiting... ### \n\n";
+			exit;
+		} elsif(!defined $BOWTIE_PATHS{$GENOME}){
+			warn "\n### Error ###\nNo genome path found for $GENOME.\n\nAvailable genome paths:\n";
+			while ( (my $genome, my $path) = each %BOWTIE_PATHS ) {
+			  warn "\tGenome: $genome, Path: $BOWTIE_PATHS{$genome}\n";
+			}
+			warn "\n\nExiting...\n\n";
+			exit;
+		}
+	}
+	if($_ =~ /^\@require_gtf/ && !$comment_block){
+		if(!defined $GENOME){
+			warn "\n### Error - The pipeline $pipeline requires a genome to be set with --genome or --gtf_path. Exiting... ### \n\n";
+			exit;
+		} elsif(!defined $GTF_PATHS{$GENOME}){
+			warn "\n### Error ###\nNo genome path found for $GENOME.\n\nAvailable genome paths:\n";
+			while ( (my $genome, my $path) = each %GTF_PATHS ) {
+			  warn "\tGenome: $genome, Path: $GTF_PATHS{$genome}\n";
+			}
+			warn "\n\nExiting...\n\n";
+			exit;
+		}
 	}
 	
 	# Read the pipeline tree

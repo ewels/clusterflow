@@ -37,7 +37,7 @@ open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
 if($files && scalar(@$files) > 0){
 	foreach my $file (@$files){
 		
-		my $output_fn = $file."_deduplicated.bam";
+		my $output_fn = substr($file,0 ,-3)."deduplicated.bam";
 		
 		# Find if PE or SE from input BAM file
 		if(CF::Helpers::is_bam_paired_end($file)){
