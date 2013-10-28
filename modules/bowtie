@@ -36,8 +36,8 @@ my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_
 my %config = %$config_ref;
 
 # Check that we have a genome defined
-if(!defined($config{genome_path})){
-	warn "\n\n### No genome path found in run file $runfile for job $job_id. Exiting.. ###";
+if(!defined($config{bowtie_path})){
+	warn "\n\n### No bowtie path found in run file $runfile for job $job_id. Exiting.. ###";
 	exit;
 }
 
@@ -57,7 +57,7 @@ if($se_files && scalar(@$se_files) > 0){
 		
 		my $output_fn = $file."_bowtie.bam";
 		
-		if(!system ("bowtie -p $cores -t -m 1 --strata --best -S --chunkmbs 2048 ".$config{genome_path}." ".$file." | samtools view -bSh 2>/dev/null - > $output_fn")){
+		if(!system ("bowtie -p $cores -t -m 1 --strata --best -S --chunkmbs 2048 ".$config{bowtie_path}." ".$file." | samtools view -bSh 2>/dev/null - > $output_fn")){
 			# Bowtie worked - print out resulting filenames
 			warn "Bowtie (SE mode) successfully exited..\n";
 			if(-e $output_fn){
@@ -77,7 +77,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			
 			my $output_fn = $files[0]."_bowtie.bam";
 			
-			if(!system ("bowtie -p $cores -t -m 1 --strata --best --maxins 700 -S --chunkmbs 2048 ".$config{genome_path}." -1 ".$files[0]." -2 ".$files[1]." | samtools view -bSh 2>/dev/null - > $output_fn")){
+			if(!system ("bowtie -p $cores -t -m 1 --strata --best --maxins 700 -S --chunkmbs 2048 ".$config{bowtie_path}." -1 ".$files[0]." -2 ".$files[1]." | samtools view -bSh 2>/dev/null - > $output_fn")){
 				# Bowtie worked - print out resulting filenames
 				warn "Bowtie (PE mode) successfully exited..\n";
 				if(-e $output_fn){

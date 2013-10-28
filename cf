@@ -208,13 +208,13 @@ my $comment_block = 0;
 # Write config variables to runfile header
 $runfile = CF::Constants::runfile_constants();
 if(defined($GENOME) && defined($GENOME_PATHS{$GENOME})){
-	$runfile .= "\@genome_path\t".$GENOME_PATHS{$GENOME}."\n\n";
+	$runfile .= "\@genome_path\t".$GENOME_PATHS{$GENOME}."\n";
 }
 if(defined($GENOME) && defined($BOWTIE_PATHS{$GENOME})){
-	$runfile .= "\@bowtie_path\t".$BOWTIE_PATHS{$GENOME}."\n\n";
+	$runfile .= "\@bowtie_path\t".$BOWTIE_PATHS{$GENOME}."\n";
 }
 if(defined($GENOME) && defined($GTF_PATHS{$GENOME})){
-	$runfile .= "\@gtf_path\t".$GTF_PATHS{$GENOME}."\n\n";
+	$runfile .= "\@gtf_path\t".$GTF_PATHS{$GENOME}."\n";
 }
 
 # Parse pipeline config file
