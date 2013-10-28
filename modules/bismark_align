@@ -41,27 +41,16 @@ open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
 my ($se_files, $pe_files) = CF::Helpers::is_paired_end(@$files);
 
 
-
-
-
-#
-#   BT2 and PBAT as options NEED TO BE READ FROM config file
-#	
-my $bt1_config = 0;
-my $pbat_config = 0;
-
-my $bt2;
-if(!$bt1_config){
-	$bt2 = "--bowtie2";
-} else {
-	$bt2 = "";
-}
-
-my $pbat;
-if($pbat_config){
-	$pbat = "--pbat";
-} else {
-	$pbat = "";
+# Read any options from the pipeline parameters
+my $bt2 = "";
+my $pbat = "";
+foreach my $parameter (@$parameters){
+	if($parameter == "pbat"){
+		$pbat = "--pbat --ignore 4";
+	}
+	if($parameter == "bt2"){
+		$pbat = "--bowtie2";
+	}
 }
 
 
