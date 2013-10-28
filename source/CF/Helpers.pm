@@ -84,8 +84,8 @@ sub is_paired_end {
 	for (my $i = 0; $i <= $#files; $i++){
 		if($i < $#files){
 			# Make stripped copies of the fns for comparison
-			(my $fn1 = $files[$i]) =~ s/_[1-4]//;
-			(my $fn2 = $files[$i+1]) =~ s/_[1-4]//;
+			(my $fn1 = $files[$i]) =~ s/_[1-4]//g;
+			(my $fn2 = $files[$i+1]) =~ s/_[1-4]//g;
 			if($fn1 eq $fn2){
 				my @pe = ($files[$i], $files[$i+1]);
 				push (@pe_files, \@pe);
