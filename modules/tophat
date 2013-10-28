@@ -81,7 +81,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 		my @files = @$files_ref;
 		if(scalar(@files) == 2){
 			
-			my $output_dir = $file;
+			my $output_dir = $files[0];
 			$output_dir =~ s/.gz$//;
 			$output_dir =~ s/.fq$//;
 			$output_dir =~ s/.fastq$//;
@@ -90,7 +90,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			
 			my $output_fn = $output_dir."/accepted_hits.bam";
 			
-			if(!system ("tophat -p $cores -g 1 -G ".$config{gtf_path}." -o $output_dir ".$file[0].",".$file[1])){
+			if(!system ("tophat -p $cores -g 1 -G ".$config{gtf_path}." -o $output_dir ".$files[0].",".$files[1])){
 				# Tophat worked - print out resulting filenames
 				warn "Tophat (PE mode) successfully exited..\n";
 				if(-e $output_fn){
