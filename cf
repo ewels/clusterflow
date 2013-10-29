@@ -340,7 +340,8 @@ for (my $i = 0; $i <= $#files; $i++){
 	my $this_runfile = "/*\n$runfn\nCreated at $date\n*/\n\n".$runfile."\n\n";
 	
 	# Add files to run file
-	for ($i; $i < $i + $SPLIT_FILES; $i++){
+	my $max_i = $i + $SPLIT_FILES;
+	for ($i; $i < $max_i; $i++){
 		
 		if($i > $#files) {
 			last;
@@ -391,6 +392,7 @@ for (my $i = 0; $i <= $#files; $i++){
 		warn "Processing file ".($i+1)." - $fn\n";
 	
 	}
+	$i--; # Loop increments $i when it finishes. Revert this increment before next loop
 	$fn = $first_fn;
 	
 	# Write out the run file
