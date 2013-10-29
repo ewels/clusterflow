@@ -37,9 +37,8 @@ foreach my $file (@$files){
 	my $fn_base = substr($file, 0, -4);
 	my @outputfiles = ($fn_base."_1.fastq", $fn_base."_2.fastq");
 	
-	my $attempt = 1;
+	for (my $attempt = 1; $attempt < 6; $attempt++) {
 	
-	while($attempt < 6){
 		if(!system ("fastq-dump --split-files ./$file")){
 			warn "\nFastQ Dump successfully exited on attempt $attempt\n";
 			# FastQ Dump worked - print out resulting filenames

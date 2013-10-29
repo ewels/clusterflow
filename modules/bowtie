@@ -39,6 +39,8 @@ my %config = %$config_ref;
 if(!defined($config{bowtie_path})){
 	warn "\n\n### No bowtie path found in run file $runfile for job $job_id. Exiting.. ###";
 	exit;
+} else {
+	warn "\nAligning against ".$config{bowtie_path}."\n\n";
 }
 
 if(!defined($cores) || $cores <= 0){
@@ -58,7 +60,7 @@ if($se_files && scalar(@$se_files) > 0){
 		my $gzip = "";
 		if($file =~ /gz$/){
 			$gzip = "gzip -dc $file | ";
-			$file = "";
+			$file = "-";
 		}
 		
 		my $output_fn = $file."_bowtie.bam";
@@ -71,6 +73,9 @@ if($se_files && scalar(@$se_files) > 0){
 			} else {
 				warn "\nBowtie output file $output_fn not found..\n";
 			}
+		} else {
+			warn "\n### Bowtie (SE mode) failed. ###\n\nCommand run:\n";
+			warn "$gzip bowtie -p $cores -t -m 1 --strata --best -S --chunkmbs 2048 ".$config{bowtie_path}." $file | samtools view -bSh 2>/dev/null - > $output_fn\n\n";
 		}
 	}
 }
@@ -81,6 +86,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 		my @files = @$files_ref;
 		if(scalar(@files) == 2){
 			
+			# Unzip gzipped input files
 			if($files[0] =~ /.gz$/){
 				system("gunzip ".$files[0]);
 				system("gunzip ".$files[1]);
@@ -98,8 +104,12 @@ if($pe_files && scalar(@$pe_files) > 0){
 				} else {
 					warn "\nBowtie output file $output_fn not found..\n";
 				}
+			} else {
+				warn "\n### Bowtie (PE mode) failed. ###\n\nCommand run:\n";
+				warn "bowtie -p $cores -t -m 1 --strata --best --maxins 700 -S --chunkmbs 2048 ".$config{bowtie_path}." -1 ".$files[0]." -2 ".$files[1]." | samtools view -bSh 2>/dev/null - > $output_fn\n\n";
 			}
 			
+			# Zip input files up again
 			system("gzip ".$files[0]);
 			system("gzip ".$files[1]);
 			
