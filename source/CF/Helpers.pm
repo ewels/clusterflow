@@ -5,6 +5,7 @@ use warnings;
 use strict;
 use FindBin qw($Bin);
 use Exporter;
+use POSIX qw(strftime);
 use Data::Dumper;
 
 sub load_runfile_params {
@@ -18,7 +19,9 @@ sub load_runfile_params {
 	
 	my $num_input_files = 0;
 	
-	warn "\nRun File:\t\t$runfile\nJob ID:\t\t\t$job_id\nPrevious Job ID:\t$prev_job_id\nParameters:\t\t".join(", ", @parameters)."\n\n";
+	my $date = strftime "%H:%M, %d-%m-%Y", localtime;
+	my $dashes = "-" x 80;
+	warn "\n$dashes\nRun File:\t\t$runfile\nJob ID:\t\t\t$job_id\nPrevious Job ID:\t$prev_job_id\nParameters:\t\t".join(", ", @parameters)."\nDate & Time:\t\t$date\n$dashes\n\n";
 
 	open (RUN,$runfile) or die "Can't read $runfile: $!";
 
