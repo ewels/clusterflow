@@ -38,6 +38,14 @@ if($mem =~ /G$/){
 	$buffer = "--buffer ".($buffer - 1)."G";
 }
 
+# Read any options from the pipeline parameters
+my $pbat = "";
+foreach my $parameter (@$parameters){
+	if($parameter == "pbat"){
+		$pbat = "--ignore 4";
+	}
+}
+ 
 
 
 # Go through each file and deduplicate
@@ -48,7 +56,7 @@ if($files && scalar(@$files) > 0){
 		if(CF::Helpers::is_bam_paired_end($file)){
 		
 			# Paired End BAM file
-			if(!system ("bismark_methylation_extractor --bedGraph --counts $buffer --gzip -p --no_overlap --report $file")){
+			if(!system ("bismark_methylation_extractor $pbat --bedGraph --counts $buffer --gzip -p --no_overlap --report $file")){
 				# Bismark worked - print out resulting filenames
 				warn "Bismark methylation extractor (PE mode) successfully exited..\n";
 				my @output_fns = find_Xtracted_fns($file);
@@ -64,7 +72,7 @@ if($files && scalar(@$files) > 0){
 		} else {
 		
 			# Single End BAM file
-			if(!system ("bismark_methylation_extractor --bedGraph --counts $buffer --gzip -s --report $file")){
+			if(!system ("bismark_methylation_extractor $pbat --bedGraph --counts $buffer --gzip -s --report $file")){
 				# Bismark worked - print out resulting filenames
 				warn "Bismark methylation extractor (SE mode) successfully exited..\n";
 				my @output_fns = find_Xtracted_fns($file);

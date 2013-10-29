@@ -45,11 +45,11 @@ my ($se_files, $pe_files) = CF::Helpers::is_paired_end(@$files);
 my $bt2 = "";
 my $pbat = "";
 foreach my $parameter (@$parameters){
-	if($parameter == "pbat"){
-		$pbat = "--pbat --ignore 4";
+	if($parameter eq "pbat"){
+		$pbat = "--pbat";
 	}
-	if($parameter == "bt2"){
-		$pbat = "--bowtie2";
+	if($parameter eq "bt2"){
+		$bt2 = "--bowtie2";
 	}
 }
 
