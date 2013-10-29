@@ -36,9 +36,15 @@ my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_
 my %config = %$config_ref;
 
 # Check that we have a genome defined
+if(!defined($config{bowtie_path})){
+	warn "\n\n### No GTF path found in run file $runfile for job $job_id. Exiting.. ###";
+	exit;
+}
 if(!defined($config{gtf_path})){
 	warn "\n\n### No GTF path found in run file $runfile for job $job_id. Exiting.. ###";
 	exit;
+} else {
+	warn "\nAligning against ".$config{gtf_path}."\n\n";
 }
 
 if(!defined($cores) || $cores <= 0){
@@ -63,7 +69,7 @@ if($se_files && scalar(@$se_files) > 0){
 		
 		my $output_fn = $output_dir."/accepted_hits.bam";
 		
-		if(!system ("tophat -p $cores -g 1 -G ".$config{gtf_path}." -o $output_dir $file")){
+		if(!system ("tophat -p $cores -g 1 -G ".$config{gtf_path}." -o $output_dir ".$config{bowtie_path}." $file")){
 			# Tophat worked - print out resulting filenames
 			warn "Tophat (SE mode) successfully exited..\n";
 			if(-e $output_fn){
@@ -71,6 +77,9 @@ if($se_files && scalar(@$se_files) > 0){
 			} else {
 				warn "\nTophat output file $output_fn not found..\n";
 			}
+		} else {
+			warn "\n### Tophat (SE mode) failed. ###\n\nCommand run:\n";
+			warn "tophat -p $cores -g 1 -G ".$config{gtf_path}." -o $output_dir ".$config{bowtie_path}." $file\n\n";
 		}
 	}
 }
@@ -90,7 +99,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			
 			my $output_fn = $output_dir."/accepted_hits.bam";
 			
-			if(!system ("tophat -p $cores -g 1 -G ".$config{gtf_path}." -o $output_dir ".$files[0].",".$files[1])){
+			if(!system ("tophat -p $cores -g 1 -G ".$config{gtf_path}." -o $output_dir ".$config{bowtie_path}." ".$files[0].",".$files[1])){
 				# Tophat worked - print out resulting filenames
 				warn "Tophat (PE mode) successfully exited..\n";
 				if(-e $output_fn){
@@ -98,6 +107,9 @@ if($pe_files && scalar(@$pe_files) > 0){
 				} else {
 					warn "\nTophat output file $output_fn not found..\n";
 				}
+			} else {
+				warn "\n### Tophat (PE mode) failed. ###\n\nCommand run:\n";
+				warn "tophat -p $cores -g 1 -G ".$config{gtf_path}." -o $output_dir ".$config{bowtie_path}." ".$files[0].",".$files[1]."\n\n";
 			}
 		} else {
 			warn "\nTophat paired end files had ".scalar(@files)." input files instead of 2..\n";
