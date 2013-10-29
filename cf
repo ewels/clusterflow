@@ -164,7 +164,8 @@ if($cl_list_genomes){
 	exit;
 }
 if($cl_dryrun){
-	print "Cluster Flow is running in Dry Run mode. No cluster jobs will be set off, only printed. Run files will be created.\n\n";
+	print "\n### Cluster Flow is running in Dry Run mode. No cluster jobs will be set off, only printed. Run files will be created. ###\n\n";
+	sleep(1);
 }
 if($cl_version){
 	print "Cluster Flow v$CF_VERSION\n\n";
@@ -216,6 +217,16 @@ if(defined($GENOME) && defined($BOWTIE_PATHS{$GENOME})){
 if(defined($GENOME) && defined($GTF_PATHS{$GENOME})){
 	$runfile .= "\@gtf_path\t".$GTF_PATHS{$GENOME}."\n";
 }
+
+# Forcing paired end or single end
+if ($cl_paired_end){
+	$runfile .= "\@force_paired_end\n";
+	if($SPLIT_FILES == 1){
+		$SPLIT_FILES = 2;
+	}
+} elsif ($cl_single_end){
+	$runfile .= "\@force_single_end\n";
+} 
 
 # Parse pipeline config file
 while (<CONFIG>){
@@ -318,8 +329,9 @@ my %run_job_ids;
 my $job_id;
 my $prev_dl_id;
 my @outfns;
-foreach my $i (0..$#files){
+for (my $i = 0; $i <= $#files; $i++){
 	my $fn = $files[$i];
+	my $first_fn = $fn;
 	my $outfn = $fn."_$pipeline.out";
 	
 	# Make the run file
@@ -327,48 +339,59 @@ foreach my $i (0..$#files){
 	my $date = strftime "%H:%M, %d-%m-%Y", localtime;
 	my $this_runfile = "/*\n$runfn\nCreated at $date\n*/\n\n".$runfile."\n\n";
 	
-	
-	# Is this filename a URL?
-	if ($fn =~ /^(((ht|f)tp(s?))\:\/\/)/){
+	# Add files to run file
+	for ($i; $i < $i + $SPLIT_FILES; $i++){
 		
-		# Find download filename if it exists
-		my $dl_fn;
-		if($download_fns[$i]){
-			$dl_fn = $download_fns[$i];
-		} else {
-			my @parts = split("/", $fn);
-			$dl_fn = pop(@parts);
+		if($i > $#files) {
+			last;
 		}
-		$runfn = $dl_fn."_$pipeline.run";
-		$this_runfile = "/*\n$runfn\nFile $dl_fn downloaded from $fn\nCreated $date\n*/\n\n".$runfile."\n\n";
-		$outfn = $dl_fn."_$pipeline.out";
-		push @outfns, $outfn;
 		
-		# URL - set up download module qsub job, dependent on previous download job
-		$job_id = 'download_'.int(rand(9999));
-		my $qsub = "echo \"$Bin/modules/download $runfn $job_id $fn $dl_fn\" | qsub -cwd -V -pe orte 1 -l vf=1G -o $outfn -j y -N $job_id";
-		if($prev_dl_id && length($prev_dl_id) > 0 && $prev_dl_id ne 'start_0000'){
-			$qsub .= " -hold_jid $prev_dl_id";
+		$fn = $files[$i];
+		
+		# Is this filename a URL?
+		if ($fn =~ /^(((ht|f)tp(s?))\:\/\/)/){
+			
+			# Find download filename if it exists
+			my $dl_fn;
+			if($download_fns[$i]){
+				$dl_fn = $download_fns[$i];
+			} else {
+				my @parts = split("/", $fn);
+				$dl_fn = pop(@parts);
+			}
+			$runfn = $dl_fn."_$pipeline.run";
+			$this_runfile = "/*\n$runfn\nFile $dl_fn downloaded from $fn\nCreated $date\n*/\n\n".$runfile."\n\n";
+			$outfn = $dl_fn."_$pipeline.out";
+			push @outfns, $outfn;
+			
+			# URL - set up download module qsub job, dependent on previous download job
+			$job_id = 'download_'.int(rand(9999));
+			my $qsub = "echo \"$Bin/modules/download $runfn $job_id $fn $dl_fn\" | qsub -cwd -V -pe orte 1 -l vf=1G -o $outfn -j y -N $job_id";
+			if($prev_dl_id && length($prev_dl_id) > 0 && $prev_dl_id ne 'start_0000'){
+				$qsub .= " -hold_jid $prev_dl_id";
+			}
+			push @qsubs, $qsub;
+			push @job_ids, $job_id;
+			$prev_dl_id = $job_id;
+			
+			# Done with the download URL. Call $fn for later stuff
+			$fn = $dl_fn;
+		
+		} elsif(-e $fn) { # Not a URL. Does this file exist?
+			# Add the starting filename to the run file
+			$job_id = 'start_0000';
+			$this_runfile .= "$job_id\t$fn\n";
+		
+		} else { # Not a URL, file doesn't exist
+			print "\nFile $fn doesn't exist.. Skipping..\n\n";
+			next;
 		}
-		push @qsubs, $qsub;
-		push @job_ids, $job_id;
-		$prev_dl_id = $job_id;
 		
-		# Done with the download URL. Call $fn for later stuff
-		$fn = $dl_fn;
+		# Write status update (now that we have a solid filename)
+		warn "Processing file ".($i+1)." - $fn\n";
 	
-	} elsif(-e $fn) { # Not a URL. Does this file exist?
-		# Add the starting filename to the run file
-		$job_id = 'start_0000';
-		$this_runfile .= "$job_id\t$fn\n";
-	
-	} else { # Not a URL, file doesn't exist
-		print "\nFile $fn doesn't exist.. Skipping..\n\n";
-		next;
 	}
-	
-	# Write status update (now that we have a solid filename)
-	warn "Processing file ".($i+1)." - $fn\n";
+	$fn = $first_fn;
 	
 	# Write out the run file
 	open (RUNOUT,'>',$runfn) or die "Can't write to $runfn: $!";
@@ -379,12 +402,12 @@ foreach my $i (0..$#files){
 	make_qsubs (\%module_tree, $job_id, $runfn, $outfn);
 	
 	# Qsub job to e-mail on completion of this run
-	my $run_email_qsub = "echo \"mail -s 'Run ${pipeline}_$fn.run Complete' ".$config{email}." < $outfn || echo 'DID NOT WORK!'\" | qsub -cwd -V -o $outfn -j y -N email_run_complete_$fn -hold_jid ".join(",", @{$run_job_ids{$runfn}});
+	my $run_email_qsub = "echo \"mail -s 'Run ${pipeline}_$fn.run Complete' ".$config{email}." < $outfn\" | qsub -cwd -V -o $outfn -j y -N email_run_complete_$fn -hold_jid ".join(",", @{$run_job_ids{$runfn}});
 	push @qsubs, $run_email_qsub;
 	
 	# Final qsub job to e-mail on completion of ALL JOBS
 	if($i == $#files){
-		my $final_email_qsub = "echo \"tail -n +1 ".join(" ", @outfns)." | mail -s 'Pipeline ${pipeline} Complete' ".$config{email}."\" | qsub -cwd -V -o $outfn -j y -N email_pipeline_complete -m eas -M ".$config{email}." -hold_jid ".join(",", @job_ids);
+		my $final_email_qsub = "echo \"tail -n +1 ".join(" ", @outfns)." | mail -s 'Pipeline ${pipeline} Complete' ".$config{email}."\" | qsub -cwd -V -o $outfn -j y -N email_pipeline_complete_${pipeline} -m eas -M ".$config{email}." -hold_jid ".join(",", @job_ids);
 		push @qsubs, $final_email_qsub;
 	}
 }
