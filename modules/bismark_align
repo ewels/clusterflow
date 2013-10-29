@@ -85,9 +85,9 @@ if($pe_files && scalar(@$pe_files) > 0){
 			
 			my $output_fn;
 			if($bt2){
-				$output_fn = $files[0]."_bismark_bt2.bam";
+				$output_fn = $files[0]."_bismark_pe_bt2.bam";
 			} else {
-				$output_fn = $files[0]."_bismark.bam";
+				$output_fn = $files[0]."_bismark_pe.bam";
 			}
 			
 			if(!system ("bismark --bam $bt2 $pbat ".$config{genome_path}." -1 ".$files[0]." -2 ".$files[1])){

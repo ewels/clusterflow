@@ -55,9 +55,15 @@ my ($se_files, $pe_files) = CF::Helpers::is_paired_end(@$files);
 if($se_files && scalar(@$se_files) > 0){
 	foreach my $file (@$se_files){
 		
+		my $gzip = "";
+		if($file =~ /gz$/){
+			$gzip = "gzip -dc $file | ";
+			$file = "";
+		}
+		
 		my $output_fn = $file."_bowtie.bam";
 		
-		if(!system ("bowtie -p $cores -t -m 1 --strata --best -S --chunkmbs 2048 ".$config{bowtie_path}." ".$file." | samtools view -bSh 2>/dev/null - > $output_fn")){
+		if(!system ("$gzip bowtie -p $cores -t -m 1 --strata --best -S --chunkmbs 2048 ".$config{bowtie_path}." $file | samtools view -bSh 2>/dev/null - > $output_fn")){
 			# Bowtie worked - print out resulting filenames
 			warn "Bowtie (SE mode) successfully exited..\n";
 			if(-e $output_fn){
@@ -75,6 +81,13 @@ if($pe_files && scalar(@$pe_files) > 0){
 		my @files = @$files_ref;
 		if(scalar(@files) == 2){
 			
+			if($files[0] =~ /.gz$/){
+				system("gunzip ".$files[0]);
+				system("gunzip ".$files[1]);
+				$files[0] =~ s/.gz$//;
+				$files[1] =~ s/.gz$//;
+			}
+			
 			my $output_fn = $files[0]."_bowtie.bam";
 			
 			if(!system ("bowtie -p $cores -t -m 1 --strata --best --maxins 700 -S --chunkmbs 2048 ".$config{bowtie_path}." -1 ".$files[0]." -2 ".$files[1]." | samtools view -bSh 2>/dev/null - > $output_fn")){
@@ -86,6 +99,10 @@ if($pe_files && scalar(@$pe_files) > 0){
 					warn "\nBowtie output file $output_fn not found..\n";
 				}
 			}
+			
+			system("gzip ".$files[0]);
+			system("gzip ".$files[1]);
+			
 		} else {
 			warn "\nBowtie paired end files had ".scalar(@files)." input files instead of 2..\n";
 		}
