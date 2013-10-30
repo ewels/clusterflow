@@ -56,9 +56,28 @@ open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
 # Separate file names into single end and paired end
 my ($se_files, $pe_files) = CF::Helpers::is_paired_end(@$files);
 
+# FastQ encoding type. Once found on one file will assume all others are the same
+my $encoding = 0;
+
 # Go through each single end files and run Tophat
 if($se_files && scalar(@$se_files) > 0){
 	foreach my $file (@$se_files){
+		
+		# Figure out the encoding if we don't already know
+		if(!$encoding){
+			($encoding) = CF::Helpers::fastq_encoding_type($file);
+		}
+		# Tophat only accepts --solexa-quals, --solexa1.3-quals and --integer-quals 
+		my $enc = "";
+		if($encoding eq 'solexa'){
+			$enc = '--solexa-quals';
+		} elsif($encoding eq 'phred64'){
+			$enc = '--solexa1.3-quals';
+		} elsif($encoding eq 'phred33'){
+			$enc = '--solexa-quals';
+		} elsif($encoding eq 'integer'){
+			$enc = '--integer-quals';
+		}
 		
 		my $output_dir = $file;
 		$output_dir =~ s/.gz$//;
@@ -69,7 +88,7 @@ if($se_files && scalar(@$se_files) > 0){
 		
 		my $output_fn = $output_dir."/accepted_hits.bam";
 		
-		my $command = "tophat -p $cores -g 1 -G ".$config{gtf_path}." -o $output_dir ".$config{bowtie_path}." $file";
+		my $command = "tophat -p $cores -g 1 $enc -G ".$config{gtf_path}." -o $output_dir ".$config{bowtie_path}." $file";
 		warn "\nRunning command:\n$command\n\n";
 		
 		if(!system ($command)){
@@ -92,6 +111,22 @@ if($pe_files && scalar(@$pe_files) > 0){
 		my @files = @$files_ref;
 		if(scalar(@files) == 2){
 			
+			# Figure out the encoding if we don't already know
+			if(!$encoding){
+				($encoding) = CF::Helpers::fastq_encoding_type($files[0]);
+			}
+			# Tophat only accepts --solexa-quals, --solexa1.3-quals and --integer-quals 
+			my $enc = "";
+			if($encoding eq 'solexa'){
+				$enc = '--solexa-quals';
+			} elsif($encoding eq 'phred64'){
+				$enc = '--solexa1.3-quals';
+			} elsif($encoding eq 'phred33'){
+				$enc = '--solexa-quals';
+			} elsif($encoding eq 'integer'){
+				$enc = '--integer-quals';
+			}
+			
 			my $output_dir = $files[0];
 			$output_dir =~ s/.gz$//;
 			$output_dir =~ s/.fq$//;
@@ -101,7 +136,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			
 			my $output_fn = $output_dir."/accepted_hits.bam";
 			
-			my $command = "tophat -p $cores -g 1 -G ".$config{gtf_path}." -o $output_dir ".$config{bowtie_path}." ".$files[0].",".$files[1];
+			my $command = "tophat -p $cores -g 1 $enc -G ".$config{gtf_path}." -o $output_dir ".$config{bowtie_path}." ".$files[0].",".$files[1];
 			warn "\nRunning command:\n$command\n\n";
 			
 			if(!system ($command)){

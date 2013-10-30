@@ -52,10 +52,21 @@ open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
 # Separate file names into single end and paired end
 my ($se_files, $pe_files) = CF::Helpers::is_paired_end(@$files);
 
+# FastQ encoding type. Once found on one file will assume all others are the same
+my $encoding = 0;
 
 # Go through each single end files and run Bowtie
 if($se_files && scalar(@$se_files) > 0){
 	foreach my $file (@$se_files){
+		
+		# Figure out the encoding if we don't already know
+		if(!$encoding){
+			($encoding) = CF::Helpers::fastq_encoding_type($file);
+		}
+		my $enc = "";
+		if($encoding eq 'phred33' || $encoding eq 'phred64' || $encoding eq 'solexa'){
+			$enc = '--'.$encoding.'-quals';
+		}
 		
 		my $output_fn = $file."_bowtie.bam";
 		
@@ -65,7 +76,7 @@ if($se_files && scalar(@$se_files) > 0){
 			$file = "-";
 		}
 		
-		my $command = "$gzip bowtie -p $cores -t -m 1 --strata --best -S --chunkmbs 2048 ".$config{bowtie_path}." $file | samtools view -bSh 2>/dev/null - > $output_fn";
+		my $command = "$gzip bowtie -p $cores -t -m 1 $enc --strata --best -S --chunkmbs 2048 ".$config{bowtie_path}." $file | samtools view -bSh 2>/dev/null - > $output_fn";
 		warn "\nRunning command:\n$command\n\n";
 		
 		if(!system ($command)){
@@ -88,6 +99,15 @@ if($pe_files && scalar(@$pe_files) > 0){
 		my @files = @$files_ref;
 		if(scalar(@files) == 2){
 			
+			# Figure out the encoding if we don't already know
+			if(!$encoding){
+				($encoding) = CF::Helpers::fastq_encoding_type($files[0]);
+			}
+			my $enc = "";
+			if($encoding eq 'phred33' || $encoding eq 'phred64' || $encoding eq 'solexa'){
+				$enc = '--'.$encoding.'-quals';
+			}
+			
 			# Unzip gzipped input files
 			if($files[0] =~ /.gz$/){
 				warn "Unzipping input files..\n";
@@ -99,7 +119,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			
 			my $output_fn = $files[0]."_bowtie.bam";
 			
-			my $command = "bowtie -p $cores -t -m 1 --strata --best --maxins 700 -S --chunkmbs 2048 ".$config{bowtie_path}." -1 ".$files[0]." -2 ".$files[1]." | samtools view -bSh 2>/dev/null - > $output_fn";
+			my $command = "bowtie -p $cores -t -m 1 $enc --strata --best --maxins 700 -S --chunkmbs 2048 ".$config{bowtie_path}." -1 ".$files[0]." -2 ".$files[1]." | samtools view -bSh 2>/dev/null - > $output_fn";
 			warn "\nRunning command:\n$command\n\n";
 			
 			if(!system ($command)){

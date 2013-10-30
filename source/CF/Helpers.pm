@@ -141,6 +141,71 @@ sub is_bam_paired_end {
 	
 }
 
+# Function to determine the encoding of a FastQ file (nicked from HiCUP)
+# See http://en.wikipedia.org/wiki/FASTQ_format#Encoding
+# phred33: ASCII chars begin at 33
+# phred64: ASCII chars begin at 64
+# solexa: ASCII chars begin at 59
+# integer: quality values integers separated by spaces
+sub fastq_encoding_type {
+
+	my $file = $_[0];
+	my $score_min = 999;    #Initialise at off-the-scale values
+	my $score_max = -999;
+	my $read_count = 0;
+	
+	if($file =~ /\.gz$/){
+		open (IN, "zcat $file |") or die "Could not read file '$file' : $!";
+	} else {
+		open (IN, $file) or die "Could not read file '$file' : $!";
+	}
+	
+	while(<IN>){
+	
+		if(/^@/){	# Start with an @ symbol - read identifier
+			
+			# push file counter on two lines to the quality score
+			scalar <IN>;
+			scalar <IN>; 
+			
+			my $quality_line = scalar <IN>;
+			chomp $quality_line;    
+			my @scores = split(//, $quality_line);
+			
+			foreach(@scores){
+				my $score = ord $_;    #Determine the value of the ASCII character
+				
+				if($score < $score_min){
+					$score_min = $score;
+				}
+				if($score > $score_max){
+					$score_max = $score;
+				}	
+			}
+		
+			#Do not need to process 100,000 lines if these parameters are met
+			if($score_min == 32){    # Contains the space charcter
+				return 'integer';
+			} elsif ($score_min < 59){   # Contains low range character
+				return 'phred33';
+			} elsif ( ($score_min < 64) and ($score_max > 73) ){	# Contains character below phred64 and above phred33
+				return 'solexa'
+			}
+			
+			$read_count++;
+		}
+		
+	}
+	close IN;
+	
+	if($read_count < 100000){
+		return 0;    #File did not contain enough lines to make a decision on quality
+	} else {
+		return 'phred64';
+	}
+}
+
+
 
 
 

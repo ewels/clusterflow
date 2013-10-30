@@ -40,6 +40,8 @@ open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
 # Separate file names into single end and paired end
 my ($se_files, $pe_files) = CF::Helpers::is_paired_end(@$files);
 
+# FastQ encoding type. Once found on one file will assume all others are the same
+my $encoding = 0;
 
 # Read any options from the pipeline parameters
 my $bt2 = "";
@@ -58,6 +60,15 @@ foreach my $parameter (@$parameters){
 if($se_files && scalar(@$se_files) > 0){
 	foreach my $file (@$se_files){
 		
+		# Figure out the encoding if we don't already know
+		if(!$encoding){
+			($encoding) = CF::Helpers::fastq_encoding_type($file);
+		}
+		my $enc = "";
+		if($encoding eq 'phred33' || $encoding eq 'phred64' || $encoding eq 'solexa'){
+			$enc = '--'.$encoding.'-quals';
+		}
+		
 		my $output_fn;
 		if($bt2){
 			$output_fn = $file."_bismark_bt2.bam";
@@ -65,7 +76,7 @@ if($se_files && scalar(@$se_files) > 0){
 			$output_fn = $file."_bismark.bam";
 		}
 		
-		my $command = "bismark --bam $bt2 $pbat ".$config{genome_path}." ".$file;
+		my $command = "bismark --bam $bt2 $pbat $enc ".$config{genome_path}." ".$file;
 		warn "\nRunning command:\n$command\n\n";
 		
 		if(!system ($command)){
@@ -88,6 +99,15 @@ if($pe_files && scalar(@$pe_files) > 0){
 		my @files = @$files_ref;
 		if(scalar(@files) == 2){
 			
+			# Figure out the encoding if we don't already know
+			if(!$encoding){
+				($encoding) = CF::Helpers::fastq_encoding_type($files[0]);
+			}
+			my $enc = "";
+			if($encoding eq 'phred33' || $encoding eq 'phred64' || $encoding eq 'solexa'){
+				$enc = '--'.$encoding.'-quals';
+			}
+			
 			my $output_fn;
 			if($bt2){
 				$output_fn = $files[0]."_bismark_pe_bt2.bam";
@@ -95,7 +115,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 				$output_fn = $files[0]."_bismark_pe.bam";
 			}
 			
-			my $command = "bismark --bam $bt2 $pbat ".$config{genome_path}." -1 ".$files[0]." -2 ".$files[1];
+			my $command = "bismark --bam $bt2 $pbat $enc ".$config{genome_path}." -1 ".$files[0]." -2 ".$files[1];
 			warn "\nRunning command:\n$command\n\n";
 			
 			if(!system ($command)){
