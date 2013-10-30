@@ -66,7 +66,9 @@ my $config_result = GetOptions(
 die "Could not parse options" unless ($config_result);
 
 # Get the file list
-unless($cl_module){
+if($cl_module){
+	$pipeline = $cl_module;
+} else {
 	$pipeline = shift(@ARGV);
 }
 my @files = @ARGV;
@@ -209,10 +211,10 @@ if($cl_module){
 		die "Can't find pipeline config file $pipeline.config";
 	} else {
 		# Make a file handle from a string
-		my $pipeline_config = "\n# $cl_module\n\n";
-		open(CONFIG, \$pipeline_config) or die "Can't open variable file handle for single module pipeline.\n\n";
+		my $pipeline_config = "\n#$cl_module\n\n";
+		open(CONFIG, "<", \$pipeline_config) or die "Can't open variable file handle for single module pipeline: $!\n\n";
 	}
-} ese {
+} else {
 	# Load in the pipeline config file
 	my $config_found = 0;
 	foreach my $folder (@pipeline_folders){
@@ -452,6 +454,9 @@ sub make_qsubs {
 		my ($module, $parameters) = split(/\s+/, $_, 2);
 		my $job_id = $module.'_'.int(rand(9999));
 		
+		unless(length($module) > 0){
+			next;
+		}
 		unless($parameters) {
 			$parameters = '';
 		}
