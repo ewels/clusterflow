@@ -47,7 +47,15 @@ foreach my $file (@$files){
 			# FastQ Dump worked - print out resulting filenames
 			foreach my $output_fn (@outputfiles){
 				if(-e $output_fn){
-					print RUN "$job_id\t$output_fn\n";
+					# Zip input files up again
+					warn "gzipping dumped fastq file $output_fn..\n";
+					if(!system("gzip  $output_fn")){
+						$output_fn .= '.gz';
+						print RUN "$job_id\t$output_fn\n";
+					} else {
+						warn "### Error - gzipping $output_fn exited with an error state. Printing ungzipped filename to run file. ###\n";
+						print RUN "$job_id\t$output_fn\n";
+					}
 				} else {
 					warn "\nSRA dump file $output_fn not found.. (Probably single end?)\n\n";
 				}
