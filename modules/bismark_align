@@ -65,7 +65,10 @@ if($se_files && scalar(@$se_files) > 0){
 			$output_fn = $file."_bismark.bam";
 		}
 		
-		if(!system ("bismark --bam $bt2 $pbat ".$config{genome_path}." ".$file)){
+		my $command = "bismark --bam $bt2 $pbat ".$config{genome_path}." ".$file;
+		warn "\nRunning command:\n$command\n\n";
+		
+		if(!system ($command)){
 			# Bismark worked - print out resulting filenames
 			warn "Bismark (SE mode) successfully exited..\n";
 			if(-e $output_fn){
@@ -73,6 +76,8 @@ if($se_files && scalar(@$se_files) > 0){
 			} else {
 				warn "\nBismark output file $output_fn not found..\n";
 			}
+		} else {
+			die "### Bismark alignment (SE mode) exited with an error state ###\n\n";
 		}
 	}
 }
@@ -90,7 +95,10 @@ if($pe_files && scalar(@$pe_files) > 0){
 				$output_fn = $files[0]."_bismark_pe.bam";
 			}
 			
-			if(!system ("bismark --bam $bt2 $pbat ".$config{genome_path}." -1 ".$files[0]." -2 ".$files[1])){
+			my $command = "bismark --bam $bt2 $pbat ".$config{genome_path}." -1 ".$files[0]." -2 ".$files[1];
+			warn "\nRunning command:\n$command\n\n";
+			
+			if(!system ($command)){
 				# Bismark worked - print out resulting filenames
 				warn "Bismark (PE mode) successfully exited..\n";
 				if(-e $output_fn){
@@ -98,6 +106,8 @@ if($pe_files && scalar(@$pe_files) > 0){
 				} else {
 					warn "\nBismark output file $output_fn not found..\n";
 				}
+			} else {
+				die "### Bismark alignment (PE mode) exited with an error state ###\n\n";
 			}
 		} else {
 			warn "\nBismark paired end files had ".scalar(@files)." input files instead of 2..\n";

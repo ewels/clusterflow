@@ -61,7 +61,10 @@ if($pe_files && scalar(@$pe_files) > 0){
 			my $output_fn_1 = trim_galore_basename($files[0]).'_val_1.fq.gz';
 			my $output_fn_2 = trim_galore_basename($files[1]).'_val_2.fq.gz';
 			
-			if(!system ("trim_galore --paired --trim1 --gzip --fastqc ".$files[0]." ".$files[1])){
+			my $command = "trim_galore --paired --trim1 --gzip --fastqc ".$files[0]." ".$files[1];
+			warn "\nRunning command:\n$command\n\n";
+			
+			if(!system ($command)){
 				# Trim Galore worked - print out resulting filenames
 				warn "Trim galore (PE mode) successfully exited..\n";
 				if(-e $output_fn_1){
@@ -74,6 +77,8 @@ if($pe_files && scalar(@$pe_files) > 0){
 				} else {
 					warn "\nTrim Galore output file $output_fn_2 not found..\n";
 				}
+			} else {
+				die "### Trim Galore exited with an error state ###\n\n";
 			}
 		} else {
 			warn "\nTrim Galore paired end files had ".scalar(@files)." input files instead of 2..\n";

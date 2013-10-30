@@ -54,9 +54,12 @@ if($files && scalar(@$files) > 0){
 		
 		# Find if PE or SE from input BAM file
 		if(CF::Helpers::is_bam_paired_end($file)){
-		
+			
+			my $command = "bismark_methylation_extractor $pbat --bedGraph --counts $buffer --gzip -p --no_overlap --report $file";
+			warn "\nRunning command:\n$command\n\n";
+			
 			# Paired End BAM file
-			if(!system ("bismark_methylation_extractor $pbat --bedGraph --counts $buffer --gzip -p --no_overlap --report $file")){
+			if(!system ($command)){
 				# Bismark worked - print out resulting filenames
 				warn "Bismark methylation extractor (PE mode) successfully exited..\n";
 				my @output_fns = find_Xtracted_fns($file);
@@ -67,12 +70,17 @@ if($files && scalar(@$files) > 0){
 				} else {
 					warn "\nNo bismark meth extrator output files found..\n";
 				}
+			} else {
+				die "### Bismark MethXtractor (PE mode) exited with an error state ###\n\n";
 			}
 			
 		} else {
-		
+			
+			my $command = "bismark_methylation_extractor $pbat --bedGraph --counts $buffer --gzip -s --report $file";
+			warn "\nRunning command:\n$command\n\n";
+			
 			# Single End BAM file
-			if(!system ("bismark_methylation_extractor $pbat --bedGraph --counts $buffer --gzip -s --report $file")){
+			if(!system ($command)){
 				# Bismark worked - print out resulting filenames
 				warn "Bismark methylation extractor (SE mode) successfully exited..\n";
 				my @output_fns = find_Xtracted_fns($file);
@@ -83,6 +91,8 @@ if($files && scalar(@$files) > 0){
 				} else {
 					warn "\nNo bismark meth extrator output files found..\n";
 				}
+			} else {
+				die "### Bismark MethXtractor (SE mode) exited with an error state ###\n\n";
 			}
 			
 		}

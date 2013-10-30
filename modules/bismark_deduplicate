@@ -41,9 +41,12 @@ if($files && scalar(@$files) > 0){
 		
 		# Find if PE or SE from input BAM file
 		if(CF::Helpers::is_bam_paired_end($file)){
-		
+			
+			my $command = "deduplicate_bismark -p --bam $file";
+			warn "\nRunning command:\n$command\n\n";
+			
 			# Paired End BAM file
-			if(!system ("deduplicate_bismark -p --bam $file")){
+			if(!system ($command)){
 				# Bismark worked - print out resulting filenames
 				warn "Bismark deduplication (PE mode) successfully exited..\n";
 				if(-e $output_fn){
@@ -51,12 +54,17 @@ if($files && scalar(@$files) > 0){
 				} else {
 					warn "\nBismark output file $output_fn not found..\n";
 				}
+			} else {
+				die "### Bismark deduplication (PE mode) exited with an error state ###\n\n";
 			}
 			
 		} else {
-		
+			
+			my $command = "deduplicate_bismark -s --bam $file";
+			warn "\nRunning command:\n$command\n\n";
+			
 			# Single End BAM file
-			if(!system ("deduplicate_bismark -s --bam $file")){
+			if(!system ($command)){
 				# Bismark worked - print out resulting filenames
 				warn "Bismark deduplication (SE mode) successfully exited..\n";
 				if(-e $output_fn){
@@ -64,6 +72,8 @@ if($files && scalar(@$files) > 0){
 				} else {
 					warn "\nBismark output file $output_fn not found..\n";
 				}
+			} else {
+				die "### Bismark deduplication (SE mode) exited with an error state ###\n\n";
 			}
 			
 		}

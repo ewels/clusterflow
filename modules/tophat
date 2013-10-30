@@ -69,7 +69,10 @@ if($se_files && scalar(@$se_files) > 0){
 		
 		my $output_fn = $output_dir."/accepted_hits.bam";
 		
-		if(!system ("tophat -p $cores -g 1 -G ".$config{gtf_path}." -o $output_dir ".$config{bowtie_path}." $file")){
+		my $command = "tophat -p $cores -g 1 -G ".$config{gtf_path}." -o $output_dir ".$config{bowtie_path}." $file";
+		warn "\nRunning command:\n$command\n\n";
+		
+		if(!system ($command)){
 			# Tophat worked - print out resulting filenames
 			warn "Tophat (SE mode) successfully exited..\n";
 			if(-e $output_fn){
@@ -78,8 +81,7 @@ if($se_files && scalar(@$se_files) > 0){
 				warn "\nTophat output file $output_fn not found..\n";
 			}
 		} else {
-			warn "\n### Tophat (SE mode) failed. ###\n\nCommand run:\n";
-			warn "tophat -p $cores -g 1 -G ".$config{gtf_path}." -o $output_dir ".$config{bowtie_path}." $file\n\n";
+			warn "\n### Tophat (SE mode) failed. ###\n\n";
 		}
 	}
 }
@@ -99,7 +101,10 @@ if($pe_files && scalar(@$pe_files) > 0){
 			
 			my $output_fn = $output_dir."/accepted_hits.bam";
 			
-			if(!system ("tophat -p $cores -g 1 -G ".$config{gtf_path}." -o $output_dir ".$config{bowtie_path}." ".$files[0].",".$files[1])){
+			my $command = "tophat -p $cores -g 1 -G ".$config{gtf_path}." -o $output_dir ".$config{bowtie_path}." ".$files[0].",".$files[1];
+			warn "\nRunning command:\n$command\n\n";
+			
+			if(!system ($command)){
 				# Tophat worked - print out resulting filenames
 				warn "Tophat (PE mode) successfully exited..\n";
 				if(-e $output_fn){
@@ -108,8 +113,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 					warn "\nTophat output file $output_fn not found..\n";
 				}
 			} else {
-				warn "\n### Tophat (PE mode) failed. ###\n\nCommand run:\n";
-				warn "tophat -p $cores -g 1 -G ".$config{gtf_path}." -o $output_dir ".$config{bowtie_path}." ".$files[0].",".$files[1]."\n\n";
+				warn "\n### Tophat (PE mode) failed. ###\n\n";
 			}
 		} else {
 			warn "\nTophat paired end files had ".scalar(@files)." input files instead of 2..\n";

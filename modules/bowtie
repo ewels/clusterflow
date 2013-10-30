@@ -67,7 +67,10 @@ if($se_files && scalar(@$se_files) > 0){
 			$file = "-";
 		}
 		
-		if(!system ("$gzip bowtie -p $cores -t -m 1 --strata --best -S --chunkmbs 2048 ".$config{bowtie_path}." $file | samtools view -bSh 2>/dev/null - > $output_fn")){
+		my $command = "$gzip bowtie -p $cores -t -m 1 --strata --best -S --chunkmbs 2048 ".$config{bowtie_path}." $file | samtools view -bSh 2>/dev/null - > $output_fn";
+		warn "\nRunning command:\n$command\n\n";
+		
+		if(!system ($command)){
 			# Bowtie worked - print out resulting filenames
 			warn "Bowtie (SE mode) successfully exited..\n";
 			if(-e $output_fn){
@@ -76,8 +79,7 @@ if($se_files && scalar(@$se_files) > 0){
 				warn "\nBowtie output file $output_fn not found..\n";
 			}
 		} else {
-			warn "\n### Bowtie (SE mode) failed. ###\n\nCommand run:\n";
-			warn "$gzip bowtie -p $cores -t -m 1 --strata --best -S --chunkmbs 2048 ".$config{bowtie_path}." $file | samtools view -bSh 2>/dev/null - > $output_fn\n\n";
+			warn "\n### Bowtie (SE mode) failed. ###\n\n";
 		}
 	}
 }
@@ -90,6 +92,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			
 			# Unzip gzipped input files
 			if($files[0] =~ /.gz$/){
+				warn "Unzipping input files..\n";
 				system("gunzip ".$files[0]);
 				system("gunzip ".$files[1]);
 				$files[0] =~ s/.gz$//;
@@ -98,7 +101,10 @@ if($pe_files && scalar(@$pe_files) > 0){
 			
 			my $output_fn = $files[0]."_bowtie.bam";
 			
-			if(!system ("bowtie -p $cores -t -m 1 --strata --best --maxins 700 -S --chunkmbs 2048 ".$config{bowtie_path}." -1 ".$files[0]." -2 ".$files[1]." | samtools view -bSh 2>/dev/null - > $output_fn")){
+			my $command = "bowtie -p $cores -t -m 1 --strata --best --maxins 700 -S --chunkmbs 2048 ".$config{bowtie_path}." -1 ".$files[0]." -2 ".$files[1]." | samtools view -bSh 2>/dev/null - > $output_fn";
+			warn "\nRunning command:\n$command\n\n";
+			
+			if(!system ($command)){
 				# Bowtie worked - print out resulting filenames
 				warn "Bowtie (PE mode) successfully exited..\n";
 				if(-e $output_fn){
@@ -107,11 +113,11 @@ if($pe_files && scalar(@$pe_files) > 0){
 					warn "\nBowtie output file $output_fn not found..\n";
 				}
 			} else {
-				warn "\n### Bowtie (PE mode) failed. ###\n\nCommand run:\n";
-				warn "bowtie -p $cores -t -m 1 --strata --best --maxins 700 -S --chunkmbs 2048 ".$config{bowtie_path}." -1 ".$files[0]." -2 ".$files[1]." | samtools view -bSh 2>/dev/null - > $output_fn\n\n";
+				warn "\n### Bowtie (PE mode) failed. ###\n\n";
 			}
 			
 			# Zip input files up again
+			warn "Zipping input files..\n";
 			system("gzip ".$files[0]);
 			system("gzip ".$files[1]);
 			
