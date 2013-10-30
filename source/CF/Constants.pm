@@ -202,13 +202,16 @@ AVAILABLE FLAGS
 		Overrides any GTF path set with --genome
 		
 	--p
-		Force paired-end mode (also sets --split-files to 2)
+		Force paired-end mode
 		
 	--s
 		Force single-end mode
 		
 	--file_list
 		Text file containing input files or download URLs
+		
+	--module
+		Run a single module instead of a pipeline
 		
 	--split-files <num>
 		Create one run per <num> files
