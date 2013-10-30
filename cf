@@ -26,6 +26,7 @@ my $SPLIT_FILES = 1;
 my $cl_paired_end;
 my $cl_single_end;
 my $file_list;
+my $cl_module;
 my $cl_email;
 my $cl_priority;
 my $cl_total_cores;
@@ -47,6 +48,7 @@ my $config_result = GetOptions(
 	"p" => \$cl_paired_end,
 	"s" => \$cl_single_end,
 	"file_list=s" => \$file_list,
+	"module=s" => \$cl_module,
 	"email=s" => \$cl_email,
 	"priority=s" => \$cl_priority,
 	"cores=i" => \$cl_total_cores,
@@ -179,7 +181,9 @@ if($cl_help){
 	}
 	exit;
 }
-if(!$pipeline){
+if($cl_module){
+	warn "\nUsing a single module instead of a pipeline: $cl_module\n\n";
+} elsif(!$pipeline){
 	die("Error - no pipeline specified. Use --help for instructions.\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n");
 }
 
@@ -188,16 +192,36 @@ if(!$file_list && scalar(@files) == 0){
 }
 
 
-
-# Load in the pipeline config file
-foreach my $folder (@pipeline_folders){
-	if(-e $folder."$pipeline.config"){
-		open (CONFIG,$folder."$pipeline.config") or die "Can't read ".$folder."$pipeline.config: $!";
-		last;
+if($cl_module){
+	# Make a temporary pipeline with a single module name
+	# Check the module exists
+	my $module_found = 0;
+	foreach my $folder (@module_folders){
+		if(-e $folder."$cl_module"){
+			$module_found = 1;
+			last;
+		}
 	}
-}
-if(tell(CONFIG) == -1){
-	die "Can't find pipeline config file $pipeline.config";
+	if(!$module_found){
+		die "Can't find pipeline config file $pipeline.config";
+	} else {
+		# Make a file handle from a string
+		my $pipeline_config = "\n# $cl_module\n\n";
+		open(CONFIG, \$pipeline_config) or die "Can't open variable file handle for single module pipeline.\n\n";
+	}
+} ese {
+	# Load in the pipeline config file
+	my $config_found = 0;
+	foreach my $folder (@pipeline_folders){
+		if(-e $folder."$pipeline.config"){
+			open (CONFIG,$folder."$pipeline.config") or die "Can't read ".$folder."$pipeline.config: $!";
+			$config_found = 1;
+			last;
+		}
+	}
+	if(!$config_found){
+		die "Can't find pipeline config file $pipeline.config";
+	}
 }
 
 my $runfile;

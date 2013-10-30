@@ -57,13 +57,15 @@ my ($se_files, $pe_files) = CF::Helpers::is_paired_end(@$files);
 if($se_files && scalar(@$se_files) > 0){
 	foreach my $file (@$se_files){
 		
+		my $output_fn = $file."_bowtie.bam";
+		
 		my $gzip = "";
-		if($file =~ /gz$/){
+		if($file =~ /.gz$/){
 			$gzip = "gzip -dc $file | ";
+			$output_fn = $file =~ s/.gz$//;
+			$output_fn .= "_bowtie.bam";
 			$file = "-";
 		}
-		
-		my $output_fn = $file."_bowtie.bam";
 		
 		if(!system ("$gzip bowtie -p $cores -t -m 1 --strata --best -S --chunkmbs 2048 ".$config{bowtie_path}." $file | samtools view -bSh 2>/dev/null - > $output_fn")){
 			# Bowtie worked - print out resulting filenames
