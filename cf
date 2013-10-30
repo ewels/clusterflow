@@ -370,8 +370,9 @@ for (my $i = 0; $i <= $#files; $i++){
 	
 	# Add files to run file
 	my $max_i = $i + $SPLIT_FILES;
+	my $counter = 0;
 	for ($i; $i < $max_i; $i++){
-		
+		$counter++;
 		if($i > $#files) {
 			last;
 		}
@@ -404,8 +405,11 @@ for (my $i = 0; $i <= $#files; $i++){
 			push @job_ids, $job_id;
 			$prev_dl_id = $job_id;
 			
-			# Done with the download URL. Call $fn for later stuff
+			# Done with the download URL. Set $fn for later stuff
 			$fn = $dl_fn;
+			if($counter == 1){
+				$first_fn = $dl_fn;
+			}
 		
 		} elsif(-e $fn) { # Not a URL. Does this file exist?
 			# Add the starting filename to the run file
