@@ -16,6 +16,7 @@ my $homedir = $ENV{"HOME"}; #$CF::Constants::homedir;
 my %config = %CF::Constants::config;
 my @pipeline_folders = ('./', "$homedir/clusterflow/pipelines/", "$Bin/pipelines/");
 my @module_folders = ("$homedir/clusterflow/modules/", "$Bin/modules/");
+my $pipeline;
 
 # Get command line parameters
 my $GENOME;
@@ -65,7 +66,9 @@ my $config_result = GetOptions(
 die "Could not parse options" unless ($config_result);
 
 # Get the file list
-my $pipeline = shift(@ARGV);
+unless($cl_module){
+	$pipeline = shift(@ARGV);
+}
 my @files = @ARGV;
 
 # Set up parameters
