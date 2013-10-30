@@ -60,10 +60,8 @@ if($se_files && scalar(@$se_files) > 0){
 		my $output_fn = $file."_bowtie.bam";
 		
 		my $gzip = "";
-		if($file =~ /.gz$/){
+		if($file =~ /\.gz$/){
 			$gzip = "gzip -dc $file | ";
-			$output_fn = $file =~ s/.gz$//;
-			$output_fn .= "_bowtie.bam";
 			$file = "-";
 		}
 		
