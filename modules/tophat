@@ -39,12 +39,15 @@ my %config = %$config_ref;
 if(!defined($config{bowtie_path})){
 	warn "\n\n### No GTF path found in run file $runfile for job $job_id. Exiting.. ###";
 	exit;
-}
-if(!defined($config{gtf_path})){
-	warn "\n\n### No GTF path found in run file $runfile for job $job_id. Exiting.. ###";
-	exit;
 } else {
-	warn "\nAligning against ".$config{gtf_path}."\n\n";
+	warn "\nAligning against bowtie path: ".$config{bowtie_path}."\n\n";
+}
+
+
+my $gtf = '';
+if(defined($config{gtf_path})){
+	warn "\nUsing GTF path: ".$config{gtf_path}."\n\n";
+	$gtf = " -G ".$config{gtf_path};
 }
 
 if(!defined($cores) || $cores <= 0){
@@ -88,7 +91,7 @@ if($se_files && scalar(@$se_files) > 0){
 		
 		my $output_fn = $output_dir."/accepted_hits.bam";
 		
-		my $command = "tophat -p $cores -g 1 $enc -G ".$config{gtf_path}." -o $output_dir ".$config{bowtie_path}." $file";
+		my $command = "tophat -p $cores -g 1 $enc $gtf -o $output_dir ".$config{bowtie_path}." $file";
 		warn "\nRunning command:\n$command\n\n";
 		
 		if(!system ($command)){
