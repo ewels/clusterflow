@@ -437,12 +437,12 @@ for (my $i = 0; $i <= $#files; $i++){
 	make_qsubs (\%module_tree, $job_id, $runfn, $outfn);
 	
 	# Qsub job to e-mail on completion of this run
-	my $run_email_qsub = "echo \"mail -s 'Run ${pipeline}_$fn.run Complete' ".$config{email}." < $outfn\" | qsub -cwd -V -o $outfn -j y -N email_run_complete_$fn -hold_jid ".join(",", @{$run_job_ids{$runfn}});
+	my $run_email_qsub = "echo \"mail -s 'Run ${pipeline}_$fn.run Complete' ".$config{email}." < $outfn && sleep 5\" | qsub -cwd -V -o $outfn -j y -N email_run_complete_$fn -hold_jid ".join(",", @{$run_job_ids{$runfn}});
 	push @qsubs, $run_email_qsub;
 	
 	# Final qsub job to e-mail on completion of ALL JOBS
 	if($i == $#files){
-		my $final_email_qsub = "echo \"tail -n +1 ".join(" ", @outfns)." | mail -s 'Pipeline ${pipeline} Complete' ".$config{email}."\" | qsub -cwd -V -o $outfn -j y -N email_pipeline_complete_${pipeline} -m eas -M ".$config{email}." -hold_jid ".join(",", @job_ids);
+		my $final_email_qsub = "echo \"tail -n +1 ".join(" ", @outfns)." | mail -s 'Pipeline ${pipeline} Complete' ".$config{email}." && sleep 5\" | qsub -cwd -V -o $outfn -j y -N email_pipeline_complete_${pipeline} -m eas -M ".$config{email}." -hold_jid ".join(",", @job_ids);
 		push @qsubs, $final_email_qsub;
 	}
 }
