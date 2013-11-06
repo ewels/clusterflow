@@ -358,6 +358,7 @@ my %run_job_ids;
 my $job_id;
 my $prev_dl_id;
 my @outfns;
+my @finished_run_ids;
 for (my $i = 0; $i <= $#files; $i++){
 	my $fn = $files[$i];
 	my $first_fn = $fn;
@@ -371,7 +372,7 @@ for (my $i = 0; $i <= $#files; $i++){
 	# Add files to run file
 	my $max_i = $i + $SPLIT_FILES;
 	my $counter = 0;
-	for ($i; $i < $max_i; $i++){
+	for (; $i < $max_i; $i++){
 		$counter++;
 		if($i > $#files) {
 			last;
@@ -397,7 +398,7 @@ for (my $i = 0; $i <= $#files; $i++){
 			
 			# URL - set up download module qsub job, dependent on previous download job
 			$job_id = 'download_'.int(rand(9999));
-			my $qsub = "echo \"$Bin/modules/download $runfn $job_id $fn $dl_fn\" | qsub -cwd -V -pe orte 1 -l vf=1G -o $outfn -j y -N $job_id";
+			my $qsub = "echo \"$Bin/modules/cf_download $runfn $job_id $fn $dl_fn\" | qsub -cwd -V -pe orte 1 -l vf=1G -o $outfn -j y -N $job_id";
 			if($prev_dl_id && length($prev_dl_id) > 0 && $prev_dl_id ne 'start_0000'){
 				$qsub .= " -hold_jid $prev_dl_id";
 			}
@@ -436,14 +437,16 @@ for (my $i = 0; $i <= $#files; $i++){
 	# Make up qsub jobs
 	make_qsubs (\%module_tree, $job_id, $runfn, $outfn);
 	
-	# Qsub job to e-mail on completion of this run
-	my $run_email_qsub = "echo \"mail -s 'Run ${pipeline}_$fn.run Complete' ".$config{email}." < $outfn && sleep 5\" | qsub -cwd -V -o $outfn -j y -N email_run_complete_$fn -hold_jid ".join(",", @{$run_job_ids{$runfn}});
-	push @qsubs, $run_email_qsub;
+	# Qsub job to execute on completion of this run
+	my $run_finish_id = "email_run_complete_".int(rand(9999));
+	my $run_finish_qsub = "echo \"$Bin/modules/cf_run_finished $runfn $run_finish_id null 1 1G $pipeline $outfn\" | qsub -cwd -V -o $outfn -j y -N $run_finish_id -hold_jid ".join(",", @{$run_job_ids{$runfn}});
+	push @qsubs, $run_finish_qsub;
+	push @finished_run_ids, $run_finish_id;
 	
-	# Final qsub job to e-mail on completion of ALL JOBS
+	# Final qsub job to execute on completion of ALL JOBS
 	if($i == $#files){
-		my $final_email_qsub = "echo \"tail -n +1 ".join(" ", @outfns)." | mail -s 'Pipeline ${pipeline} Complete' ".$config{email}." && sleep 5\" | qsub -cwd -V -o $outfn -j y -N email_pipeline_complete_${pipeline} -m eas -M ".$config{email}." -hold_jid ".join(",", @job_ids);
-		push @qsubs, $final_email_qsub;
+		my $all_runs_finish_qsub = "echo \"$Bin/modules/cf_runs_all_finished $runfn $run_finish_id null 1 1G $pipeline ".join(" ", @outfns)."\" | qsub -cwd -V -o $outfn -j y -N email_pipeline_complete_${pipeline} -hold_jid ".join(",", @finished_run_ids);
+		push @qsubs, $all_runs_finish_qsub;
 	}
 }
 
@@ -481,12 +484,19 @@ sub make_qsubs {
 		# Get options for module
 		my $cores = `$module_fn --cores $TOTAL_CORES`;
 		my $mem = `$module_fn --mem $DEFAULT_MEM`;
+		my $required_modules = `$module_fn --modules`;
 		
 		if(!$cores || length($cores) == 0){
 			$cores = 1;
 		}
 		if(!$mem || length($mem) == 0){
 			$mem = $config{default_mem};
+		}
+		if($required_modules && length($required_modules) > 0){
+			my @req_modules = split(",", $required_modules);
+			foreach my $mod (@req_modules) {
+				system("module load $mod");
+			}
 		}
 		
 		# Create qsub command

@@ -9,9 +9,10 @@ use CF::Helpers;
 
 # Get Options
 my $required_cores;
-my $required_mem = '';
+my $required_mem;
+my $required_modules;
 my $help;
-my $result = GetOptions ("cores=i" => \$required_cores, "mem" => \$required_mem, "help" => \$help);
+my $result = GetOptions ("cores=i" => \$required_cores, "mem" => \$required_mem, "modules" => \$required_modules, "help" => \$help);
 
 # QSUB SETUP
 # --cores i = offered cores. Return number of required cores.
@@ -24,9 +25,20 @@ if($required_mem){
 	print '3G';
 	exit;
 }
+# --modules. Return csv names of any modules which should be loaded.
+if($required_modules){
+	print 'tophat';
+	exit;
+}
 # --help. Print help.
 if($help){
-	print "Help message here";
+	print "TopHat is a fast splice junction mapper for RNA-Seq reads.
+It aligns RNA-Seq reads to mammalian-sized genomes using the ultra
+high-throughput short read aligner Bowtie, and then analyzes the
+mapping results to identify splice junctions between exons.\n
+This module detects the encoding of input fastq files and whether
+they're paired end or not. It can run with or without a supplied
+GTF path (\@gtf_path) but requires a bowtie path (\@bowtie_path).\n\n";
 	exit;
 }
 
@@ -37,7 +49,7 @@ my %config = %$config_ref;
 
 # Check that we have a genome defined
 if(!defined($config{bowtie_path})){
-	warn "\n\n### No GTF path found in run file $runfile for job $job_id. Exiting.. ###";
+	warn "\n\n### No bowtie path found in run file $runfile for job $job_id. Exiting.. ###";
 	exit;
 } else {
 	warn "\nAligning against bowtie path: ".$config{bowtie_path}."\n\n";

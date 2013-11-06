@@ -9,8 +9,10 @@ use CF::Helpers;
 
 # Get Options
 my $required_cores;
-my $required_mem = '';
-my $result = GetOptions ("cores=i" => \$required_cores, "mem" => \$required_mem);
+my $required_mem;
+my $required_modules;
+my $help;
+my $result = GetOptions ("cores=i" => \$required_cores, "mem" => \$required_mem, "modules" => \$required_modules, "help" => \$help);
 
 # QSUB SETUP
 # --cores i = offered cores. Return number of required cores.
@@ -21,6 +23,19 @@ if($required_cores){
 # --mem. Return the required memory allocation.
 if($required_mem){
 	print '3G';
+	exit;
+}
+# --modules. Return csv names of any modules which should be loaded.
+if($required_modules){
+	print 'bismark';
+	exit;
+}
+# --help. Print help.
+if($help){
+	print "The bismark_deduplicate module runs the deduplicate_bismark script.
+This removes alignments to the same position in the genome from the
+Bismark mapping output which can arise by e.g. excessive PCR amplification.\n
+For further information please run deduplicate_bismark --help \n\n";
 	exit;
 }
 

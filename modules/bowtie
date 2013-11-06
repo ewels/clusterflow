@@ -9,9 +9,10 @@ use CF::Helpers;
 
 # Get Options
 my $required_cores;
-my $required_mem = '';
+my $required_mem;
+my $required_modules;
 my $help;
-my $result = GetOptions ("cores=i" => \$required_cores, "mem" => \$required_mem, "help" => \$help);
+my $result = GetOptions ("cores=i" => \$required_cores, "mem" => \$required_mem, "modules" => \$required_modules, "help" => \$help);
 
 # QSUB SETUP
 # --cores i = offered cores. Return number of required cores.
@@ -24,9 +25,18 @@ if($required_mem){
 	print '3G';
 	exit;
 }
+# --modules. Return csv names of any modules which should be loaded.
+if($required_modules){
+	print 'bowtie';
+	exit;
+}
 # --help. Print help.
 if($help){
-	print "Help message here";
+	print "Bowtie is an ultrafast, memory-efficient short read aligner.
+It aligns short DNA sequences (reads) to a reference genome. This script
+works out the encoding of input files, guesses whether they're paired end
+or not and runs bowtie.\n
+For further information, please run bowtie --help\n\n";
 	exit;
 }
 

@@ -48,7 +48,8 @@ sub load_runfile_params {
 		# Get config variables
 		if($_ =~ /^\@/ && !$comment_block){
 			my @sections = split(/\t/, $_, 2);
-			$config{substr($sections[0], 1)} = $sections[1];
+			my $cname = substr($sections[0], 1);
+			$config{$cname} = $sections[1];
 		}
 		
 		# Get files

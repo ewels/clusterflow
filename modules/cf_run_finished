@@ -1,0 +1,83 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+use FindBin qw($Bin);
+use lib "$FindBin::Bin/../source";
+use CF::Constants;
+use CF::Helpers;
+use POSIX qw(strftime);
+use Cwd;
+
+
+# MODULE
+# Read in the input files from the run file
+my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
+my %config = %$config_ref;
+my $pipeline = $parameters->[0];
+my $outfn = $parameters->[1];
+
+
+# Print run finish status to outfile
+my $date = strftime "%H:%M %d-%m-%Y", localtime;
+warn "\n###CF Run finished at $date\n\n";
+
+# Parse the outfile (the run logs)
+my $outfile;
+my @highlights;
+open (IN,'<',$outfn) or die "Can't read $runfile: $!";
+while(<IN>){
+	
+	chomp;
+	
+	# Ignore crap
+	if(/^Warning: no access to tty (Bad file descriptor)./ || /^Thus no job control in this shell./){
+		next;
+	}
+	
+	# Highlight statuses
+	if(/^###CF/){
+		push (@highlights, substr($_, 6));
+	}
+	
+	# Add cleaned text to outfile string
+	$outfile .= "$_\n";
+	
+}
+close (IN);
+
+# Write out the cleaned runfile without any crap
+open (OUT,'>',$outfn) or die "Can't write to $runfile: $!";
+print OUT $outfile;
+close OUT;
+
+# Send e-mail to submitter, if the config demands it
+if($config{notify_run} && defined($config{email})){
+	
+	my $to = $config{email};
+	my $subject = "$pipeline run compete - $runfile";
+	
+	my $message_body = "A run on the $pipeline pipeline has completed.
+The working directory was ".getcwd()."
+The runfile is $runfile
+
+Highlighted status messages:
+----------------------------
+".join("\n", @highlights)."
+----------------------------
+
+Full log output:
+-----------------
+".$outfile."\n\n\n";
+	
+
+
+
+	open (PIPE , "|- mail -s $subject $to") or die "can't open pipe to mail: $!\n";
+	print PIPE $message_body;
+	close PIPE;
+
+} elsif($config{notify_run} && !defined($config{email})){
+	warn "###CF Tried to send run e-mail notification but no e-mail address found in config\n";
+}
+
+
