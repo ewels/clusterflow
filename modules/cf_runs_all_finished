@@ -27,11 +27,11 @@ warn "\n###CF Pipeline $pipeline finished at $date\n\n";
 
 # Read in the log files
 my @highlights;
-push (@highlights, ("-" x 20));
+push (@highlights, ("=" x 30));
 my $outfiles;
 foreach my $outfile (@outfns){
 	
-	$outfiles .= ("-" x 30)."\n";
+	$outfiles .= "\n\n".("=" x 60)."\n"."Output file $outfile\n".("=" x 60)."\n";
 	
 	open (IN,'<',$outfile);
 	while(<IN>){
@@ -39,7 +39,7 @@ foreach my $outfile (@outfns){
 		chomp;
 		
 		# Ignore crap
-		if(/^Warning: no access to tty (Bad file descriptor)./ || /^Thus no job control in this shell./){
+		if(/^Warning: no access to tty/ || /^Thus no job control in this shell/){
 			next;
 		}
 		
@@ -53,32 +53,33 @@ foreach my $outfile (@outfns){
 		
 	}
 	close (IN);
-	push (@highlights, ("-" x 20));
+	$outfiles .= ("\n" x 15);
+	push (@highlights, ("=" x 30));
 }
 
 
 # Send e-mail to submitter, if the config demands it
-if($config{notify_complete} && defined($config{email})){
+# if($config{notify_complete} && defined($config{email})){
+if(1){
 	
 	my $to = $config{email};
-	my $subject = "$pipeline run compete - $runfile";
+	my $subject = "'[CF] $pipeline pipeline compete'";
 	
 	# Start the e-mail body
 my $message_body = "The pipeline $pipeline has completed.
-The working directory was ".getcwd()."
 
+The working directory was ".getcwd()."/
 The log files are:
  - ".join("\n - ",@outfns)."
 
-Highlighted status messages:
-----------------------------
+== Highlighted status messages ==
 ".join("\n", @highlights)."
-----------------------------
-\n\n";
-	
-	open (PIPE , "|- mail -s $subject $to") or die "can't open pipe to mail: $!\n";
+\n\n
+
+== Full Log File Outputs ==\n";
+
+	open (PIPE , "| mail -s $subject $to") or die "can't open pipe to mail: $!\n";
 	print PIPE $message_body;
-	print PIPE join("\n", @highlights);
 	print PIPE $outfiles;	
 	close PIPE;
 

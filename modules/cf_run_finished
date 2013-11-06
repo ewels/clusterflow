@@ -30,7 +30,7 @@ while(<IN>){
 	chomp;
 	
 	# Ignore crap
-	if(/^Warning: no access to tty (Bad file descriptor)./ || /^Thus no job control in this shell./){
+	if(/^Warning: no access to tty/ || /^Thus no job control in this shell/){
 		next;
 	}
 	
@@ -54,27 +54,28 @@ close OUT;
 if($config{notify_run} && defined($config{email})){
 	
 	my $to = $config{email};
-	my $subject = "$pipeline run compete - $runfile";
+	my $subject = "'[CF] $pipeline run compete - $runfile'";
 	
-	my $message_body = "A run on the $pipeline pipeline has completed.
-The working directory was ".getcwd()."
+	my $message_body = "A run using the $pipeline pipeline has completed.
+
+The working directory was ".getcwd()."/
 The runfile is $runfile
 
-Highlighted status messages:
-----------------------------
+== Highlighted status messages ==
 ".join("\n", @highlights)."
-----------------------------
 
-Full log output:
------------------
+
+== Full log output ==
 ".$outfile."\n\n\n";
 	
 
 
-
-	open (PIPE , "|- mail -s $subject $to") or die "can't open pipe to mail: $!\n";
+	open (PIPE , "| mail -s $subject $to") or die "can't open pipe to mail: $!\n";
 	print PIPE $message_body;
 	close PIPE;
+	die "mail exited with a non-zero status: $?\n" if $?;
+	
+	warn "###CF Sent a run e-mail notification to $to\n";
 
 } elsif($config{notify_run} && !defined($config{email})){
 	warn "###CF Tried to send run e-mail notification but no e-mail address found in config\n";
