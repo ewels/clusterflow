@@ -59,8 +59,7 @@ foreach my $outfile (@outfns){
 
 
 # Send e-mail to submitter, if the config demands it
-# if($config{notify_complete} && defined($config{email})){
-if(1){
+if($config{notifications}{complete} && defined($config{email})){
 	
 	my $to = $config{email};
 	my $subject = "'[CF] $pipeline pipeline compete'";
@@ -83,7 +82,7 @@ The log files are:
 	print PIPE $outfiles;	
 	close PIPE;
 
-} elsif($config{notify_complete} && !defined($config{email})){
+} elsif($config{notifications}{complete} && !defined($config{email})){
 	warn "###CF Tried to send run e-mail notification but no e-mail address found in config\n";
 }
 

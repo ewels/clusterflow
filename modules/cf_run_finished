@@ -24,7 +24,7 @@ warn "\n###CF Run finished at $date\n\n";
 # Parse the outfile (the run logs)
 my $outfile;
 my @highlights;
-open (IN,'<',$outfn) or die "Can't read $runfile: $!";
+open (IN,'<',$outfn) or die "Can't read ".getcwd()."/$outfn - $!";
 while(<IN>){
 	
 	chomp;
@@ -51,7 +51,7 @@ print OUT $outfile;
 close OUT;
 
 # Send e-mail to submitter, if the config demands it
-if($config{notify_run} && defined($config{email})){
+if($config{notifications}{run} && defined($config{email})){
 	
 	my $to = $config{email};
 	my $subject = "'[CF] $pipeline run compete - $runfile'";
@@ -77,7 +77,7 @@ The runfile is $runfile
 	
 	warn "###CF Sent a run e-mail notification to $to\n";
 
-} elsif($config{notify_run} && !defined($config{email})){
+} elsif($config{notifications}{run} && !defined($config{email})){
 	warn "###CF Tried to send run e-mail notification but no e-mail address found in config\n";
 }
 

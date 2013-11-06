@@ -27,6 +27,7 @@ sub load_runfile_params {
 
 	my @files;
 	my %config;
+	$config{notifications} = {};
 	my $comment_block = 0;
 	while(<RUN>){
 	
@@ -49,7 +50,11 @@ sub load_runfile_params {
 		if($_ =~ /^\@/ && !$comment_block){
 			my @sections = split(/\t/, $_, 2);
 			my $cname = substr($sections[0], 1);
-			$config{$cname} = $sections[1];
+			if($cname eq 'notification'){
+				$config{notifications}{$sections[1]} = 1;
+			} else {
+				$config{$cname} = $sections[1];
+			}
 		}
 		
 		# Get files
