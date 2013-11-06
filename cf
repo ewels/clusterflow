@@ -392,7 +392,6 @@ for (my $i = 0; $i <= $#files; $i++){
 				$dl_fn = pop(@parts);
 			}
 			$runfn = $dl_fn."_$pipeline.run";
-			$this_runfile = "/*\n$runfn\nFile $dl_fn downloaded from $fn\nCreated $date\n*/\n\n".$runfile."\n\n";
 			$outfn = $dl_fn."_$pipeline.out";
 			push @outfns, $outfn;
 			
@@ -495,7 +494,7 @@ sub make_qsubs {
 		if($required_modules && length($required_modules) > 0){
 			my @req_modules = split(",", $required_modules);
 			foreach my $mod (@req_modules) {
-				system("module load $mod");
+				system("/usr/bin/modulecmd bash load $mod");
 			}
 		}
 		

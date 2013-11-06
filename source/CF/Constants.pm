@@ -103,8 +103,8 @@ sub runfile_constants {
 \@default_mem	$DEFAULT_MEM
 EOT
 	
-	foreach (@NOTIFICATIONS){
-		$output .= "\@notification\t$_\n";
+	foreach my $not (@NOTIFICATIONS){
+		$output .= "\@notification\t$not\n";
 	}
 		
 	return ($output);
