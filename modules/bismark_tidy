@@ -64,13 +64,20 @@ $dir =~ s/^[COBT]+_//;
 mkdir $dir;
 
 # move matching files into this directory
+my $count = 0;
 foreach my $file (glob('*')) {
 	if($file =~ /$dir/){
 		move ($file, $dir."/".$file);
+		$count++;
 	}
 }
+warn "###CF $count files tidied into bismark folder\n";
 
 # run bismark2report in directory
 chdir ($dir);
-system ("bismark2report");
+if(!system ("bismark2report")){
+	warn "###CF Bismark report successfully created\n";
+} else {
+	warn "###CF Bismark report exited with an error state\n";
+}
 chdir ("../");

@@ -91,14 +91,14 @@ if($se_files && scalar(@$se_files) > 0){
 		
 		if(!system ($command)){
 			# Bowtie worked - print out resulting filenames
-			warn "Bowtie (SE mode) successfully exited..\n";
+			warn "###CF Bowtie (SE mode) successfully exited..\n";
 			if(-e $output_fn){
 				print RUN "$job_id\t$output_fn\n"; 
 			} else {
 				warn "\nBowtie output file $output_fn not found..\n";
 			}
 		} else {
-			warn "\n### Bowtie (SE mode) failed. ###\n\n";
+			warn "\n###CF Bowtie (SE mode) failed. ###\n\n";
 		}
 	}
 }
@@ -134,14 +134,14 @@ if($pe_files && scalar(@$pe_files) > 0){
 			
 			if(!system ($command)){
 				# Bowtie worked - print out resulting filenames
-				warn "Bowtie (PE mode) successfully exited..\n";
+				warn "###CF Bowtie (PE mode) successfully exited..\n";
 				if(-e $output_fn){
 					print RUN "$job_id\t$output_fn\n";
 				} else {
 					warn "\nBowtie output file $output_fn not found..\n";
 				}
 			} else {
-				warn "\n### Bowtie (PE mode) failed. ###\n\n";
+				warn "\n###CF Bowtie (PE mode) failed. ###\n\n";
 			}
 			
 			# Zip input files up again
@@ -150,7 +150,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			system("gzip ".$files[1]);
 			
 		} else {
-			warn "\nBowtie paired end files had ".scalar(@files)." input files instead of 2..\n";
+			warn "\n###CF Bowtie paired end files had ".scalar(@files)." input files instead of 2..\n";
 		}
 	}
 }

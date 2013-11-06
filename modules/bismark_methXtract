@@ -77,7 +77,7 @@ if($files && scalar(@$files) > 0){
 			# Paired End BAM file
 			if(!system ($command)){
 				# Bismark worked - print out resulting filenames
-				warn "Bismark methylation extractor (PE mode) successfully exited..\n";
+				warn "###CF Bismark methylation extractor (PE mode) successfully exited..\n";
 				my @output_fns = find_Xtracted_fns($file);
 				if(scalar(@output_fns) > 0){
 					foreach(@output_fns){
@@ -87,7 +87,7 @@ if($files && scalar(@$files) > 0){
 					warn "\nNo bismark meth extrator output files found..\n";
 				}
 			} else {
-				die "### Bismark MethXtractor (PE mode) exited with an error state ###\n\n";
+				die "###CF Bismark MethXtractor (PE mode) exited with an error state ###\n\n";
 			}
 			
 		} else {
@@ -98,7 +98,7 @@ if($files && scalar(@$files) > 0){
 			# Single End BAM file
 			if(!system ($command)){
 				# Bismark worked - print out resulting filenames
-				warn "Bismark methylation extractor (SE mode) successfully exited..\n";
+				warn "###CF Bismark methylation extractor (SE mode) successfully exited..\n";
 				my @output_fns = find_Xtracted_fns($file);
 				if(scalar(@output_fns) > 0){
 					foreach(@output_fns){
@@ -108,7 +108,7 @@ if($files && scalar(@$files) > 0){
 					warn "\nNo bismark meth extrator output files found..\n";
 				}
 			} else {
-				die "### Bismark MethXtractor (SE mode) exited with an error state ###\n\n";
+				die "###CF Bismark MethXtractor (SE mode) exited with an error state ###\n\n";
 			}
 			
 		}

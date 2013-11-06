@@ -63,14 +63,14 @@ if($files && scalar(@$files) > 0){
 			# Paired End BAM file
 			if(!system ($command)){
 				# Bismark worked - print out resulting filenames
-				warn "Bismark deduplication (PE mode) successfully exited..\n";
+				warn "###CF Bismark deduplication (PE mode) successfully exited..\n";
 				if(-e $output_fn){
 					print RUN "$job_id\t$output_fn\n"; 
 				} else {
 					warn "\nBismark output file $output_fn not found..\n";
 				}
 			} else {
-				die "### Bismark deduplication (PE mode) exited with an error state ###\n\n";
+				die "###CF Bismark deduplication (PE mode) exited with an error state ###\n\n";
 			}
 			
 		} else {
@@ -81,14 +81,14 @@ if($files && scalar(@$files) > 0){
 			# Single End BAM file
 			if(!system ($command)){
 				# Bismark worked - print out resulting filenames
-				warn "Bismark deduplication (SE mode) successfully exited..\n";
+				warn "###CF Bismark deduplication (SE mode) successfully exited..\n";
 				if(-e $output_fn){
 					print RUN "$job_id\t$output_fn\n"; 
 				} else {
 					warn "\nBismark output file $output_fn not found..\n";
 				}
 			} else {
-				die "### Bismark deduplication (SE mode) exited with an error state ###\n\n";
+				die "###CF Bismark deduplication (SE mode) exited with an error state ###\n\n";
 			}
 			
 		}

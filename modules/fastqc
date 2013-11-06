@@ -49,8 +49,9 @@ foreach my $file (@$files){
 	
 	if(!system ("fastqc $file")){
 		print RUN "$job_id\t$file\n";
+		warn "###CF FastQC successfully ran\n";
 	} else {
-		print "FastQC Failed: $? $!\n";
+		print "###CF FastQC Failed: $? $!\n";
 	}
 }
 

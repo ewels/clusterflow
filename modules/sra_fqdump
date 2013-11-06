@@ -57,7 +57,7 @@ foreach my $file (@$files){
 		warn "\nRunning command:\n$command\n\n";
 		
 		if(!system ($command)){
-			warn "\nFastQ Dump successfully exited on attempt $attempt\n";
+			warn "\n###CF FastQ Dump successfully exited on attempt $attempt\n";
 			# FastQ Dump worked - print out resulting filenames
 			foreach my $output_fn (@outputfiles){
 				if(-e $output_fn){
@@ -84,7 +84,7 @@ foreach my $file (@$files){
 					unlink $output_fn or die "Could not delete $output_fn : $!";
 				}
 			}
-			warn "FastQ Dump failed on attempt $attempt: $? $!\n";
+			warn "###CF FastQ Dump failed on attempt $attempt: $? $!\n";
 			
 		}
 	}

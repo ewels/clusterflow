@@ -46,7 +46,7 @@ my %config = %$config_ref;
 
 # Check that we have a genome defined
 if(!defined($config{genome_path})){
-	warn "\n\n### No genome path found in run file $runfile for job $job_id. Exiting.. ###\n\n";
+	warn "\n\n###CF No genome path found in run file $runfile for job $job_id. Exiting.. ###\n\n";
 	exit;
 }
 
@@ -96,14 +96,14 @@ if($se_files && scalar(@$se_files) > 0){
 		
 		if(!system ($command)){
 			# Bismark worked - print out resulting filenames
-			warn "Bismark (SE mode) successfully exited..\n";
+			warn "###CF Bismark (SE mode) successfully exited..\n";
 			if(-e $output_fn){
 				print RUN "$job_id\t$output_fn\n"; 
 			} else {
 				warn "\nBismark output file $output_fn not found..\n";
 			}
 		} else {
-			die "### Bismark alignment (SE mode) exited with an error state ###\n\n";
+			die "###CF Bismark alignment (SE mode) exited with an error state ###\n\n";
 		}
 	}
 }
@@ -135,17 +135,17 @@ if($pe_files && scalar(@$pe_files) > 0){
 			
 			if(!system ($command)){
 				# Bismark worked - print out resulting filenames
-				warn "Bismark (PE mode) successfully exited..\n";
+				warn "###CF Bismark (PE mode) successfully exited..\n";
 				if(-e $output_fn){
 					print RUN "$job_id\t$output_fn\n";
 				} else {
 					warn "\nBismark output file $output_fn not found..\n";
 				}
 			} else {
-				die "### Bismark alignment (PE mode) exited with an error state ###\n\n";
+				die "###CF Bismark alignment (PE mode) exited with an error state ###\n\n";
 			}
 		} else {
-			warn "\nBismark paired end files had ".scalar(@files)." input files instead of 2..\n";
+			warn "\n###CF Bismark paired end files had ".scalar(@files)." input files instead of 2..\n";
 		}
 	}
 }
