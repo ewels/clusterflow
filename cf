@@ -179,7 +179,17 @@ if($cl_dryrun){
 if($cl_make_config){
 	CF::Constants::clusterflow_make_config();
 	exit;
+} else {
+	# Warn user if we don't have a home directory config file
+	# (probably means no notifications)
+	unless(-e "$homedir/clusterflow/clusterflow.config"){
+		warn "\nYou don't seem to have a config file set up in your
+home directory! It's a good idea to set one up, so that
+you can get e-mailed notifications from Cluster Flow.
+To create one, run cf --make_config\n\n\n";
+	}
 }
+
 if($cl_version){
 	print "Cluster Flow v$CF_VERSION\n\n";
 	exit;
@@ -459,6 +469,30 @@ sub make_qsubs {
 	# Set up parameters for this branch
 	my ($mod_tree, $prev_job, $runfn, $outfn) = @_;
 	
+	# Work out qsub notification settings
+	my $notifications = "";
+	if(defined($EMAIL) && length($EMAIL) > 0 && defined(@NOTIFICATIONS)){
+		$count = 0;
+		$notifications = "-M $EMAIL -m ";
+		foreach my $not (@NOTIFICATIONS){
+			if($not eq 'success'){
+				$notifications .= 's';
+				$count++;
+			}
+			if($not eq 'error'){
+				$notifications .= 'e';
+				$count++;
+			}
+			if($not eq 'abort'){
+				$notifications .= 'a';
+				$count++;
+			}
+		}
+		if($count == 0){
+			$notifications = "";
+		}
+	}
+	
 	# Run through leaves
 	foreach ( keys %{$mod_tree} ){
 	
@@ -514,10 +548,11 @@ sub make_qsubs {
 		}
 		
 		# Create qsub command
-		my $qsub = "echo \"$module_fn $runfn $job_id $prev_job $cores $mem $parameters\" | qsub -cwd -V -pe orte $cores -l vf=$mem -o $outfn -j y -N $job_id";
+		my $qsub = "echo \"$module_fn $runfn $job_id $prev_job $cores $mem $parameters\" | qsub -cwd -V -pe orte $cores -l vf=$mem -o $outfn -j y $notifications -N $job_id";
 		if(length($prev_job) > 0 && $prev_job ne 'start_0000'){
 			$qsub .= " -hold_jid $prev_job";
 		}
+		
 		push @qsubs, $qsub;
 		push @job_ids, $job_id;
 		unless(defined $run_job_ids{$runfn}){

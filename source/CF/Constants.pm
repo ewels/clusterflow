@@ -34,17 +34,7 @@ parse_conf_file ();
 
 
 sub parse_conf_file {
-	
-	# Warn user if we don't have a home directory config file
-	# (probably means no notifications)
-	unless(-e "$homedir/clusterflow/clusterflow.config"){
-		warn "\nYou don't seem to have a config file set up in your
-home directory! It's a good idea to set one up, so that
-you can get e-mailed notifications from Cluster Flow.
-To create one, run cf --make_config\n\n\n";
-	}
-	
-	
+		
 	# Read global config variables in. Do in order so that local prefs overwrite.
 	
 	my @config_files = ("$FindBin::Bin/clusterflow.config", "$homedir/clusterflow/clusterflow.config", './clusterflow.config');
