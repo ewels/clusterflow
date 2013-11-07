@@ -438,8 +438,10 @@ Would you like to receive these notifications? (y/n)\n\n";
 personalised config file - see the Cluster Flow manual
 for further information.\n\n\n";
 	
-	
-	open (OUT, '>', $fn) or die "Can't read $fn: $!";
+	unless(-e $homedir."/clusterflow/" && -d $homedir."/clusterflow/"){
+		mkdir ($homedir."/clusterflow/") or die "Can't create clusterflow directory: $!";
+	}
+	open (OUT, '>', $fn) or die "Can't write to $fn: $!";
 	print OUT $config;
 	close OUT;
 	
