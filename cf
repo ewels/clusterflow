@@ -89,7 +89,15 @@ if($cl_email){
 	$EMAIL = $cl_email;
 }
 if($cl_notifications){
-	@NOTIFICATIONS = split(",", $cl_notifications);
+	my @new_nots = split(//, $cl_notifications);
+	@NOTIFICATIONS = ();
+	foreach my $not (@new_nots){
+		push (@NOTIFICATIONS, 'complete') if($not eq 'c');
+		push (@NOTIFICATIONS, 'run') if($not eq 'r');
+		push (@NOTIFICATIONS, 'success') if($not eq 's');
+		push (@NOTIFICATIONS, 'error') if($not eq 'e');
+		push (@NOTIFICATIONS, 'abort') if($not eq 'a');
+	}
 }
 if($cl_genome_path){
 	$GENOME_PATHS{$cl_genome_path} = {$cl_genome_path};
