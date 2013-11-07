@@ -472,8 +472,8 @@ sub make_qsubs {
 	
 	# Work out qsub notification settings
 	my $notifications = "";
-	if(defined($EMAIL) && length($EMAIL) > 0 && defined(@NOTIFICATIONS)){
-		$count = 0;
+	if(defined($EMAIL) && length($EMAIL) > 0 && @NOTIFICATIONS){
+		my $count = 0;
 		$notifications = "-M $EMAIL -m ";
 		foreach my $not (@NOTIFICATIONS){
 			if($not eq 'success'){
