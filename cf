@@ -37,6 +37,7 @@ my $cl_list_pipelines;
 my $cl_list_modules;
 my $cl_list_genomes;
 my $cl_dryrun;
+my $cl_make_config;
 my $cl_version;
 my $cl_help;
 
@@ -59,6 +60,7 @@ my $config_result = GetOptions(
 	"list_modules" => \$cl_list_modules,
 	"list_genomes" => \$cl_list_genomes,
 	"dryrun" => \$cl_dryrun,
+	"make_config" => \$cl_make_config,
 	"version" => \$cl_version,
 	"help" => \$cl_help
 );
@@ -173,6 +175,10 @@ if($cl_list_genomes){
 if($cl_dryrun){
 	print "\n### Cluster Flow is running in Dry Run mode. No cluster jobs will be set off, only printed. Run files will be created. ###\n\n";
 	sleep(1);
+}
+if($cl_make_config){
+	CF::Constants::clusterflow_make_config();
+	exit;
 }
 if($cl_version){
 	print "Cluster Flow v$CF_VERSION\n\n";
@@ -494,7 +500,16 @@ sub make_qsubs {
 		if($required_modules && length($required_modules) > 0){
 			my @req_modules = split(",", $required_modules);
 			foreach my $mod (@req_modules) {
-				system("/usr/bin/modulecmd bash load $mod");
+				my $bash_string = `/usr/bin/modulecmd bash load $mod`;
+				if($bash_string && length($bash_string) > 0){
+					my @bashes = split(';', $bash_string);
+					foreach my $bash (@bashes){
+						my @envs = split('=', $bash);
+						if($envs[0] ne 'export'){
+							$ENV{$envs[0]} = $envs[1];
+						}
+					}
+				}
 			}
 		}
 		

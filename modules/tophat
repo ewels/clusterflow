@@ -17,7 +17,7 @@ my $result = GetOptions ("cores=i" => \$required_cores, "mem" => \$required_mem,
 # QSUB SETUP
 # --cores i = offered cores. Return number of required cores.
 if($required_cores){
-	print 1;
+	print 6;
 	exit;
 }
 # --mem. Return the required memory allocation.
