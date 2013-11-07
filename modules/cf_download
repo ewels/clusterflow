@@ -6,9 +6,12 @@ use FindBin qw($Bin);
 use lib "$FindBin::Bin/../source";
 use CF::Constants;
 use CF::Helpers;
-use POSIX qw(strftime);
+use POSIX;
 
 # MODULE
+
+my $timestart = time;
+
 # Read in the input files from the run file
 my ($runfile, $job_id, $url, $dl_fn) = @ARGV;
 
@@ -24,6 +27,15 @@ if(!system ("wget -nv --tries=10 --output-document=$dl_fn $url")){
 	# Download failed - don't print a filename so that child processes exit silently
 	warn "###CF Download failed: $? $!\n";
 }
+
+my $timeend = time;
+
+my $hours = floor (($timeend - $timestart) / (60*60));
+my $mins = floor ((($timeend - $timestart) / (60)) - ($hours * 60 * 60));
+my $secs = floor (($timeend - $timestart) - ($mins * 60) - ($hours * 60 * 60));
+
+warn "\nDownload took $hours hours, $mins minutes and $secs seconds.\n";
+
 my $date = strftime "%H:%M %d-%m-%Y", localtime;
 warn "\nDownload module finished at $date\n---------------------\n";
 

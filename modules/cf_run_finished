@@ -75,6 +75,8 @@ The runfile is $runfile
 	close PIPE;
 	die "mail exited with a non-zero status: $?\n" if $?;
 	
+	sleep(5); # Give mail time to actually send the e-mail before qsub shuts us down
+	
 	warn "###CF Sent a run e-mail notification to $to\n";
 
 } elsif($config{notifications}{run} && !defined($config{email})){

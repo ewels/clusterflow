@@ -81,6 +81,10 @@ The log files are:
 	print PIPE $message_body;
 	print PIPE $outfiles;	
 	close PIPE;
+	
+	sleep(5); # Give mail time to actually send the e-mail before qsub shuts us down
+	
+	warn "###CF Sent a pipeline e-mail notification to $to\n";
 
 } elsif($config{notifications}{complete} && !defined($config{email})){
 	warn "###CF Tried to send run e-mail notification but no e-mail address found in config\n";
