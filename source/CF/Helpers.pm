@@ -86,12 +86,14 @@ sub load_runfile_params {
 # Function to look at supplied file names and work out whether they're paired end or not
 sub is_paired_end {
 	
+	my $config = shift;
+	
 	my @files = sort(@_);
 	my @se_files;
 	my @pe_files;
 	
 	# Force Paired End or Single End if specified in the config
-	if(defined($config{force_paired_end})){
+	if(exists($config->{force_paired_end})){
 		for (my $i = 0; $i <= $#files; $i++){
 			if($i < $#files){
 				my @pe = ($files[$i], $files[$i+1]);
@@ -103,7 +105,7 @@ sub is_paired_end {
 			}
 		}
 		return (\@se_files, \@pe_files);
-	} elsif(defined($config{force_single_end})){
+	} elsif(exists($config->{force_single_end})){
 		for (my $i = 0; $i <= $#files; $i++){
 			push (@se_files, $files[$i]);
 		}
@@ -191,7 +193,10 @@ sub fastq_encoding_type {
 	
 	while(<IN>){
 	
-		unless(/^@/) die "";	# Start with an @ symbol - read identifier BUG
+		unless(/^@/){
+			# Line must start with an @ symbol - read identifiers
+			die "Error trying to work out the FastQ quality scores!\nRead doesn't start with an \@ symbol..\n\n\n";
+		}
 			
 		# push file counter on two lines to the quality score
 		scalar <IN>;

@@ -69,7 +69,7 @@ if(!defined($cores) || $cores <= 0){
 open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
 
 # Separate file names into single end and paired end
-my ($se_files, $pe_files) = CF::Helpers::is_paired_end(@$files);
+my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%config, @$files);
 
 # FastQ encoding type. Once found on one file will assume all others are the same
 my $encoding = 0;
