@@ -149,11 +149,12 @@ if($pe_files && scalar(@$pe_files) > 0){
 			$output_dir =~ s/.fastq$//;
 			$output_dir =~ s/_1$//;
 			$output_dir =~ s/_2$//;
+			$output_dir =~ s/_R?[1-4]//;
 			$output_dir .= '_tophat';
 			
 			my $output_fn = $output_dir."/accepted_hits.bam";
 			
-			my $command = "tophat -p $cores -g 1 $enc $gtf -o $output_dir ".$config{bowtie_path}." ".$files[0].",".$files[1];
+			my $command = "tophat -p $cores -g 1 $enc $gtf -o $output_dir ".$config{bowtie_path}." ".$files[0]." ".$files[1];
 			warn "\nRunning command:\n$command\n\n";
 			
 			if(!system ($command)){

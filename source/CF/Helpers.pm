@@ -90,11 +90,32 @@ sub is_paired_end {
 	my @se_files;
 	my @pe_files;
 	
+	# Force Paired End or Single End if specified in the config
+	if(defined($config{force_paired_end})){
+		for (my $i = 0; $i <= $#files; $i++){
+			if($i < $#files){
+				my @pe = ($files[$i], $files[$i+1]);
+				push (@pe_files, \@pe);
+				$i++;
+			} else {
+				# If we have an odd number of file names and have got to the end, must be SE
+				push (@se_files, $files[$i]);
+			}
+		}
+		return (\@se_files, \@pe_files);
+	} elsif(defined($config{force_single_end})){
+		for (my $i = 0; $i <= $#files; $i++){
+			push (@se_files, $files[$i]);
+		}
+		return (\@se_files, \@pe_files);
+	}
+	
+	# Haven't returned yet, so let's figure it out for ourselves
 	for (my $i = 0; $i <= $#files; $i++){
 		if($i < $#files){
 			# Make stripped copies of the fns for comparison
-			(my $fn1 = $files[$i]) =~ s/_[1-4]//g;
-			(my $fn2 = $files[$i+1]) =~ s/_[1-4]//g;
+			(my $fn1 = $files[$i]) =~ s/_R?[1-4]//g;
+			(my $fn2 = $files[$i+1]) =~ s/_R?[1-4]//g;
 			if($fn1 eq $fn2){
 				my @pe = ($files[$i], $files[$i+1]);
 				push (@pe_files, \@pe);
@@ -114,6 +135,8 @@ sub is_paired_end {
 
 # Function to look into BAM/SAM header to see whether it's paired end or not
 sub is_bam_paired_end {
+
+	# is paired end or single end being forced?
 
 	my ($file) = @_;
 	
@@ -168,38 +191,37 @@ sub fastq_encoding_type {
 	
 	while(<IN>){
 	
-		if(/^@/){	# Start with an @ symbol - read identifier
+		unless(/^@/) die "";	# Start with an @ symbol - read identifier BUG
 			
-			# push file counter on two lines to the quality score
-			scalar <IN>;
-			scalar <IN>; 
-			
-			my $quality_line = scalar <IN>;
-			chomp $quality_line;    
-			my @scores = split(//, $quality_line);
-			
-			foreach(@scores){
-				my $score = ord $_;    #Determine the value of the ASCII character
-				
-				if($score < $score_min){
-					$score_min = $score;
-				}
-				if($score > $score_max){
-					$score_max = $score;
-				}	
-			}
+		# push file counter on two lines to the quality score
+		scalar <IN>;
+		scalar <IN>; 
 		
-			#Do not need to process 100,000 lines if these parameters are met
-			if($score_min == 32){    # Contains the space charcter
-				return 'integer';
-			} elsif ($score_min < 59){   # Contains low range character
-				return 'phred33';
-			} elsif ( ($score_min < 64) and ($score_max > 73) ){	# Contains character below phred64 and above phred33
-				return 'solexa'
-			}
+		my $quality_line = scalar <IN>;
+		chomp $quality_line;    
+		my @scores = split(//, $quality_line);
+		
+		foreach(@scores){
+			my $score = ord $_;    #Determine the value of the ASCII character
 			
-			$read_count++;
+			if($score < $score_min){
+				$score_min = $score;
+			}
+			if($score > $score_max){
+				$score_max = $score;
+			}	
 		}
+		
+		#Do not need to process 100,000 lines if these parameters are met
+		if($score_min == 32){    # Contains the space charcter
+			return 'integer';
+		} elsif ($score_min < 59){   # Contains low range character
+			return 'phred33';
+		} elsif ( ($score_min < 64) and ($score_max > 75) ){	# Contains character below phred64 and above phred33
+			return 'solexa'
+		}
+		
+		$read_count++;
 		
 	}
 	close IN;

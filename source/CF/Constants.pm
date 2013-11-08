@@ -200,10 +200,10 @@ AVAILABLE FLAGS
 		Path to a GTF file to be used for alignment (eg. Tophat).
 		Overrides any GTF path set with --genome
 		
-	--p
+	--paired
 		Force paired-end mode
 		
-	--s
+	--single
 		Force single-end mode
 		
 	--file_list
