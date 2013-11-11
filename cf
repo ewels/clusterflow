@@ -533,6 +533,7 @@ sub make_qsubs {
 		my $cores = `$module_fn --cores $TOTAL_CORES`;
 		my $mem = `$module_fn --mem $DEFAULT_MEM`;
 		my $required_modules = `$module_fn --modules`;
+		# my $required_modules = "";
 		
 		if(!$cores || length($cores) == 0){
 			$cores = 1;

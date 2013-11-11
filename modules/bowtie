@@ -27,7 +27,7 @@ if($required_mem){
 }
 # --modules. Return csv names of any modules which should be loaded.
 if($required_modules){
-	print 'bowtie';
+	print 'bowtie,samtools';
 	exit;
 }
 # --help. Print help.
@@ -41,6 +41,8 @@ For further information, please run bowtie --help\n\n";
 }
 
 # MODULE
+my $timestart = time;
+
 # Read in the input files from the run file
 my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
 my %config = %$config_ref;
@@ -82,23 +84,25 @@ if($se_files && scalar(@$se_files) > 0){
 		
 		my $gzip = "";
 		if($file =~ /\.gz$/){
-			$gzip = "gzip -dc $file | ";
+			# $gzip = "gzip -dc $file | ";
+			$gzip = "zcat $file | ";
 			$file = "-";
 		}
 		
-		my $command = "$gzip bowtie -p $cores -t -m 1 $enc --strata --best -S --chunkmbs 2048 ".$config{bowtie_path}." $file | samtools view -bSh 2>/dev/null - > $output_fn";
+		my $command = "$gzip bowtie -p $cores -t -m 1 $enc --strata --best -S --chunkmbs 2048 ".$config{bowtie_path}." $file | samtools view -bS - > $output_fn";
 		warn "\nRunning command:\n$command\n\n";
 		
 		if(!system ($command)){
 			# Bowtie worked - print out resulting filenames
-			warn "###CF Bowtie (SE mode) successfully exited..\n";
+			my $duration =  CF::Helpers::parse_seconds($timestart - time);
+			warn "###CF Bowtie (SE mode) successfully exited, took $duration..\n";
 			if(-e $output_fn){
 				print RUN "$job_id\t$output_fn\n"; 
 			} else {
 				warn "\nBowtie output file $output_fn not found..\n";
 			}
 		} else {
-			warn "\n###CF Bowtie (SE mode) failed. ###\n\n";
+			warn "\n###CF ## Bowtie (SE mode) failed ##\n\n";
 		}
 	}
 }
@@ -134,14 +138,15 @@ if($pe_files && scalar(@$pe_files) > 0){
 			
 			if(!system ($command)){
 				# Bowtie worked - print out resulting filenames
-				warn "###CF Bowtie (PE mode) successfully exited..\n";
+				my $duration =  CF::Helpers::parse_seconds($timestart - time);
+				warn "###CF Bowtie (PE mode) successfully exited, took $duration..\n";
 				if(-e $output_fn){
 					print RUN "$job_id\t$output_fn\n";
 				} else {
 					warn "\nBowtie output file $output_fn not found..\n";
 				}
 			} else {
-				warn "\n###CF Bowtie (PE mode) failed. ###\n\n";
+				warn "\n###CF ## Bowtie (PE mode) failed ##\n\n";
 			}
 			
 			# Zip input files up again
@@ -150,7 +155,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			system("gzip ".$files[1]);
 			
 		} else {
-			warn "\n###CF Bowtie paired end files had ".scalar(@files)." input files instead of 2..\n";
+			warn "\n###CF ## Bowtie paired end files had ".scalar(@files)." input files instead of 2 ##\n";
 		}
 	}
 }

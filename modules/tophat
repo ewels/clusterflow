@@ -43,6 +43,8 @@ GTF path (\@gtf_path) but requires a bowtie path (\@bowtie_path).\n\n";
 }
 
 # MODULE
+my $timestart = time;
+
 # Read in the input files from the run file
 my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
 my %config = %$config_ref;
@@ -109,14 +111,15 @@ if($se_files && scalar(@$se_files) > 0){
 		
 		if(!system ($command)){
 			# Tophat worked - print out resulting filenames
-			warn "###CF Tophat (SE mode) successfully exited..\n";
+			my $duration =  CF::Helpers::parse_seconds($timestart - time);
+			warn "###CF Tophat (SE mode) successfully exited, took $duration..\n";
 			if(-e $output_fn){
 				print RUN "$job_id\t$output_fn\n"; 
 			} else {
 				warn "\nTophat output file $output_fn not found..\n";
 			}
 		} else {
-			warn "\n###CF Tophat (SE mode) failed. ###\n\n";
+			warn "\n###CF ## Tophat (SE mode) failed ##\n\n";
 		}
 	}
 }
@@ -159,17 +162,18 @@ if($pe_files && scalar(@$pe_files) > 0){
 			
 			if(!system ($command)){
 				# Tophat worked - print out resulting filenames
-				warn "Tophat (PE mode) successfully exited..\n";
+				my $duration =  CF::Helpers::parse_seconds($timestart - time);
+				warn "###CF Tophat (PE mode) successfully exited, took $duration....\n";
 				if(-e $output_fn){
 					print RUN "$job_id\t$output_fn\n";
 				} else {
-					warn "\n###CF Tophat output file $output_fn not found..\n";
+					warn "\n###CF ## Tophat output file $output_fn not found ##\n";
 				}
 			} else {
-				warn "\n###CF Tophat (PE mode) failed. ###\n\n";
+				warn "\n###CF ## Tophat (PE mode) failed ##\n\n";
 			}
 		} else {
-			warn "\n###CF Tophat paired end files had ".scalar(@files)." input files instead of 2..\n";
+			warn "\n###CF ## Tophat paired end files had ".scalar(@files)." input files instead of 2 ##\n";
 		}
 	}
 }

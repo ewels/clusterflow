@@ -87,6 +87,17 @@ sub parse_conf_file {
 			close(CONFIG);
 		}
 	}
+	
+	# Remove duplicate Notifications
+	my @unique_notifications;
+	my %seen_notification;
+	foreach my $value (@NOTIFICATIONS) {
+		if (!$seen_notification{$value}) {
+			push @unique_notifications, $value;
+			$seen_notification{$value} = 1;
+		}
+	}
+	@NOTIFICATIONS = @unique_notifications;
 }
 
 

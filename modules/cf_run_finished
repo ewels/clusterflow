@@ -62,7 +62,7 @@ The working directory was ".getcwd()."/
 The runfile is $runfile
 
 == Highlighted status messages ==
-".join("\n", @highlights)."
+- ".join("\n- ", @highlights)."
 
 
 == Full log output ==

@@ -38,6 +38,8 @@ For further information, please run fastqc --help\n\n";
 }
 
 # MODULE
+my $timestart = time;
+
 # Read in the input files from the run file
 my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
 my %config = %$config_ref;
@@ -49,7 +51,8 @@ foreach my $file (@$files){
 	
 	if(!system ("fastqc $file")){
 		print RUN "$job_id\t$file\n";
-		warn "###CF FastQC successfully ran\n";
+		my $duration =  CF::Helpers::parse_seconds($timestart - time);
+		warn "###CF FastQC successfully ran, took $duration\n";
 	} else {
 		print "###CF FastQC Failed: $? $!\n";
 	}

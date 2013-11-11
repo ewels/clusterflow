@@ -22,19 +22,12 @@ open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
 if(!system ("wget -nv --tries=10 --output-document=$dl_fn $url")){
 	# Download worked - print resulting filename to results file
 	print RUN "$job_id\t$dl_fn\n";
-	warn "###CF Downloading $dl_fn succeeded\n";
+	my $duration =  CF::Helpers::parse_seconds($timestart - time);
+	warn "###CF Download worked - took $duration\n";
 } else {
 	# Download failed - don't print a filename so that child processes exit silently
 	warn "###CF Download failed: $? $!\n";
 }
-
-my $timeend = time;
-
-my $hours = floor (($timeend - $timestart) / (60*60));
-my $mins = floor ((($timeend - $timestart) / (60)) - ($hours * 60 * 60));
-my $secs = floor (($timeend - $timestart) - ($mins * 60) - ($hours * 60 * 60));
-
-warn "\nDownload took $hours hours, $mins minutes and $secs seconds.\n";
 
 my $date = strftime "%H:%M %d-%m-%Y", localtime;
 warn "\nDownload module finished at $date\n---------------------\n";

@@ -240,7 +240,37 @@ sub fastq_encoding_type {
 
 
 
+# Simple function to take time in seconds and convert to human readable string
+sub parse_seconds {
 
+	my ($raw) = @_;
+	my @chunks;
+	
+	my $days = int($raw/(24*60*60));
+	if($days > 0){
+		push (@chunks, "$days days");
+		$raw -= $days * (24*60*60);
+	}
+	
+	my $hours = ($raw/(60*60))%24;
+	if($hours > 0){
+		push (@chunks, "$hours hours");
+		$raw -= $hours * (60*60);
+	}
+	
+	my $mins = ($raw/60)%60;
+	if($mins > 0){
+		push (@chunks, "$mins mins");
+		$raw -= $mins * 60;
+	}
+	
+	my $secs = $raw%60;
+	if($secs > 0){
+		push (@chunks, "$secs seconds");
+	}
+	
+	return (join(", ", @chunks));
+}
 
 
 

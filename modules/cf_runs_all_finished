@@ -72,7 +72,7 @@ The log files are:
  - ".join("\n - ",@outfns)."
 
 == Highlighted status messages ==
-".join("\n", @highlights)."
+- ".join("\n- ", @highlights)."
 \n\n
 
 == Full Log File Outputs ==\n";
