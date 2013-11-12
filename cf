@@ -484,11 +484,11 @@ sub make_qsubs {
 		my $count = 0;
 		$notifications = "-M $EMAIL -m ";
 		foreach my $not (@NOTIFICATIONS){
-			if($not eq 'success'){
+			if($not eq 'suspend'){
 				$notifications .= 's';
 				$count++;
 			}
-			if($not eq 'error'){
+			if($not eq 'end'){
 				$notifications .= 'e';
 				$count++;
 			}

@@ -238,8 +238,10 @@ AVAILABLE FLAGS
 	--mem <string>
 		Set the maximum memory to use for all runs
 		
-	--notifications <eas>
+	--notifications <cresa>
 		Specify desired notifications
+		c = pipeline complete, r = run complete, e = qsub job ends
+		s = qsub job suspended, a = qsub job aborted
 		
 	--list_pipelines
 		Print available pipelines
@@ -374,15 +376,15 @@ their processing (y/n)\n\n";
 		}
 	}
 	
-	print "Would you like to receive a notification when step of each run is
-completed? This will be a GRID Engine notice for every qsub job. These notifications
+	print "Would you like to receive a notification when step of each run ends?
+This will be a GRID Engine notice for every qsub job. These notifications
 are not recommended as a typicaly Cluster Flow run can flood your inbox with hundreds
 of such e-mails. Would you like to receive them? (y/n)\n\n";
 	while ($notify_success = <STDIN>){
 		chomp ($notify_success);
 		if($notify_success =~ /^y(es)?/i){
 			print "\nFair enough, you were warned!\n\n";
-			$config .= "\@notification	success\n";
+			$config .= "\@notification	end\n";
 			last;
 		} elsif ($notify_success =~ /^n(o)?/i){
 			print "\nProbably sensible..\n\n";
@@ -393,16 +395,13 @@ of such e-mails. Would you like to receive them? (y/n)\n\n";
 	}
 	
 	print "Would you like to receive a notification when a GRID Engine
-job exits in an error state? This is a fairly crude way to be notified
-when something in the pipeline has gone badly wrong. Note that most
-Cluster Flow modules exit with a success state even if they failed.
-You're unlikely to get many if any, so they're recommended.
+job is suspended? You're unlikely to get many if any, so they're recommended.
 Would you like to receive these notifications? (y/n)\n\n";
 	while ($notify_error = <STDIN>){
 		chomp ($notify_error);
 		if($notify_error =~ /^y(es)?/i){
 			print "\nSounds good!\n\n";
-			$config .= "\@notification	error\n";
+			$config .= "\@notification	suspend\n";
 			last;
 		} elsif ($notify_error =~ /^n(o)?/i){
 			print "\nFair enough..\n\n";
