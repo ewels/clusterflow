@@ -548,7 +548,7 @@ sub make_qsubs {
 					my @bashes = split(';', $bash_string);
 					foreach my $bash (@bashes){
 						my @envs = split('=', $bash);
-						if($envs[0] ne 'export'){
+						if($envs[0] ne 'export' && defined($envs[1])){
 							$envs[1] =~ s/\\//g; # Hacky fix to get rid of weird backslash problem
 							$ENV{$envs[0]} = $envs[1];
 						}
