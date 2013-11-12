@@ -533,7 +533,6 @@ sub make_qsubs {
 		my $cores = `$module_fn --cores $TOTAL_CORES`;
 		my $mem = `$module_fn --mem $DEFAULT_MEM`;
 		my $required_modules = `$module_fn --modules`;
-		# my $required_modules = "";
 		
 		if(!$cores || length($cores) == 0){
 			$cores = 1;
@@ -550,6 +549,7 @@ sub make_qsubs {
 					foreach my $bash (@bashes){
 						my @envs = split('=', $bash);
 						if($envs[0] ne 'export'){
+							$envs[1] =~ s/\\//g; # Hacky fix to get rid of weird backslash problem
 							$ENV{$envs[0]} = $envs[1];
 						}
 					}
