@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+ #!/usr/bin/perl
 use warnings;
 use strict;
 use Getopt::Long;
@@ -558,7 +558,7 @@ sub make_qsubs {
 		}
 		
 		# Create qsub command
-		my $qsub = "echo \"$module_fn $runfn $job_id $prev_job $cores $mem $parameters\" | qsub -cwd -V -pe orte $cores -l vf=$mem -o $outfn -j y $notifications -N $job_id";
+		my $qsub = "echo \"$module_fn $runfn $job_id $prev_job $cores $mem $parameters\" | qsub -cwd -V -pe orte $cores -l vf=$mem -p $PRIORITY -o $outfn -j y $notifications -N $job_id";
 		if(length($prev_job) > 0 && $prev_job ne 'start_0000'){
 			$qsub .= " -hold_jid $prev_job";
 		}
