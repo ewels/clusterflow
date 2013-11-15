@@ -340,7 +340,7 @@ sub parse_qstat {
 	# Go through hash and create output
 	my $output;
 	parse_qstat_print_hash(\%jobs, 0, \$output, $all_users);
-	return ("\n$output\n\n");	
+	return ("$output\n");	
 	
 }
 

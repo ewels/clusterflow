@@ -259,6 +259,12 @@ AVAILABLE FLAGS
 	--dryrun
 		Prints jobs to terminal instead of submitting them to the cluster
 	
+	--qstat
+		Parses the output from qstat in a visually attractive and intuitive manner
+		
+	--qstatall
+		Same as --qstat, but for all jobs submitted by all users
+		
 	--make_config
 		Interactive prompt to generate a personalised CF config file
 	
