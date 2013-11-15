@@ -37,6 +37,8 @@ my $cl_list_pipelines;
 my $cl_list_modules;
 my $cl_list_genomes;
 my $cl_dryrun;
+my $cl_qstat;
+my $cl_qstatall;
 my $cl_make_config;
 my $cl_version;
 my $cl_help;
@@ -60,6 +62,8 @@ my $config_result = GetOptions(
 	"list_modules" => \$cl_list_modules,
 	"list_genomes" => \$cl_list_genomes,
 	"dryrun" => \$cl_dryrun,
+	"qstat" => \$cl_qstat,
+	"qstatall" => \$cl_qstatall,
 	"make_config" => \$cl_make_config,
 	"version" => \$cl_version,
 	"help" => \$cl_help
@@ -184,6 +188,14 @@ if($cl_dryrun){
 	print "\n### Cluster Flow is running in Dry Run mode. No cluster jobs will be set off, only printed. Run files will be created. ###\n\n";
 	sleep(1);
 }
+if($cl_qstat){
+	print CF::Helpers::parse_qstat(0);
+	exit;
+}
+if($cl_qstatall){
+	print CF::Helpers::parse_qstat(1);
+	exit;
+}
 if($cl_make_config){
 	CF::Constants::clusterflow_make_config();
 	exit;
@@ -204,7 +216,7 @@ if($cl_version){
 }
 if($cl_help){
 	if($pipeline){
-		print "\n".CF::Constants::clusterflow_pipeline_help($pipeline)."\n";
+		print CF::Constants::clusterflow_pipeline_help($pipeline);
 	} else {
 		print CF::Constants::clusterflow_help();
 	}

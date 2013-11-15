@@ -126,7 +126,7 @@ sub clusterflow_pipeline_help {
 	
 	my ($pipeline) = @_;
 	
-	my $help;
+	my $help = "";
 	
 	my @pipelines = ('./$pipeline.config', "$homedir/clusterflow/pipelines/$pipeline.config", "$FindBin::Bin/pipelines/$pipeline.config");
 	my @modules = ("$homedir/clusterflow/modules/$pipeline", "$FindBin::Bin/modules/$pipeline");
@@ -158,6 +158,10 @@ sub clusterflow_pipeline_help {
 			$help = `$module --help`;
 			return ($help);
 		}
+	}
+	
+	if($help eq ""){
+		$help = "\nSorry, no help found for this pipeline.\n\n";
 	}
 	
 	return ($help);
