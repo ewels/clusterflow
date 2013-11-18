@@ -4,6 +4,7 @@ package CF::Headnodehelpers;
 use warnings;
 use strict;
 use FindBin qw($Bin);
+use lib "$FindBin::Bin/source";
 use Exporter;
 use POSIX qw(strftime);
 use XML::Simple;
@@ -30,52 +31,56 @@ sub parse_qstat {
 	
 	my %jobs;
 	my %pipelines;
+	my @jlist;
 
 	# Running Jobs
-	foreach my $job (@{$data->{queue_info}->{job_list}}){
-	
-		my $jid = $job->{JB_job_number};
-		my $pipeline = 'unknown';
+	# Returns a hash instead of an array if only one element
+	if(ref($data->{queue_info}->{job_list}) eq 'HASH'){
+		@jlist = \%{$data->{queue_info}->{job_list}};
+	} elsif(ref($data->{queue_info}->{job_list}) eq 'ARRAY'){
+		@jlist = @{$data->{queue_info}->{job_list}};
+	}
+	if($data->{queue_info}->{job_list}){
+		foreach my $job (@jlist){
 		
-		if($job =~ /^cf_(.+)_(\d{10})_(.+)_\d{1-3}$/){
-			$pipeline = $1;
-			$pipelines{$pipeline}{started} = $2;
-			$jobs{$jid}{module} = $3;
+			my $jid = $job->{JB_job_number};
+			my $pipeline = 'unknown';
+			my $jobname = $job->{full_job_name};
+			
+			if($jobname =~ /^cf_(.+)_(\d{10})_(.+)_\d{1,3}$/){
+				$pipeline = $1;
+				$pipelines{$pipeline}{started} = $2;
+				$jobs{$jid}{module} = $3;
+			}
+			
+			$jobs{$jid}{pipeline} = $pipeline;
+			$jobs{$jid}{jobname} = $jobname;
+			$jobs{$jid}{state} =  $job->{state}->[0];
+			$jobs{$jid}{cores} = $job->{slots};
+			$jobs{$jid}{mem} = $job->{hard_request}->{content};
+			$jobs{$jid}{owner} = $job->{JB_owner};
+			$jobs{$jid}{priority} = $job->{JB_priority};
+			$jobs{$jid}{started} = $job->{JAT_start_time};
+			$jobs{$jid}{children} = {};
 			
 		}
-		
-		$jobs{$jid}{pipeline} = $pipeline;
-		$jobs{$jid}{jobname} = $job->{full_job_name};
-		$jobs{$jid}{state} =  $job->{state}->[0];
-		$jobs{$jid}{cores} = $job->{slots};
-		$jobs{$jid}{mem} = $job->{hard_request}->{content};
-		$jobs{$jid}{owner} = $job->{JB_owner};
-		$jobs{$jid}{priority} = $job->{JB_priority};
-		$jobs{$jid}{started} = $job->{JAT_start_time};
-		$jobs{$jid}{children} = {};
 	}
 	
-	#
-	# prefix each job name with the pipeline name and a number
-	# search job names for starting with cf_<timestamp>
-	# group pipeline jobs together with duration so far
-	# AWESOMENESS
-	#
-
 	# Pending Jobs
 	foreach my $job (@{$data->{job_info}->{job_list}}){
 		my $jid = $job->{JB_job_number};
 		my %jobhash;
 		my $pipeline = 'unknown';
+		my $jobname = $job->{full_job_name};
 		
-		if($job =~ /^cf_(.+)_(\d{10})_(.+)_\d{1-3}$/){
+		if($jobname =~ /^cf_(.+)_(\d{10})_(.+)_\d{1,3}$/){
 			$pipeline = $1;
 			$pipelines{$pipeline}{started} = $2;
 			$jobhash{module} = $3;
 		}
 		
 		$jobhash{pipeline} = $pipeline;
-		$jobhash{jobname} = $job->{full_job_name};
+		$jobhash{jobname} = $jobname;
 		$jobhash{state} = $job->{state}->[0];
 		$jobhash{cores} = $job->{slots};
 		$jobhash{owner} = $job->{JB_owner};
@@ -106,8 +111,8 @@ sub parse_qstat {
 	my $output = "";
 	foreach my $pipeline (keys (%pipelines)){
 		$output .= "\n".('=' x 50)."\n";
-		$output .= "  $pipeline  ";
-		$output .= "running for ".parse_seconds(time - $pipelines{$pipeline}{started});
+		$output .= "  Cluster Flow Pipeline $pipeline\n";
+		$output .= "  Submitted ".CF::Helpers::parse_seconds(time - $pipelines{$pipeline}{started})." ago";
 		$output .= "\n".('=' x 50)."\n";
 		parse_qstat_print_hash(\%jobs, 0, \$output, $all_users, $pipeline);
 	}
@@ -149,30 +154,30 @@ sub parse_qstat_print_hash {
 	foreach my $key (keys (%{$hashref}) ){
 	
 		# Ignore this unless this is part of the pipeline we're printing
-		next unless (${$hashref}{$key}{pipeline} eq $pipeline);
+		next unless (${$hashref}{$key}{pipeline} eq $pipeline || $depth > 0);
 		
 		my $children = scalar(keys(%{${$hashref}{$key}{children}}));
-		
-		${$output} .= " ";
-		
-		if(!$children){
-			${$output} .= "\n ";
-		}
-		${$output} .= (" " x ($depth*5))."- ";
+
+		${$output} .= " ".(" " x ($depth*5))."- ";
 		
 		if(${$hashref}{$key}{state} eq 'running'){
 			${$output} .= color 'red on_white';
 			${$output} .= " ";
-		} elsif (!$children) {
+		} elsif ($depth == 0) {
 			${$output} .= color 'yellow on_white';
 			${$output} .= " ";
 		}
-		${$output} .= ${$hashref}{$key}{jobname}." ";
+		if(${$hashref}{$key}{module}){
+			${$output} .= ${$hashref}{$key}{module};
+		} else {
+			${$output} .= ${$hashref}{$key}{jobname};
+		}
+		${$output} .= " ";
 		${$output} .= color 'reset';
 		
 		# Extra info for running jobs
 		# if(${$hashref}{$key}{state} eq 'running'){
-		if(!$children){
+		if($depth == 0){
 			
 			my @lines = split("\n", ${$output});
 			my $lastline = pop(@lines);
@@ -208,11 +213,14 @@ sub parse_qstat_print_hash {
 			my ($year, $month, $day, $hour, $minute, $second) = $timestamp =~ /^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)/;
 			my $time = timelocal($second ,$minute, $hour, $day, $month-1, $year);
 			my $duration = CF::Helpers::parse_seconds(time - $time, 0);
-			${$output} .= " $duration";
+			${$output} .= $duration;
 			
 			${$output} .= color 'reset';
 		}
 		${$output} .= "\n";
+		if(!$children){
+			${$output} .= "\n";
+		}
 		
 		# Now go through and print child jobs
 		if($children){
