@@ -9,6 +9,7 @@ use POSIX qw(strftime);
 use XML::Simple;
 use Time::Local;
 use Term::ANSIColor;
+use CF::Helpers;
 use Data::Dumper;
 
 
