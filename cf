@@ -8,6 +8,7 @@ use lib "$FindBin::Bin/source";
 # use lib "$Bin/../source";
 use CF::Constants;
 use CF::Helpers;
+use CF::Headnodehelpers;
 
 no warnings qw(once);
 
@@ -193,7 +194,7 @@ if($cl_qstat){
 	exit;
 }
 if($cl_qstatall){
-	print CF::Helpers::parse_qstat(1);
+	print CF::Headnodehelpers::parse_qstat(1);
 	exit;
 }
 if($cl_make_config){
@@ -390,6 +391,7 @@ if($file_list){
 # Go through the supplied starting files
 my @qsubs;
 my @job_ids;
+my $jid_base = 'cf_'.$pipeline.'_'.time.'_';
 my %run_job_ids;
 my $job_id;
 my $prev_dl_id;
@@ -519,7 +521,7 @@ sub make_qsubs {
 	
 		# Set up parameters for these leaves
 		my ($module, $parameters) = split(/\s+/, $_, 2);
-		my $job_id = $module.'_'.int(rand(9999));
+		my $job_id = $jid_base.$module.'_'.int(rand(999));
 		
 		unless(length($module) > 0){
 			next;

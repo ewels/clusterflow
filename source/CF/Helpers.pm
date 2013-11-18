@@ -6,10 +6,7 @@ use strict;
 use FindBin qw($Bin);
 use Exporter;
 use POSIX qw(strftime);
-use XML::Simple;
 use Time::Local;
-use Term::ANSIColor;
-use Data::Dumper;
 
 sub load_runfile_params {
 	my ($runfile, $job_id, $prev_job_id, $cores, $mem, @parameters) = @_;
@@ -246,186 +243,58 @@ sub fastq_encoding_type {
 # Simple function to take time in seconds and convert to human readable string
 sub parse_seconds {
 
-	my ($raw) = @_;
+	my ($raw, $long) = @_;
+	unless(defined($long)){
+		$long = 1;
+	}
+	
+	
 	my @chunks;
+	
+	my $w_secs = 's';
+	my $w_mins = 'm';
+	my $w_hours = 'h';
+	my $w_days = 'd';
+	if($long){
+		$w_secs = ' seconds';
+		$w_mins = ' minutes';
+		$w_hours = ' hours';
+		$w_days = ' days';
+	}
 	
 	my $days = int($raw/(24*60*60));
 	if($days > 0){
-		push (@chunks, "$days days");
+		push (@chunks, "$days$w_days");
 		$raw -= $days * (24*60*60);
 	}
 	
 	my $hours = ($raw/(60*60))%24;
 	if($hours > 0){
-		push (@chunks, "$hours hours");
+		push (@chunks, "$hours$w_hours");
 		$raw -= $hours * (60*60);
 	}
 	
 	my $mins = ($raw/60)%60;
 	if($mins > 0){
-		push (@chunks, "$mins mins");
+		push (@chunks, "$mins$w_mins");
 		$raw -= $mins * 60;
 	}
 	
 	my $secs = $raw%60;
 	if($secs > 0){
-		push (@chunks, "$secs seconds");
+		push (@chunks, "$secs$w_secs");
 	}
 	
-	return (join(", ", @chunks));
+	my $output = join(" ", @chunks);
+	if($long){
+		$output = join(", ", @chunks);
+	}
+	
+	
+	return ($output);
 }
 
 
-
-
-# Function to parse qstat results and return them in a nicely formatted manner
-sub parse_qstat {
-	
-	my ($all_users) = @_;
-	
-	my $qstat_command = "qstat -pri -r -xml";
-	if($all_users){
-		$qstat_command .= ' -u "*"';
-	}
-	
-	my $qstat = `$qstat_command`;
-	
-	
-	my $xml = new XML::Simple;
-	my $data = $xml->XMLin($qstat);
-	
-	my %jobs;
-
-	# Running Jobs
-	foreach my $job (@{$data->{queue_info}->{job_list}}){
-		my $jobname = $job->{full_job_name};
-		$jobs{$jobname}{state}=  $job->{state}->[0];
-		$jobs{$jobname}{cores} = $job->{slots};
-		$jobs{$jobname}{mem} = $job->{hard_request}->{content};
-		$jobs{$jobname}{owner} = $job->{JB_owner};
-		$jobs{$jobname}{priority} = $job->{JB_priority};
-		$jobs{$jobname}{started} = $job->{JAT_start_time};
-		$jobs{$jobname}{children} = {};
-	}
-	
-	
-
-	# Pending Jobs
-	foreach my $job (@{$data->{job_info}->{job_list}}){
-		my $jobname = $job->{full_job_name};
-		my %jobhash;
-		$jobhash{state} = $job->{state}->[0];
-		$jobhash{cores} = $job->{slots};
-		$jobhash{owner} = $job->{JB_owner};
-		$jobhash{priority} = $job->{JB_priority};
-		$jobhash{submitted} = $job->{JB_submission_time};
-		$jobhash{children} = {};
-		
-		# Find dependency
-		# If more than one (an array), assume last element is latest
-		my $parents = $job->{predecessor_jobs_req};
-		my $parent;
-		if(ref($parents)){
-			$parent = pop (@$parents);
-		} else {
-			$parent = $parents;
-		}
-		# print $parent; exit;
-		parse_qstat_search_hash(\%jobs, $parent, $jobname, \%jobhash);
-	}
-	
-	# print Dumper ($data); exit;
-	# print Dumper (\%jobs); exit;
-	
-	# Go through hash and create output
-	my $output;
-	parse_qstat_print_hash(\%jobs, 0, \$output, $all_users);
-	return ("$output\n");	
-	
-}
-
-sub parse_qstat_search_hash {
-
-	my ($hashref, $parent, $jobname, $jobhash) = @_;
-	
-	foreach my $key (keys (%{$hashref}) ){
-		if($key eq $parent){
-			${$hashref}{$key}{children}{$jobname} = \%$jobhash;
-		} elsif (scalar(keys(%{${$hashref}{$key}{children}})) > 0){
-			foreach my $child (keys %{${$hashref}{$key}{children}}){
-				parse_qstat_search_hash(\%{${$hashref}{$key}{children}}, $parent, $jobname, $jobhash);
-			}
-		}
-	}
-}
-
-sub parse_qstat_print_hash {
-
-	my ($hashref, $depth, $output, $all_users) = @_;
-
-	foreach my $key (keys (%{$hashref}) ){
-	
-		my $children = scalar(keys(%{${$hashref}{$key}{children}}));
-		
-		${$output} .= " ";
-		
-		if(${$hashref}{$key}{state} eq 'running'){
-			${$output} .= "\n ";
-		}
-		${$output} .= (" " x ($depth*5))."- ";
-		
-		if(${$hashref}{$key}{state} eq 'running'){
-			${$output} .= color 'red on_white';
-			${$output} .= " ";
-		}
-		${$output} .= "$key ";
-		
-		# Extra info for running jobs
-		if(${$hashref}{$key}{state} eq 'running'){
-			
-			${$output} .= color 'reset';
-			
-			my @lines = split("\n", ${$output});
-			my $lastline = pop(@lines);
-			my $chars = length($lastline);
-			my $spaces = 50 - $chars;
-			${$output} .= (" " x $spaces);
-			
-			
-			if($all_users){
-				${$output} .= color 'green';
-				my $user = " {".${$hashref}{$key}{owner}."} ";
-				${$output} .= $user;
-				${$output} .= color 'reset';
-				$spaces = 15 - length($user);
-				${$output} .= (" " x $spaces);
-			}
-			
-			${$output} .= color 'blue';
-			${$output} .= " [".${$hashref}{$key}{cores}."] ";
-			${$output} .= color 'reset';
-			
-			my ($year, $month, $day, $hour, $minute, $second) = ${$hashref}{$key}{started} =~ /^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)/;
-			my $time = timelocal($second ,$minute, $hour, $day, $month-1, $year);
-			my $duration = parse_seconds(time - $time);
-			${$output} .= color 'magenta';
-			${$output} .= " running for $duration";
-			
-			${$output} .= color 'reset';
-		}
-		${$output} .= "\n";
-		
-		# Now go through and print child jobs
-		if($children){
-			foreach my $child (keys %{${$hashref}{$key}{children}}){
-				parse_qstat_print_hash(\%{${$hashref}{$key}{children}}, $depth + 1, \${$output}, $all_users);
-			}
-		}
-	}
-	
-	return (${$output});
-
-}
 
 
 
