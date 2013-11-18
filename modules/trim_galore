@@ -74,7 +74,7 @@ if($se_files && scalar(@$se_files) > 0){
 		
 		if(!system ($command)){
 			# Trim Galore worked - print out resulting filenames
-			my $duration =  CF::Helpers::parse_seconds($timestart - time);
+			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 			warn "###CF  Trim galore (SE mode) successfully exited, took $duration..\n";
 			if(-e $output_fn){
 				print RUN "$job_id\t$output_fn\n";
@@ -114,7 +114,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			
 			if(!system ($command)){
 				# Trim Galore worked - print out resulting filenames
-				my $duration =  CF::Helpers::parse_seconds($timestart - time);
+				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 				warn "###CF Trim galore (PE mode) successfully exited, took $duration..\n";
 				if(-e $output_fn_1){
 					print RUN "$job_id\t$output_fn_1\n";
