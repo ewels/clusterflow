@@ -191,13 +191,19 @@ sub parse_qstat_print_hash {
 				my $user = " {".${$hashref}{$key}{owner}."} ";
 				${$output} .= $user;
 				${$output} .= color 'reset';
-				$spaces = 15 - length($user);
+				$spaces = 12 - length($user);
 				${$output} .= (" " x $spaces);
 			}
 			
 			${$output} .= color 'blue';
-			${$output} .= " [".${$hashref}{$key}{cores}."] ";
+			${$output} .= " [".${$hashref}{$key}{cores}." cores] ";
 			${$output} .= color 'reset';
+			
+			if(${$hashref}{$key}{state} ne 'running'){
+				${$output} .= color 'brown';
+				${$output} .= " [priority ".${$hashref}{$key}{priority}."] ";
+				${$output} .= color 'reset';
+			}
 			
 			
 			my $timestamp = "";

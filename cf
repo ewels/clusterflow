@@ -467,6 +467,9 @@ for (my $i = 0; $i <= $#files; $i++){
 	$i--; # Loop increments $i when it finishes. Revert this increment before next loop
 	$fn = $first_fn;
 	
+	# Deduplicate output fn array
+	@outfns = do { my %h; @h{@outfns} = @outfns; values %h };
+	
 	# Write out the run file
 	open (RUNOUT,'>',$runfn) or die "Can't write to $runfn: $!";
 	print RUNOUT $this_runfile;
