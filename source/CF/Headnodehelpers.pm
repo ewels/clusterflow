@@ -47,15 +47,18 @@ sub parse_qstat {
 		
 			my $jid = $job->{JB_job_number};
 			my $pipeline = 'unknown';
+			my $pipelinekey = 'unknown';
 			my $jobname = $job->{full_job_name};
 			
 			if($jobname =~ /^cf_(.+)_(\d{10})_(.+)_\d{1,3}$/){
 				$pipeline = $1;
-				$pipelines{$pipeline}{started} = $2;
+				$pipelinekey = "$1_$2";
+				$pipelines{$pipelinekey}{started} = $2;
 				$jobs{$jid}{module} = $3;
 			}
 			
 			$jobs{$jid}{pipeline} = $pipeline;
+			$jobs{$jid}{pipelinekey} = $pipelinekey;
 			$jobs{$jid}{jobname} = $jobname;
 			$jobs{$jid}{full_job_name} = $job->{full_job_name};
 			$jobs{$jid}{state} =  $job->{state}->[0];
@@ -71,22 +74,25 @@ sub parse_qstat {
 			
 		}
 	}
-	warn "Processed running jobs\n";
 	
 	# Pending Jobs
+	warn "here\n";
 	foreach my $job (@{$data->{job_info}->{job_list}}){
 		my $jid = $job->{JB_job_number};
 		my %jobhash;
 		my $pipeline = 'unknown_pending';
+		my $pipelinekey = 'unknown_pending';
 		my $jobname = $job->{full_job_name};
 		
 		if($jobname =~ /^cf_(.+)_(\d{10})_(.+)_\d{1,3}$/){
 			$pipeline = $1;
-			$pipelines{$pipeline}{started} = $2;
+			$pipelinekey = "$1_$2";
+			$pipelines{$pipelinekey}{started} = $2;
 			$jobhash{module} = $3;
 		}
 		
 		$jobhash{pipeline} = $pipeline;
+		$jobhash{pipelinekey} = $pipelinekey;
 		$jobhash{jobname} = $jobname;
 		$jobhash{full_job_name} = $job->{full_job_name};
 		$jobhash{state} = $job->{state}->[0];
@@ -105,7 +111,6 @@ sub parse_qstat {
 		} else {
 			$parent = $parents;
 		}
-		# warn "\n".$job->{full_job_name}." looking for parent ".$parent."\n";
 		if($parent && length($parent) > 0){
 			parse_qstat_search_hash(\%jobs, $parent, $jid, \%jobhash);
 		} else {
@@ -118,12 +123,16 @@ sub parse_qstat {
 	
 	# Go through hash and create output
 	my $output = "";
-	foreach my $pipeline (keys (%pipelines)){
+	foreach my $pipelinekey (keys (%pipelines)){
+		my $pipeline = $pipelinekey;
+		if($pipelinekey =~ /^(.+)_(\d{10})$/){
+			$pipeline = $1;
+		}
 		$output .= "\n".('=' x 50)."\n";
 		$output .= "  Cluster Flow Pipeline $pipeline\n";
-		$output .= "  Submitted ".CF::Helpers::parse_seconds(time - $pipelines{$pipeline}{started})." ago";
+		$output .= "  Submitted ".CF::Helpers::parse_seconds(time - $pipelines{$pipelinekey}{started})." ago";
 		$output .= "\n".('=' x 50)."\n";
-		parse_qstat_print_hash(\%jobs, 0, \$output, $all_users, $cols, $pipeline);
+		parse_qstat_print_hash(\%jobs, 0, \$output, $all_users, $cols, $pipelinekey);
 	}
 	
 	# Go through jobs which don't have a pipeline
@@ -136,6 +145,7 @@ sub parse_qstat {
 		$output .= $notcf_output;
 	}
 	
+	# Go through Queing jobs which don't have a pipeline
 	my $notcfpending_output = "";
 	parse_qstat_print_hash(\%jobs, 0, \$notcfpending_output, $all_users, $cols, 'unknown_pending');
 	if(length($notcfpending_output) > 0){
@@ -170,7 +180,7 @@ sub parse_qstat_print_hash {
 	foreach my $key (keys (%{$hashref}) ){
 	
 		# Ignore this unless this is part of the pipeline we're printing
-		next unless (${$hashref}{$key}{pipeline} eq $pipeline || $depth > 0);
+		next unless (${$hashref}{$key}{pipelinekey} eq $pipeline || $depth > 0);
 		
 		my $children = scalar(keys(%{${$hashref}{$key}{children}}));
 		

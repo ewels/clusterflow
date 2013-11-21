@@ -131,10 +131,10 @@ if($cl_total_mem){
 # Printing command line options
 if($cl_list_pipelines){
 	print "".("=" x 32)."\nCluster Flow - available pipelines\n".("=" x 32)."\n";
-	print "\nCluster Flow pipeline directories:\n\t- ".join("\n\t- ",@pipeline_folders)."\n\n";
 	print "Installed pipelines:\n";
 	foreach my $folder (@pipeline_folders){
 		if(-e $folder){
+			print "    Directory $folder\n";
 			opendir (DIR, $folder) or die $!;
 			my @dir_files = sort readdir(DIR);
 			while ( my $file = shift @dir_files ) {
@@ -143,6 +143,8 @@ if($cl_list_pipelines){
 				}
 			}
 			closedir(DIR);
+		} else {
+			print "    Directory $folder (not found)\n";
 		}
 	}
 	print "\n";
@@ -150,10 +152,10 @@ if($cl_list_pipelines){
 }
 if($cl_list_modules){
 	print "".("=" x 32)."\nCluster Flow - available modules\n".("=" x 32)."\n";
-	print "\nCluster Flow module directories:\n\t- ".join("\n\t- ",@module_folders)."\n\n";
 	print "Available modules:\n";
 	foreach my $folder (@module_folders){
 		if(-e $folder){
+			print "    Directory $folder\n";
 			opendir (DIR, $folder) or die $!;
 			my @dir_files = sort readdir(DIR);
 			while ( my $file = shift @dir_files ) {
@@ -162,6 +164,8 @@ if($cl_list_modules){
 				}
 			}
 			closedir(DIR);
+		} else {
+			print "    Directory $folder (not found)\n";
 		}
 	}
 	print "\n";
