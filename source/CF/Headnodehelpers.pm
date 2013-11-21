@@ -29,6 +29,8 @@ sub parse_qstat {
 	my $xml = new XML::Simple;
 	my $data = $xml->XMLin($qstat);
 	
+	# print Dumper $data; exit;
+	
 	my %jobs;
 	my %pipelines;
 	my @jlist;
@@ -56,6 +58,9 @@ sub parse_qstat {
 			$jobs{$jid}{pipeline} = $pipeline;
 			$jobs{$jid}{jobname} = $jobname;
 			$jobs{$jid}{state} =  $job->{state}->[0];
+			if($job->{state}->[1] eq 'dr'){
+				$jobs{$jid}{state} = 'deleting';
+			}
 			$jobs{$jid}{cores} = $job->{slots};
 			$jobs{$jid}{mem} = $job->{hard_request}->{content};
 			$jobs{$jid}{owner} = $job->{JB_owner};
@@ -70,7 +75,7 @@ sub parse_qstat {
 	foreach my $job (@{$data->{job_info}->{job_list}}){
 		my $jid = $job->{JB_job_number};
 		my %jobhash;
-		my $pipeline = 'unknown';
+		my $pipeline = 'unknown_pending';
 		my $jobname = $job->{full_job_name};
 		
 		if($jobname =~ /^cf_(.+)_(\d{10})_(.+)_\d{1,3}$/){
@@ -127,6 +132,15 @@ sub parse_qstat {
 		$output .= $notcf_output;
 	}
 	
+	my $notcfpending_output = "";
+	parse_qstat_print_hash(\%jobs, 0, \$notcfpending_output, $all_users, 'unknown_pending');
+	if(length($notcfpending_output) > 0){
+		$output .= "\n".('=' x 50)."\n";
+		$output .= "  Not Cluster Flow Jobs - Queing  ";
+		$output .= "\n".('=' x 50)."\n";
+		$output .= $notcfpending_output;
+	}
+	
 	return ("$output\n");	
 	
 }
@@ -157,11 +171,18 @@ sub parse_qstat_print_hash {
 		next unless (${$hashref}{$key}{pipeline} eq $pipeline || $depth > 0);
 		
 		my $children = scalar(keys(%{${$hashref}{$key}{children}}));
-
+		
+		if($depth == 0){
+			${$output} .= "\n";
+		}
+		
 		${$output} .= " ".(" " x ($depth*5))."- ";
 		
 		if(${$hashref}{$key}{state} eq 'running'){
 			${$output} .= color 'red on_white';
+			${$output} .= " ";
+		} elsif(${$hashref}{$key}{state} eq 'deleting'){
+			${$output} .= color 'white on_red';
 			${$output} .= " ";
 		} elsif ($depth == 0) {
 			${$output} .= color 'yellow on_white';
@@ -200,7 +221,7 @@ sub parse_qstat_print_hash {
 			${$output} .= color 'reset';
 			
 			if(${$hashref}{$key}{state} ne 'running'){
-				${$output} .= color 'brown';
+				${$output} .= color 'yellow';
 				${$output} .= " [priority ".${$hashref}{$key}{priority}."] ";
 				${$output} .= color 'reset';
 			}
@@ -224,9 +245,6 @@ sub parse_qstat_print_hash {
 			${$output} .= color 'reset';
 		}
 		${$output} .= "\n";
-		if(!$children){
-			${$output} .= "\n";
-		}
 		
 		# Now go through and print child jobs
 		if($children){
