@@ -113,13 +113,14 @@ sub parse_qstat {
 	# print Dumper (\%jobs); exit;
 	
 	# Go through hash and create output
+	my %printed_jobs;
 	my $output = "";
 	foreach my $pipeline (keys (%pipelines)){
 		$output .= "\n".('=' x 50)."\n";
 		$output .= "  Cluster Flow Pipeline $pipeline\n";
 		$output .= "  Submitted ".CF::Helpers::parse_seconds(time - $pipelines{$pipeline}{started})." ago";
 		$output .= "\n".('=' x 50)."\n";
-		parse_qstat_print_hash(\%jobs, 0, \$output, $all_users, $pipeline);
+		parse_qstat_print_hash(\%jobs, 0, \$output, $all_users, $pipeline, \%printed_jobs);
 	}
 	
 	# Go through jobs which don't have a pipeline
@@ -163,12 +164,19 @@ sub parse_qstat_search_hash {
 
 sub parse_qstat_print_hash {
 
-	my ($hashref, $depth, $output, $all_users, $pipeline) = @_;
+	my ($hashref, $depth, $output, $all_users, $pipeline, $printed_jobs) = @_;
 
 	foreach my $key (keys (%{$hashref}) ){
 	
 		# Ignore this unless this is part of the pipeline we're printing
 		next unless (${$hashref}{$key}{pipeline} eq $pipeline || $depth > 0);
+		
+		# Horrible way to prevent duplication of printed output. Not sure why it's doing this.
+		if(defined(${$printed_jobs}{$key})){
+			next;
+		} else {
+			${$printed_jobs}{$key} = 1;
+		}
 		
 		my $children = scalar(keys(%{${$hashref}{$key}{children}}));
 		
@@ -249,7 +257,7 @@ sub parse_qstat_print_hash {
 		# Now go through and print child jobs
 		if($children){
 			foreach my $child (keys %{${$hashref}{$key}{children}}){
-				parse_qstat_print_hash(\%{${$hashref}{$key}{children}}, $depth + 1, \${$output}, $all_users, $pipeline);
+				parse_qstat_print_hash(\%{${$hashref}{$key}{children}}, $depth + 1, \${$output}, $all_users, $pipeline, \%{$printed_jobs});
 			}
 		}
 	}
