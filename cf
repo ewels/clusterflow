@@ -40,6 +40,7 @@ my $cl_list_genomes;
 my $cl_dryrun;
 my $cl_qstat;
 my $cl_qstatall;
+my $cl_qstatcolours;
 my $cl_make_config;
 my $cl_version;
 my $cl_help;
@@ -65,6 +66,7 @@ my $config_result = GetOptions(
 	"dryrun" => \$cl_dryrun,
 	"qstat" => \$cl_qstat,
 	"qstatall" => \$cl_qstatall,
+	"qstatcols" => \$cl_qstatcolours,
 	"make_config" => \$cl_make_config,
 	"version" => \$cl_version,
 	"help" => \$cl_help
@@ -190,11 +192,19 @@ if($cl_dryrun){
 	sleep(1);
 }
 if($cl_qstat){
-	print CF::Headnodehelpers::parse_qstat(0);
+	if($cl_qstatcolours){
+		print CF::Headnodehelpers::parse_qstat(0, 1);
+	} else {
+		print CF::Headnodehelpers::parse_qstat(0, 0);
+	}
 	exit;
 }
 if($cl_qstatall){
-	print CF::Headnodehelpers::parse_qstat(1);
+	if($cl_qstatcolours){
+		print CF::Headnodehelpers::parse_qstat(1, 1);
+	} else {
+		print CF::Headnodehelpers::parse_qstat(1, 0);
+	}
 	exit;
 }
 if($cl_make_config){

@@ -264,6 +264,11 @@ AVAILABLE FLAGS
 		
 	--qstatall
 		Same as --qstat, but for all jobs submitted by all users
+	
+	--qstatcols
+		Colour the output from --qstat and --qstatall. Looks nice in terminal
+		windows with light backgrounds. Horrible on dark backgrounds.
+		See the manual for recommended .bashrc aliases.
 		
 	--make_config
 		Interactive prompt to generate a personalised CF config file

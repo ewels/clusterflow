@@ -17,7 +17,7 @@ use Data::Dumper;
 # Function to parse qstat results and return them in a nicely formatted manner
 sub parse_qstat {
 	
-	my ($all_users) = @_;
+	my ($all_users, $cols) = @_;
 	
 	my $qstat_command = "qstat -pri -r -xml";
 	if($all_users){
@@ -113,19 +113,18 @@ sub parse_qstat {
 	# print Dumper (\%jobs); exit;
 	
 	# Go through hash and create output
-	my %printed_jobs;
 	my $output = "";
 	foreach my $pipeline (keys (%pipelines)){
 		$output .= "\n".('=' x 50)."\n";
 		$output .= "  Cluster Flow Pipeline $pipeline\n";
 		$output .= "  Submitted ".CF::Helpers::parse_seconds(time - $pipelines{$pipeline}{started})." ago";
 		$output .= "\n".('=' x 50)."\n";
-		parse_qstat_print_hash(\%jobs, 0, \$output, $all_users, $pipeline, \%printed_jobs);
+		parse_qstat_print_hash(\%jobs, 0, \$output, $all_users, $cols, $pipeline);
 	}
 	
 	# Go through jobs which don't have a pipeline
 	my $notcf_output = "";
-	parse_qstat_print_hash(\%jobs, 0, \$notcf_output, $all_users, 'unknown');
+	parse_qstat_print_hash(\%jobs, 0, \$notcf_output, $all_users, $cols, 'unknown');
 	if(length($notcf_output) > 0){
 		$output .= "\n".('=' x 50)."\n";
 		$output .= "  Not Cluster Flow Jobs  ";
@@ -134,7 +133,7 @@ sub parse_qstat {
 	}
 	
 	my $notcfpending_output = "";
-	parse_qstat_print_hash(\%jobs, 0, \$notcfpending_output, $all_users, 'unknown_pending');
+	parse_qstat_print_hash(\%jobs, 0, \$notcfpending_output, $all_users, $cols, 'unknown_pending');
 	if(length($notcfpending_output) > 0){
 		$output .= "\n".('=' x 50)."\n";
 		$output .= "  Not Cluster Flow Jobs - Queing  ";
@@ -164,19 +163,12 @@ sub parse_qstat_search_hash {
 
 sub parse_qstat_print_hash {
 
-	my ($hashref, $depth, $output, $all_users, $pipeline, $printed_jobs) = @_;
+	my ($hashref, $depth, $output, $all_users, $cols, $pipeline) = @_;
 
 	foreach my $key (keys (%{$hashref}) ){
 	
 		# Ignore this unless this is part of the pipeline we're printing
 		next unless (${$hashref}{$key}{pipeline} eq $pipeline || $depth > 0);
-		
-		# Horrible way to prevent duplication of printed output. Not sure why it's doing this.
-		if(defined(${$printed_jobs}{$key})){
-			next;
-		} else {
-			${$printed_jobs}{$key} = 1;
-		}
 		
 		my $children = scalar(keys(%{${$hashref}{$key}{children}}));
 		
@@ -186,13 +178,13 @@ sub parse_qstat_print_hash {
 		
 		${$output} .= " ".(" " x ($depth*5))."- ";
 		
-		if(${$hashref}{$key}{state} eq 'running'){
+		if(${$hashref}{$key}{state} eq 'running' && $cols){
 			${$output} .= color 'red on_white';
 			${$output} .= " ";
-		} elsif(${$hashref}{$key}{state} eq 'deleting'){
+		} elsif(${$hashref}{$key}{state} eq 'deleting' && $cols){
 			${$output} .= color 'white on_red';
 			${$output} .= " ";
-		} elsif ($depth == 0) {
+		} elsif ($depth == 0 && $cols) {
 			${$output} .= color 'yellow on_white';
 			${$output} .= " ";
 		}
@@ -201,8 +193,10 @@ sub parse_qstat_print_hash {
 		} else {
 			${$output} .= ${$hashref}{$key}{jobname};
 		}
-		${$output} .= " ";
-		${$output} .= color 'reset';
+		if($cols){
+			${$output} .= " ";
+			${$output} .= color 'reset';
+		}
 		
 		# Extra info for running jobs
 		# if(${$hashref}{$key}{state} eq 'running'){
@@ -216,32 +210,32 @@ sub parse_qstat_print_hash {
 			
 			
 			if($all_users){
-				${$output} .= color 'green';
+				${$output} .= color 'green' if $cols;
 				my $user = " {".${$hashref}{$key}{owner}."} ";
 				${$output} .= $user;
-				${$output} .= color 'reset';
+				${$output} .= color 'reset' if $cols;
 				$spaces = 12 - length($user);
 				${$output} .= (" " x $spaces);
 			}
 			
-			${$output} .= color 'blue';
+			${$output} .= color 'blue' if $cols;
 			${$output} .= " [".${$hashref}{$key}{cores}." cores] ";
-			${$output} .= color 'reset';
+			${$output} .= color 'reset' if $cols;
 			
 			if(${$hashref}{$key}{state} ne 'running'){
-				${$output} .= color 'yellow';
+				${$output} .= color 'yellow' if $cols;
 				${$output} .= " [priority ".${$hashref}{$key}{priority}."] ";
-				${$output} .= color 'reset';
+				${$output} .= color 'reset' if $cols;
 			}
 			
 			
 			my $timestamp = "";
 			if(${$hashref}{$key}{started}){
-				${$output} .= color 'magenta';
+				${$output} .= color 'magenta' if $cols;
 				${$output} .= "running for ";
 				$timestamp = ${$hashref}{$key}{started};
 			} else {
-				${$output} .= color 'yellow';
+				${$output} .= color 'yellow' if $cols;
 				${$output} .= "queued for ";
 				$timestamp = ${$hashref}{$key}{submitted};
 			}
@@ -250,14 +244,14 @@ sub parse_qstat_print_hash {
 			my $duration = CF::Helpers::parse_seconds(time - $time, 0);
 			${$output} .= $duration;
 			
-			${$output} .= color 'reset';
+			${$output} .= color 'reset' if $cols;
 		}
 		${$output} .= "\n";
 		
 		# Now go through and print child jobs
 		if($children){
 			foreach my $child (keys %{${$hashref}{$key}{children}}){
-				parse_qstat_print_hash(\%{${$hashref}{$key}{children}}, $depth + 1, \${$output}, $all_users, $pipeline, \%{$printed_jobs});
+				parse_qstat_print_hash(\%{${$hashref}{$key}{children}}, $depth + 1, \${$output}, $all_users, $cols, $pipeline);
 			}
 		}
 	}
