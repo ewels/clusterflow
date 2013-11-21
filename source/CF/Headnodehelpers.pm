@@ -57,6 +57,7 @@ sub parse_qstat {
 			
 			$jobs{$jid}{pipeline} = $pipeline;
 			$jobs{$jid}{jobname} = $jobname;
+			$jobs{$jid}{full_job_name} = $job->{full_job_name};
 			$jobs{$jid}{state} =  $job->{state}->[0];
 			if($job->{state}->[1] eq 'dr' || $job->{state}->[1] eq 't'){
 				$jobs{$jid}{state} = 'deleting';
@@ -70,6 +71,7 @@ sub parse_qstat {
 			
 		}
 	}
+	warn "Processed running jobs\n";
 	
 	# Pending Jobs
 	foreach my $job (@{$data->{job_info}->{job_list}}){
@@ -86,6 +88,7 @@ sub parse_qstat {
 		
 		$jobhash{pipeline} = $pipeline;
 		$jobhash{jobname} = $jobname;
+		$jobhash{full_job_name} = $job->{full_job_name};
 		$jobhash{state} = $job->{state}->[0];
 		$jobhash{cores} = $job->{slots};
 		$jobhash{owner} = $job->{JB_owner};
@@ -102,6 +105,7 @@ sub parse_qstat {
 		} else {
 			$parent = $parents;
 		}
+		# warn "\n".$job->{full_job_name}." looking for parent ".$parent."\n";
 		if($parent && length($parent) > 0){
 			parse_qstat_search_hash(\%jobs, $parent, $jid, \%jobhash);
 		} else {
@@ -149,14 +153,12 @@ sub parse_qstat_search_hash {
 
 	my ($hashref, $parent, $jid, $jobhash) = @_;
 	
-	foreach my $key (keys (%{$hashref}) ){
-		my $jobname = ${$hashref}{$key}{jobname};
+	foreach my $key ( keys (%{$hashref}) ){
+		my $jobname = ${$hashref}{$key}{full_job_name};
 		if($jobname eq $parent){
 			${$hashref}{$key}{children}{$jid} = \%$jobhash;
 		} elsif (scalar(keys(%{${$hashref}{$key}{children}})) > 0){
-			foreach my $child (keys %{${$hashref}{$key}{children}}){
-				parse_qstat_search_hash(\%{${$hashref}{$key}{children}}, $parent, $jid, $jobhash);
-			}
+			parse_qstat_search_hash(\%{${$hashref}{$key}{children}}, $parent, $jid, \%$jobhash);
 		}
 	}
 }
@@ -255,9 +257,7 @@ sub parse_qstat_print_hash {
 		
 		# Now go through and print child jobs
 		if($children){
-			foreach my $child (keys %{${$hashref}{$key}{children}}){
-				parse_qstat_print_hash(\%{${$hashref}{$key}{children}}, $depth + 1, \${$output}, $all_users, $cols, $pipeline);
-			}
+			parse_qstat_print_hash(\%{${$hashref}{$key}{children}}, $depth + 1, \${$output}, $all_users, $cols, $pipeline);
 		}
 	}
 	
