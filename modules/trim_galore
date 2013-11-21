@@ -54,6 +54,14 @@ my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%config, @$files);
 # FastQ encoding type. Once found on one file will assume all others are the same
 my $encoding = 0;
 
+# Read any options from the pipeline parameters
+my $RRBS = "";
+foreach my $parameter (@$parameters){
+	if($parameter eq "RRBS"){
+		$RRBS = "--RRBS";
+	}
+}
+
 # Go through each single end files and run trim galore
 if($se_files && scalar(@$se_files) > 0){
 	foreach my $file (@$se_files){
@@ -69,7 +77,7 @@ if($se_files && scalar(@$se_files) > 0){
 		
 		my $output_fn = trim_galore_basename($file).'_trimmed.fq.gz';
 		
-		my $command = "trim_galore --gzip $enc --fastqc $file";
+		my $command = "trim_galore --trim1 --gzip $enc $RRBS --fastqc $file";
 		warn "\nRunning command:\n$command\n\n";
 		
 		if(!system ($command)){
@@ -109,7 +117,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			my $output_fn_1 = trim_galore_basename($files[0]).'_val_1.fq.gz';
 			my $output_fn_2 = trim_galore_basename($files[1]).'_val_2.fq.gz';
 			
-			my $command = "trim_galore --paired --trim1 --gzip $enc --fastqc ".$files[0]." ".$files[1];
+			my $command = "trim_galore --paired --trim1 --gzip $enc $RRBS --fastqc ".$files[0]." ".$files[1];
 			warn "\nRunning command:\n$command\n\n";
 			
 			if(!system ($command)){

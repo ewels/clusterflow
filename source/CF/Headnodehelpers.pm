@@ -58,7 +58,7 @@ sub parse_qstat {
 			$jobs{$jid}{pipeline} = $pipeline;
 			$jobs{$jid}{jobname} = $jobname;
 			$jobs{$jid}{state} =  $job->{state}->[0];
-			if($job->{state}->[1] eq 'dr'){
+			if($job->{state}->[1] eq 'dr' || $job->{state}->[1] eq 't'){
 				$jobs{$jid}{state} = 'deleting';
 			}
 			$jobs{$jid}{cores} = $job->{slots};
@@ -188,11 +188,16 @@ sub parse_qstat_print_hash {
 			${$output} .= color 'yellow on_white';
 			${$output} .= " ";
 		}
+		
+		if(${$hashref}{$key}{state} eq 'deleting'){
+			${$output} .= "** Terminating ** ";
+		}
 		if(${$hashref}{$key}{module}){
 			${$output} .= ${$hashref}{$key}{module};
 		} else {
 			${$output} .= ${$hashref}{$key}{jobname};
 		}
+		
 		if($cols){
 			${$output} .= " ";
 			${$output} .= color 'reset';
