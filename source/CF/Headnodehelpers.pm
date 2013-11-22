@@ -76,45 +76,53 @@ sub parse_qstat {
 	}
 	
 	# Pending Jobs
-	warn "here\n";
-	foreach my $job (@{$data->{job_info}->{job_list}}){
-		my $jid = $job->{JB_job_number};
-		my %jobhash;
-		my $pipeline = 'unknown_pending';
-		my $pipelinekey = 'unknown_pending';
-		my $jobname = $job->{full_job_name};
-		
-		if($jobname =~ /^cf_(.+)_(\d{10})_(.+)_\d{1,3}$/){
-			$pipeline = $1;
-			$pipelinekey = "$1_$2";
-			$pipelines{$pipelinekey}{started} = $2;
-			$jobhash{module} = $3;
-		}
-		
-		$jobhash{pipeline} = $pipeline;
-		$jobhash{pipelinekey} = $pipelinekey;
-		$jobhash{jobname} = $jobname;
-		$jobhash{full_job_name} = $job->{full_job_name};
-		$jobhash{state} = $job->{state}->[0];
-		$jobhash{cores} = $job->{slots};
-		$jobhash{owner} = $job->{JB_owner};
-		$jobhash{priority} = $job->{JB_priority};
-		$jobhash{submitted} = $job->{JB_submission_time};
-		$jobhash{children} = {};
-		
-		# Find dependency
-		# If more than one (an array), assume last element is latest
-		my $parents = $job->{predecessor_jobs_req};
-		my $parent;
-		if(ref($parents)){
-			$parent = pop (@$parents);
-		} else {
-			$parent = $parents;
-		}
-		if($parent && length($parent) > 0){
-			parse_qstat_search_hash(\%jobs, $parent, $jid, \%jobhash);
-		} else {
-			$jobs{$jid} = \%jobhash;
+	# Returns a hash instead of an array if only one element
+	@jlist = ();
+	if(ref($data->{job_info}->{job_list}) eq 'HASH'){
+		@jlist = \%{$data->{job_info}->{job_list}};
+	} elsif(ref($data->{job_info}->{job_list}) eq 'ARRAY'){
+		@jlist = @{$data->{job_info}->{job_list}};
+	}
+	if($data->{job_info}->{job_list}){
+		foreach my $job (@jlist){
+			my $jid = $job->{JB_job_number};
+			my %jobhash;
+			my $pipeline = 'unknown_pending';
+			my $pipelinekey = 'unknown_pending';
+			my $jobname = $job->{full_job_name};
+			
+			if($jobname =~ /^cf_(.+)_(\d{10})_(.+)_\d{1,3}$/){
+				$pipeline = $1;
+				$pipelinekey = "$1_$2";
+				$pipelines{$pipelinekey}{started} = $2;
+				$jobhash{module} = $3;
+			}
+			
+			$jobhash{pipeline} = $pipeline;
+			$jobhash{pipelinekey} = $pipelinekey;
+			$jobhash{jobname} = $jobname;
+			$jobhash{full_job_name} = $job->{full_job_name};
+			$jobhash{state} = $job->{state}->[0];
+			$jobhash{cores} = $job->{slots};
+			$jobhash{owner} = $job->{JB_owner};
+			$jobhash{priority} = $job->{JB_priority};
+			$jobhash{submitted} = $job->{JB_submission_time};
+			$jobhash{children} = {};
+			
+			# Find dependency
+			# If more than one (an array), assume last element is latest
+			my $parents = $job->{predecessor_jobs_req};
+			my $parent;
+			if(ref($parents)){
+				$parent = pop (@$parents);
+			} else {
+				$parent = $parents;
+			}
+			if($parent && length($parent) > 0){
+				parse_qstat_search_hash(\%jobs, $parent, $jid, \%jobhash);
+			} else {
+				$jobs{$jid} = \%jobhash;
+			}
 		}
 	}
 	
