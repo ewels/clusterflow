@@ -85,17 +85,8 @@ if($se_files && scalar(@$se_files) > 0){
 			$enc = '--illumina1_3';
 		}
 		
-		# Make the output directory
-		my $dir = $file;
-		$dir =~ s/.gz$//;
-		$dir =~ s/.fq$//;
-		$dir =~ s/.fastq$//;
-		unless (-e $dir){
-			mkdir $dir;
-		}
-		
 		# Uses --cores $cores when this is written into Fastq Screen
-		my $command = "fastq_screen --subset 100000 $enc --outdir $dir --quiet --aligner bowtie2 $file";
+		my $command = "fastq_screen --subset 100000 $enc --quiet --aligner bowtie2 $file";
 		warn "\nRunning command:\n$command\n\n";
 		
 		if(!system ($command)){
@@ -121,17 +112,8 @@ if($pe_files && scalar(@$pe_files) > 0){
 				$enc = '--illumina1_3';
 			}
 			
-			# Make the output directory
-			my $dir = $files[0];
-			$dir =~ s/.gz$//;
-			$dir =~ s/.fq$//;
-			$dir =~ s/.fastq$//;
-			unless (-e $dir){
-				mkdir $dir;
-			}
-			
 			# Uses --cores $cores when this is written into Fastq Screen
-			my $command = "fastq_screen --subset 100000 $enc --outdir $dir --quiet --aligner bowtie2 --paired ".$files[0]." ".$files[1];
+			my $command = "fastq_screen --subset 100000 $enc --quiet --aligner bowtie2 --paired ".$files[0]." ".$files[1];
 			warn "\nRunning command:\n$command\n\n";
 			
 			if(!system ($command)){
