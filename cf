@@ -29,6 +29,7 @@ my $cl_paired_end;
 my $cl_single_end;
 my $file_list;
 my $cl_module;
+my $cl_module_params;
 my $cl_email;
 my $cl_priority;
 my $cl_total_cores;
@@ -55,6 +56,7 @@ my $config_result = GetOptions(
 	"single" => \$cl_single_end,
 	"file_list=s" => \$file_list,
 	"module=s" => \$cl_module,
+	"mod_params=s" => \$cl_module_params,
 	"email=s" => \$cl_email,
 	"priority=s" => \$cl_priority,
 	"cores=i" => \$cl_total_cores,
@@ -126,6 +128,9 @@ if($cl_total_cores){
 }
 if($cl_total_mem){
 	$DEFAULT_MEM = $cl_total_mem;
+}
+if($cl_module_params && !$cl_module){
+	warn "Warning: --mod_params specified without using --module. Ignoring this parameter and continuing..\n";
 }
 
 # Printing command line options
@@ -261,8 +266,15 @@ if($cl_module){
 	if(!$module_found){
 		die "Can't find pipeline config file $pipeline.config";
 	} else {
+		# Do we have any parameters passed for this module?
+		my $mparams = "";
+		if($cl_module_params){
+			$mparams = $cl_module_params;
+			$mparams =~ s/^\s+|\s+$//g; # trim whitespace
+			$mparams = "\t".$mparams;
+		}
 		# Make a file handle from a string
-		my $pipeline_config = "\n#$cl_module\n\n";
+		my $pipeline_config = "\n#".$cl_module.$mparams."\n\n";
 		open(CONFIG, "<", \$pipeline_config) or die "Can't open variable file handle for single module pipeline: $!\n\n";
 	}
 } else {

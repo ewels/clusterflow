@@ -227,6 +227,10 @@ AVAILABLE FLAGS
 	--module
 		Run a single module instead of a pipeline
 		
+	--mod_params
+		Specify module parameters when running a single module.
+		Can only be used in conjunction with --module
+		
 	--split-files <num>
 		Create one run per <num> files
 		
