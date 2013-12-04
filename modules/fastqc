@@ -46,15 +46,27 @@ my %config = %$config_ref;
 
 open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
 
+# Read any options from the pipeline parameters
+my $nogroup = "";
+foreach my $parameter (@$parameters){
+	if($parameter eq "nogroup"){
+		$nogroup = "--nogroup";
+	}
+}
+
+
 # Go through each supplied file and run FastQC.
 foreach my $file (@$files){
 	
-	if(!system ("fastqc $file")){
+	my $command = "fastqc $nogroup $file";
+	warn "\nRunning command:\n$command\n\n";
+	
+	if(!system ($command)){
 		print RUN "$job_id\t$file\n";
 		my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 		warn "###CF FastQC successfully ran, took $duration\n";
 	} else {
-		print "###CF # FastQC Failed: $? $!\n";
+		print "###CF ## FastQC Failed: $? $!\n";
 	}
 }
 
