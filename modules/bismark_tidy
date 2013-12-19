@@ -8,6 +8,7 @@ use CF::Constants;
 use CF::Helpers;
 use File::Copy;
 
+
 # Get Options
 my $required_cores;
 my $required_mem;
@@ -46,19 +47,9 @@ my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_
 
 # Strip off all of the bismark stuff from the input filename
 my $dir = ${$files}[0];
-$dir =~ s/.gz$//;
-$dir =~ s/.txt$//; 
-$dir =~ s/.deduplicated$//;
-$dir =~ s/_bt2$//;
-$dir =~ s/_bismark$//;
-$dir =~ s/.gz$//;
-$dir =~ s/.fq$//;
-$dir =~ s/_val_[12]$//;
-$dir =~ s/_trimmed$//;
-$dir =~ s/_[12]$//;
-$dir =~ s/^(CpG|Non_CpG|CHG|CHH)_//;
-$dir =~ s/^[COBT]+_//; 
-
+$dir =~ s/(\.)?(r_[12])?(_val_[12])?\.f(ast)?q.+//i; # strip stuff from end of filename
+$dir =~ s/^(CpG|Non_CpG|CHG|CHH)_//i; # strip stuff from start of filename
+$dir =~ s/^[COBT]+_//;
 
 # make directory
 mkdir $dir;
@@ -66,9 +57,11 @@ mkdir $dir;
 # move matching files into this directory
 my $count = 0;
 foreach my $file (glob('*')) {
-	if($file =~ /$dir/){
-		move ($file, $dir."/".$file);
-		$count++;
+	if($file =~ /$dir/i){
+		unless($file =~ /\.run$/i || $file =~ /\.out$/i){
+			move ($file, $dir."/".$file);
+			$count++;
+		}
 	}
 }
 warn "###CF $count files tidied into bismark folder\n";

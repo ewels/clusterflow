@@ -40,6 +40,8 @@ Use bismark --help for further information.\n\n";
 }
 
 # MODULE
+my $timestart = time;
+
 # Read in the input files from the run file
 my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
 my %config = %$config_ref;
@@ -96,7 +98,8 @@ if($se_files && scalar(@$se_files) > 0){
 		
 		if(!system ($command)){
 			# Bismark worked - print out resulting filenames
-			warn "###CF Bismark (SE mode) successfully exited..\n";
+			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+			warn "###CF Bismark (SE mode) successfully exited, took $duration..\n";
 			if(-e $output_fn){
 				print RUN "$job_id\t$output_fn\n"; 
 			} else {
@@ -135,7 +138,8 @@ if($pe_files && scalar(@$pe_files) > 0){
 			
 			if(!system ($command)){
 				# Bismark worked - print out resulting filenames
-				warn "###CF Bismark (PE mode) successfully exited..\n";
+				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+				warn "###CF Bismark (PE mode) successfully exited, took $duration..\n";
 				if(-e $output_fn){
 					print RUN "$job_id\t$output_fn\n";
 				} else {

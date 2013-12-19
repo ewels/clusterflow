@@ -40,6 +40,8 @@ For further information please run deduplicate_bismark --help \n\n";
 }
 
 # MODULE
+my $timestart = time;
+
 # Read in the input files from the run file
 my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
 my %config = %$config_ref;
@@ -63,7 +65,8 @@ if($files && scalar(@$files) > 0){
 			# Paired End BAM file
 			if(!system ($command)){
 				# Bismark worked - print out resulting filenames
-				warn "###CF Bismark deduplication (PE mode) successfully exited..\n";
+				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+				warn "###CF Bismark deduplication (PE mode) successfully exited, took $duration..\n";
 				if(-e $output_fn){
 					print RUN "$job_id\t$output_fn\n"; 
 				} else {
@@ -81,7 +84,8 @@ if($files && scalar(@$files) > 0){
 			# Single End BAM file
 			if(!system ($command)){
 				# Bismark worked - print out resulting filenames
-				warn "###CF Bismark deduplication (SE mode) successfully exited..\n";
+				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+				warn "###CF Bismark deduplication (SE mode) successfully exited, took $duration..\n";
 				if(-e $output_fn){
 					print RUN "$job_id\t$output_fn\n"; 
 				} else {
