@@ -27,11 +27,9 @@ warn "\n###CF Pipeline $pipeline finished at $date\n\n";
 
 # Read in the log files
 my @highlights;
-push (@highlights, ("=" x 30));
-my $outfiles;
 foreach my $outfile (@outfns){
 	
-	$outfiles .= "\n\n".("=" x 60)."\n"."Output file $outfile\n".("=" x 60)."\n";
+	push (@highlights, "- Output file $outfile\n");
 	
 	open (IN,'<',$outfile);
 	while(<IN>){
@@ -45,15 +43,11 @@ foreach my $outfile (@outfns){
 		
 		# Highlight statuses
 		if(/^###CF/){
-			push (@highlights, substr($_, 6));
+			push (@highlights, '- '.substr($_, 6));
 		}
-		
-		# Add cleaned text to outfile string
-		$outfiles .= "$_\n";
 		
 	}
 	close (IN);
-	$outfiles .= ("\n" x 15);
 	push (@highlights, ("=" x 30));
 }
 
@@ -68,18 +62,13 @@ if($config{notifications}{complete} && defined($config{email})){
 my $message_body = "The pipeline $pipeline has completed.
 
 The working directory was ".getcwd()."/
-The log files are:
- - ".join("\n - ",@outfns)."
 
 == Highlighted status messages ==
-- ".join("\n- ", @highlights)."
+- ".join("\n", @highlights)."
 \n\n";
-
-# == Full Log File Outputs ==\n";
 
 	open (PIPE , "| mail -s $subject $to") or die "can't open pipe to mail: $!\n";
 	print PIPE $message_body;
-	# print PIPE $outfiles;	# commented out as notification e-mails were getting huge..
 	close PIPE;
 	
 	sleep(5); # Give mail time to actually send the e-mail before qsub shuts us down
