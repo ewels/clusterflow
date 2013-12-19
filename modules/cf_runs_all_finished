@@ -73,13 +73,13 @@ The log files are:
 
 == Highlighted status messages ==
 - ".join("\n- ", @highlights)."
-\n\n
+\n\n";
 
-== Full Log File Outputs ==\n";
+# == Full Log File Outputs ==\n";
 
 	open (PIPE , "| mail -s $subject $to") or die "can't open pipe to mail: $!\n";
 	print PIPE $message_body;
-	print PIPE $outfiles;	
+	# print PIPE $outfiles;	# commented out as notification e-mails were getting huge..
 	close PIPE;
 	
 	sleep(5); # Give mail time to actually send the e-mail before qsub shuts us down
