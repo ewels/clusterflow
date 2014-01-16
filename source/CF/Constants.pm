@@ -25,7 +25,7 @@ our %GTF_PATHS;
 our $SPLIT_FILES = 1;
 our $PRIORITY = -500;
 our $TOTAL_CORES = 64;
-our $DEFAULT_MEM = '4G';
+our $TOTAL_MEM = '4G';
 
 
 
@@ -79,8 +79,8 @@ sub parse_conf_file {
 						$PRIORITY = $val;
 					} elsif($name eq 'total_cores'){
 						$TOTAL_CORES = $val;
-					} elsif($name eq 'default_mem'){
-						$DEFAULT_MEM = $val;
+					} elsif($name eq 'total_mem'){
+						$TOTAL_MEM = $val;
 					}
 				}
 			}
@@ -110,7 +110,7 @@ sub runfile_constants {
 \@split_files	$SPLIT_FILES
 \@priority	$PRIORITY
 \@total_cores	$TOTAL_CORES
-\@default_mem	$DEFAULT_MEM
+\@total_mem	$TOTAL_MEM
 EOT
 	
 	foreach my $not (@NOTIFICATIONS){

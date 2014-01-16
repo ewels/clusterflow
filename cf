@@ -92,7 +92,7 @@ my %BOWTIE_PATHS = %CF::Constants::BOWTIE_PATHS;
 my %GTF_PATHS = %CF::Constants::GTF_PATHS;
 my $PRIORITY = $CF::Constants::PRIORITY;
 my $TOTAL_CORES = $CF::Constants::TOTAL_CORES;
-my $DEFAULT_MEM = $CF::Constants::DEFAULT_MEM;
+my $TOTAL_MEM = $CF::Constants::TOTAL_MEM;
 
 if($cl_email){
 	$EMAIL = $cl_email;
@@ -127,7 +127,7 @@ if($cl_total_cores){
 	$TOTAL_CORES = $cl_total_cores;
 }
 if($cl_total_mem){
-	$DEFAULT_MEM = $cl_total_mem;
+	$TOTAL_MEM = $cl_total_mem;
 }
 if($cl_module_params && !$cl_module){
 	warn "Warning: --mod_params specified without using --module. Ignoring this parameter and continuing..\n";
@@ -414,6 +414,45 @@ if($file_list){
 	close(FILES);
 }
 
+# Work out quota of cores and memory allowed per job
+# Work out memory allocation in bytes
+$TOTAL_MEM = CF::Helpers::human_readable_to_bytes($TOTAL_MEM);
+# Count terminal leaves in pipeline and number of files
+my $num_leaves = count_leaves(\%module_tree, 0);
+my $num_files = scalar @files;
+# Calculate per-job resources
+my $cores_allocation = int( $TOTAL_CORES / ($num_leaves * $num_files));
+my $memory_allocation = int( $TOTAL_MEM / ($num_leaves * $num_files));
+# Sanity checks
+if($cores_allocation < 1){
+	$cores_allocation = 1; # minimum one core
+}
+if($memory_allocation < 104857600){
+	$memory_allocation = 104857600; # minimum one 100 Mb
+}
+
+sub count_leaves {
+	# Set up parameters
+	my ($mod_tree, $num_leaves) = @_;
+	
+	# Run through leaves on this branch
+	foreach ( keys %{$mod_tree} ){
+		
+		my $num_keys = scalar keys(%{$mod_tree->{$_}});
+		
+		# Recursively call this function if we're not at the end of a branch
+		if ($num_keys > 0) {
+			$num_leaves = count_leaves ( $mod_tree->{$_}, $num_leaves ) ;
+		
+		# No children, add one to the count for this leaf
+		} else {
+			$num_leaves++;
+		}
+	}
+	
+	return $num_leaves;
+}
+
 # Go through the supplied starting files
 my @qsubs;
 my @job_ids;
@@ -574,7 +613,7 @@ sub make_qsubs {
 		
 		# Get options for module
 		my $cores = `$module_fn --cores $TOTAL_CORES`;
-		my $mem = `$module_fn --mem $DEFAULT_MEM`;
+		my $mem = `$module_fn --mem $TOTAL_MEM`;
 		my $required_modules = `$module_fn --modules`;
 		
 		if(!$cores || length($cores) == 0){

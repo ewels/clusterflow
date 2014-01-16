@@ -296,7 +296,25 @@ sub parse_seconds {
 
 
 
+# Simple function to take human readable memory string and return bytes
+sub human_readable_to_bytes {
 
+	my ($memory_string) = @_;
+	(my $memory = $memory_string) =~ s/\D//g;
+	
+	# Cut off 'b' from Gb etc if accidentally present
+	$memory_string =~ s/b$//i;
+	
+	if(substr(lc($memory_string), -1) eq 'g'){
+		$memory = $memory * 1073741824;
+	} elsif(substr(lc($memory_string), -1) eq 'm'){
+		$memory = $memory * 1048576;
+	} elsif(substr(lc($memory_string), -1) eq 'k'){
+		$memory = $memory * 1024;
+	}
+	
+	return $memory;
+}
 
 
 1; # Must return a true value
