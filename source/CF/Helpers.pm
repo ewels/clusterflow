@@ -316,5 +316,36 @@ sub human_readable_to_bytes {
 	return $memory;
 }
 
+# Take allocated cores, minimum, maximum and return best value
+sub allocate_cores {
+	
+	my ($allocated, $min, $max) = @_;
+	
+	if($allocated > $max){
+		return $max;
+	} elsif($allocated < $min){
+		return $min;
+	} else {
+		return $allocated;
+	}
+}
+
+# Take allocated memory, minimum, maximum and return best value
+sub allocate_memory {
+	
+	my ($allocated, $min, $max) = @_;
+	
+	$max = CF::Helpers::human_readable_to_bytes($max);
+	$min = CF::Helpers::human_readable_to_bytes($min);
+	
+	if($allocated > $max){
+		return $max;
+	} elsif($allocated < $min){
+		return $min;
+	} else {
+		return $allocated;
+	}
+}
+
 
 1; # Must return a true value
