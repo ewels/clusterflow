@@ -316,6 +316,24 @@ sub human_readable_to_bytes {
 	return $memory;
 }
 
+# Simple function to take bytes and return a human readable memory string
+sub bytes_to_human_readable {
+
+	my ($bytes) = @_;
+	$bytes =~ s/\D//g;
+	
+	if(int($bytes/1073741824) > 0){
+		return sprintf("%.1f", $bytes/1073741824)."G";
+	} elsif(int($bytes/1048576) > 0){
+		return sprintf("%.1f", $bytes/1048576)."M";
+	} elsif(int($bytes/1024) > 0){
+		return sprintf("%.1f", $bytes/1048576)."K";
+	} else {
+		return $bytes."B";
+	}
+	
+}
+
 # Take allocated cores, minimum, maximum and return best value
 sub allocate_cores {
 	

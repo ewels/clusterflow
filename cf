@@ -415,7 +415,6 @@ if($file_list){
 }
 
 # Work out quota of cores and memory allowed per job
-# Work out memory allocation in bytes
 $TOTAL_MEM = CF::Helpers::human_readable_to_bytes($TOTAL_MEM);
 # Count terminal leaves in pipeline and number of files
 my $num_leaves = count_leaves(\%module_tree, 0);
@@ -430,6 +429,9 @@ if($cores_allocation < 1){
 if($memory_allocation < 104857600){
 	$memory_allocation = 104857600; # minimum one 100 Mb
 }
+my $memory_allocation_hr = CF::Helpers::bytes_to_human_readable($memory_allocation);
+warn "Processing $num_files files with $num_leaves potential parallel jobs each.
+Suggested module allocations: $cores_allocation cores and $memory_allocation_hr memory...\n\n";
 
 sub count_leaves {
 	# Set up parameters
