@@ -17,13 +17,13 @@ my $result = GetOptions ("cores=i" => \$required_cores, "mem" => \$required_mem,
 # QSUB SETUP
 # --cores i = offered cores. Return number of required cores.
 if($required_cores){
-	print 3;
+	print 1;
 	exit;
 }
 # --mem. Return the required memory allocation.
 if($required_mem){
-	print '3G';
-	exit;
+	print CF::Helpers::allocate_memory($required_mem, '3G', '10G');
+	exit
 }
 # --modules. Return csv names of any modules which should be loaded.
 if($required_modules){

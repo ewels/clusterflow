@@ -12,12 +12,12 @@ my $required_cores;
 my $required_mem;
 my $required_modules;
 my $help;
-my $result = GetOptions ("cores=i" => \$required_cores, "mem" => \$required_mem, "modules" => \$required_modules, "help" => \$help);
+my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "help" => \$help);
 
 # QSUB SETUP
 # --cores i = offered cores. Return number of required cores.
 if($required_cores){
-	print 3;
+	print CF::Helpers::allocate_cores($required_cores, 2, 3);
 	exit;
 }
 # --mem. Return the required memory allocation.

@@ -24,7 +24,7 @@ if($required_cores){
 }
 # --mem. Return the required memory allocation.
 if($required_mem){
-	print '1G';
+	print '100M';
 	exit;
 }
 # --modules. Return csv names of any modules which should be loaded.

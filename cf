@@ -321,6 +321,7 @@ if ($cl_paired_end){
 } 
 
 # Parse pipeline config file
+my $pipeline_string = "";
 while (<CONFIG>){
 	chomp;
 	s/\n//;
@@ -382,6 +383,7 @@ while (<CONFIG>){
 	
 	# Read the pipeline tree
 	if($_ =~ /^(\t*)#/ && !$comment_block){
+		$pipeline_string .= "$_\n";
 		s/^(\t*)#//;
 		splice @indents, length($1)+1;
 		push @indents, $indents[$#indents]->{$_} = {};
@@ -390,6 +392,8 @@ while (<CONFIG>){
 }
 
 close(CONFIG);
+
+warn "Pipeline to be used:\n\n$pipeline_string\n\n";
 
 # If we have a file list input file, take input from there
 my @download_fns;
@@ -417,11 +421,12 @@ if($file_list){
 # Work out quota of cores and memory allowed per job
 $TOTAL_MEM = CF::Helpers::human_readable_to_bytes($TOTAL_MEM);
 # Count terminal leaves in pipeline and number of files
-my $num_leaves = count_leaves(\%module_tree, 0);
+my ($num_leaves, $num_jobs) = count_leaves(\%module_tree, 0, 0);
 my $num_files = scalar @files;
+my $num_parallel = $num_leaves * $num_files;
 # Calculate per-job resources
-my $cores_allocation = int( $TOTAL_CORES / ($num_leaves * $num_files));
-my $memory_allocation = int( $TOTAL_MEM / ($num_leaves * $num_files));
+my $cores_allocation = int( $TOTAL_CORES / $num_parallel);
+my $memory_allocation = int( $TOTAL_MEM / $num_parallel);
 # Sanity checks
 if($cores_allocation < 1){
 	$cores_allocation = 1; # minimum one core
@@ -430,12 +435,16 @@ if($memory_allocation < 104857600){
 	$memory_allocation = 104857600; # minimum one 100 Mb
 }
 my $memory_allocation_hr = CF::Helpers::bytes_to_human_readable($memory_allocation);
-warn "Processing $num_files files with $num_leaves potential parallel jobs each.
-Suggested module allocations: $cores_allocation cores and $memory_allocation_hr memory...\n\n";
+warn "Processing $num_files files with $num_jobs jobs per file ($num_leaves potential parallel).
+This gives a theoretical maximum of $num_parallel jobs running in parallel.
+Suggested module resources: $cores_allocation cores and $memory_allocation_hr memory...\n\n";
 
 sub count_leaves {
 	# Set up parameters
-	my ($mod_tree, $num_leaves) = @_;
+	my ($mod_tree, $num_leaves, $num_jobs) = @_;
+	
+	# Increase job counter
+	$num_jobs++;
 	
 	# Run through leaves on this branch
 	foreach ( keys %{$mod_tree} ){
@@ -444,7 +453,7 @@ sub count_leaves {
 		
 		# Recursively call this function if we're not at the end of a branch
 		if ($num_keys > 0) {
-			$num_leaves = count_leaves ( $mod_tree->{$_}, $num_leaves ) ;
+			($num_leaves, $num_jobs) = count_leaves ( $mod_tree->{$_}, $num_leaves, $num_jobs ) ;
 		
 		# No children, add one to the count for this leaf
 		} else {
@@ -452,7 +461,7 @@ sub count_leaves {
 		}
 	}
 	
-	return $num_leaves;
+	return ($num_leaves, $num_jobs);
 }
 
 # Go through the supplied starting files
@@ -663,7 +672,10 @@ sub make_qsubs {
 
 
 
-# Print qsub jobs to the terminal
+# Print qsub jobs to the terminal or submit to cluster
+if($cl_dryrun){
+	print "\n\n".('-' x 46)."\n Jobs that would be submitted to the cluster\n".('-' x 46)."\n\n";
+}
 foreach(@qsubs){
 	if($cl_dryrun){
 		print "$_\n\n";
