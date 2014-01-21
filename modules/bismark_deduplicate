@@ -32,7 +32,8 @@ if($required_modules){
 }
 # --help. Print help.
 if($help){
-	print "The bismark_deduplicate module runs the deduplicate_bismark script.
+	print "".("-"x28)."\n Bismark Deduplicate Module\n".("-"x28)."\n
+The bismark_deduplicate module runs the deduplicate_bismark script.
 This removes alignments to the same position in the genome from the
 Bismark mapping output which can arise by e.g. excessive PCR amplification.\n
 For further information please run deduplicate_bismark --help \n\n";

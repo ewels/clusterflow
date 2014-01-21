@@ -47,8 +47,9 @@ if($required_modules){
 }
 # --help. Print help.
 if($help){
-	print "Fastq Screen C is a quality control tool that allows you to
-take a sequence dataset and search it against a set of bowtie databases.
+	print "".("-"x21)."\n FastQ Screen Module\n".("-"x21)."\n
+FastQ Screen is a quality control tool that allows you to
+take a sequence dataset and search it against a set of bowtie databases.\n
 For further information, please run fastq_screen --help\n\n";
 	exit;
 }

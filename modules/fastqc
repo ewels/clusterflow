@@ -32,7 +32,8 @@ if($required_modules){
 }
 # --help. Print help.
 if($help){
-	print "FastQC is a quality control tool for high throughput sequence data.
+	print "".("-"x15)."\n FastQC Module\n".("-"x15)."\n
+FastQC is a quality control tool for high throughput sequence data.
 For further information, please run fastqc --help\n\n";
 	exit;
 }

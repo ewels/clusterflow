@@ -32,7 +32,8 @@ if($required_modules){
 }
 # --help. Print help.
 if($help){
-	print "TopHat is a fast splice junction mapper for RNA-Seq reads.
+	print "".("-"x15)."\n Tophat Module\n".("-"x15)."\n
+TopHat is a fast splice junction mapper for RNA-Seq reads.
 It aligns RNA-Seq reads to mammalian-sized genomes using the ultra
 high-throughput short read aligner Bowtie, and then analyzes the
 mapping results to identify splice junctions between exons.\n
@@ -64,7 +65,7 @@ if(defined($config{gtf_path})){
 	$gtf = " -G ".$config{gtf_path};
 }
 
-if(!defined($cores) || $cores <= 0){
+if(!defined($cores) || $cores < 1){
 	$cores = 1;
 }
 

@@ -181,6 +181,9 @@ Running Cluster Flow version $CF_VERSION
 
 SYNTAX
 	cf [flags] pipeline_name file_1 file_2..
+	
+	Note that the name of a single module can be used instead of a
+	pipeline name.
 
 EXAMPLE
 	cf --genome NCBIM37 sra_bismark *.sra
@@ -224,12 +227,9 @@ AVAILABLE FLAGS
 	--file_list
 		Text file containing input files or download URLs
 		
-	--module
-		Run a single module instead of a pipeline
-		
 	--mod_params
 		Specify module parameters when running a single module.
-		Can only be used in conjunction with --module
+		Ignored if a pipeline name is specified.
 		
 	--split-files <num>
 		Create one run per <num> files
@@ -281,7 +281,9 @@ AVAILABLE FLAGS
 		Print version of Cluster Flow installed
 		
 	--help
-		Print this help message
+		Print this help message.
+		If specified with a pipeline or module name afterwards, the help for that
+		pipeline or module will be displayed. eg. cf --help sra_bismark
 
 
 AUTHOR

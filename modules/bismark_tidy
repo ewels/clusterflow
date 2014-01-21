@@ -34,7 +34,8 @@ if($required_modules){
 }
 # --help. Print help.
 if($help){
-	print "This script takes the bismark output, creates a directory
+	print "".("-"x21)."\n Bismark Tidy Module\n".("-"x21)."\n
+This script takes the bismark output, creates a directory
 based on the filenames and moves everything into that directory.
 It then runs the bismark2report script to generate an overview report.\n
 For further information, please run bismark2report --help\n\n";

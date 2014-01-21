@@ -1,12 +1,27 @@
 #!/usr/bin/perl
 use warnings;
 use strict;
+use Getopt::Long;
 use FindBin qw($Bin);
 use lib "$FindBin::Bin/../source";
 use CF::Constants;
 use CF::Helpers;
 use POSIX qw(strftime);
 use Cwd;
+
+
+# Get Options
+my $required_cores;
+my $required_mem;
+my $required_modules;
+my $help;
+my $result = GetOptions ("cores=i" => \$required_cores, "mem" => \$required_mem, "modules" => \$required_modules, "help" => \$help);
+if($required_cores || $required_mem || $required_modules){
+	exit;
+}
+if($help){
+	die "\nThis is a core module which is executed when each run has finished.\n";
+}
 
 
 # MODULE

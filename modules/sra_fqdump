@@ -32,7 +32,8 @@ if($required_modules){
 }
 # --help. Print help.
 if($help){
-	print "This module uses the sra toolkit fastq-dump package
+	print "".("-"x23)."\n SRA FastQ Dump Module\n".("-"x23)."\n
+This module uses the sra toolkit fastq-dump package
 to extract .fastq files from .sra input. It gzips the fastq
 files once produced.\n\n";
 	exit;

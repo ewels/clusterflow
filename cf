@@ -28,7 +28,6 @@ my $SPLIT_FILES = 1;
 my $cl_paired_end;
 my $cl_single_end;
 my $file_list;
-my $cl_module;
 my $cl_module_params;
 my $cl_email;
 my $cl_priority;
@@ -55,7 +54,6 @@ my $config_result = GetOptions(
 	"paired" => \$cl_paired_end,
 	"single" => \$cl_single_end,
 	"file_list=s" => \$file_list,
-	"module=s" => \$cl_module,
 	"mod_params=s" => \$cl_module_params,
 	"email=s" => \$cl_email,
 	"priority=s" => \$cl_priority,
@@ -76,12 +74,8 @@ my $config_result = GetOptions(
 
 die "Could not parse options" unless ($config_result);
 
-# Get the file list
-if($cl_module){
-	$pipeline = $cl_module;
-} else {
-	$pipeline = shift(@ARGV);
-}
+# Get the pipeline and file list
+$pipeline = shift(@ARGV);
 my @files = @ARGV;
 
 # Set up parameters
@@ -128,9 +122,6 @@ if($cl_total_cores){
 }
 if($cl_total_mem){
 	$TOTAL_MEM = $cl_total_mem;
-}
-if($cl_module_params && !$cl_module){
-	warn "Warning: --mod_params specified without using --module. Ignoring this parameter and continuing..\n";
 }
 
 # Printing command line options
@@ -236,15 +227,13 @@ if($cl_version){
 }
 if($cl_help){
 	if($pipeline){
-		print CF::Constants::clusterflow_pipeline_help($pipeline);
+		print "\n".CF::Constants::clusterflow_pipeline_help($pipeline)."\n";
 	} else {
 		print CF::Constants::clusterflow_help();
 	}
 	exit;
 }
-if($cl_module){
-	warn "\nUsing a single module instead of a pipeline: $cl_module\n\n";
-} elsif(!$pipeline){
+if(!$pipeline){
 	die("Error - no pipeline specified. Use --help for instructions.\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n");
 }
 
@@ -253,44 +242,47 @@ if(!$file_list && scalar(@files) == 0){
 }
 
 
-if($cl_module){
-	# Make a temporary pipeline with a single module name
-	# Check the module exists
-	my $module_found = 0;
+
+# Load in the pipeline config file
+my $config_found = 0;
+foreach my $folder (@pipeline_folders){
+	if(-e $folder."$pipeline.config"){
+		
+		# Open the pipeline config file handle
+		open (CONFIG,$folder."$pipeline.config") or die "Can't read ".$folder."$pipeline.config: $!";
+		
+		$config_found = 1;
+		last;
+	}
+}
+
+# No pipeline found - was a single module specified instead?
+if(!$config_found){
 	foreach my $folder (@module_folders){
-		if(-e $folder."$cl_module"){
-			$module_found = 1;
-			last;
-		}
-	}
-	if(!$module_found){
-		die "Can't find pipeline config file $pipeline.config";
-	} else {
-		# Do we have any parameters passed for this module?
-		my $mparams = "";
-		if($cl_module_params){
-			$mparams = $cl_module_params;
-			$mparams =~ s/^\s+|\s+$//g; # trim whitespace
-			$mparams = "\t".$mparams;
-		}
-		# Make a file handle from a string
-		my $pipeline_config = "\n#".$cl_module.$mparams."\n\n";
-		open(CONFIG, "<", \$pipeline_config) or die "Can't open variable file handle for single module pipeline: $!\n\n";
-	}
-} else {
-	# Load in the pipeline config file
-	my $config_found = 0;
-	foreach my $folder (@pipeline_folders){
-		if(-e $folder."$pipeline.config"){
-			open (CONFIG,$folder."$pipeline.config") or die "Can't read ".$folder."$pipeline.config: $!";
+		if(-e $folder."$pipeline"){
+			
+			# Do we have any parameters passed for this module?
+			my $mparams = "";
+			if($cl_module_params){
+				$mparams = $cl_module_params;
+				$mparams =~ s/^\s+|\s+$//g; # trim whitespace
+				$mparams = "\t".$mparams;
+			}
+			
+			# Make a pseudo pipeline config file handle
+			my $pipeline_config = "\n#".$pipeline.$mparams."\n\n";
+			open(CONFIG, "<", \$pipeline_config) or die "Can't open variable file handle for single module pipeline: $!\n\n";
+			
 			$config_found = 1;
 			last;
 		}
 	}
-	if(!$config_found){
-		die "Can't find pipeline config file $pipeline.config";
-	}
 }
+# No pipeline or module found - die with error
+if(!$config_found){
+	die "Can't find pipeline or module called $pipeline";
+}
+
 
 my $runfile;
 my %module_tree;

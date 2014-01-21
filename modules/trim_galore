@@ -32,10 +32,14 @@ if($required_modules){
 }
 # --help. Print help.
 if($help){
-	print "Trim Galore is a wrapper tool around Cutadapt and FastQC
+	print "".("-"x20)."\n Trim Galore Module\n".("-"x20)."\n
+Trim Galore is a wrapper tool around Cutadapt and FastQC
 to consistently apply quality and adapter trimming to FastQ files.\n
 This module intelligently works on single end and paired end input files
-and tries to calculate input file fastq encoding.\n\n";
+and tries to calculate input file fastq encoding. By default, it will
+not trim files with reads shorter than 50bp (it checks the first file).
+This behaviour can be overwritten with the min_readlength parameter. eg:
+#trim_galore min_readlength=0\n";
 	exit;
 }
 
@@ -47,6 +51,25 @@ my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_
 my %config = %$config_ref;
 
 open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
+
+# Read any options from the pipeline parameters
+my $min_readlength = 50;
+foreach my $parameter (@$parameters){
+	if($parameter =~ /min_readlength=(\d+)/){
+		$min_readlength = $1;
+	}
+}
+
+# Are these reads long enough to trim? Check first file and assume same for rest
+if(!CF::Helpers::fastq_min_length($files->[0], $min_readlength)){
+	# First file didn't have long enough reads for trimming
+	# Print output filenames and exit
+	foreach my $file (@$files){
+		print RUN "$job_id\t$file\n";
+	}
+	close (RUN);
+	exit;
+}
 
 # Separate file names into single end and paired end
 my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%config, @$files);

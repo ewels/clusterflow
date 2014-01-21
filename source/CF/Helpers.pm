@@ -219,10 +219,13 @@ sub fastq_encoding_type {
 		
 		#Do not need to process 100,000 lines if these parameters are met
 		if($score_min == 32){    # Contains the space charcter
+			close IN;
 			return 'integer';
 		} elsif ($score_min < 59){   # Contains low range character
+			close IN;
 			return 'phred33';
 		} elsif ( ($score_min < 64) and ($score_max > 75) ){	# Contains character below phred64 and above phred33
+			close IN;
 			return 'solexa'
 		}
 		
@@ -238,6 +241,51 @@ sub fastq_encoding_type {
 	}
 }
 
+
+# Function to determine the maximum read length
+# found in the first 100000 lines of a FastQ file
+sub fastq_min_length {
+
+	my ($file, $minlength) = @_;
+	my $read_count = 0;
+	
+	if($file =~ /\.gz$/){
+		open (IN, "zcat $file |") or die "Could not read file '$file' : $!";
+	} else {
+		open (IN, $file) or die "Could not read file '$file' : $!";
+	}
+	
+	while(<IN>){
+		
+		unless(/^@/){
+			# Line must start with an @ symbol - read identifiers
+			die "Error trying to work out the FastQ read lengths!\nRead doesn't start with an \@ symbol..\n\n\n";
+		}
+		
+		# push file counter on two lines to the quality score
+		scalar <IN>;
+		scalar <IN>;
+		
+		my $quality_line = scalar <IN>;
+		chomp $quality_line;
+		
+		if(length($quality_line) > $minlength){
+			close IN;
+			return 1;
+		}
+		
+		$read_count++;
+		
+		if($read_count > 100000){
+			last;
+		}
+		
+	}
+	close IN;
+	
+	return 0;
+	
+}
 
 
 # Simple function to take time in seconds and convert to human readable string
