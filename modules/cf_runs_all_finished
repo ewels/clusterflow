@@ -62,7 +62,7 @@ foreach my $outfile (@outfns){
 		
 	}
 	close (IN);
-	push (@highlights, ("=" x 30));
+	push (@highlights, "\n".("=" x 30));
 }
 
 
@@ -78,7 +78,7 @@ my $message_body = "The pipeline $pipeline has completed.
 The working directory was ".getcwd()."/
 
 == Highlighted status messages ==
-- ".join("\n", @highlights)."
+".join("\n", @highlights)."
 \n\n";
 
 	open (PIPE , "| mail -s $subject $to") or die "can't open pipe to mail: $!\n";
