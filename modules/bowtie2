@@ -85,14 +85,7 @@ if($se_files && scalar(@$se_files) > 0){
 		
 		my $output_fn = $file."_bowtie2.bam";
 		
-		my $gzip = "";
-		if($file =~ /\.gz$/){
-			# $gzip = "gzip -dc $file | ";
-			$gzip = "zcat $file | ";
-			$file = "-";
-		}
-		
-		my $command = "$gzip bowtie2 -p $cores -t $enc -x ".$config{bowtie_path}." -U $file | samtools view -bS - > $output_fn";
+		my $command = "bowtie2 -p $cores -t $enc -x ".$config{bowtie_path}." -U $file | samtools view -bS - > $output_fn";
 		warn "\nRunning command:\n$command\n\n";
 		
 		if(!system ($command)){
@@ -125,15 +118,6 @@ if($pe_files && scalar(@$pe_files) > 0){
 				$enc = '--'.$encoding.'-quals';
 			}
 			
-			# Unzip gzipped input files
-			if($files[0] =~ /.gz$/){
-				warn "Unzipping input files..\n";
-				system("gunzip ".$files[0]);
-				system("gunzip ".$files[1]);
-				$files[0] =~ s/.gz$//;
-				$files[1] =~ s/.gz$//;
-			}
-			
 			my $output_fn = $files[0]."_bowtie2.bam";
 			
 			my $command = "$gzip bowtie2 -p $cores -t $enc -x ".$config{bowtie_path}." -1 ".$files[0]." -2 ".$files[1]." | samtools view -bS - > $output_fn";
@@ -151,11 +135,6 @@ if($pe_files && scalar(@$pe_files) > 0){
 			} else {
 				warn "\n###CF ## Bowtie2 (PE mode) failed ##\n\n";
 			}
-			
-			# Zip input files up again
-			warn "Zipping input files..\n";
-			system("gzip ".$files[0]);
-			system("gzip ".$files[1]);
 			
 		} else {
 			warn "\n###CF ## Bowtie2 paired end files had ".scalar(@files)." input files instead of 2 ##\n";
