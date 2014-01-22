@@ -69,6 +69,7 @@ if(!CF::Helpers::fastq_min_length($files->[0], $min_readlength)){
 		print RUN "$job_id\t$file\n";
 	}
 	close (RUN);
+	warn "###CF Trim galore didn't run as reads were too short..\n";
 	exit;
 }
 

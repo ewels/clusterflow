@@ -36,8 +36,10 @@ if($help){
 Bowtie is an ultrafast, memory-efficient short read aligner.
 It aligns short DNA sequences (reads) to a reference genome. This script
 works out the encoding of input files, guesses whether they're paired end
-or not and runs bowtie.\n
-For further information, please run bowtie --help\n\n";
+or not and runs bowtie. Output is piped through samtools to generate BAM files.\n
+If input files are gzipped they will either be piped through zcat
+(single end) or gunzipped, processed and zipped again (paired end).\n
+For further information about bowtie, please run bowtie --help\n\n";
 	exit;
 }
 
