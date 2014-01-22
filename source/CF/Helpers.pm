@@ -382,6 +382,15 @@ sub bytes_to_human_readable {
 	
 }
 
+# Simple function to take bytes and return a human readable memory string
+sub mem_return_mbs {
+
+	my ($mem) = @_;
+	$mem = human_readable_to_bytes($mem);
+	return sprintf("%.0f", $mem/1048576);
+	
+}
+
 # Take allocated cores, minimum, maximum and return best value
 sub allocate_cores {
 	
