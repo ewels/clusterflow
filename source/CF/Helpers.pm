@@ -269,7 +269,7 @@ sub fastq_min_length {
 		my $quality_line = scalar <IN>;
 		chomp $quality_line;
 		
-		if(length($quality_line) > $minlength){
+		if(length($quality_line) >= $minlength){
 			close IN;
 			return 1;
 		}

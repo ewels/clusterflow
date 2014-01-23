@@ -634,13 +634,13 @@ sub make_qsubs {
 		my @module_folders = ('./', "$homedir/cf/modules/", "$Bin/modules/");
 		my $module_fn;
 		foreach (@module_folders){
-			if(-e $_."$module"){
-				$module_fn = $_."$module";
+			if((-e $_."$module.cfmod") && (! -d $_."$module.cfmod")){
+				$module_fn = $_."$module.cfmod";
 				last;
 			}
 		}
 		if(!$module_fn){
-			die "Can't find pipeline config file $pipeline.config";
+			die "Can't find module file $module.cfmod";
 		}
 		
 		# Get options for module
