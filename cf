@@ -648,11 +648,11 @@ sub make_qsubs {
 		my $mem = `$module_fn --mem $TOTAL_MEM`;
 		my $required_modules = `$module_fn --modules`;
 		
-		if(!$cores || length($cores) == 0){
+		if(!$cores || length($cores) == 0 || $cores =~ /\D/){
 			$cores = 1;
 		}
-		if(!$mem || length($mem) == 0){
-			$mem = $config{default_mem};
+		if(!$mem || length($mem) == 0 || length($mem) > 20){
+			$mem = '1G';
 		}
 		if($required_modules && length($required_modules) > 0){
 			my @req_modules = split(",", $required_modules);
