@@ -268,18 +268,17 @@ foreach my $folder (@pipeline_folders){
 # No pipeline found - was a single module specified instead?
 if(!$config_found){
 	foreach my $folder (@module_folders){
-		if(-e $folder."$pipeline"){
+		if(-e $folder."$pipeline.cfmod"){
 			
 			# Do we have any parameters passed for this module?
 			my $mparams = "";
 			if($cl_module_params){
 				$mparams = $cl_module_params;
 				$mparams =~ s/^\s+|\s+$//g; # trim whitespace
-				$mparams = "\t".$mparams;
 			}
 			
 			# Make a pseudo pipeline config file handle
-			my $pipeline_config = "\n#".$pipeline.$mparams."\n\n";
+			my $pipeline_config = "\n#$pipeline.cfmod\t$mparams\n\n";
 			open(CONFIG, "<", \$pipeline_config) or die "Can't open variable file handle for single module pipeline: $!\n\n";
 			
 			$config_found = 1;
