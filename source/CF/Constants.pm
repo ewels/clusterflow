@@ -234,8 +234,12 @@ AVAILABLE FLAGS
 		Specify module parameters when running a single module.
 		Ignored if a pipeline name is specified.
 		
-	--split-files <num>
+	--split_files <num>
 		Create one run per <num> files
+	
+	--max_runs <num>
+		Divide input files into <num> runs.
+		Overrides --split_files
 		
 	--email <email>
 		Set the e-mail address for notifications
@@ -263,7 +267,7 @@ AVAILABLE FLAGS
 	--list_genomes
 		Print available genomes
 		
-	--dryrun
+	--dry_run
 		Prints jobs to terminal instead of submitting them to the cluster
 	
 	--qstat
