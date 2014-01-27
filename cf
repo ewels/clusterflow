@@ -25,6 +25,7 @@ my $cl_genome_path;
 my $cl_bowtie_path;
 my $cl_gtf_path;
 my $SPLIT_FILES = 1;
+my $cl_max_runs = 1;
 my $cl_paired_end;
 my $cl_single_end;
 my $file_list;
@@ -51,6 +52,7 @@ my $config_result = GetOptions(
 	"bowtie_path=s" => \$cl_bowtie_path,
 	"gtf_path=s" => \$cl_gtf_path,
 	"split_files=i" => \$SPLIT_FILES,
+	"max_runs=i" => \$cl_max_runs,
 	"paired" => \$cl_paired_end,
 	"single" => \$cl_single_end,
 	"file_list=s" => \$file_list,
@@ -63,7 +65,7 @@ my $config_result = GetOptions(
 	"list_pipelines" => \$cl_list_pipelines,
 	"list_modules" => \$cl_list_modules,
 	"list_genomes" => \$cl_list_genomes,
-	"dryrun" => \$cl_dryrun,
+	"dry_run" => \$cl_dryrun,
 	"qstat" => \$cl_qstat,
 	"qstatall" => \$cl_qstatall,
 	"qstatcols" => \$cl_qstatcolours,
@@ -251,7 +253,6 @@ if(!$file_list && scalar(@files) == 0){
 }
 
 
-
 # Load in the pipeline config file
 my $config_found = 0;
 foreach my $folder (@pipeline_folders){
@@ -417,13 +418,25 @@ if($file_list){
 	}
 	close(FILES);
 }
+my $num_files = scalar @files;
+
+
+# Is max_runs set? Set split_files now that we now how many files we have
+if($cl_max_runs){
+	$cl_max_runs =~ s/\D//g; # remove any non-numbers
+	if($cl_max_runs > 0){
+		$SPLIT_FILES = int(($num_files / $cl_max_runs) + 0.99); # + 0.99 is to do a ceiling round
+		warn "Processing $num_files files in $cl_max_runs runs. Submitting $SPLIT_FILES files per run.\n\n";
+	}	
+}
+
+my $num_runs = int(($num_files / $SPLIT_FILES) + 0.99); # + 0.99 is to do a ceiling round
 
 # Work out quota of cores and memory allowed per job
 $TOTAL_MEM = CF::Helpers::human_readable_to_bytes($TOTAL_MEM);
 # Count terminal leaves in pipeline and number of files
 my ($num_leaves, $num_jobs) = count_leaves(\%module_tree, 0, 0);
-my $num_files = scalar @files;
-my $num_parallel = $num_leaves * $num_files;
+my $num_parallel = $num_leaves * $num_runs;
 # Calculate per-job resources
 my $cores_allocation = int( $TOTAL_CORES / $num_parallel);
 my $memory_allocation = int( $TOTAL_MEM / $num_parallel);
@@ -435,7 +448,7 @@ if($memory_allocation < 104857600){
 	$memory_allocation = 104857600; # minimum one 100 Mb
 }
 my $memory_allocation_hr = CF::Helpers::bytes_to_human_readable($memory_allocation);
-warn "Processing $num_files files with $num_jobs jobs per file ($num_leaves potential parallel).
+warn "Processing $num_runs runs with $num_jobs jobs per file ($num_leaves potential parallel).
 This gives a theoretical maximum of $num_parallel jobs running in parallel.
 Suggested module resources: $cores_allocation cores and $memory_allocation_hr memory...\n\n";
 
