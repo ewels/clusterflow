@@ -16,7 +16,7 @@ my $CF_VERSION = $CF::Constants::CF_VERSION;
 my $homedir = $ENV{"HOME"}; #$CF::Constants::homedir;
 my %config = %CF::Constants::config;
 my @pipeline_folders = ('./', "$homedir/clusterflow/pipelines/", "$Bin/pipelines/");
-my @module_folders = ("$homedir/clusterflow/modules/", "$Bin/modules/");
+my @module_folders = ('./', "$homedir/clusterflow/modules/", "$Bin/modules/");
 my $pipeline;
 
 # Get command line parameters
@@ -84,8 +84,11 @@ my @files = @ARGV;
 my $EMAIL = $CF::Constants::EMAIL;
 my @NOTIFICATIONS = @CF::Constants::NOTIFICATIONS;
 my %GENOME_PATHS = %CF::Constants::GENOME_PATHS;
+my %GENOME_PATH_CONFIGS = %CF::Constants::GENOME_PATH_CONFIGS;
 my %BOWTIE_PATHS = %CF::Constants::BOWTIE_PATHS;
+my %BOWTIE_PATH_CONFIGS = %CF::Constants::BOWTIE_PATH_CONFIGS;
 my %GTF_PATHS = %CF::Constants::GTF_PATHS;
+my %GTF_PATH_CONFIGS = %CF::Constants::GTF_PATH_CONFIGS;
 my $PRIORITY = $CF::Constants::PRIORITY;
 my $TOTAL_CORES = $CF::Constants::TOTAL_CORES;
 my $TOTAL_MEM = $CF::Constants::TOTAL_MEM;
@@ -158,8 +161,8 @@ if($cl_list_modules){
 			opendir (DIR, $folder) or die $!;
 			my @dir_files = sort readdir(DIR);
 			while ( my $file = shift @dir_files ) {
-				if($file ne "." && $file ne ".." && $file ne ".svn"){
-					print "\t- $file\n";
+				if($file =~ /\.cfmod$/){
+					print "\t- ".substr($file, 0, -6)."\n";
 				}
 			}
 			closedir(DIR);
@@ -172,20 +175,55 @@ if($cl_list_modules){
 }
 if($cl_list_genomes){
 	print "".("=" x 32)."\nCluster Flow - available genomes\n".("=" x 32)."\n";
-	print "\nGenome Paths:\n";
-	foreach my $key (sort keys %GENOME_PATHS ) {
-		my $spaces = " " x (20 - length($key));
-		print "\t$key:$spaces$GENOME_PATHS{$key}\n";
+	
+	my @config_files = ("$FindBin::Bin/clusterflow.config", "$homedir/clusterflow/clusterflow.config", './clusterflow.config');
+	
+	# See if we have any paths in each config file
+	my %GENOME_PATH_CONFIGS_COUNTS;
+	while ( my($key, $value) = each %GENOME_PATH_CONFIGS){
+		$GENOME_PATH_CONFIGS_COUNTS{$value} = 1;
 	}
-	print "\nBowtie Index Base Paths:\n";
-	foreach my $key (sort keys %BOWTIE_PATHS ) {
-		my $spaces = " " x (20 - length($key));
-		print "\t$key:$spaces$BOWTIE_PATHS{$key}\n";
+	my %BOWTIE_PATH_CONFIGS_COUNTS;
+	while ( my($key, $value) = each %BOWTIE_PATH_CONFIGS){
+		$BOWTIE_PATH_CONFIGS_COUNTS{$value} = 1;
 	}
-	print "\nGTF File Paths:\n";
-	foreach my $key (sort keys %GTF_PATHS ) {
-		my $spaces = " " x (20 - length($key));
-		print "\t$key:$spaces$GTF_PATHS{$key}\n";
+	my %GTF_PATH_CONFIGS_COUNTS;
+	while ( my($key, $value) = each %GTF_PATH_CONFIGS){
+		$GTF_PATH_CONFIGS_COUNTS{$value} = 1;
+	}
+	
+	foreach my $config_file (@config_files){
+		
+		next if(!defined ($GENOME_PATH_CONFIGS_COUNTS{$config_file}) && !defined ($BOWTIE_PATH_CONFIGS_COUNTS{$config_file}) && !defined ($GTF_PATH_CONFIGS_COUNTS{$config_file}));
+		
+		print "\n$config_file:\n";
+		if(defined ($GENOME_PATH_CONFIGS_COUNTS{$config_file})){
+			print "\n  Genome Paths:\n";
+			foreach my $key (sort keys %GENOME_PATHS ) {
+				my $spaces = " " x (20 - length($key));
+				if($GENOME_PATH_CONFIGS{$key} eq $config_file){
+					print "\t$key:$spaces$GENOME_PATHS{$key}\n";
+				}
+			}
+		}
+		if(defined ($BOWTIE_PATH_CONFIGS_COUNTS{$config_file})){
+			print "\n  Bowtie Index Base Paths:\n";
+			foreach my $key (sort keys %BOWTIE_PATHS ) {
+				my $spaces = " " x (20 - length($key));
+				if($BOWTIE_PATH_CONFIGS{$key} eq $config_file){
+					print "\t$key:$spaces$BOWTIE_PATHS{$key}\n";
+				}
+			}
+		}
+		if(defined ($GTF_PATH_CONFIGS_COUNTS{$config_file})){
+			print "\n  GTF File Paths:\n";
+			foreach my $key (sort keys %GTF_PATHS ) {
+				my $spaces = " " x (20 - length($key));
+				if($GTF_PATH_CONFIGS{$key} eq $config_file){
+					print "\t$key:$spaces$GTF_PATHS{$key}\n";
+				}
+			}
+		}
 	}
 	print "\n";
 	exit;
@@ -448,9 +486,7 @@ if($memory_allocation < 104857600){
 	$memory_allocation = 104857600; # minimum one 100 Mb
 }
 my $memory_allocation_hr = CF::Helpers::bytes_to_human_readable($memory_allocation);
-warn "Processing $num_runs runs with $num_jobs jobs per file ($num_leaves potential parallel).
-This gives a theoretical maximum of $num_parallel jobs running in parallel.
-Suggested module resources: $cores_allocation cores and $memory_allocation_hr memory...\n\n";
+
 
 sub count_leaves {
 	# Set up parameters

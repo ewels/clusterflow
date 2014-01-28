@@ -18,8 +18,11 @@ our %config;
 our $EMAIL;
 our @NOTIFICATIONS;
 our %GENOME_PATHS;
+our %GENOME_PATH_CONFIGS;
 our %BOWTIE_PATHS;
+our %BOWTIE_PATH_CONFIGS;
 our %GTF_PATHS;
+our %GTF_PATH_CONFIGS;
 
 # Hard coded defaults
 our $SPLIT_FILES = 1;
@@ -70,10 +73,13 @@ sub parse_conf_file {
 						push @NOTIFICATIONS, $val;
 					} elsif($name eq 'genome_path'){
 						$GENOME_PATHS{$val} = $sections[2];
+						$GENOME_PATH_CONFIGS{$val} = $config_file;
 					} elsif($name eq 'bowtie_path'){
 						$BOWTIE_PATHS{$val} = $sections[2];
+						$BOWTIE_PATH_CONFIGS{$val} = $config_file;
 					} elsif($name eq 'gtf_path'){
 						$GTF_PATHS{$val} = $sections[2];
+						$GTF_PATH_CONFIGS{$val} = $config_file;
 					} elsif($name eq 'split_files'){
 						$SPLIT_FILES = $val;
 					} elsif($name eq 'priority'){
@@ -131,8 +137,8 @@ sub clusterflow_pipeline_help {
 	
 	my $help = "";
 	
-	my @pipelines = ('./$pipeline.config', "$homedir/clusterflow/pipelines/$pipeline.config", "$FindBin::Bin/pipelines/$pipeline.config");
-	my @modules = ("$homedir/clusterflow/modules/$pipeline", "$FindBin::Bin/modules/$pipeline");
+	my @pipelines = ("./$pipeline.config", "$homedir/clusterflow/pipelines/$pipeline.config", "$FindBin::Bin/pipelines/$pipeline.config");
+	my @modules = ("./$pipeline.cfmod", "$homedir/clusterflow/modules/$pipeline.cfmod", "$FindBin::Bin/modules/$pipeline.cfmod");
 	foreach my $pipeline (@pipelines){
 		if(-e $pipeline){
 			open (PIPELINE, $pipeline) or die "Can't read $pipeline: $!";

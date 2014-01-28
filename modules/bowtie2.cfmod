@@ -32,7 +32,7 @@ if($required_modules){
 }
 # --help. Print help.
 if($help){
-	print "".("-"x15)."\n Bowtie 2 Module\n".("-"x15)."\n
+	print "".("-"x17)."\n Bowtie 2 Module\n".("-"x17)."\n
 Bowtie 2 is an ultrafast and memory-efficient tool for aligning sequencing
 reads to long reference sequences. It is particularly good at aligning reads
 of about 50 up to 100s or 1,000s of characters, and particularly good at

@@ -32,8 +32,7 @@ if($required_modules){
 }
 # --help. Print help.
 if($help){
-    print "".("-"x15)."\n"; 
-    print <<"END_HEADER";
+    print "".("-"x15)."\n Bowtie Module\n".("-"x15)."\n
 Bowtie is an ultrafast, memory-efficient short read aligner.
 It aligns short DNA sequences (reads) to a reference genome. This script
 works out the encoding of input files, guesses whether they're paired end
@@ -42,11 +41,10 @@ or not and runs bowtie. Output is piped through samtools to generate BAM files.
 If input files are gzipped they will either be piped through zcat
 (single end) or gunzipped, processed and zipped again (paired end).
 
-For further information about bowtie, please run bowtie --help
+To use this module to align microRNAs, use the parameter mirna, eg:
+  #bowtie mirna
 
-END_HEADER
-
-#'
+For further information about bowtie, please run bowtie --help\n\n";
     exit;
 }
 
@@ -71,9 +69,9 @@ if(!defined($cores) || $cores <= 0){
 # See if we need to parse any paramters
 my $mirna;
 foreach my $parameter (@$parameters) {
-    if ($parameter eq 'mirna') {
-	$mirna = 1;
-    }
+	if ($parameter eq 'mirna') {
+		$mirna = 1;
+	}
 }
 
 open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
