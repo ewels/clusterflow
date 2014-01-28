@@ -40,7 +40,9 @@ and tries to calculate input file fastq encoding.\n
 By default, it will not trim files with reads shorter than 50bp
 (it checks the first file). This behaviour can be overwritten 
 with the min_readlength pipeline parameter. For example:
-  #trim_galore min_readlength=0\n";
+  #trim_galore min_readlength=0\n\nThe module will use the default
+Illumina common adapter sequence to trim with, but this can be
+overridden by specifying adapter=[Sequence] in the options.";
 	exit;
 }
 
@@ -55,9 +57,13 @@ open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
 
 # Read any options from the pipeline parameters
 my $min_readlength = 50;
+my $adapter;
 foreach my $parameter (@$parameters){
 	if($parameter =~ /min_readlength=(\d+)/){
 		$min_readlength = $1;
+	}
+	if($parameter =~ /adapter=([GATCgatc]+)/){
+		$adapter = "--adapter=".uc($1);
 	}
 }
 
@@ -102,7 +108,7 @@ if($se_files && scalar(@$se_files) > 0){
 		
 		my $output_fn = trim_galore_basename($file).'_trimmed.fq.gz';
 		
-		my $command = "trim_galore --trim1 --gzip $enc $RRBS --fastqc $file";
+		my $command = "trim_galore --trim1 --gzip $enc $RRBS $adapter --fastqc $file";
 		warn "\nRunning command:\n$command\n\n";
 		
 		if(!system ($command)){
@@ -142,7 +148,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			my $output_fn_1 = trim_galore_basename($files[0]).'_val_1.fq.gz';
 			my $output_fn_2 = trim_galore_basename($files[1]).'_val_2.fq.gz';
 			
-			my $command = "trim_galore --paired --trim1 --gzip $enc $RRBS --fastqc ".$files[0]." ".$files[1];
+			my $command = "trim_galore --paired --trim1 --gzip $enc $RRBS $adapter --fastqc ".$files[0]." ".$files[1];
 			warn "\nRunning command:\n$command\n\n";
 			
 			if(!system ($command)){
