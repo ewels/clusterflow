@@ -44,6 +44,7 @@ my $cl_qstatall;
 my $cl_qstatcolours;
 my $cl_make_config;
 my $cl_version;
+my $cl_check_updates;
 my $cl_help;
 
 my $config_result = GetOptions(
@@ -71,6 +72,7 @@ my $config_result = GetOptions(
 	"qstatcols" => \$cl_qstatcolours,
 	"make_config" => \$cl_make_config,
 	"version" => \$cl_version,
+	"check_updates" => \$cl_check_updates,
 	"help" => \$cl_help
 );
 
@@ -82,6 +84,9 @@ my @files = @ARGV;
 
 # Set up parameters
 my $EMAIL = $CF::Constants::EMAIL;
+my $CHECK_UPDATES = $CF::Constants::CHECK_UPDATES;
+my $AVAILABLE_VERSION = $CF::Constants::AVAILABLE_VERSION;
+my $UPDATES_LAST_CHECKED = $CF::Constants::UPDATES_LAST_CHECKED;
 my @NOTIFICATIONS = @CF::Constants::NOTIFICATIONS;
 my %GENOME_PATHS = %CF::Constants::GENOME_PATHS;
 my %GENOME_PATH_CONFIGS = %CF::Constants::GENOME_PATH_CONFIGS;
@@ -274,6 +279,40 @@ if($cl_version){
 	print "Cluster Flow v$CF_VERSION\n\n";
 	exit;
 }
+
+# Check for updates - either by command line or config file
+if($cl_check_updates){
+	print "\nCurrent Cluster Flow version: v$CF_VERSION\n\n";
+	print CF::Headnodehelpers::cf_check_updates($CF_VERSION)."\n";
+	exit;
+} elsif($CHECK_UPDATES){
+	# Work out the check interval in seconds
+	my $check_interval = 0;
+	$check_interval += $1 * 86400 if ($CHECK_UPDATES =~ /(\d+)d/i);
+	$check_interval += $1 * 604800 if ($CHECK_UPDATES =~ /(\d+)w/i);
+	$check_interval += $1 * 2628000 if ($CHECK_UPDATES =~ /(\d+)m/i);
+	$check_interval += $1 * 31536000 if ($CHECK_UPDATES =~ /(\d+)y/i);
+	
+	# See if it's been this many seconds since we last checked
+	if($check_interval){
+		if(!$UPDATES_LAST_CHECKED || (time - $UPDATES_LAST_CHECKED) > $check_interval){
+			my $message = CF::Headnodehelpers::cf_check_updates($CF_VERSION);
+		}
+	}
+}
+# Print warning if we're running a version of Cluster Flow that is out of date
+if($CHECK_UPDATES){
+	my $avail_version_numeric = $AVAILABLE_VERSION;
+	$avail_version_numeric =~ s/[^\d.]//g;
+	my $current_version_numeric = $CF_VERSION;
+	$current_version_numeric =~ s/[^\d.]//g;
+	if($avail_version_numeric > $current_version_numeric){
+		print "\n".("="x45)."\n A new version of Cluster Flow is available!\n Running v$CF_VERSION, v$AVAILABLE_VERSION available.\n".("="x45)."\n
+You can download the latest version of Cluster Flow from\nhttp://www.bioinformatics.babraham.ac.uk/projects/cluster_flow/\n\n";
+	}
+}
+
+
 if($cl_help){
 	if($pipeline){
 		print "\n".CF::Constants::clusterflow_pipeline_help($pipeline)."\n";

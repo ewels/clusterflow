@@ -13,6 +13,12 @@ use Term::ANSIColor;
 use CF::Helpers;
 use Data::Dumper;
 
+# Only use LWP::Simple if it's installed
+my $lwp_simple;
+if(eval("require LWP::Simple;")) {
+	$lwp_simple = 1;
+}
+
 
 # Function to parse qstat results and return them in a nicely formatted manner
 sub parse_qstat {
@@ -283,6 +289,68 @@ sub parse_qstat_print_hash {
 
 }
 
+
+sub cf_check_updates {
+
+	my ($current_version) = @_;
+	$current_version =~ s/[^\d.]//g;
+
+	# Fail if LWP::Simple isn't installed
+	if(!$lwp_simple){
+		#### return ("Could not find currently available Cluster Flow version:\nThe Perl module LWP::Simple module isn't installed");
+	}
+	
+	
+	# Get contents of Cluster Flow current version file using LWP::Simple
+	# my $version = get 'http://www.bioinformatics.babraham.ac.uk/projects/cluster_flow/version.txt';
+	#### my $avail_version = get('http://bilin1/projects/cluster_flow/version.txt');
+	
+my $avail_version = '0.1';
+	$avail_version =~ s/[^\d.]//g;
+	
+	# Update the config files with the available version
+	my @config_files = ("$FindBin::Bin/clusterflow.config", $ENV{"HOME"}."/clusterflow/clusterflow.config", './clusterflow.config');
+	foreach my $config_file (@config_files){
+		if(-e $config_file){
+			
+			# Read in the config file contents
+			my $config_file_contents;
+			{
+				open (my $fh, $config_file) or die "Can't read $config_file: $!";
+				local $/;
+				$config_file_contents = <$fh>;
+				close $fh;
+			}
+			
+			# Swap existing variables with new ones
+			my $timestamp = time();
+			$config_file_contents =~ s/^\@available_version(.*)\n*/\@available_version\t$avail_version\n/img;
+			$config_file_contents =~ s/^\@updates_last_checked(.*)\n*/\@updates_last_checked\t$timestamp\n/img;
+			
+			# If we don't have the variables, add them
+			if($config_file_contents !~ /\@available_version/){
+				$config_file_contents .= "\n\@available_version\t$avail_version\n";
+			}
+			if($config_file_contents !~ /\@updates_last_checked/){
+				$config_file_contents .= "\n\@updates_last_checked\t$timestamp\n";
+			}
+			
+			# Write out the new config file contents
+			{
+				open(my $fh, '>', $config_file) or die "Can't create $config_file: $!\n";
+				print($fh $config_file_contents);
+				close $fh;
+			}
+		}
+	}
+	
+	if($avail_version > $current_version){
+		return "".("="x45)."\n A new version of Cluster Flow is available!\n Running v$current_version, v$avail_version available.\n".("="x45)."\n
+You can download the latest version of Cluster Flow from\nhttp://www.bioinformatics.babraham.ac.uk/projects/cluster_flow/\n\n";
+	} else {
+		return "Your copy of Cluster Flow is up to date. Running v$current_version, v$avail_version available.\n\n";
+	}
+}
 
 
 

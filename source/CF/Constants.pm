@@ -16,6 +16,9 @@ our %config;
 
 # Empty config vars
 our $EMAIL;
+our $CHECK_UPDATES;
+our $AVAILABLE_VERSION;
+our $UPDATES_LAST_CHECKED = 0;
 our @NOTIFICATIONS;
 our %GENOME_PATHS;
 our %GENOME_PATH_CONFIGS;
@@ -69,6 +72,12 @@ sub parse_conf_file {
 					
 					if($name eq 'email'){
 						$EMAIL = $val;
+					} elsif($name eq 'check_updates'){
+						$CHECK_UPDATES = $val;
+					} elsif($name eq 'available_version'){
+						$AVAILABLE_VERSION = $val;
+					} elsif($name eq 'updates_last_checked'){
+						$UPDATES_LAST_CHECKED = $val;
 					} elsif($name eq 'notification'){
 						push @NOTIFICATIONS, $val;
 					} elsif($name eq 'genome_path'){
@@ -292,6 +301,9 @@ AVAILABLE FLAGS
 	
 	--version
 		Print version of Cluster Flow installed
+	
+	--check_updates
+		Look for available Cluster Flow updates
 		
 	--help
 		Print this help message.
@@ -367,6 +379,32 @@ These will overwrite any with the same name in the centralised config file
 		}
 	}
 	$config .= "\@email	$email\n";
+	
+	my $check_updates;
+	print "Cluster Flow can automatically check to see if an update is available.
+If you would like to enable this functionality, please enter how frequently
+you would like Cluster Flow to check. Enter a number followed by d, w, m or y
+to signify days, weeks, months or years. Recommended: 1w\n
+If you do not want Cluster Flow to check for updates please enter 0.\n\n";
+	while ($check_updates = <STDIN>){
+		chomp ($check_updates);
+		if($check_updates eq '0' || $check_updates =~ /^\d+[dwmy]$/i){
+			print "\nGreat! That looks good..\n";
+			if($check_updates eq '0'){
+				print "Cluster Flow won't check for available updates\n\n";
+			} else {
+				print "Cluster Flow will check for available updates every $check_updates\n\n";
+			}
+			last;
+		} else {
+			print "\nSorry, I didn't recognise that.\nPlease could you try again?\n\n";
+		}
+	}
+	$config .= "\@check_updates	$check_updates\n";
+	if($check_updates ne '0'){
+		$config .= "\@available_version	$CF_VERSION\n";
+		$config .= "\@updates_last_checked	".time()."\n";
+	}
 	
 	my ($notify_complete, $notify_run, $notify_success, $notify_error, $notify_abort);
 	
