@@ -17,7 +17,7 @@ my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_me
 # QSUB SETUP
 # --cores i = offered cores. Return number of required cores.
 if($required_cores){
-	print CF::Helpers::allocate_cores($required_cores, 2, 3);
+	print '3';
 	exit;
 }
 # --mem. Return the required memory allocation.
