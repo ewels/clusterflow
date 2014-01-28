@@ -6,7 +6,7 @@ use FindBin qw($Bin);
 use lib "$FindBin::Bin/../source";
 use CF::Constants;
 use CF::Helpers;
-use File::Copy;
+use File::Copy qw(move);
 
 
 # Get Options
@@ -46,32 +46,42 @@ For further information, please run bismark2report --help\n\n";
 # Read in the input files from the run file
 my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
 
-# Strip off all of the bismark stuff from the input filename
-my $dir = ${$files}[0];
-$dir =~ s/(\.)?(r_[12])?(_val_[12])?\.f(ast)?q.+//i; # strip stuff from end of filename
-$dir =~ s/^(CpG|Non_CpG|CHG|CHH)_//i; # strip stuff from start of filename
-$dir =~ s/^[COBT]+_//;
+# Figure out directory names
+my %dirs;
+foreach my $file (@$files){
+	$file =~ s/(\.)?(r_[12])?(_val_[12])?\.f(ast)?q.+//i; # strip stuff from end of filename
+	$file =~ s/^(CpG|Non_CpG|CHG|CHH)_//i; # strip stuff from start of filename
+	$file =~ s/^[COBT]+_//;
+	$dirs{$file} = 1;
+}
 
-# make directory
-mkdir $dir;
+# Get current directory listing
+my @dirfiles = glob('*');
 
-# move matching files into this directory
-my $count = 0;
-foreach my $file (glob('*')) {
-	if($file =~ /$dir/i){
-		unless($file =~ /\.run$/i || $file =~ /\.out$/i){
-			move ($file, $dir."/".$file);
-			$count++;
+foreach my $dir (keys (%dirs)){
+
+	# make directory
+	mkdir $dir;
+
+	# move matching files into this directory
+	my $count = 0;
+	foreach my $dfile (@dirfiles) {
+		if($dfile =~ /$dir/i){
+			unless($dfile =~ /\.run$/i || $dfile =~ /\.out$/i){
+				move ($dfile, $dir."/".$dfile);
+				$count++;
+			}
 		}
 	}
-}
-warn "###CF $count files tidied into bismark folder\n";
+	warn "###CF $count files tidied into bismark folder\n";
 
-# run bismark2report in directory
-chdir ($dir);
-if(!system ("bismark2report")){
-	warn "###CF Bismark report successfully created\n";
-} else {
-	warn "###CF Bismark report exited with an error state\n";
+	# run bismark2report in directory
+	chdir ($dir);
+	if(!system ("bismark2report")){
+		warn "###CF Bismark report successfully created\n";
+	} else {
+		warn "###CF Bismark report exited with an error state\n";
+	}
+	chdir ("../");
+
 }
-chdir ("../");
