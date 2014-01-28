@@ -12,13 +12,7 @@ use Time::Local;
 use Term::ANSIColor;
 use CF::Helpers;
 use Data::Dumper;
-
-# Only use LWP::Simple if it's installed
-my $lwp_simple;
-if(eval("require LWP::Simple;")) {
-	$lwp_simple = 1;
-}
-
+use LWP::Simple;
 
 # Function to parse qstat results and return them in a nicely formatted manner
 sub parse_qstat {
@@ -295,17 +289,12 @@ sub cf_check_updates {
 	my ($current_version) = @_;
 	$current_version =~ s/[^\d.]//g;
 
-	# Fail if LWP::Simple isn't installed
-	if(!$lwp_simple){
-		#### return ("Could not find currently available Cluster Flow version:\nThe Perl module LWP::Simple module isn't installed");
-	}
-	
 	
 	# Get contents of Cluster Flow current version file using LWP::Simple
-	# my $version = get 'http://www.bioinformatics.babraham.ac.uk/projects/cluster_flow/version.txt';
-	#### my $avail_version = get('http://bilin1/projects/cluster_flow/version.txt');
+	# my $version_url = 'http://www.bioinformatics.babraham.ac.uk/projects/cluster_flow/version.txt';
+	my $version_url = 'http://bilin1/projects/cluster_flow/version.txt';
+	my $avail_version = get($version_url) or die "Unable to fetch version: $version_url\n";
 	
-my $avail_version = '0.1';
 	$avail_version =~ s/[^\d.]//g;
 	
 	# Update the config files with the available version
