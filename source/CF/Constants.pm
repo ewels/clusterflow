@@ -119,26 +119,6 @@ sub parse_conf_file {
 }
 
 
-sub runfile_constants {
-
-	my $output;
-	
-	$output = <<"EOT";
-\@email	$EMAIL
-\@split_files	$SPLIT_FILES
-\@priority	$PRIORITY
-\@total_cores	$TOTAL_CORES
-\@total_mem	$TOTAL_MEM
-EOT
-	
-	foreach my $not (@NOTIFICATIONS){
-		$output .= "\@notification\t$not\n";
-	}
-		
-	return ($output);
-	
-}
-
 # Prints help for a specific module or pipeline
 sub clusterflow_pipeline_help {
 	

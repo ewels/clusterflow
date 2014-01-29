@@ -25,7 +25,7 @@ my $cl_genome_path;
 my $cl_bowtie_path;
 my $cl_gtf_path;
 my $SPLIT_FILES = 1;
-my $cl_max_runs = 1;
+my $cl_max_runs;
 my $cl_paired_end;
 my $cl_single_end;
 my $file_list;
@@ -370,6 +370,53 @@ if(!$config_found){
 }
 
 
+# Forcing paired end or single end
+if ($cl_paired_end){
+	if($SPLIT_FILES == 1){
+		$SPLIT_FILES = 2;
+	}
+}
+
+# If we have a file list input file, take input from there
+my @download_fns;
+if($file_list){
+	unless(-e $file_list){
+		print "Error - file list not found: $file_list\nExiting...\n\n";
+		exit;
+	}
+	@files = ();
+	open (FILES, $file_list) or die "Can't read $file_list: $!";
+	while (<FILES>) {
+		chomp;
+		if ($_ =~ /^$/) { next; } # Skip blank lines
+		my @sections = split(/\t/);
+		push @files, $sections[0];
+		if(defined($sections[1])){
+			push @download_fns, $sections[1];
+		} else {
+			push @download_fns, 0;
+		}
+	}
+	close(FILES);
+}
+my $num_files = scalar @files;
+
+
+# Is max_runs set? Set split_files now that we now how many files we have
+if($cl_max_runs){
+	$cl_max_runs =~ s/\D//g; # remove any non-numbers
+	if($cl_max_runs > 0){
+		$SPLIT_FILES = int(($num_files / $cl_max_runs) + 0.99); # + 0.99 is to do a ceiling round
+		if ($cl_paired_end && ($SPLIT_FILES % 2 == 1)){
+			$SPLIT_FILES++;
+		}
+		warn "Processing $num_files files in $cl_max_runs runs. Submitting $SPLIT_FILES files per run.\n\n";
+	}	
+}
+my $num_runs = int(($num_files / $SPLIT_FILES) + 0.99); # + 0.99 is to do a ceiling round
+
+
+## Write the run file, parse the pipeline
 my $runfile;
 my %module_tree;
 my @indents;
@@ -377,7 +424,17 @@ push @indents, \%module_tree;
 my $comment_block = 0;
 
 # Write config variables to runfile header
-$runfile = CF::Constants::runfile_constants();
+$runfile = <<"EOT";
+\@email	$EMAIL
+\@split_files	$SPLIT_FILES
+\@priority	$PRIORITY
+\@total_cores	$TOTAL_CORES
+\@total_mem	$TOTAL_MEM
+EOT
+foreach my $not (@NOTIFICATIONS){
+	$runfile .= "\@notification\t$not\n";
+}
+
 if(defined($GENOME) && defined($GENOME_PATHS{$GENOME})){
 	$runfile .= "\@genome_path\t".$GENOME_PATHS{$GENOME}."\n";
 }
@@ -387,16 +444,11 @@ if(defined($GENOME) && defined($BOWTIE_PATHS{$GENOME})){
 if(defined($GENOME) && defined($GTF_PATHS{$GENOME})){
 	$runfile .= "\@gtf_path\t".$GTF_PATHS{$GENOME}."\n";
 }
-
-# Forcing paired end or single end
 if ($cl_paired_end){
 	$runfile .= "\@force_paired_end\n";
-	if($SPLIT_FILES == 1){
-		$SPLIT_FILES = 2;
-	}
 } elsif ($cl_single_end){
 	$runfile .= "\@force_single_end\n";
-} 
+}
 
 # Parse pipeline config file
 my $pipeline_string = "";
@@ -473,41 +525,6 @@ close(CONFIG);
 
 warn "Pipeline to be used:\n\n$pipeline_string\n\n";
 
-# If we have a file list input file, take input from there
-my @download_fns;
-if($file_list){
-	unless(-e $file_list){
-		print "Error - file list not found: $file_list\nExiting...\n\n";
-		exit;
-	}
-	@files = ();
-	open (FILES, $file_list) or die "Can't read $file_list: $!";
-	while (<FILES>) {
-		chomp;
-		if ($_ =~ /^$/) { next; } # Skip blank lines
-		my @sections = split(/\t/);
-		push @files, $sections[0];
-		if(defined($sections[1])){
-			push @download_fns, $sections[1];
-		} else {
-			push @download_fns, 0;
-		}
-	}
-	close(FILES);
-}
-my $num_files = scalar @files;
-
-
-# Is max_runs set? Set split_files now that we now how many files we have
-if($cl_max_runs){
-	$cl_max_runs =~ s/\D//g; # remove any non-numbers
-	if($cl_max_runs > 0){
-		$SPLIT_FILES = int(($num_files / $cl_max_runs) + 0.99); # + 0.99 is to do a ceiling round
-		warn "Processing $num_files files in $cl_max_runs runs. Submitting $SPLIT_FILES files per run.\n\n";
-	}	
-}
-
-my $num_runs = int(($num_files / $SPLIT_FILES) + 0.99); # + 0.99 is to do a ceiling round
 
 # Work out quota of cores and memory allowed per job
 $TOTAL_MEM = CF::Helpers::human_readable_to_bytes($TOTAL_MEM);
@@ -551,6 +568,8 @@ sub count_leaves {
 	
 	return ($num_leaves, $num_jobs);
 }
+
+
 
 # Go through the supplied starting files
 my @qsubs;
