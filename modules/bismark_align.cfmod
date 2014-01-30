@@ -68,8 +68,8 @@ my $encoding = 0;
 
 # Read any options from the pipeline parameters
 my $bt1;
-my $bt2;
-my $pbat;
+my $bt2 = "";
+my $pbat = "";
 foreach my $parameter (@$parameters){
 	if($parameter eq "pbat"){
 		$pbat = "--pbat";
@@ -133,7 +133,7 @@ if($se_files && scalar(@$se_files) > 0){
 				warn "\nBismark output file $output_fn not found..\n";
 			}
 		} else {
-			die "###CF ## Bismark alignment (SE mode) exited with an error state\n\n";
+			die "###CF ## Bismark alignment (SE mode) exited with an error state. Command: $command\n\n";
 		}
 	}
 }
@@ -173,7 +173,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 					warn "\nBismark output file $output_fn not found..\n";
 				}
 			} else {
-				die "###CF ## Bismark alignment (PE mode) exited with an error state\n\n";
+				die "###CF ## Bismark alignment (PE mode) exited with an error state. Command: $command\n\n";
 			}
 		} else {
 			warn "\n###CF ## Bismark paired end files had ".scalar(@files)." input files instead of 2..\n";

@@ -34,6 +34,7 @@ sub parse_qstat {
 	my %jobs;
 	my %pipelines;
 	my @jlist;
+	my %pipeline_single_job_ids;
 
 	# Running Jobs
 	# Returns a hash instead of an array if only one element
@@ -56,6 +57,8 @@ sub parse_qstat {
 				$pipelines{$pipelinekey}{started} = $2;
 				$jobs{$jid}{module} = $3;
 			}
+			
+			$pipeline_single_job_ids{$pipelinekey} = $jid;
 			
 			$jobs{$jid}{pipeline} = $pipeline;
 			$jobs{$jid}{pipelinekey} = $pipelinekey;
@@ -98,6 +101,8 @@ sub parse_qstat {
 				$jobhash{module} = $3;
 			}
 			
+			$pipeline_single_job_ids{$pipelinekey} = $jid;
+			
 			$jobhash{pipeline} = $pipeline;
 			$jobhash{pipelinekey} = $pipelinekey;
 			$jobhash{jobname} = $jobname;
@@ -136,10 +141,22 @@ sub parse_qstat {
 		if($pipelinekey =~ /^(.+)_(\d{10})$/){
 			$pipeline = $1;
 		}
-		$output .= "\n".('=' x 50)."\n";
-		$output .= "  Cluster Flow Pipeline $pipeline\n";
-		$output .= "  Submitted ".CF::Helpers::parse_seconds(time - $pipelines{$pipelinekey}{started})." ago";
-		$output .= "\n".('=' x 50)."\n";
+		
+		# Figure out the cwd for this pipeline
+		my $pipeline_wd;
+		if($pipeline_single_job_ids{$pipelinekey}){
+			my $cwd_command = "qstat -j $pipeline_single_job_ids{$pipelinekey} | grep cwd";
+			$pipeline_wd = `$cwd_command`;
+			$pipeline_wd =~ s/^cwd:\s+//;
+			$pipeline_wd =~ s/\n//;
+		}
+		
+		$output .= "\n".('=' x 70)."\n";
+		$output .= sprintf("%-24s%-44s\n", " Cluster Flow Pipeline:", $pipeline);
+		$output .= sprintf("%-24s%-44s\n", " Submitted:", CF::Helpers::parse_seconds(time - $pipelines{$pipelinekey}{started})." ago");
+		$output .= sprintf("%-24s%-44s\n", " Working Directory:", $pipeline_wd) if $pipeline_wd;
+		$output .= sprintf("%-24s%-44s\n", " ID:", $pipelinekey);
+		$output .= "".('=' x 70)."\n";
 		parse_qstat_print_hash(\%jobs, 0, \$output, $all_users, $cols, $pipelinekey);
 	}
 	
@@ -147,9 +164,9 @@ sub parse_qstat {
 	my $notcf_output = "";
 	parse_qstat_print_hash(\%jobs, 0, \$notcf_output, $all_users, $cols, 'unknown');
 	if(length($notcf_output) > 0){
-		$output .= "\n".('=' x 50)."\n";
+		$output .= "\n".('=' x 70)."\n";
 		$output .= "  Not Cluster Flow Jobs  ";
-		$output .= "\n".('=' x 50)."\n";
+		$output .= "\n".('=' x 70)."\n";
 		$output .= $notcf_output;
 	}
 	
@@ -157,9 +174,9 @@ sub parse_qstat {
 	my $notcfpending_output = "";
 	parse_qstat_print_hash(\%jobs, 0, \$notcfpending_output, $all_users, $cols, 'unknown_pending');
 	if(length($notcfpending_output) > 0){
-		$output .= "\n".('=' x 50)."\n";
+		$output .= "\n".('=' x 70)."\n";
 		$output .= "  Not Cluster Flow Jobs - Queing  ";
-		$output .= "\n".('=' x 50)."\n";
+		$output .= "\n".('=' x 70)."\n";
 		$output .= $notcfpending_output;
 	}
 	
@@ -281,6 +298,85 @@ sub parse_qstat_print_hash {
 	
 	return (${$output});
 
+}
+
+
+# Function to delete all jobs with a pipeline ID
+sub cf_pipeline_qdel {
+	
+	my ($pid) = @_;
+	my $jobcount = 0;
+	my $qdel_output;
+	
+	my $qstat_command = "qstat -pri -r -xml";
+	my $qstat = `$qstat_command`;
+	
+	my $xml = new XML::Simple;
+	my $data = $xml->XMLin($qstat);
+		
+	my %jobs;
+	my %pipelines;
+	my @jlist;
+
+	# Running Jobs
+	# Returns a hash instead of an array if only one element
+	if(ref($data->{queue_info}->{job_list}) eq 'HASH'){
+		@jlist = \%{$data->{queue_info}->{job_list}};
+	} elsif(ref($data->{queue_info}->{job_list}) eq 'ARRAY'){
+		@jlist = @{$data->{queue_info}->{job_list}};
+	}
+	if($data->{queue_info}->{job_list}){
+		foreach my $job (@jlist){
+			my $jid = $job->{JB_job_number};
+			my $jobname = $job->{full_job_name};
+			my $pipelinekey;
+			
+			if($jobname =~ /^cf_(.+)_(\d{10})_(.+)_\d{1,3}$/){
+				$pipelinekey = "$1_$2";
+			}
+			
+			if($pipelinekey eq $pid){
+				my $qdel_command = "qdel $jid";
+				$jobcount++;
+				my $qdel = `$qdel_command`;
+				$qdel_output .= $qdel;
+			}
+		}
+	}
+	
+	# Pending Jobs
+	# Returns a hash instead of an array if only one element
+	@jlist = ();
+	if(ref($data->{job_info}->{job_list}) eq 'HASH'){
+		@jlist = \%{$data->{job_info}->{job_list}};
+	} elsif(ref($data->{job_info}->{job_list}) eq 'ARRAY'){
+		@jlist = @{$data->{job_info}->{job_list}};
+	}
+	if($data->{job_info}->{job_list}){
+		foreach my $job (@jlist){
+			my $jid = $job->{JB_job_number};
+			my $jobname = $job->{full_job_name};
+			my $pipelinekey;
+			
+			if($jobname =~ /^cf_(.+)_(\d{10})_(.+)_\d{1,3}$/){
+				$pipelinekey = "$1_$2";
+			}
+			
+			if($pipelinekey eq $pid){
+				my $qdel_command = "qdel $jid";
+				$jobcount++;
+				my $qdel = `$qdel_command`;
+				$qdel_output .= $qdel;
+			}
+		}
+	}
+	
+	if($jobcount > 0){
+		return "$jobcount jobs deleted:\n$qdel_output\n";
+	} else {
+		return "Error - no jobs found for pipeline $pid\n";
+	}
+	
 }
 
 

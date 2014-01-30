@@ -42,6 +42,7 @@ my $cl_dryrun;
 my $cl_qstat;
 my $cl_qstatall;
 my $cl_qstatcolours;
+my $cl_qdel;
 my $cl_make_config;
 my $cl_version;
 my $cl_check_updates;
@@ -70,6 +71,7 @@ my $config_result = GetOptions(
 	"qstat" => \$cl_qstat,
 	"qstatall" => \$cl_qstatall,
 	"qstatcols" => \$cl_qstatcolours,
+	"qdel=s" => \$cl_qdel,
 	"make_config" => \$cl_make_config,
 	"version" => \$cl_version,
 	"check_updates" => \$cl_check_updates,
@@ -114,15 +116,15 @@ if($cl_notifications){
 	}
 }
 if($cl_genome_path){
-	$GENOME_PATHS{$cl_genome_path} = {$cl_genome_path};
+	$GENOME_PATHS{"$cl_genome_path"} = $cl_genome_path;
 	$GENOME = $cl_genome_path;
 }
 if($cl_bowtie_path){
-	$BOWTIE_PATHS{$cl_bowtie_path} = {$cl_bowtie_path};
+	$BOWTIE_PATHS{"$cl_bowtie_path"} = $cl_bowtie_path;
 	$GENOME = $cl_genome_path;
 }
 if($cl_gtf_path){
-	$GTF_PATHS{$cl_gtf_path} = {$cl_gtf_path};
+	$GTF_PATHS{"$cl_gtf_path"} = $cl_gtf_path;
 	$GENOME = $cl_genome_path;
 }
 if($cl_priority){
@@ -273,6 +275,15 @@ home directory! It's a good idea to set one up, so that
 you can get e-mailed notifications from Cluster Flow.
 To create one, run cf --make_config\n\n\n";
 	}
+}
+if($cl_qdel){
+	if($CLUSTER_ENVIRONMENT eq 'LSF'){
+		print "Apologies, this function is not yet supported for LSF.\n";
+		exit;
+	}
+	print "\nDeleting jobs from Pipeline id $cl_qdel\n\n";
+	print CF::Headnodehelpers::cf_pipeline_qdel($cl_qdel);
+	exit;
 }
 
 if($cl_version){
@@ -436,13 +447,13 @@ foreach my $not (@NOTIFICATIONS){
 }
 
 if(defined($GENOME) && defined($GENOME_PATHS{$GENOME})){
-	$runfile .= "\@genome_path\t".$GENOME_PATHS{$GENOME}."\n";
+	$runfile .= "\@genome_path\t$GENOME_PATHS{$GENOME}\n";
 }
 if(defined($GENOME) && defined($BOWTIE_PATHS{$GENOME})){
-	$runfile .= "\@bowtie_path\t".$BOWTIE_PATHS{$GENOME}."\n";
+	$runfile .= "\@bowtie_path\t$BOWTIE_PATHS{$GENOME}\n";
 }
 if(defined($GENOME) && defined($GTF_PATHS{$GENOME})){
-	$runfile .= "\@gtf_path\t".$GTF_PATHS{$GENOME}."\n";
+	$runfile .= "\@gtf_path\t$GTF_PATHS{$GENOME}\n";
 }
 if ($cl_paired_end){
 	$runfile .= "\@force_paired_end\n";

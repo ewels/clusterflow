@@ -275,6 +275,10 @@ AVAILABLE FLAGS
 		Colour the output from --qstat and --qstatall. Looks nice in terminal
 		windows with light backgrounds. Horrible on dark backgrounds.
 		See the manual for recommended .bashrc aliases.
+	
+	--qdel
+		Delete all jobs running in a particular Cluster Flow pipeline. Follow
+		with a pipeline ID, printed when running --qstat
 		
 	--make_config
 		Interactive prompt to generate a personalised CF config file
