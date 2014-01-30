@@ -32,7 +32,7 @@ if($required_modules){
 }
 # --help. Print help.
 if($help){
-    print "".("-"x15)."\n Bowtie Module\n".("-"x15)."\n
+    print "".("-"x17)."\n Bowtie 1 Module\n".("-"x17)."\n
 Bowtie is an ultrafast, memory-efficient short read aligner.
 It aligns short DNA sequences (reads) to a reference genome. This script
 works out the encoding of input files, guesses whether they're paired end
