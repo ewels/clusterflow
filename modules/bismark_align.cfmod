@@ -154,13 +154,13 @@ if($pe_files && scalar(@$pe_files) > 0){
 			}
 			
 			my $output_fn;
-			if($bt2){
-				$output_fn = $files[0]."_bismark_pe_bt2.bam";
+			if(length($bt2) > 0){
+				$output_fn = $files[0]."_bismark_bt2_pe.bam";
 			} else {
 				$output_fn = $files[0]."_bismark_pe.bam";
 			}
 			
-			my $command = "bismark --ignore_r2 2 --bam $bt2 $pbat $enc ".$config{genome_path}." -1 ".$files[0]." -2 ".$files[1];
+			my $command = "bismark --bam $bt2 $pbat $enc ".$config{genome_path}." -1 ".$files[0]." -2 ".$files[1];
 			warn "\nRunning command:\n$command\n\n";
 			
 			if(!system ($command)){
