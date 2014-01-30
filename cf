@@ -313,11 +313,7 @@ if($cl_check_updates){
 }
 # Print warning if we're running a version of Cluster Flow that is out of date
 if($CHECK_UPDATES){
-	my $avail_version_numeric = $AVAILABLE_VERSION;
-	$avail_version_numeric =~ s/[^\d.]//g;
-	my $current_version_numeric = $CF_VERSION;
-	$current_version_numeric =~ s/[^\d.]//g;
-	if($avail_version_numeric > $current_version_numeric){
+	if(CF::Headnodehelpers::cf_compare_version_numbers($CF_VERSION, $AVAILABLE_VERSION)){
 		print "\n".("="x45)."\n A new version of Cluster Flow is available!\n Running v$CF_VERSION, v$AVAILABLE_VERSION available.\n".("="x45)."\n
 You can download the latest version of Cluster Flow from\nhttp://www.bioinformatics.babraham.ac.uk/projects/cluster_flow/\n\n";
 	}

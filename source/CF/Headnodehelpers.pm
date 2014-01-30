@@ -383,15 +383,11 @@ sub cf_pipeline_qdel {
 sub cf_check_updates {
 
 	my ($current_version) = @_;
-	$current_version =~ s/[^\d.]//g;
-
 	
 	# Get contents of Cluster Flow current version file using LWP::Simple
 	# my $version_url = 'http://www.bioinformatics.babraham.ac.uk/projects/cluster_flow/version.txt';
 	my $version_url = 'http://bilin1/projects/cluster_flow/version.txt';
 	my $avail_version = get($version_url) or die "Unable to fetch version: $version_url\n";
-	
-	$avail_version =~ s/[^\d.]//g;
 	
 	# Update the config files with the available version
 	my @config_files = ("$FindBin::Bin/clusterflow.config", $ENV{"HOME"}."/clusterflow/clusterflow.config", './clusterflow.config');
@@ -429,7 +425,7 @@ sub cf_check_updates {
 		}
 	}
 	
-	if($avail_version > $current_version){
+	if(cf_compare_version_numbers($current_version, $avail_version)){
 		return "".("="x45)."\n A new version of Cluster Flow is available!\n Running v$current_version, v$avail_version available.\n".("="x45)."\n
 You can download the latest version of Cluster Flow from\nhttp://www.bioinformatics.babraham.ac.uk/projects/cluster_flow/\n\n";
 	} else {
@@ -437,6 +433,32 @@ You can download the latest version of Cluster Flow from\nhttp://www.bioinformat
 	}
 }
 
+# Function to properly split up version numbers
+# Returns true if second supplied vn is newer than first
+sub cf_compare_version_numbers {
+	
+	my ($vn1_string, $vn2_string) = @_;
+	
+	my @vn1_parts = split(/\.|\s+/, $vn1_string);
+	my @vn2_parts = split(/\.|\s+/, $vn2_string);
+	
+	for my $i (0 .. $#vn2_parts){
+		if(defined($vn1_parts[$i])){
+			
+			# Numeric checks
+			if($vn1_parts[$i] =~ /^\d+$/ && $vn2_parts[$i] =~ /^\d+$/){
+				if($vn2_parts[$i] > $vn1_parts[$i]){
+					return 1;
+				}
+			}
+		} else {
+			return 1;
+		}
+	}
+	
+	return 0;
+	
+}
 
 
 1; # Must return a true value
