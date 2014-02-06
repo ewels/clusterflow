@@ -1,0 +1,189 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+use Getopt::Long;
+use FindBin qw($Bin);
+use lib "$FindBin::Bin/../source";
+use CF::Constants;
+use CF::Helpers;
+
+# Get Options
+my $required_cores;
+my $required_mem;
+my $required_modules;
+my $help;
+my $result = GetOptions ("cores=i" => \$required_cores, "mem" => \$required_mem, "modules" => \$required_modules, "help" => \$help);
+
+# QSUB SETUP
+# --cores i = offered cores. Return number of required cores.
+if($required_cores){
+	print "2";
+	exit;
+}
+# --mem. Return the required memory allocation.
+if($required_mem){
+	print "2G";
+	exit;
+}
+# --modules. Return csv names of any modules which should be loaded.
+if($required_modules){
+	print 'hicup';
+	exit;
+}
+# --help. Print help.
+if($help){
+	print "".("-"x22)."\n HiCUP Module\n".("-"x22)."\n
+HiCUP is a tool for mapping and performing quality
+control on Hi-C data. The module will look for existing
+digest files in the genome folder and create one if it
+doesn't yet exist.
+
+Three parameters can be set in CF for this module:
+restriction enzyme (default HindIII), shortest read
+length (default 150bp) and longest read length
+(default 800bp). For example:
+  #hicup	longest=600
+  #hicup	shortest=180
+  #hicup	re1=A^GATCT,BglII
+
+Use hicup --help for further information.\n\n";
+	exit;
+}
+
+# MODULE
+my $timestart = time;
+
+# Read in the input files from the run file
+my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
+my %config = %$config_ref;
+
+# Check that we have a genome defined
+if(!defined($config{genome_path})){
+	warn "\n\n###CF No genome path found in run file $runfile for job $job_id. Exiting.. ###\n\n";
+	exit;
+}
+# Check that we have a bowtie path defined
+if(!defined($config{bowtie_path})){
+	warn "\n\n###CF No bowtie path found in run file $runfile for job $job_id. Exiting.. ###\n\n";
+	exit;
+}
+
+open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
+
+# Separate file names into single end and paired end
+my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%config, @$files);
+
+# FastQ encoding type. Once found on one file will assume all others are the same
+my $encoding = 0;
+
+##############################
+# Pipeline Parameters
+##############################
+my $longest = 800;
+my $shortest = 150;
+my $re1 = "A^AGCTT,HindIII";
+foreach my $parameter (@$parameters){
+	if($parameter =~ /longest=(\d+)/){
+		$longest = $1;
+	}
+	if($parameter =~ /shortest=(\d+)/){
+		$shortest = $1;
+	}
+	if($parameter =~ /re1=(\S+)/){
+		$re1 = $1;
+	}
+}
+my @re1_parts = split("," $re1);
+
+
+##############################
+# Sort out the digest file
+##############################
+my $digest;
+my @digest_files = glob($config{genome_path}."/Digest_*.txt");
+foreach my $digest_file (@digest_files){
+	
+	if(index($digest_file, $re1_parts[1])){
+		$digest = $config{genome_path}."/".$digest_file;
+	}
+}
+# No digest file found - create it
+if(!$digest){
+	my @genome_path_parts = split("/", $config{genome_path});
+	my $command = "hicup_digester -1 $re1 -g ".$genome_path_parts[-2]."_".$genome_path_parts[-1]." *fa";
+	warn "\nCreating new digest file. Command:\n$command\n\n";
+	if(!system ($command)){
+		warn "\nDigest file successfully created.\n\n";
+	} else {
+		die "###CF ## HiCUP could not create new digest file. Exiting... Command: $command\n\n";
+	}
+}
+# We don't know the filename so we have to search for it again
+@digest_files = glob($config{genome_path}."/Digest_*.txt");
+foreach my $digest_file (@digest_files){
+	if(index($digest_file, $re1_parts[1])){
+		$digest = $config{genome_path}."/".$digest_file;
+	}
+}
+if(!$digest){
+	# Still can't find the digest file. Die
+	die "###CF ## Could not find the new HiCUP digest file. Exiting..\n\n";
+}
+
+
+##############################
+# Single End Files
+##############################
+if($se_files && scalar(@$se_files) > 0){
+	foreach my $file (@$se_files){
+		warn "###CF ## HiCUP given single end file $file. This module only works on Paired End files. Skipping..\n\n";
+	}
+}
+
+##############################
+# Paired End Files
+##############################
+if($pe_files && scalar(@$pe_files) > 0){
+	foreach my $files_ref (@$pe_files){
+		my @files = @$files_ref;
+		if(scalar(@files) == 2){
+			
+			# Figure out the encoding if we don't already know
+			if(!$encoding){
+				($encoding) = CF::Helpers::fastq_encoding_type($files[0]);
+			}
+			my $enc = "";
+			if($encoding eq 'phred33' || $encoding eq 'phred64' || $encoding eq 'solexa'){
+				$enc = '--'.$encoding.'-quals';
+			}
+			
+			##############################
+			###### THIS DOES NOT WORK
+			##############################
+			my $output_fn = $files[0]."_hicup.bam";
+			##############################
+			##############################
+			
+			my $command = "hicup --zip --bowtie bowtie --digest $digest --format $enc --index ".$config{bowtie_path}." --longest $longest --shortest $shortest --re1 $re1 --threads $cores --filenames ".$files[0].",".$files[1];
+			warn "\nRunning command:\n$command\n\n";
+			
+			if(!system ($command)){
+				# Bismark worked - print out resulting filenames
+				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+				warn "###CF HiCUP successfully exited, took $duration..\n";
+				if(-e $output_fn){
+					print RUN "$job_id\t$output_fn\n";
+				} else {
+					warn "\nHiCUP output file $output_fn not found..\n";
+				}
+			} else {
+				die "###CF ## HiCUP exited with an error state. Command: $command\n\n";
+			}
+		} else {
+			warn "\n###CF ## HiCUP paired end files had ".scalar(@files)." input files instead of 2..\n";
+		}
+	}
+}
+
+
+close (RUN);
