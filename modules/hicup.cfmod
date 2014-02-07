@@ -157,12 +157,16 @@ if($pe_files && scalar(@$pe_files) > 0){
 				$enc = '--'.$encoding.'-quals';
 			}
 			
-			##############################
-			###### THIS DOES NOT WORK
-			##############################
-			my $output_fn = $files[0]."_hicup.bam";
-			##############################
-			##############################
+			# Work out the output filename
+			my $fn1_base = $files[0];
+			$fn1_base =~ s/.gz$//;
+			$fn1_base =~ s/.fq$//;
+			$fn1_base =~ s/.fastq$//;
+			my $fn2_base = $files[1];
+			$fn2_base =~ s/.gz$//;
+			$fn2_base =~ s/.fq$//;
+			$fn2_base =~ s/.fastq$//;
+			my $output_fn = "uniques_".$fn1_base."_trunc_".$fn2_base."_trunc.bam";
 			
 			my $command = "hicup --zip --bowtie bowtie --digest $digest --format $enc --index ".$config{bowtie_path}." --longest $longest --shortest $shortest --re1 $re1 --threads $cores --filenames ".$files[0].",".$files[1];
 			warn "\nRunning command:\n$command\n\n";
