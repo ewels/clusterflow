@@ -450,6 +450,9 @@ sub cf_compare_version_numbers {
 				if($vn2_parts[$i] > $vn1_parts[$i]){
 					return 1;
 				}
+			} elsif($vn1_parts[$i] !~ /^\d+$/ && $vn2_parts[$i] =~ /^\d+$/){
+				# 0.1.1 beats 0.1 devel
+				return 1;
 			}
 		} else {
 			return 1;
