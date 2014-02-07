@@ -93,7 +93,7 @@ foreach my $parameter (@$parameters){
 		$re1 = $1;
 	}
 }
-my @re1_parts = split("," $re1);
+my @re1_parts = split(",", $re1);
 
 
 ##############################
