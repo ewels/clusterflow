@@ -102,7 +102,6 @@ my @re1_parts = split(",", $re1);
 my $digest;
 my @digest_files = glob($config{genome_path}."/Digest_*.txt");
 foreach my $digest_file (@digest_files){
-	
 	if(index($digest_file, $re1_parts[1])){
 		$digest = $config{genome_path}."/".$digest_file;
 	}
@@ -110,7 +109,7 @@ foreach my $digest_file (@digest_files){
 # No digest file found - create it
 if(!$digest){
 	my @genome_path_parts = split("/", $config{genome_path});
-	my $command = "hicup_digester -1 $re1 -g ".$genome_path_parts[-2]."_".$genome_path_parts[-1]." *fa";
+	my $command = "hicup_digester -1 $re1 -g ".$genome_path_parts[-2]."_".$genome_path_parts[-1]." ".$config{genome_path}."/*.fa";
 	warn "\nCreating new digest file. Command:\n$command\n\n";
 	if(!system ($command)){
 		warn "\nDigest file successfully created.\n\n";
@@ -119,10 +118,10 @@ if(!$digest){
 	}
 }
 # We don't know the filename so we have to search for it again
-@digest_files = glob($config{genome_path}."/Digest_*.txt");
+@digest_files = glob($config{genome_path}."Digest_*.txt");
 foreach my $digest_file (@digest_files){
 	if(index($digest_file, $re1_parts[1])){
-		$digest = $config{genome_path}."/".$digest_file;
+		$digest = $digest_file;
 	}
 }
 if(!$digest){

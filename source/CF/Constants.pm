@@ -364,129 +364,128 @@ These will overwrite any with the same name in the centralised config file
 	}
 	$config .= "\@email	$email\n";
 	
-	my $check_updates;
-	print "Cluster Flow can automatically check to see if an update is available.
-If you would like to enable this functionality, please enter how frequently
-you would like Cluster Flow to check. Enter a number followed by d, w, m or y
-to signify days, weeks, months or years. Recommended: 1w\n
-If you do not want Cluster Flow to check for updates please enter 0.\n\n";
-	while ($check_updates = <STDIN>){
-		chomp ($check_updates);
-		if($check_updates eq '0' || $check_updates =~ /^\d+[dwmy]$/i){
-			print "\nGreat! That looks good..\n";
-			if($check_updates eq '0'){
-				print "Cluster Flow won't check for available updates\n\n";
-			} else {
-				print "Cluster Flow will check for available updates every $check_updates\n\n";
-			}
+	my $use_defaults;
+	my $use_defaults_stdin;
+	print "Ok, the rest of this wizard is about which notification e-mails that
+you'd like to receive. We can skip this and use default settings if you
+prefer. Use defaults? (y/n)\n\n";
+	while ($use_defaults_stdin = <STDIN>){
+		chomp ($use_defaults_stdin);
+		if($use_defaults_stdin =~ /^y(es)?/i){
+			print "\nGood choice. You can always edit these later anyway, just see the manual..\n\n";
+			$use_defaults = 1;
 			last;
-		} else {
-			print "\nSorry, I didn't recognise that.\nPlease could you try again?\n\n";
-		}
-	}
-	$config .= "\@check_updates	$check_updates\n";
-	if($check_updates ne '0'){
-		$config .= "\@available_version	$CF_VERSION\n";
-		$config .= "\@updates_last_checked	".time()."\n";
-	}
-	
-	my ($notify_complete, $notify_run, $notify_success, $notify_error, $notify_abort);
-	
-	print "Would you like to receive a notification when a pipeline is completed?
-The e-mail tells you the pipeline that has finished, the working directory
-for that pipeline, a list of Cluster Flow highlight notifications (typically
-whether each step in the pipeline ran successfully for each file) and then the
-log file output for each file. These notifications are recommended (y/n)\n\n";
-	while ($notify_complete = <STDIN>){
-		chomp ($notify_complete);
-		if($notify_complete =~ /^y(es)?/i){
-			print "\nGreat!\n\n";
-			$config .= "\@notification	complete\n";
-			last;
-		} elsif ($notify_complete =~ /^n(o)?/i){
-			print "\nOk, fair enough..\n\n";
+		} elsif ($use_defaults_stdin =~ /^n(o)?/i){
+			print "\nOk, let's delve a little deeper..\n\n";
 			last;
 		} else {
 			print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
 		}
 	}
-	
-	print "Would you like to receive a notification when each run is completed?
+	if($use_defaults){
+		$config .= "\@notification	complete\n";
+		$config .= "\@notification	suspend\n";
+		$config .= "\@notification	abort\n";
+	} else {
+		
+		my ($notify_complete, $notify_run, $notify_success, $notify_error, $notify_abort);
+		
+		print "Would you like to receive a notification when a pipeline is completed?
+The e-mail tells you the pipeline that has finished, the working directory
+for that pipeline, a list of Cluster Flow highlight notifications (typically
+whether each step in the pipeline ran successfully for each file) and then the
+log file output for each file. These notifications are recommended (y/n)\n\n";
+		while ($notify_complete = <STDIN>){
+			chomp ($notify_complete);
+			if($notify_complete =~ /^y(es)?/i){
+				print "\nGreat!\n\n";
+				$config .= "\@notification	complete\n";
+				last;
+			} elsif ($notify_complete =~ /^n(o)?/i){
+				print "\nOk, fair enough..\n\n";
+				last;
+			} else {
+				print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+			}
+		}
+		
+		print "Would you like to receive a notification when each run is completed?
 Usually a run is the processing of one input file. The e-mail tells you the
 name of the run that has finished, its pipeline and the working directory.
 It includes a list of Cluster Flow highlight notifications (typically
 whether each step in the pipeline ran successfully) and then the log file output.
 These notifications are recommended for those who like to keep a close eye on
 their processing (y/n)\n\n";
-	while ($notify_run = <STDIN>){
-		chomp ($notify_run);
-		if($notify_run =~ /^y(es)?/i){
-			print "\nGreat!\n\n";
-			$config .= "\@notification	run\n";
-			last;
-		} elsif ($notify_run =~ /^n(o)?/i){
-			print "\nOk, sounds good..\n\n";
-			last;
-		} else {
-			print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+		while ($notify_run = <STDIN>){
+			chomp ($notify_run);
+			if($notify_run =~ /^y(es)?/i){
+				print "\nGreat!\n\n";
+				$config .= "\@notification	run\n";
+				last;
+			} elsif ($notify_run =~ /^n(o)?/i){
+				print "\nOk, sounds good..\n\n";
+				last;
+			} else {
+				print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+			}
 		}
-	}
-	
-	print "Would you like to receive a notification when step of each run ends?
+		
+		print "Would you like to receive a notification when step of each run ends?
 This will be a GRID Engine notice for every qsub job. These notifications
 are not recommended as a typicaly Cluster Flow run can flood your inbox with hundreds
 of such e-mails. Would you like to receive them? (y/n)\n\n";
-	while ($notify_success = <STDIN>){
-		chomp ($notify_success);
-		if($notify_success =~ /^y(es)?/i){
-			print "\nFair enough, you were warned!\n\n";
-			$config .= "\@notification	end\n";
-			last;
-		} elsif ($notify_success =~ /^n(o)?/i){
-			print "\nProbably sensible..\n\n";
-			last;
-		} else {
-			print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+		while ($notify_success = <STDIN>){
+			chomp ($notify_success);
+			if($notify_success =~ /^y(es)?/i){
+				print "\nFair enough, you were warned!\n\n";
+				$config .= "\@notification	end\n";
+				last;
+			} elsif ($notify_success =~ /^n(o)?/i){
+				print "\nProbably sensible..\n\n";
+				last;
+			} else {
+				print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+			}
 		}
-	}
-	
-	print "Would you like to receive a notification when a GRID Engine
+		
+		print "Would you like to receive a notification when a GRID Engine
 job is suspended? You're unlikely to get many if any, so they're recommended.
 Would you like to receive these notifications? (y/n)\n\n";
-	while ($notify_error = <STDIN>){
-		chomp ($notify_error);
-		if($notify_error =~ /^y(es)?/i){
-			print "\nSounds good!\n\n";
-			$config .= "\@notification	suspend\n";
-			last;
-		} elsif ($notify_error =~ /^n(o)?/i){
-			print "\nFair enough..\n\n";
-			last;
-		} else {
-			print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+		while ($notify_error = <STDIN>){
+			chomp ($notify_error);
+			if($notify_error =~ /^y(es)?/i){
+				print "\nSounds good!\n\n";
+				$config .= "\@notification	suspend\n";
+				last;
+			} elsif ($notify_error =~ /^n(o)?/i){
+				print "\nFair enough..\n\n";
+				last;
+			} else {
+				print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+			}
 		}
-	}
-	
-	print "Ok, last one. Would you like to receive a notification 
+		
+		print "Ok, last one. Would you like to receive a notification 
 when a GRID Engine job exits in an abort state? This typically only
 happens when you or an administrator kills your cluster jobs using
 qdel. You're unlikely to get many of these, so they're recommended.
 Would you like to receive these notifications? (y/n)\n\n";
-	while ($notify_abort = <STDIN>){
-		chomp ($notify_abort);
-		if($notify_abort =~ /^y(es)?/i){
-			print "\nSounds good!\n\n";
-			$config .= "\@notification	abort\n";
-			last;
-		} elsif ($notify_abort =~ /^n(o)?/i){
-			print "\nFair enough..\n\n";
-			last;
-		} else {
-			print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+		while ($notify_abort = <STDIN>){
+			chomp ($notify_abort);
+			if($notify_abort =~ /^y(es)?/i){
+				print "\nSounds good!\n\n";
+				$config .= "\@notification	abort\n";
+				last;
+			} elsif ($notify_abort =~ /^n(o)?/i){
+				print "\nFair enough..\n\n";
+				last;
+			} else {
+				print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+			}
 		}
-	}
-	$config .= "\n\n\n";
+		$config .= "\n\n\n";
 	
+	} # end of defaults check
 	
 	print "\n\nGreat, that's it! The following config file will be created:\n\n$config\n";
 	

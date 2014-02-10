@@ -261,7 +261,8 @@ sub parse_qstat_print_hash {
 			}
 			
 			${$output} .= color 'blue' if $cols;
-			${$output} .= " [".${$hashref}{$key}{cores}." cores] ";
+			my $s = ""; $s = "s" if ${$hashref}{$key}{cores} > 1;
+			${$output} .= " [".${$hashref}{$key}{cores}." core$s] ";
 			${$output} .= color 'reset' if $cols;
 			
 			if(${$hashref}{$key}{state} ne 'running'){
