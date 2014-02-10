@@ -65,7 +65,7 @@ sub parse_conf_file {
 					next;
 				}
 				if($_ =~ /^\@/ && !$comment_block){
-					my @sections = split(/\t/, $_);
+					my @sections = split(/\s+/, $_);
 					$config{substr($sections[0], 1)} = $sections[1];
 					my $name = substr($sections[0], 1);
 					my $val = $sections[1];
