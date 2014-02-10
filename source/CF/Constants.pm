@@ -374,6 +374,7 @@ prefer. Use defaults? (y/n)\n\n";
 		if($use_defaults_stdin =~ /^y(es)?/i){
 			print "\nGood choice. You can always edit these later anyway, just see the manual..\n\n";
 			$use_defaults = 1;
+			sleep(2);
 			last;
 		} elsif ($use_defaults_stdin =~ /^n(o)?/i){
 			print "\nOk, let's delve a little deeper..\n\n";

@@ -201,7 +201,7 @@ sub parse_qstat_search_hash {
 sub parse_qstat_print_hash {
 
 	my ($hashref, $depth, $output, $all_users, $cols, $pipeline) = @_;
-
+	
 	foreach my $key (keys (%{$hashref}) ){
 	
 		# Ignore this unless this is part of the pipeline we're printing
@@ -292,8 +292,14 @@ sub parse_qstat_print_hash {
 		${$output} .= "\n";
 		
 		# Now go through and print child jobs
+		
 		if($children){
-			parse_qstat_print_hash(\%{${$hashref}{$key}{children}}, $depth + 1, \${$output}, $all_users, $cols, $pipeline);
+			if(${$hashref}{$key}{module} eq 'download' && ${$hashref}{$key}{state} ne 'running'){
+				# don't increase the depth if this is a download - avoid the huge christmas trees
+				parse_qstat_print_hash(\%{${$hashref}{$key}{children}}, $depth, \${$output}, $all_users, $cols, $pipeline);
+			} else {
+				parse_qstat_print_hash(\%{${$hashref}{$key}{children}}, $depth + 1, \${$output}, $all_users, $cols, $pipeline);
+			}
 		}
 	}
 	

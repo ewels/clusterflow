@@ -49,7 +49,7 @@ open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
 foreach my $file (@$files){
 
 	my $fn_base = substr($file, 0, -4);
-	my @outputfiles = ($fn_base."_1.fasta", $fn_base."_1.csfasta");
+	my @outputfiles = ($fn_base."_F3.csfasta.gz", $fn_base."_F3_QV.qual.gz");
 	
 	for (my $attempt = 1; $attempt < 6; $attempt++) {
 		
