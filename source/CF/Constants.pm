@@ -136,13 +136,12 @@ sub clusterflow_pipeline_help {
 				chomp;
 				s/\n//;
 				s/\r//;
-				if($_ =~ /^\/\*/){		# multiline comments start
-					$comment_block = 1;
-				} elsif($_ =~ /^\*\//){		# multiline comments start
-					$comment_block = 0;
-				} elsif($comment_block){
-					$help .= $_."\n";
+				next if($_ =~ /^\/\*/); # multiline comments start
+				if($_ =~ /^\*\//){		# multiline comments end
+					$help .= "\n".("-" x 20)."\n Pipeline:\n".("-" x 20)."\n";
+					next;
 				}
+				$help .= $_."\n";
 			}
 			close(PIPELINE);
 		}
