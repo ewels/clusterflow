@@ -70,9 +70,6 @@ if(!defined($config{bowtie_path})){
 
 open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
 
-# Separate file names into single end and paired end
-my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%config, @$files);
-
 # FastQ encoding type. Once found on one file will assume all others are the same
 my $encoding = 0;
 
@@ -158,25 +155,17 @@ if(!$digest){
 
 
 ##############################
-# Single End Files
+# Loop through Files
 ##############################
-if($se_files && scalar(@$se_files) > 0){
-	foreach my $file (@$se_files){
-		warn "###CF ## HiCUP given single end file $file. This module only works on Paired End files. Skipping..\n\n";
-	}
-}
-
-##############################
-# Paired End Files
-##############################
-if($pe_files && scalar(@$pe_files) > 0){
-	foreach my $files_ref (@$pe_files){
-		my @files = @$files_ref;
-		if(scalar(@files) == 2){
-			
+my $num_files = scalar @{$files};
+for (my $i = 0; $i <= $num_files; $i++){
+	if($i < $num_files){
+		my @p_files = ($files->[$i], $files->[$i+1]);
+		if(scalar(@p_files) == 2){
+	
 			# Figure out the encoding if we don't already know
 			if(!$encoding){
-				($encoding) = CF::Helpers::fastq_encoding_type($files[0]);
+				($encoding) = CF::Helpers::fastq_encoding_type($p_files[0]);
 			}
 			my $enc = "";
 			if($encoding eq 'phred33' || $encoding eq 'phred64' || $encoding eq 'solexa'){
@@ -184,21 +173,21 @@ if($pe_files && scalar(@$pe_files) > 0){
 			}
 			
 			# Work out directory
-			my $outputdir = $files[0];
+			my $outputdir = $p_files[0];
 			$outputdir =~ s/(\.)?(r_[12])?(_val_[12])?\.f(ast)?q.+//i;
 			
 			# Work out the output filename
-			my $fn1_base = $files[0];
+			my $fn1_base = $p_files[0];
 			$fn1_base =~ s/.gz$//;
 			$fn1_base =~ s/.fq$//;
 			$fn1_base =~ s/.fastq$//;
-			my $fn2_base = $files[1];
+			my $fn2_base = $p_files[1];
 			$fn2_base =~ s/.gz$//;
 			$fn2_base =~ s/.fq$//;
 			$fn2_base =~ s/.fastq$//;
 			my $output_fn = "uniques_".$fn1_base."_trunc_".$fn2_base."_trunc.bam";
 			
-			my $command = "hicup --zip --bowtie bowtie --digest $digest --format $enc --index ".$config{bowtie_path}." --longest $longest --shortest $shortest --re1 $re1 --threads $cores -o $outputdir --filenames ".$files[0].",".$files[1];
+			my $command = "hicup --zip --bowtie bowtie --digest $digest --format $enc --index ".$config{bowtie_path}." --longest $longest --shortest $shortest --re1 $re1 --threads $cores -o $outputdir --filenames ".$p_files[0].",".$p_files[1];
 			warn "\nRunning command:\n$command\n\n";
 			
 			if(!system ($command)){
@@ -214,7 +203,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 				die "###CF ## HiCUP exited with an error state. Command: $command\n\n";
 			}
 		} else {
-			warn "\n###CF ## HiCUP paired end files had ".scalar(@files)." input files instead of 2..\n";
+			warn "\n###CF ## HiCUP paired end files had ".scalar(@p_files)." input files instead of 2..\n";
 		}
 	}
 }

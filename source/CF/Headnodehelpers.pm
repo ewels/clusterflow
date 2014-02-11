@@ -342,7 +342,7 @@ sub cf_pipeline_qdel {
 				$pipelinekey = "$1_$2";
 			}
 			
-			if($pipelinekey eq $pid){
+			if($pipelinekey && $pipelinekey eq $pid){
 				my $qdel_command = "qdel $jid";
 				$jobcount++;
 				my $qdel = `$qdel_command`;
