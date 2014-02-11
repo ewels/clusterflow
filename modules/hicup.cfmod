@@ -104,7 +104,9 @@ foreach my $file (@$files){
 	$dirs{$file} = 1;
 }
 foreach my $dir (keys (%dirs)){
-	mkdir $dir;
+	if (!-d $dir) {
+		mkdir $dir;
+	}
 	if(!$digest_dir){
 		$digest_dir = $dir;
 	}
@@ -115,10 +117,10 @@ foreach my $dir (keys (%dirs)){
 # Sort out the digest file
 ##############################
 my $digest;
-my @digest_files = glob($config{genome_path}."/Digest_*.txt");
+my @digest_files = glob($config{genome_path}."Digest_*.txt");
 foreach my $digest_file (@digest_files){
-	if(index($digest_file, $re1_parts[1])){
-		$digest = $config{genome_path}."/".$digest_file;
+	if(index($digest_file, $re1_parts[1]) > 0){
+		$digest = $digest_file;
 	}
 }
 # No digest file found - create it
@@ -137,7 +139,7 @@ if(!$digest){
 	}
 	
 	# Find the really obscure file name that has been created
-	@digest_files = glob("./Digest_*.txt");
+	@digest_files = glob("Digest_*.txt");
 	foreach my $digest_file (@digest_files){
 		if(index($digest_file, $re1_parts[1])){
 			$digest = "$digest_dir/$digest_file";
@@ -200,7 +202,7 @@ for (my $i = 0; $i <= $num_files; $i++){
 					warn "\nHiCUP output file $output_fn not found..\n";
 				}
 			} else {
-				die "###CF ## HiCUP exited with an error state. Command: $command\n\n";
+				warn "###CF ## HiCUP exited with an error state. Command: $command\n\n";
 			}
 		} else {
 			warn "\n###CF ## HiCUP paired end files had ".scalar(@p_files)." input files instead of 2..\n";
