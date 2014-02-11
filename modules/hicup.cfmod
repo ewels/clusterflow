@@ -97,6 +97,24 @@ my @re1_parts = split(",", $re1);
 
 
 ##############################
+# Make Output Directories
+#############################
+# Figure out directory names
+my %dirs;
+my $digest_dir;
+foreach my $file (@$files){
+	$file =~ s/(\.)?(r_[12])?(_val_[12])?\.f(ast)?q.+//i;
+	$dirs{$file} = 1;
+}
+foreach my $dir (keys (%dirs)){
+	mkdir $dir;
+	if(!$digest_dir){
+		$digest_dir = $dir;
+	}
+}
+
+
+##############################
 # Sort out the digest file
 ##############################
 my $digest;
@@ -108,6 +126,10 @@ foreach my $digest_file (@digest_files){
 }
 # No digest file found - create it
 if(!$digest){
+	# Move into the first directory created for this run
+	chdir($digest_dir);
+	
+	# Work out the command and run it
 	my @genome_path_parts = split("/", $config{genome_path});
 	my $command = "hicup_digester -1 $re1 -g ".$genome_path_parts[-2]."_".$genome_path_parts[-1]." ".$config{genome_path}."/*.fa";
 	warn "\nCreating new digest file. Command:\n$command\n\n";
@@ -116,17 +138,22 @@ if(!$digest){
 	} else {
 		die "###CF ## HiCUP could not create new digest file. Exiting... Command: $command\n\n";
 	}
-}
-# We don't know the filename so we have to search for it again
-@digest_files = glob($config{genome_path}."Digest_*.txt");
-foreach my $digest_file (@digest_files){
-	if(index($digest_file, $re1_parts[1])){
-		$digest = $digest_file;
+	
+	# Find the really obscure file name that has been created
+	@digest_files = glob("./Digest_*.txt");
+	foreach my $digest_file (@digest_files){
+		if(index($digest_file, $re1_parts[1])){
+			$digest = "$digest_dir/$digest_file";
+		}
 	}
+	
+	# Move back out of the directory
+	chdir("../");
+	
 }
+# Still can't find the digest file. Die
 if(!$digest){
-	# Still can't find the digest file. Die
-	die "###CF ## Could not find the new HiCUP digest file. Exiting..\n\n";
+	die "###CF ## Could not find or create the HiCUP digest file. Exiting..\n\n";
 }
 
 
@@ -156,6 +183,10 @@ if($pe_files && scalar(@$pe_files) > 0){
 				$enc = '--'.$encoding.'-quals';
 			}
 			
+			# Work out directory
+			my $outputdir = $files[0];
+			$outputdir =~ s/(\.)?(r_[12])?(_val_[12])?\.f(ast)?q.+//i;
+			
 			# Work out the output filename
 			my $fn1_base = $files[0];
 			$fn1_base =~ s/.gz$//;
@@ -167,7 +198,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			$fn2_base =~ s/.fastq$//;
 			my $output_fn = "uniques_".$fn1_base."_trunc_".$fn2_base."_trunc.bam";
 			
-			my $command = "hicup --zip --bowtie bowtie --digest $digest --format $enc --index ".$config{bowtie_path}." --longest $longest --shortest $shortest --re1 $re1 --threads $cores --filenames ".$files[0].",".$files[1];
+			my $command = "hicup --zip --bowtie bowtie --digest $digest --format $enc --index ".$config{bowtie_path}." --longest $longest --shortest $shortest --re1 $re1 --threads $cores -o $outputdir --filenames ".$files[0].",".$files[1];
 			warn "\nRunning command:\n$command\n\n";
 			
 			if(!system ($command)){
