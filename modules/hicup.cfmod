@@ -100,8 +100,9 @@ my @re1_parts = split(",", $re1);
 my %dirs;
 my $digest_dir;
 foreach my $file (@$files){
-	$file =~ s/(\.)?(r_[12])?(_val_[12])?\.f(ast)?q.+//i;
-	$dirs{$file} = 1;
+	my $dir = $file;
+	$dir =~ s/(\.)?(r_[12])?(_val_[12])?\.f(ast)?q.+//i;
+	$dirs{$dir} = 1;
 }
 foreach my $dir (keys (%dirs)){
 	if (!-d $dir) {
@@ -130,7 +131,7 @@ if(!$digest){
 	
 	# Work out the command and run it
 	my @genome_path_parts = split("/", $config{genome_path});
-	my $command = "hicup_digester -1 $re1 -g ".$genome_path_parts[-2]."_".$genome_path_parts[-1]." ".$config{genome_path}."/*.fa";
+	my $command = "hicup_digester -1 $re1 -g ".$genome_path_parts[-2]."_".$genome_path_parts[-1]." ".$config{genome_path}."*.fa";
 	warn "\nCreating new digest file. Command:\n$command\n\n";
 	if(!system ($command)){
 		warn "\nDigest file successfully created.\n\n";
@@ -171,7 +172,7 @@ for (my $i = 0; $i <= $num_files; $i++){
 			}
 			my $enc = "";
 			if($encoding eq 'phred33' || $encoding eq 'phred64' || $encoding eq 'solexa'){
-				$enc = '--'.$encoding.'-quals';
+				$enc = '--format '.$encoding.'-quals';
 			}
 			
 			# Work out directory
@@ -189,7 +190,7 @@ for (my $i = 0; $i <= $num_files; $i++){
 			$fn2_base =~ s/.fastq$//;
 			my $output_fn = "uniques_".$fn1_base."_trunc_".$fn2_base."_trunc.bam";
 			
-			my $command = "hicup --zip --bowtie bowtie --digest $digest --format $enc --index ".$config{bowtie_path}." --longest $longest --shortest $shortest --re1 $re1 --threads $cores -o $outputdir --filenames ".$p_files[0].",".$p_files[1];
+			my $command = "hicup --zip --bowtie bowtie --digest $digest $enc --index ".$config{bowtie_path}." --longest $longest --shortest $shortest --re1 $re1 --threads $cores -o $outputdir --filenames ".$p_files[0].",".$p_files[1];
 			warn "\nRunning command:\n$command\n\n";
 			
 			if(!system ($command)){
