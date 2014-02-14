@@ -399,7 +399,8 @@ sub cf_check_updates {
 	# Update the config files with the available version
 	my @config_files = ("$FindBin::Bin/clusterflow.config", $ENV{"HOME"}."/clusterflow/clusterflow.config", './clusterflow.config');
 	foreach my $config_file (@config_files){
-		if(-e $config_file){
+		# config file must exist and be writeable
+		if(-e $config_file && -w $config_file){
 			
 			# Read in the config file contents
 			my $config_file_contents;
@@ -423,12 +424,11 @@ sub cf_check_updates {
 				$config_file_contents .= "\n\@updates_last_checked\t$timestamp\n";
 			}
 			
-			# Write out the new config file contents
-			{
-				open(my $fh, '>', $config_file) or die "Can't create $config_file: $!\n";
-				print($fh $config_file_contents);
-				close $fh;
-			}
+			# Write out the new config file contents if we can
+			open(my $fh, '>', $config_file) or die "Can't create $config_file: $!\n";
+			print($fh $config_file_contents);
+			close $fh;
+			
 		}
 	}
 	
