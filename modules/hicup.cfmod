@@ -27,7 +27,7 @@ if($required_mem){
 }
 # --modules. Return csv names of any modules which should be loaded.
 if($required_modules){
-	print 'hicup';
+	print 'hicup/0.5.0.dev';
 	exit;
 }
 # --help. Print help.
@@ -92,6 +92,7 @@ foreach my $parameter (@$parameters){
 }
 my @re1_parts = split(",", $re1);
 
+my $num_files = scalar @{$files};
 
 ##############################
 # Make Output Directories
@@ -99,10 +100,14 @@ my @re1_parts = split(",", $re1);
 # Figure out directory names
 my %dirs;
 my $digest_dir;
-foreach my $file (@$files){
-	my $dir = $file;
-	$dir =~ s/(\.)?(r_[12])?(_val_[12])?\.f(ast)?q.+//i;
-	$dirs{$dir} = 1;
+
+for (my $i = 0; $i <= $num_files; $i++){
+	if($i < $num_files){
+		my $dir = $files->[$i];
+		$dir =~ s/(\.)?(r_[12])?(_val_[12])?\.f(ast)?q.+//i;
+		$dirs{$dir} = 1;
+	}
+	$i++;
 }
 foreach my $dir (keys (%dirs)){
 	if (!-d $dir) {
@@ -122,10 +127,13 @@ my @digest_files = glob($config{genome_path}."Digest_*.txt");
 foreach my $digest_file (@digest_files){
 	if(index($digest_file, $re1_parts[1]) > 0){
 		$digest = $digest_file;
+		warn "Found a digest file in the genome path..\n";
 	}
 }
 # No digest file found - create it
 if(!$digest){
+	warn "Couldn't find a digest file..\n";
+	
 	# Move into the first directory created for this run
 	chdir($digest_dir);
 	
@@ -160,7 +168,6 @@ if(!$digest){
 ##############################
 # Loop through Files
 ##############################
-my $num_files = scalar @{$files};
 for (my $i = 0; $i <= $num_files; $i++){
 	if($i < $num_files){
 		my @p_files = ($files->[$i], $files->[$i+1]);
@@ -209,6 +216,7 @@ for (my $i = 0; $i <= $num_files; $i++){
 			warn "\n###CF ## HiCUP paired end files had ".scalar(@p_files)." input files instead of 2..\n";
 		}
 	}
+	$i++;
 }
 
 

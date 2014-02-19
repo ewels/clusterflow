@@ -409,6 +409,27 @@ if($file_list){
 my $num_files = scalar @files;
 
 
+# Auto-detect paired end files - inspect first two filenames
+if(!$cl_paired_end && !$cl_single_end){
+	warn "\n\nTrying to work out if input is paired end or not.\n";
+	warn "Specify --paired or --single to override this.\n";
+	if($#files % 2 == 0){
+		# Make stripped copies of the fns for comparison
+		(my $fn1 = $files[0]) =~ s/_R?[1-4]//g;
+		(my $fn2 = $files[1]) =~ s/_R?[1-4]//g;
+		if($fn1 eq $fn2){
+			$cl_paired_end = 1;
+			warn "\nFirst two filenames look like paired-end input. Setting --paired\n\n";
+		} else {
+			$cl_single_end = 0;
+			warn "\nFirst two filenames don't look like paired-end input. Setting --single\n\n";
+		}
+	} else {
+		$cl_single_end = 0;
+		warn "\nUneven number of files supplied. Setting --single\n\n";
+	}
+}
+
 # Is max_runs set? Set split_files now that we now how many files we have
 if($cl_max_runs){
 	$cl_max_runs =~ s/\D//g; # remove any non-numbers
