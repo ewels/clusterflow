@@ -377,13 +377,6 @@ if(!$config_found){
 }
 
 
-# Forcing paired end or single end
-if ($cl_paired_end){
-	if($SPLIT_FILES == 1){
-		$SPLIT_FILES = 2;
-	}
-}
-
 # If we have a file list input file, take input from there
 my @download_fns;
 if($file_list){
@@ -409,24 +402,47 @@ if($file_list){
 my $num_files = scalar @files;
 
 
-# Auto-detect paired end files - inspect first two filenames
-if(!$cl_paired_end && !$cl_single_end){
-	warn "\n\nTrying to work out if input is paired end or not.\n";
-	warn "Specify --paired or --single to override this.\n";
-	if($#files % 2 == 0){
-		# Make stripped copies of the fns for comparison
-		(my $fn1 = $files[0]) =~ s/_R?[1-4]//g;
-		(my $fn2 = $files[1]) =~ s/_R?[1-4]//g;
-		if($fn1 eq $fn2){
-			$cl_paired_end = 1;
-			warn "\nFirst two filenames look like paired-end input. Setting --paired\n\n";
-		} else {
-			$cl_single_end = 0;
-			warn "\nFirst two filenames don't look like paired-end input. Setting --single\n\n";
+# Auto-detect paired end files for fastq input
+if(!$cl_paired_end && !$cl_single_end && $#files % 2 == 0){
+	my $paired_count = 0;
+	my $single_count = 0;
+	my $fastq_count = 0;
+	for (my $i = 0; $i <= $#files; $i++){
+		if($i < $#files){
+			# Make stripped copies of the fns for comparison
+			(my $fn1 = $files[$i]) =~ s/_R?[1-4]//g;
+			(my $fn2 = $files[$i+1]) =~ s/_R?[1-4]//g;
+			$fastq_count++ if ($files[$i] =~ /f(ast)?q(\.gz)?$/i);
+			if($fn1 eq $fn2){
+				$fastq_count++ if ($files[$i+1] =~ /f(ast)?q(\.gz)?$/i);
+				$paired_count++;
+				$i++;
+			} else {
+				$single_count++;
+			}
 		}
-	} else {
-		$cl_single_end = 0;
-		warn "\nUneven number of files supplied. Setting --single\n\n";
+	}
+	if($fastq_count == $#files){
+		if($paired_count > 0 && $single_count == 0){
+			$cl_paired_end = 1;
+			warn "\nFilenames look like paired-end input. Setting --paired\n";
+			warn "Specify --single to prevent this behaviour.\n\n";
+		} elsif($paired_count == 0 && $single_count > 0){
+			$cl_single_end = 1;
+			warn "\nFilenames look like single-end input. Setting --single\n";
+			warn "Specify --paired to prevent this behaviour.\n\n";
+		} else {
+			die "\n\nERROR - found a mixture of single end and paired end files! Exiting..\nSpecify --single or --paired to override.\n\n";
+		}
+	} elsif($fastq_count > 0){
+		die "\n\nERROR - found a mixture of input file types! Exiting..\nSpecify --single or --paired to override.\n\n";
+	}
+}
+
+# Forcing paired end or single end
+if ($cl_paired_end){
+	if($SPLIT_FILES == 1){
+		$SPLIT_FILES = 2;
 	}
 }
 
