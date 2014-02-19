@@ -220,7 +220,10 @@ AVAILABLE FLAGS
 		
 	--single
 		Force single-end mode
-		
+	
+	--no_fn_check
+		Disable input file type checking
+	
 	--file_list
 		Text file containing input files or download URLs
 		

@@ -28,6 +28,7 @@ my $SPLIT_FILES = 1;
 my $cl_max_runs;
 my $cl_paired_end;
 my $cl_single_end;
+my $cl_no_fn_check;
 my $file_list;
 my $cl_module_params;
 my $cl_email;
@@ -57,6 +58,7 @@ my $config_result = GetOptions(
 	"max_runs=i" => \$cl_max_runs,
 	"paired" => \$cl_paired_end,
 	"single" => \$cl_single_end,
+	"no_fn_check" => \$cl_no_fn_check,
 	"file_list=s" => \$file_list,
 	"mod_params=s" => \$cl_module_params,
 	"email=s" => \$cl_email,
@@ -402,19 +404,31 @@ if($file_list){
 my $num_files = scalar @files;
 
 
+# Check file types
+my $file_ext;
+my $fastq_count = 0;
+for (my $i = 0; $i <= $#files; $i++){
+	$fastq_count++ if ($files[$i] =~ /f(ast)?q(\.gz)?$/i);
+	if(!$cl_no_fn_check){
+		if ($files[$i] =~ /\.(\w+)(\.gz)?$/i){
+			if($file_ext && $file_ext ne $1){
+				die "\nERROR - found a mixture of input file types! (.$file_ext and .$1) Exiting..\nUse --no_fn_check to disable this.\n\n";
+			}
+			$file_ext = $1;
+		}
+	}
+}
+
 # Auto-detect paired end files for fastq input
-if(!$cl_paired_end && !$cl_single_end && $num_files % 2 == 0){
+if(!$cl_paired_end && !$cl_single_end && $fastq_count > 0 && $num_files % 2 == 0){
 	my $paired_count = 0;
 	my $single_count = 0;
-	my $fastq_count = 0;
 	for (my $i = 0; $i <= $#files; $i++){
 		if($i < $#files){
 			# Make stripped copies of the fns for comparison
 			(my $fn1 = $files[$i]) =~ s/_R?[1-4]//g;
 			(my $fn2 = $files[$i+1]) =~ s/_R?[1-4]//g;
-			$fastq_count++ if ($files[$i] =~ /f(ast)?q(\.gz)?$/i);
 			if($fn1 eq $fn2){
-				$fastq_count++ if ($files[$i+1] =~ /f(ast)?q(\.gz)?$/i);
 				$paired_count++;
 				$i++;
 			} else {
@@ -422,20 +436,17 @@ if(!$cl_paired_end && !$cl_single_end && $num_files % 2 == 0){
 			}
 		}
 	}
-	if($fastq_count == $num_files){
-		if($paired_count > 0 && $single_count == 0){
-			$cl_paired_end = 1;
-			warn "\nFilenames look like paired-end input. Setting --paired\n";
-			warn "Specify --single to prevent this behaviour.\n\n";
-		} elsif($paired_count == 0 && $single_count > 0){
-			$cl_single_end = 1;
-			warn "\nFilenames look like single-end input. Setting --single\n";
-			warn "Specify --paired to prevent this behaviour.\n\n";
-		} else {
-			die "\n\nERROR - found a mixture of single end and paired end files! Exiting..\nSpecify --single or --paired to override.\n\n";
-		}
-	} elsif($fastq_count > 0){
-		die "\n\nERROR - found a mixture of input file types! Exiting..\nSpecify --single or --paired to override.\n\n";
+	
+	if($paired_count > 0 && $single_count == 0){
+		$cl_paired_end = 1;
+		warn "\nFilenames look like paired-end input. Setting --paired\n";
+		warn "Specify --single to prevent this behaviour.\n\n";
+	} elsif($paired_count == 0 && $single_count > 0){
+		$cl_single_end = 1;
+		warn "\nFilenames look like single-end input. Setting --single\n";
+		warn "Specify --paired to prevent this behaviour.\n\n";
+	} else {
+		die "\n\nERROR - found a mixture of single end and paired end files! Exiting..\nSpecify --single or --paired to override.\n\n";
 	}
 }
 
