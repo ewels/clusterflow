@@ -403,7 +403,7 @@ my $num_files = scalar @files;
 
 
 # Auto-detect paired end files for fastq input
-if(!$cl_paired_end && !$cl_single_end && $#files % 2 == 0){
+if(!$cl_paired_end && !$cl_single_end && $num_files % 2 == 0){
 	my $paired_count = 0;
 	my $single_count = 0;
 	my $fastq_count = 0;
@@ -422,7 +422,7 @@ if(!$cl_paired_end && !$cl_single_end && $#files % 2 == 0){
 			}
 		}
 	}
-	if($fastq_count == $#files){
+	if($fastq_count == $num_files){
 		if($paired_count > 0 && $single_count == 0){
 			$cl_paired_end = 1;
 			warn "\nFilenames look like paired-end input. Setting --paired\n";
@@ -438,6 +438,7 @@ if(!$cl_paired_end && !$cl_single_end && $#files % 2 == 0){
 		die "\n\nERROR - found a mixture of input file types! Exiting..\nSpecify --single or --paired to override.\n\n";
 	}
 }
+
 
 # Forcing paired end or single end
 if ($cl_paired_end){
