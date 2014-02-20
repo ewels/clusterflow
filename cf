@@ -338,6 +338,14 @@ if(!$file_list && scalar(@files) == 0){
 	die("Error - no input files specified. Use --help for instructions.\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n");
 }
 
+# Check whether this cluster has environment modules
+my $cf_modules;
+if(-x "/usr/bin/modulecmd"){
+	$cf_modules = 1;
+} else {
+	warn "\nWarning - Cluster doesn't use environment modules. You are responsible for adding programs to the PATH..\nSee the Cluster Flow manual for more information.\n\n";
+}
+
 
 # Load in the pipeline config file
 my $config_found = 0;
@@ -816,17 +824,19 @@ sub make_qsubs {
 		if(!$mem || length($mem) == 0 || length($mem) > 20){
 			$mem = '1G';
 		}
-		if($required_modules && length($required_modules) > 0){
-			my @req_modules = split(",", $required_modules);
-			foreach my $mod (@req_modules) {
-				my $bash_string = `/usr/bin/modulecmd bash load $mod`;
-				if($bash_string && length($bash_string) > 0){
-					my @bashes = split(';', $bash_string);
-					foreach my $bash (@bashes){
-						my @envs = split('=', $bash);
-						if($envs[0] ne 'export' && defined($envs[1])){
-							$envs[1] =~ s/\\//g; # Hacky fix to get rid of weird backslash problem
-							$ENV{$envs[0]} = $envs[1];
+		if($cf_modules){
+			if($required_modules && length($required_modules) > 0){
+				my @req_modules = split(/[\s,]+/, $required_modules);
+				foreach my $mod (@req_modules) {
+					my $bash_string = `/usr/bin/modulecmd bash load $mod`;
+					if($bash_string && length($bash_string) > 0){
+						my @bashes = split(';', $bash_string);
+						foreach my $bash (@bashes){
+							my @envs = split('=', $bash);
+							if($envs[0] ne 'export' && defined($envs[1])){
+								$envs[1] =~ s/\\//g; # Hacky fix to get rid of weird backslash problem
+								$ENV{$envs[0]} = $envs[1];
+							}
 						}
 					}
 				}
