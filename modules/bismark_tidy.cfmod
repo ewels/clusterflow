@@ -49,7 +49,7 @@ my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_
 # Figure out directory names
 my %dirs;
 foreach my $file (@$files){
-	$file =~ s/(\.)?(r_[12])?(_val_[12])?\.f(ast)?q.+//i; # strip stuff from end of filename
+	$file =~ s/(\.)?(_R[12])?(r_[12])?(_val_[12])?\.f(ast)?q.+//i; # strip stuff from end of filename
 	$file =~ s/^(CpG|Non_CpG|CHG|CHH)_//i; # strip stuff from start of filename
 	$file =~ s/^[COBT]+_//;
 	$dirs{$file} = 1;
