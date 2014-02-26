@@ -6,6 +6,7 @@ use FindBin qw($Bin);
 use lib "$FindBin::Bin/../source";
 use CF::Constants;
 use CF::Helpers;
+use File::Copy qw(move);
 
 # Get Options
 my $required_cores;
@@ -78,6 +79,7 @@ my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%config, @$files);
 my $encoding = 0;
 
 # Go through each single end files and run Tophat
+my $output_dir;
 if($se_files && scalar(@$se_files) > 0){
 	foreach my $file (@$se_files){
 		
@@ -97,7 +99,7 @@ if($se_files && scalar(@$se_files) > 0){
 			$enc = '--integer-quals';
 		}
 		
-		my $output_dir = $file;
+		$output_dir = $file;
 		$output_dir =~ s/.gz$//;
 		$output_dir =~ s/.fq$//;
 		$output_dir =~ s/.fastq$//;
@@ -147,7 +149,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 				$enc = '--integer-quals';
 			}
 			
-			my $output_dir = $files[0];
+			$output_dir = $files[0];
 			$output_dir =~ s/.gz$//;
 			$output_dir =~ s/.fq$//;
 			$output_dir =~ s/.fastq$//;
@@ -177,6 +179,34 @@ if($pe_files && scalar(@$pe_files) > 0){
 			warn "\n###CF ## Tophat paired end files had ".scalar(@files)." input files instead of 2 ##\n";
 		}
 	}
+}
+
+
+# Clear up Tophat output
+if(-e "$output_dir/accepted_hits.bam" && -e "$output_dir/align_summary.txt"){
+	my $fn_prefix = substr($output_dir, 0, -7);
+	if(move ("$output_dir/accepted_hits.bam", $fn_prefix."_accepted_hits.bam")){
+		warn "Moved tophat output to ${fn_prefix}_accepted_hits.bam\n";
+		if(move ("$output_dir/align_summary.txt", $fn_prefix."_align_summary.txt")){
+			warn "Moved tophat summary to ${fn_prefix}_align_summary.txt\n";
+			if(unlink glob "$output_dir/*"){
+				warn "Deleted other tophat output files: $output_dir/*\n";
+				if(rmdir $output_dir){
+					warn "Deleted tophat output directory $output_dir\n";
+				} else {
+					warn "Could not delete tophat output directory $output_dir: $!\n";
+				}
+			} else {
+				warn "Could not delete other tophat output files: $output_dir/*: $!\n";
+			}
+		} else {
+			warn "Could not move tophat summary to ${fn_prefix}_align_summary.txt: $!\n";
+		}
+	} else {
+		warn "Could not move tophat output to ${fn_prefix}_accepted_hits.bam: $!\n";
+	}
+} else {
+	warn "Could not find tophat output files $output_dir/accepted_hits.bam and $output_dir/align_summary.txt\n";
 }
 
 
