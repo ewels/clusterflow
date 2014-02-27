@@ -33,6 +33,7 @@ our $PRIORITY = -500;
 our $TOTAL_CORES = 64;
 our $TOTAL_MEM = '4G';
 our $CLUSTER_ENVIRONMENT = 'GRIDEngine';
+our $CF_MODULES = 1;
 
 
 
@@ -99,6 +100,8 @@ sub parse_conf_file {
 						$TOTAL_MEM = $val;
 					} elsif($name eq 'cluster_environment'){
 						$CLUSTER_ENVIRONMENT = $val;
+					} elsif($name eq 'ignore_modules'){
+						$CF_MODULES = 0;
 					}
 				}
 			}

@@ -102,6 +102,7 @@ my $PRIORITY = $CF::Constants::PRIORITY;
 my $TOTAL_CORES = $CF::Constants::TOTAL_CORES;
 my $TOTAL_MEM = $CF::Constants::TOTAL_MEM;
 my $CLUSTER_ENVIRONMENT = $CF::Constants::CLUSTER_ENVIRONMENT;
+my $CF_MODULES = $CF::Constants::CF_MODULES;
 
 if($cl_email){
 	$EMAIL = $cl_email;
@@ -339,11 +340,11 @@ if(!$file_list && scalar(@files) == 0){
 }
 
 # Check whether this cluster has environment modules
-my $cf_modules;
-if(-x "/usr/bin/modulecmd"){
-	$cf_modules = 1;
-} else {
-	warn "\nWarning - Cluster doesn't use environment modules. You are responsible for adding programs to the PATH..\nSee the Cluster Flow manual for more information.\n\n";
+if($CF_MODULES){
+	unless(-x "/usr/bin/modulecmd"){
+		$CF_MODULES = 0;
+		warn "\nWarning - Cluster doesn't use environment modules. You are responsible for adding programs to the PATH..\nSee the Cluster Flow manual for more information.\n\n";
+	}
 }
 
 
@@ -761,6 +762,7 @@ for (my $i = 0; $i <= $#files; $i++){
 sub make_qsubs {
 	# Set up parameters for this branch
 	my ($mod_tree, $prev_job, $runfn, $outfn) = @_;
+	my %mod_load_failures;
 	
 	# Work out qsub notification settings
 	my $notifications = "";
@@ -824,12 +826,13 @@ sub make_qsubs {
 		if(!$mem || length($mem) == 0 || length($mem) > 20){
 			$mem = '1G';
 		}
-		if($cf_modules){
+		if($CF_MODULES){
 			if($required_modules && length($required_modules) > 0){
 				my @req_modules = split(/[\s,]+/, $required_modules);
 				foreach my $mod (@req_modules) {
-					my $bash_string = `/usr/bin/modulecmd bash load $mod`;
-					if($bash_string && length($bash_string) > 0){
+					# Redirect STDERR to dev/null but record failures
+					my $bash_string = `/usr/bin/modulecmd bash load $mod 2>/dev/null`;
+					if($bash_string && length($bash_string) > 0 && !$?){
 						my @bashes = split(';', $bash_string);
 						foreach my $bash (@bashes){
 							my @envs = split('=', $bash);
@@ -838,6 +841,8 @@ sub make_qsubs {
 								$ENV{$envs[0]} = $envs[1];
 							}
 						}
+					} else {
+						$mod_load_failures{$mod} = 1;
 					}
 				}
 			}
@@ -871,6 +876,12 @@ sub make_qsubs {
 		if ( ref $mod_tree->{$_} eq 'HASH') {
 			make_qsubs ( $mod_tree->{$_}, $job_id, $runfn, $outfn ) ;
 		}
+	}
+	
+	# Warn about modules which failed to load..
+	if(scalar keys(%mod_load_failures) > 0){
+		warn "Warning - the following modules could not be loaded: ".join(", ", keys(%mod_load_failures))."\n";
+		warn "To disable this warning, set \@ignore_modules to true in your config file.\n";
 	}
 }
 
