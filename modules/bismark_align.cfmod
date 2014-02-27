@@ -36,11 +36,12 @@ if($help){
 The bismark_align module runs the main bismark script.
 Bismark is a program to map bisulfite treated sequencing reads
 to a genome of interest and perform methylation calls.\n
-PBAT and Bowtie 1/2 modes can be specified in pipelines with the
-pbat, bt1 and bt2 parameters. For example:
+PBAT, single cell and Bowtie 1/2 modes can be specified in 
+pipelines with the pbat, single_cell bt1 and bt2 parameters. For example:
   #bismark_align	pbat2
   #bismark_align	bt1\n
   #bismark_align	bt2\n
+  #bismark_align	single_cell\n
 Use bismark --help for further information.\n\n";
 	exit;
 }
@@ -70,6 +71,7 @@ my $encoding = 0;
 my $bt1;
 my $bt2 = "";
 my $pbat = "";
+my $non_directional = "";
 foreach my $parameter (@$parameters){
 	if($parameter eq "pbat"){
 		$pbat = "--pbat";
@@ -78,6 +80,10 @@ foreach my $parameter (@$parameters){
 		$bt1 = 1;
 	}
 	if($parameter eq "bt2"){
+		$bt2 = "--bowtie2";
+	}
+	if($parameter eq "single_cell"){
+		$non_directional = "--non_directional ";
 		$bt2 = "--bowtie2";
 	}
 }
@@ -120,7 +126,7 @@ if($se_files && scalar(@$se_files) > 0){
 			$output_fn = $file."_bismark.bam";
 		}
 		
-		my $command = "bismark --bam $bt2 $pbat $enc ".$config{genome_path}." ".$file;
+		my $command = "bismark --bam $bt2 $pbat $non_directional $enc ".$config{genome_path}." ".$file;
 		warn "\nRunning command:\n$command\n\n";
 		
 		if(!system ($command)){
@@ -160,7 +166,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 				$output_fn = $files[0]."_bismark_pe.bam";
 			}
 			
-			my $command = "bismark --bam $bt2 $pbat $enc ".$config{genome_path}." -1 ".$files[0]." -2 ".$files[1];
+			my $command = "bismark --bam $bt2 $pbat $non_directional $enc ".$config{genome_path}." -1 ".$files[0]." -2 ".$files[1];
 			warn "\nRunning command:\n$command\n\n";
 			
 			if(!system ($command)){
