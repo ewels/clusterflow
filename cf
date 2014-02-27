@@ -880,7 +880,7 @@ sub make_qsubs {
 	
 	# Warn about modules which failed to load..
 	if(scalar keys(%mod_load_failures) > 0){
-		warn "Warning - the following modules could not be loaded: ".join(", ", keys(%mod_load_failures))."\n";
+		warn "\nWarning - the following environment modules could not be loaded: ".join(", ", keys(%mod_load_failures))."\n";
 		warn "To disable this warning, set \@ignore_modules to true in your config file.\n";
 	}
 }
