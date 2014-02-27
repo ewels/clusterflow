@@ -189,15 +189,25 @@ if(-e "$output_dir/accepted_hits.bam" && -e "$output_dir/align_summary.txt"){
 		warn "Moved tophat output to ${fn_prefix}_accepted_hits.bam\n";
 		if(move ("$output_dir/align_summary.txt", $fn_prefix."_align_summary.txt")){
 			warn "Moved tophat summary to ${fn_prefix}_align_summary.txt\n";
-			if(unlink glob "$output_dir/*"){
-				warn "Deleted other tophat output files: $output_dir/*\n";
-				if(rmdir $output_dir){
-					warn "Deleted tophat output directory $output_dir\n";
+			if(unlink glob "$output_dir/logs/*"){
+				warn "Deleted other tophat output files: $output_dir/logs/*\n";
+				if(rmdir "$output_dir/logs"){
+					warn "Deleted tophat logs directory $output_dir/logs\n";
+					if(unlink glob "$output_dir/*"){
+						warn "Deleted other tophat output files: $output_dir/*\n";
+						if(rmdir $output_dir){
+							warn "Deleted tophat output directory $output_dir\n";
+						} else {
+							warn "Could not delete tophat output directory $output_dir: $!\n";
+						}
+					} else {
+						warn "Could not delete other tophat output files: $output_dir/*: $!\n";
+					}
 				} else {
-					warn "Could not delete tophat output directory $output_dir: $!\n";
+					warn "Could not delete tophat logs directory $output_dir/logs: $!\n";
 				}
 			} else {
-				warn "Could not delete other tophat output files: $output_dir/*: $!\n";
+				warn "Could not delete other tophat log files: $output_dir/logs/*: $!\n";
 			}
 		} else {
 			warn "Could not move tophat summary to ${fn_prefix}_align_summary.txt: $!\n";
