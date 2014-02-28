@@ -833,7 +833,7 @@ sub make_qsubs {
 				foreach my $mod (@req_modules) {
 					# Redirect STDERR to dev/null but record failures
 					my $bash_string = `/usr/bin/modulecmd bash load $mod 2>/dev/null`;
-					if($bash_string && length($bash_string) > 0 && !$?){
+					if($bash_string && length($bash_string) > 0){
 						my @bashes = split(';', $bash_string);
 						foreach my $bash (@bashes){
 							my @envs = split('=', $bash);
@@ -842,7 +842,7 @@ sub make_qsubs {
 								$ENV{$envs[0]} = $envs[1];
 							}
 						}
-					} else {
+					} elsif($?) {
 						$mod_load_failures{$mod} = 1;
 					}
 				}
