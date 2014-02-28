@@ -118,7 +118,7 @@ sub parse_qstat {
 			# If more than one (an array), assume last element is latest
 			my $parents = $job->{predecessor_jobs_req};
 			my $parent;
-			if($parents =~ /^start_/){
+			if($parents && $parents =~ /^start_/){
 				$parents = '';
 			}
 			
