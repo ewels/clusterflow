@@ -119,16 +119,16 @@ if($cl_notifications){
 	}
 }
 if($cl_genome_path){
-	$GENOME_PATHS{"$cl_genome_path"} = $cl_genome_path;
-	$GENOME = $cl_genome_path;
+	$GENOME_PATHS{"command_line"} = $cl_genome_path;
+	$GENOME = "command_line";
 }
 if($cl_bowtie_path){
-	$BOWTIE_PATHS{"$cl_bowtie_path"} = $cl_bowtie_path;
-	$GENOME = $cl_genome_path;
+	$BOWTIE_PATHS{"command_line"} = $cl_bowtie_path;
+	$GENOME = "command_line";
 }
 if($cl_gtf_path){
-	$GTF_PATHS{"$cl_gtf_path"} = $cl_gtf_path;
-	$GENOME = $cl_genome_path;
+	$GTF_PATHS{"command_line"} = $cl_gtf_path;
+	$GENOME = "command_line";
 }
 if($cl_priority){
 	$PRIORITY = $cl_priority;
@@ -516,6 +516,7 @@ if ($cl_paired_end){
 }
 
 # Parse pipeline config file
+
 my $pipeline_string = "";
 while (<CONFIG>){
 	chomp;
@@ -543,7 +544,7 @@ while (<CONFIG>){
 		} elsif(!defined $GENOME_PATHS{$GENOME}){
 			warn "\n### Error ###\nNo genome path found for $GENOME.\n\nAvailable genome paths:\n";
 			while ( (my $genome, my $path) = each %GENOME_PATHS ) {
-			  warn "\tGenome: $genome, Path: $GENOME_PATHS{$genome}\n";
+				warn "\tGenome: $genome, Path: $GENOME_PATHS{$genome}\n";
 			}
 			warn "\n\nExiting...\n\n";
 			exit;
@@ -551,10 +552,10 @@ while (<CONFIG>){
 	}
 	if($_ =~ /^\@require_bowtie/ && !$comment_block){
 		if(!defined $GENOME){
-			warn "\n### Error - The pipeline $pipeline requires a genome to be set with --genome or --bowtie_path. Exiting... ### \n\n";
+			warn "\n### Error - The pipeline $pipeline requires a bowtie index to be set with --genome or --bowtie_path. Exiting... ### \n\n";
 			exit;
 		} elsif(!defined $BOWTIE_PATHS{$GENOME}){
-			warn "\n### Error ###\nNo genome path found for $GENOME.\n\nAvailable genome paths:\n";
+			warn "\n### Error ###\nNo bowtie path found for $GENOME.\n\nAvailable bowtie paths:\n";
 			while ( (my $genome, my $path) = each %BOWTIE_PATHS ) {
 			  warn "\tGenome: $genome, Path: $BOWTIE_PATHS{$genome}\n";
 			}
@@ -564,10 +565,10 @@ while (<CONFIG>){
 	}
 	if($_ =~ /^\@require_gtf/ && !$comment_block){
 		if(!defined $GENOME){
-			warn "\n### Error - The pipeline $pipeline requires a genome to be set with --genome or --gtf_path. Exiting... ### \n\n";
+			warn "\n### Error - The pipeline $pipeline requires a GTF path to be set with --genome or --gtf_path. Exiting... ### \n\n";
 			exit;
 		} elsif(!defined $GTF_PATHS{$GENOME}){
-			warn "\n### Error ###\nNo genome path found for $GENOME.\n\nAvailable genome paths:\n";
+			warn "\n### Error ###\nNo GTF path found for $GENOME.\n\nAvailable GTF paths:\n";
 			while ( (my $genome, my $path) = each %GTF_PATHS ) {
 			  warn "\tGenome: $genome, Path: $GTF_PATHS{$genome}\n";
 			}
