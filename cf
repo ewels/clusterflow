@@ -9,6 +9,7 @@ use lib "$FindBin::Bin/source";
 use CF::Constants;
 use CF::Helpers;
 use CF::Headnodehelpers;
+use Data::Dumper;
 
 no warnings qw(once);
 
@@ -92,17 +93,25 @@ my $CHECK_UPDATES = $CF::Constants::CHECK_UPDATES;
 my $AVAILABLE_VERSION = $CF::Constants::AVAILABLE_VERSION;
 my $UPDATES_LAST_CHECKED = $CF::Constants::UPDATES_LAST_CHECKED;
 my @NOTIFICATIONS = @CF::Constants::NOTIFICATIONS;
-my %GENOME_PATHS = %CF::Constants::GENOME_PATHS;
-my %GENOME_PATH_CONFIGS = %CF::Constants::GENOME_PATH_CONFIGS;
-my %BOWTIE_PATHS = %CF::Constants::BOWTIE_PATHS;
-my %BOWTIE_PATH_CONFIGS = %CF::Constants::BOWTIE_PATH_CONFIGS;
-my %GTF_PATHS = %CF::Constants::GTF_PATHS;
-my %GTF_PATH_CONFIGS = %CF::Constants::GTF_PATH_CONFIGS;
 my $PRIORITY = $CF::Constants::PRIORITY;
 my $TOTAL_CORES = $CF::Constants::TOTAL_CORES;
 my $TOTAL_MEM = $CF::Constants::TOTAL_MEM;
 my $CLUSTER_ENVIRONMENT = $CF::Constants::CLUSTER_ENVIRONMENT;
 my $CF_MODULES = $CF::Constants::CF_MODULES;
+
+# Set up genomes
+my %GENOME_PATH_CONFIGS = %CF::Constants::GENOME_PATH_CONFIGS;
+my %BOWTIE_PATH_CONFIGS = %CF::Constants::BOWTIE_PATH_CONFIGS;
+my %GTF_PATH_CONFIGS = %CF::Constants::GTF_PATH_CONFIGS;
+my %GENOME_PATHS = %CF::Constants::GENOME_PATHS;
+my %BOWTIE_PATHS = %CF::Constants::BOWTIE_PATHS;
+my %GTF_PATHS = %CF::Constants::GTF_PATHS;
+my %GENOME_SPECIES = %CF::Constants::GENOME_SPECIES;
+my %BOWTIE_SPECIES = %CF::Constants::BOWTIE_SPECIES;
+my %GTF_SPECIES = %CF::Constants::GTF_SPECIES;
+my %GENOME_ASSEMBLIES = %CF::Constants::GENOME_ASSEMBLIES;
+my %BOWTIE_ASSEMBLIES = %CF::Constants::BOWTIE_ASSEMBLIES;
+my %GTF_ASSEMBLIES = %CF::Constants::GTF_ASSEMBLIES;
 
 if($cl_email){
 	$EMAIL = $cl_email;
@@ -186,7 +195,7 @@ if($cl_list_modules){
 if($cl_list_genomes){
 	print "".("=" x 32)."\nCluster Flow - available genomes\n".("=" x 32)."\n";
 	
-	my @config_files = ("$FindBin::Bin/clusterflow.config", "$homedir/clusterflow/clusterflow.config", './clusterflow.config');
+	my @config_files = ("$FindBin::Bin/genomes.config", "$homedir/clusterflow/genomes.config", './genomes.config');
 	
 	# See if we have any paths in each config file
 	my %GENOME_PATH_CONFIGS_COUNTS;
@@ -206,31 +215,40 @@ if($cl_list_genomes){
 		
 		next if(!defined ($GENOME_PATH_CONFIGS_COUNTS{$config_file}) && !defined ($BOWTIE_PATH_CONFIGS_COUNTS{$config_file}) && !defined ($GTF_PATH_CONFIGS_COUNTS{$config_file}));
 		
-		print "\n$config_file:\n";
+		print "\n".('-' x 50)."\n $config_file\n".('-' x 50)."\n";
 		if(defined ($GENOME_PATH_CONFIGS_COUNTS{$config_file})){
-			print "\n  Genome Paths:\n";
+			print "\n== Genome Paths ==\n";
+			print " Key                 Species             Assembly            Path\n".("-" x 100)."\n";
 			foreach my $key (sort keys %GENOME_PATHS ) {
-				my $spaces = " " x (20 - length($key));
+				my $key_spaces = " " x (20 - length($key));
+				my $species_spaces = " " x (20 - length($GENOME_SPECIES{$key}));
+				my $assembly_spaces = " " x (15 - length($GENOME_ASSEMBLIES{$key}));
 				if($GENOME_PATH_CONFIGS{$key} eq $config_file){
-					print "\t$key:$spaces$GENOME_PATHS{$key}\n";
+					print " ".$key.$key_spaces.$GENOME_SPECIES{$key}.$species_spaces.$GENOME_ASSEMBLIES{$key}.$assembly_spaces.$GENOME_PATHS{$key}."\n";
 				}
 			}
 		}
 		if(defined ($BOWTIE_PATH_CONFIGS_COUNTS{$config_file})){
-			print "\n  Bowtie Index Base Paths:\n";
+			print "\n== Bowtie Index Base Paths ==\n";
+			print " Key                 Species             Assembly            Path\n".("-" x 100)."\n";
 			foreach my $key (sort keys %BOWTIE_PATHS ) {
-				my $spaces = " " x (20 - length($key));
+				my $key_spaces = " " x (20 - length($key));
+				my $species_spaces = " " x (20 - length($BOWTIE_SPECIES{$key}));
+				my $assembly_spaces = " " x (15 - length($BOWTIE_ASSEMBLIES{$key}));
 				if($BOWTIE_PATH_CONFIGS{$key} eq $config_file){
-					print "\t$key:$spaces$BOWTIE_PATHS{$key}\n";
+					print " ".$key.$key_spaces.$BOWTIE_SPECIES{$key}.$species_spaces.$BOWTIE_ASSEMBLIES{$key}.$assembly_spaces.$BOWTIE_PATHS{$key}."\n";
 				}
 			}
 		}
 		if(defined ($GTF_PATH_CONFIGS_COUNTS{$config_file})){
-			print "\n  GTF File Paths:\n";
+			print "\n== GTF File Paths ==\n";
+			print " Key                 Species             Assembly            Path\n".("-" x 100)."\n";
 			foreach my $key (sort keys %GTF_PATHS ) {
-				my $spaces = " " x (20 - length($key));
+				my $key_spaces = " " x (20 - length($key));
+				my $species_spaces = " " x (20 - length($GTF_SPECIES{$key}));
+				my $assembly_spaces = " " x (15 - length($GTF_ASSEMBLIES{$key}));
 				if($GTF_PATH_CONFIGS{$key} eq $config_file){
-					print "\t$key:$spaces$GTF_PATHS{$key}\n";
+					print " ".$key.$key_spaces.$GTF_SPECIES{$key}.$species_spaces.$GTF_ASSEMBLIES{$key}.$assembly_spaces.$GTF_PATHS{$key}."\n";
 				}
 			}
 		}

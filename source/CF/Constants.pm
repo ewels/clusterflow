@@ -22,12 +22,18 @@ our $UPDATES_LAST_CHECKED = 0;
 our @NOTIFICATIONS;
 
 # Empty genome path vars
-our %GENOME_PATHS;
 our %GENOME_PATH_CONFIGS;
-our %BOWTIE_PATHS;
 our %BOWTIE_PATH_CONFIGS;
-our %GTF_PATHS;
 our %GTF_PATH_CONFIGS;
+our %GENOME_PATHS;
+our %BOWTIE_PATHS;
+our %GTF_PATHS;
+our %GENOME_SPECIES;
+our %BOWTIE_SPECIES;
+our %GTF_SPECIES;
+our %GENOME_ASSEMBLIES;
+our %BOWTIE_ASSEMBLIES;
+our %GTF_ASSEMBLIES;
 
 # Hard coded defaults
 our $SPLIT_FILES = 1;
@@ -115,7 +121,7 @@ sub parse_conf_file {
 }
 
 sub parse_genomes_file {
-		
+	
 	# Read genomes config variables in. Do in order so that local prefs overwrite.
 	
 	my @genome_files = ("$FindBin::Bin/genomes.config", "$homedir/clusterflow/genomes.config", './genomes.config');
@@ -141,18 +147,26 @@ sub parse_genomes_file {
 				if($_ =~ /^\@/ && !$comment_block){
 					my @sections = split(/\s+/, $_);
 					$config{substr($sections[0], 1)} = $sections[1];
-					my $name = substr($sections[0], 1);
-					my $val = $sections[1];
-					
-					if($name eq 'genome_path'){
-						$GENOME_PATHS{$val} = $sections[2];
-						$GENOME_PATH_CONFIGS{$val} = $genome_file;
-					} elsif($name eq 'bowtie_path'){
-						$BOWTIE_PATHS{$val} = $sections[2];
-						$BOWTIE_PATH_CONFIGS{$val} = $genome_file;
-					} elsif($name eq 'gtf_path'){
-						$GTF_PATHS{$val} = $sections[2];
-						$GTF_PATH_CONFIGS{$val} = $genome_file;
+					my $path_type = substr($sections[0], 1);
+					my $key = $sections[1];
+					my $path = $sections[2];
+					my $species = $sections[3];
+					my $assembly = $sections[4];
+					if($path_type eq 'genome_path'){
+						$GENOME_PATH_CONFIGS{$key} = $genome_file;
+						$GENOME_PATHS{$key} = $path;
+						$GENOME_SPECIES{$key} = $species;
+						$GENOME_ASSEMBLIES{$key} = $assembly;
+					} elsif($path_type eq 'bowtie_path'){
+						$BOWTIE_PATH_CONFIGS{$key} = $genome_file;
+						$BOWTIE_PATHS{$key} = $path;
+						$BOWTIE_SPECIES{$key} = $species;
+						$BOWTIE_ASSEMBLIES{$key} = $assembly;
+					} elsif($path_type eq 'gtf_path'){
+						$GTF_PATH_CONFIGS{$key} = $genome_file;
+						$GTF_PATHS{$key} = $path;
+						$GTF_SPECIES{$key} = $species;
+						$GTF_ASSEMBLIES{$key} = $assembly;
 					}
 				}
 			}
