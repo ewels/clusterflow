@@ -176,6 +176,75 @@ sub parse_genomes_file {
 }
 
 
+# Lists available genomes
+sub list_clusterflow_genomes {
+	
+	my $returnstring = "";
+	
+	my @config_files = ("$FindBin::Bin/genomes.config", "$homedir/clusterflow/genomes.config", './genomes.config');
+	
+	# See if we have any paths in each config file
+	my %GENOME_PATH_CONFIGS_COUNTS;
+	while ( my($key, $value) = each %GENOME_PATH_CONFIGS){
+		$GENOME_PATH_CONFIGS_COUNTS{$value} = 1;
+	}
+	my %BOWTIE_PATH_CONFIGS_COUNTS;
+	while ( my($key, $value) = each %BOWTIE_PATH_CONFIGS){
+		$BOWTIE_PATH_CONFIGS_COUNTS{$value} = 1;
+	}
+	my %GTF_PATH_CONFIGS_COUNTS;
+	while ( my($key, $value) = each %GTF_PATH_CONFIGS){
+		$GTF_PATH_CONFIGS_COUNTS{$value} = 1;
+	}
+	
+	foreach my $config_file (@config_files){
+		
+		next if(!defined ($GENOME_PATH_CONFIGS_COUNTS{$config_file}) && !defined ($BOWTIE_PATH_CONFIGS_COUNTS{$config_file}) && !defined ($GTF_PATH_CONFIGS_COUNTS{$config_file}));
+		
+		$returnstring .= "\n".('-' x 50)."\n $config_file\n".('-' x 50)."\n";
+		if(defined ($GENOME_PATH_CONFIGS_COUNTS{$config_file})){
+			$returnstring .= "\n== Genome Paths ==\n";
+			$returnstring .= " Key                 Species             Assembly            Path\n".("-" x 100)."\n";
+			foreach my $key (sort keys %GENOME_PATHS ) {
+				my $key_spaces = " " x (20 - length($key));
+				my $species_spaces = " " x (20 - length($GENOME_SPECIES{$key}));
+				my $assembly_spaces = " " x (15 - length($GENOME_ASSEMBLIES{$key}));
+				if($GENOME_PATH_CONFIGS{$key} eq $config_file){
+					$returnstring .= " ".$key.$key_spaces.$GENOME_SPECIES{$key}.$species_spaces.$GENOME_ASSEMBLIES{$key}.$assembly_spaces.$GENOME_PATHS{$key}."\n";
+				}
+			}
+		}
+		if(defined ($BOWTIE_PATH_CONFIGS_COUNTS{$config_file})){
+			$returnstring .= "\n== Bowtie Index Base Paths ==\n";
+			$returnstring .= " Key                 Species             Assembly            Path\n".("-" x 100)."\n";
+			foreach my $key (sort keys %BOWTIE_PATHS ) {
+				my $key_spaces = " " x (20 - length($key));
+				my $species_spaces = " " x (20 - length($BOWTIE_SPECIES{$key}));
+				my $assembly_spaces = " " x (15 - length($BOWTIE_ASSEMBLIES{$key}));
+				if($BOWTIE_PATH_CONFIGS{$key} eq $config_file){
+					$returnstring .= " ".$key.$key_spaces.$BOWTIE_SPECIES{$key}.$species_spaces.$BOWTIE_ASSEMBLIES{$key}.$assembly_spaces.$BOWTIE_PATHS{$key}."\n";
+				}
+			}
+		}
+		if(defined ($GTF_PATH_CONFIGS_COUNTS{$config_file})){
+			$returnstring .= "\n== GTF File Paths ==\n";
+			$returnstring .= " Key                 Species             Assembly            Path\n".("-" x 100)."\n";
+			foreach my $key (sort keys %GTF_PATHS ) {
+				my $key_spaces = " " x (20 - length($key));
+				my $species_spaces = " " x (20 - length($GTF_SPECIES{$key}));
+				my $assembly_spaces = " " x (15 - length($GTF_ASSEMBLIES{$key}));
+				if($GTF_PATH_CONFIGS{$key} eq $config_file){
+					$returnstring .= " ".$key.$key_spaces.$GTF_SPECIES{$key}.$species_spaces.$GTF_ASSEMBLIES{$key}.$assembly_spaces.$GTF_PATHS{$key}."\n";
+				}
+			}
+		}
+	}
+	$returnstring .= "\n";
+	
+	return $returnstring;
+}
+
+
 # Prints help for a specific module or pipeline
 sub clusterflow_pipeline_help {
 	
