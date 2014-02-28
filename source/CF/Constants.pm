@@ -17,9 +17,13 @@ our %config;
 # Empty config vars
 our $EMAIL;
 our $CHECK_UPDATES;
-our $AVAILABLE_VERSION;
-our $UPDATES_LAST_CHECKED = 0;
 our @NOTIFICATIONS;
+our $SPLIT_FILES = 1;
+our $PRIORITY = -500;
+our $TOTAL_CORES = 64;
+our $TOTAL_MEM = '4G';
+our $CLUSTER_ENVIRONMENT = 'GRIDEngine';
+our $CF_MODULES = 1;
 
 # Empty genome path vars
 our %GENOME_PATH_CONFIGS;
@@ -35,19 +39,13 @@ our %GENOME_ASSEMBLIES;
 our %BOWTIE_ASSEMBLIES;
 our %GTF_ASSEMBLIES;
 
-# Hard coded defaults
-our $SPLIT_FILES = 1;
-our $PRIORITY = -500;
-our $TOTAL_CORES = 64;
-our $TOTAL_MEM = '4G';
-our $CLUSTER_ENVIRONMENT = 'GRIDEngine';
-our $CF_MODULES = 1;
-
-
-
+# Update checking variables
+our $AVAILABLE_VERSION;
+our $UPDATES_LAST_CHECKED = 0;
 
 parse_conf_file ();
 parse_genomes_file();
+parse_updates_file();
 
 sub parse_conf_file {
 		
@@ -172,6 +170,19 @@ sub parse_genomes_file {
 			}
 			close(GCONFIG);
 		}
+	}
+}
+
+
+sub parse_updates_file {
+	my $updates_file = $ENV{"HOME"}."/clusterflow/.cfupdates";
+	if(-e $updates_file){
+		open (UPDATES, $updates_file) or die "Can't read $updates_file: $!";
+		$AVAILABLE_VERSION = <UPDATES>;
+		$AVAILABLE_VERSION = s/[\n\r]//;
+		$UPDATES_LAST_CHECKED = <UPDATES>;
+		$UPDATES_LAST_CHECKED = s/[\n\r]//;
+		close (UPDATES);
 	}
 }
 

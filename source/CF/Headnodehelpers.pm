@@ -399,41 +399,14 @@ sub cf_check_updates {
 	# my $version_url = 'http://www.bioinformatics.babraham.ac.uk/projects/clusterflow/version.txt';
 	my $version_url = 'http://bilin1/projects/clusterflow/version.txt';
 	my $avail_version = get($version_url) or return "Can't access address to check available version:\n$version_url\n\n";
+	my $timestamp = time();
 	
-	# Update the config files with the available version
-	my @config_files = ("$FindBin::Bin/clusterflow.config", $ENV{"HOME"}."/clusterflow/clusterflow.config", './clusterflow.config');
-	foreach my $config_file (@config_files){
-		# config file must exist and be writeable
-		if(-e $config_file && -w $config_file){
-			
-			# Read in the config file contents
-			my $config_file_contents;
-			{
-				open (my $fh, $config_file) or die "Can't read $config_file: $!";
-				local $/;
-				$config_file_contents = <$fh>;
-				close $fh;
-			}
-			
-			# Swap existing variables with new ones
-			my $timestamp = time();
-			$config_file_contents =~ s/^\@available_version(.*)\n*/\@available_version\t$avail_version\n/img;
-			$config_file_contents =~ s/^\@updates_last_checked(.*)\n*/\@updates_last_checked\t$timestamp\n/img;
-			
-			# If we don't have the variables, add them
-			if($config_file_contents !~ /\@available_version/){
-				$config_file_contents .= "\n\@available_version\t$avail_version\n";
-			}
-			if($config_file_contents !~ /\@updates_last_checked/){
-				$config_file_contents .= "\n\@updates_last_checked\t$timestamp\n";
-			}
-			
-			# Write out the new config file contents if we can
-			open(my $fh, '>', $config_file) or die "Can't create $config_file: $!\n";
-			print($fh $config_file_contents);
-			close $fh;
-			
-		}
+	# Update the .cfupdates files with the available version and checked timestamp
+	my $updates_file = $ENV{"HOME"}."/clusterflow/.cfupdates";
+	if(open(my $fh, '>', $updates_file)){
+		# Write out the new config file contents if we can
+		print($fh "$avail_version\n$timestamp\n");
+		close $fh;
 	}
 	
 	if(cf_compare_version_numbers($current_version, $avail_version)){
