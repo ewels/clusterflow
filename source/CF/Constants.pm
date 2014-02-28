@@ -179,9 +179,9 @@ sub parse_updates_file {
 	if(-e $updates_file){
 		open (UPDATES, $updates_file) or die "Can't read $updates_file: $!";
 		$AVAILABLE_VERSION = <UPDATES>;
-		$AVAILABLE_VERSION = s/[\n\r]//;
+		$AVAILABLE_VERSION =~ s/[\n\r]//;
 		$UPDATES_LAST_CHECKED = <UPDATES>;
-		$UPDATES_LAST_CHECKED = s/[\n\r]//;
+		$UPDATES_LAST_CHECKED =~ s/[\n\r]//;
 		close (UPDATES);
 	}
 }
