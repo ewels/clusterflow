@@ -20,6 +20,8 @@ our $CHECK_UPDATES;
 our $AVAILABLE_VERSION;
 our $UPDATES_LAST_CHECKED = 0;
 our @NOTIFICATIONS;
+
+# Empty genome path vars
 our %GENOME_PATHS;
 our %GENOME_PATH_CONFIGS;
 our %BOWTIE_PATHS;
@@ -39,7 +41,7 @@ our $CF_MODULES = 1;
 
 
 parse_conf_file ();
-
+parse_genomes_file();
 
 sub parse_conf_file {
 		
@@ -81,15 +83,6 @@ sub parse_conf_file {
 						$UPDATES_LAST_CHECKED = $val;
 					} elsif($name eq 'notification'){
 						push @NOTIFICATIONS, $val;
-					} elsif($name eq 'genome_path'){
-						$GENOME_PATHS{$val} = $sections[2];
-						$GENOME_PATH_CONFIGS{$val} = $config_file;
-					} elsif($name eq 'bowtie_path'){
-						$BOWTIE_PATHS{$val} = $sections[2];
-						$BOWTIE_PATH_CONFIGS{$val} = $config_file;
-					} elsif($name eq 'gtf_path'){
-						$GTF_PATHS{$val} = $sections[2];
-						$GTF_PATH_CONFIGS{$val} = $config_file;
 					} elsif($name eq 'split_files'){
 						$SPLIT_FILES = $val;
 					} elsif($name eq 'priority'){
@@ -119,6 +112,53 @@ sub parse_conf_file {
 		}
 	}
 	@NOTIFICATIONS = @unique_notifications;
+}
+
+sub parse_genomes_file {
+		
+	# Read genomes config variables in. Do in order so that local prefs overwrite.
+	
+	my @genome_files = ("$FindBin::Bin/genomes.config", "$homedir/clusterflow/genomes.config", './genomes.config');
+	foreach my $genome_file (@genome_files){
+		if(-e $genome_file){
+			open (GCONFIG, $genome_file) or die "Can't read $genome_file: $!";
+			my $comment_block = 0;
+			while (<GCONFIG>) {
+				chomp;
+				s/\n//;
+				s/\r//;
+				
+				if($_ =~ /^\/\*.*\*\/$/){	# one line comments
+					$comment_block = 0;
+					next;
+				} elsif($_ =~ /^\/\*/){		# multiline comments start
+					$comment_block = 1;
+					next;
+				} elsif($_ =~ /^\*\//){		# multiline comments start
+					$comment_block = 0;
+					next;
+				}
+				if($_ =~ /^\@/ && !$comment_block){
+					my @sections = split(/\s+/, $_);
+					$config{substr($sections[0], 1)} = $sections[1];
+					my $name = substr($sections[0], 1);
+					my $val = $sections[1];
+					
+					if($name eq 'genome_path'){
+						$GENOME_PATHS{$val} = $sections[2];
+						$GENOME_PATH_CONFIGS{$val} = $genome_file;
+					} elsif($name eq 'bowtie_path'){
+						$BOWTIE_PATHS{$val} = $sections[2];
+						$BOWTIE_PATH_CONFIGS{$val} = $genome_file;
+					} elsif($name eq 'gtf_path'){
+						$GTF_PATHS{$val} = $sections[2];
+						$GTF_PATH_CONFIGS{$val} = $genome_file;
+					}
+				}
+			}
+			close(GCONFIG);
+		}
+	}
 }
 
 
