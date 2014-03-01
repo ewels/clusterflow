@@ -89,15 +89,15 @@ if($se_files && scalar(@$se_files) > 0){
 		}
 		# Tophat only accepts --solexa-quals, --solexa1.3-quals and --integer-quals 
 		my $enc = "";
-		if($encoding eq 'solexa'){
-			$enc = '--solexa-quals';
-		} elsif($encoding eq 'phred64'){
-			$enc = '--solexa1.3-quals';
-		} elsif($encoding eq 'phred33'){
-			$enc = '--solexa-quals';
-		} elsif($encoding eq 'integer'){
-			$enc = '--integer-quals';
-		}
+		# if($encoding eq 'solexa'){
+		# 	$enc = '--solexa-quals';
+		# } elsif($encoding eq 'phred64'){
+		# 	$enc = '--solexa1.3-quals';
+		# } elsif($encoding eq 'phred33'){
+		# 	$enc = '--solexa-quals';
+		# } elsif($encoding eq 'integer'){
+		# 	$enc = '--integer-quals';
+		# }
 		
 		$output_dir = $file;
 		$output_dir =~ s/.gz$//;
