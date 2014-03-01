@@ -225,8 +225,9 @@ sub fastq_encoding_type {
 			close IN;
 			return 'phred33';
 		} elsif ( ($score_min < 64) and ($score_max > 75) ){	# Contains character below phred64 and above phred33
-			close IN;
-			return 'solexa'
+		# This seems to be returning incorrectly?!
+			# close IN;
+			# return 'solexa'
 		}
 		
 		$read_count++;
