@@ -63,7 +63,7 @@ my $config_result = GetOptions(
 	"file_list=s" => \$file_list,
 	"mod_params=s" => \$cl_module_params,
 	"email=s" => \$cl_email,
-	"priority=s" => \$cl_priority,
+	"priority=i" => \$cl_priority,
 	"cores=i" => \$cl_total_cores,
 	"mem=s" => \$cl_total_mem,
 	"notifications=s"  => \$cl_notifications,
@@ -139,7 +139,7 @@ if($cl_gtf_path){
 	$GTF_PATHS{"command_line"} = $cl_gtf_path;
 	$GENOME = "command_line";
 }
-if($cl_priority){
+if(defined($cl_priority)){
 	$PRIORITY = $cl_priority;
 }
 if($cl_total_cores){

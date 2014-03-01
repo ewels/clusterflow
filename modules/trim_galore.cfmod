@@ -105,7 +105,7 @@ if($se_files && scalar(@$se_files) > 0){
 		
 		my $output_fn = trim_galore_basename($file).'_trimmed.fq.gz';
 		
-		my $command = "trim_galore --trim1 --gzip $enc $RRBS $adapter --fastqc $file";
+		my $command = "trim_galore --gzip $enc $RRBS $adapter --fastqc $file";
 		warn "\nRunning command:\n$command\n\n";
 		
 		if(!system ($command)){
