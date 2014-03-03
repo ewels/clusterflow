@@ -1,0 +1,33 @@
+/*
+Clusterflow Config
+-------------------
+Default static variables for clusterflow.
+Syntax - @key:value
+These will be overwritten by any with the same name in ~/clusterflow/clusterflow.config
+-------------------
+*/
+
+/****************/
+/* Core Options */
+/****************/
+/* See the Cluster Flow manual for descriptions */
+@email	0
+@check_updates	1d
+@notification	suspend
+@notification	abort
+@notification	complete
+@split_files	1
+@priority	-500
+@total_cores	64
+@total_mem	128G
+
+/***********************/
+/* Cluster Environment */
+/***********************/
+/* CF is written with support for GRIDEngine and LSF clusters. */
+/* You can specific which you use below (defaults to GRIDEngine) */
+/* Options: GRIDEngine or LSF */
+@cluster_environment	GRIDEngine
+
+/* To stop cluster flow trying to load environment modules, uncomment the following line: */
+/* @ignore_modules	true */
