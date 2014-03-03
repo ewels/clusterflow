@@ -39,6 +39,7 @@ warn "\n###CF Run finished at $date\n\n";
 # Parse the outfile (the run logs)
 my $outfile;
 my @highlights;
+my @commands;
 open (IN,'<',$outfn) or die "Can't read ".getcwd()."/$outfn - $!";
 while(<IN>){
 	
@@ -49,9 +50,13 @@ while(<IN>){
 		next;
 	}
 	
+	# Commands run
+	if(/^###CFCMD/){
+		push (@commands, substr($_, 9));
+		
 	# Highlight statuses
-	if(/^###CF/){
-		push (@highlights, substr($_, 6));
+	} elsif(/^###CF/){
+		push (@highlights, '- '.substr($_, 6));
 	}
 	
 	# Add cleaned text to outfile string
@@ -78,6 +83,10 @@ The runfile is $runfile
 
 == Highlighted status messages ==
 - ".join("\n- ", @highlights)."
+
+
+== Commands run ==
+- ".join("\n", @commands)."
 
 
 == Full log output ==
