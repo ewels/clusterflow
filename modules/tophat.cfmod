@@ -87,17 +87,16 @@ if($se_files && scalar(@$se_files) > 0){
 		if(!$encoding){
 			($encoding) = CF::Helpers::fastq_encoding_type($file);
 		}
-		# Tophat only accepts --solexa-quals, --solexa1.3-quals and --integer-quals 
+		# Tophat only accepts --solexa-quals, --solexa1.3-quals and --integer-quals
+		# Defaults to phred-33 so leave blank if that returned
 		my $enc = "";
-		# if($encoding eq 'solexa'){
-		# 	$enc = '--solexa-quals';
-		# } elsif($encoding eq 'phred64'){
-		# 	$enc = '--solexa1.3-quals';
-		# } elsif($encoding eq 'phred33'){
-		# 	$enc = '--solexa-quals';
-		# } elsif($encoding eq 'integer'){
-		# 	$enc = '--integer-quals';
-		# }
+		if($encoding eq 'solexa'){
+			$enc = '--solexa-quals';
+		} elsif($encoding eq 'phred64'){
+			$enc = '--solexa1.3-quals';
+		} elsif($encoding eq 'integer'){
+			$enc = '--integer-quals';
+		}
 		
 		$output_dir = $file;
 		$output_dir =~ s/.gz$//;
@@ -137,14 +136,13 @@ if($pe_files && scalar(@$pe_files) > 0){
 			if(!$encoding){
 				($encoding) = CF::Helpers::fastq_encoding_type($files[0]);
 			}
-			# Tophat only accepts --solexa-quals, --solexa1.3-quals and --integer-quals 
+			# Tophat only accepts --solexa-quals, --solexa1.3-quals and --integer-quals
+			# Defaults to phred-33 so leave blank if that returned
 			my $enc = "";
 			if($encoding eq 'solexa'){
 				$enc = '--solexa-quals';
 			} elsif($encoding eq 'phred64'){
 				$enc = '--solexa1.3-quals';
-			} elsif($encoding eq 'phred33'){
-				$enc = '--solexa-quals';
 			} elsif($encoding eq 'integer'){
 				$enc = '--integer-quals';
 			}

@@ -217,17 +217,16 @@ sub fastq_encoding_type {
 			}	
 		}
 		
-		#Do not need to process 100,000 lines if these parameters are met
+		# Do not need to process 100,000 lines if these parameters are met
 		if($score_min == 32){    # Contains the space charcter
 			close IN;
 			return 'integer';
 		} elsif ($score_min < 59){   # Contains low range character
 			close IN;
 			return 'phred33';
-		} elsif ( ($score_min < 64) and ($score_max > 75) ){	# Contains character below phred64 and above phred33
-		# This seems to be returning incorrectly?!
-			# close IN;
-			# return 'solexa'
+		} elsif ( ($score_min < 64) and ($score_max > 90) ){	# Contains character below phred64 and far above phred33
+			close IN;
+			return 'solexa'
 		}
 		
 		$read_count++;
