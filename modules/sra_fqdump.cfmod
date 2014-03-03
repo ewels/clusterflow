@@ -55,7 +55,7 @@ foreach my $file (@$files){
 	for (my $attempt = 1; $attempt < 6; $attempt++) {
 		
 		my $command = "fastq-dump --split-files ./$file";
-		warn "\nRunning command:\n$command\n\n";
+		warn "\n###CFCMD $command\n\n";
 		
 		if(!system ($command)){
 			warn "\n###CF FastQ Dump successfully exited on attempt $attempt\n";

@@ -54,7 +54,7 @@ foreach my $file (@$files){
 	for (my $attempt = 1; $attempt < 6; $attempt++) {
 		
 		my $command = "abi-dump --gzip ./$file";
-		warn "\nRunning command:\n$command\n\n";
+		warn "\n###CFCMD $command\n\n";
 		
 		if(!system ($command)){
 			warn "\n###CF SOLiD Dump successfully exited on attempt $attempt\n";

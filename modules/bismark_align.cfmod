@@ -127,7 +127,7 @@ if($se_files && scalar(@$se_files) > 0){
 		}
 		
 		my $command = "bismark --bam $bt2 $pbat $non_directional $enc ".$config{genome_path}." ".$file;
-		warn "\nRunning command:\n$command\n\n";
+		warn "\n###CFCMD $command\n\n";
 		
 		if(!system ($command)){
 			# Bismark worked - print out resulting filenames
@@ -167,7 +167,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			}
 			
 			my $command = "bismark --bam $bt2 $pbat $non_directional $enc ".$config{genome_path}." -1 ".$files[0]." -2 ".$files[1];
-			warn "\nRunning command:\n$command\n\n";
+			warn "\n###CFCMD $command\n\n";
 			
 			if(!system ($command)){
 				# Bismark worked - print out resulting filenames

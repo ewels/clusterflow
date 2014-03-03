@@ -32,7 +32,9 @@ warn "\n---------------------\nDownloading $dl_fn from $url\nStarted at ".strfti
 
 open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
 
-if(!system ("wget -nv --tries=10 --output-document=$dl_fn $url")){
+my $command = "wget -nv --tries=10 --output-document=$dl_fn $url";
+warn "\n###CFCMD $command\n\n";
+if(!system ($command)){
 	# Download worked - print resulting filename to results file
 	print RUN "$job_id\t$dl_fn\n";
 	my $duration =  CF::Helpers::parse_seconds($timestart - time);

@@ -61,7 +61,7 @@ if($files && scalar(@$files) > 0){
 		if(CF::Helpers::is_bam_paired_end($file)){
 			
 			my $command = "deduplicate_bismark -p --bam $file";
-			warn "\nRunning command:\n$command\n\n";
+			warn "\n###CFCMD $command\n\n";
 			
 			# Paired End BAM file
 			if(!system ($command)){
@@ -80,7 +80,7 @@ if($files && scalar(@$files) > 0){
 		} else {
 			
 			my $command = "deduplicate_bismark -s --bam $file";
-			warn "\nRunning command:\n$command\n\n";
+			warn "\n###CFCMD $command\n\n";
 			
 			# Single End BAM file
 			if(!system ($command)){

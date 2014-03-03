@@ -106,7 +106,7 @@ if($se_files && scalar(@$se_files) > 0){
 		my $output_fn = trim_galore_basename($file).'_trimmed.fq.gz';
 		
 		my $command = "trim_galore --gzip $enc $RRBS $adapter --fastqc $file";
-		warn "\nRunning command:\n$command\n\n";
+		warn "\n###CFCMD $command\n\n";
 		
 		if(!system ($command)){
 			# Trim Galore worked - print out resulting filenames
@@ -146,7 +146,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			my $output_fn_2 = trim_galore_basename($files[1]).'_val_2.fq.gz';
 			
 			my $command = "trim_galore --paired --trim1 --gzip $enc $RRBS $adapter --fastqc ".$files[0]." ".$files[1];
-			warn "\nRunning command:\n$command\n\n";
+			warn "\n###CFCMD $command\n\n";
 			
 			if(!system ($command)){
 				# Trim Galore worked - print out resulting filenames

@@ -108,7 +108,7 @@ if($se_files && scalar(@$se_files) > 0){
 		if ($mirna) {
 		    $command = "$gzip bowtie -p $cores -t -n 0 -l 15 -e 99999 -k 200 $enc --best -S --chunkmbs 2048 ".$config{bowtie_path}." $file | samtools view -bS - > $output_fn"
 		}
-		warn "\nRunning command:\n$command\n\n";
+		warn "\n###CFCMD $command\n\n";
 		
 		if(!system ($command)){
 			# Bowtie worked - print out resulting filenames
@@ -156,7 +156,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			if ($mirna) {
 			    $command = "bowtie -p $cores -t -n 0 -l 15 -e 99999 -k 200 $enc --best --maxins 700 -S --chunkmbs 2048 ".$config{bowtie_path}." -1 ".$files[0]." -2 ".$files[1]." | samtools view -bSh 2>/dev/null - > $output_fn";
 			}
-			warn "\nRunning command:\n$command\n\n";
+			warn "\n###CFCMD $command\n\n";
 			
 			if(!system ($command)){
 				# Bowtie worked - print out resulting filenames

@@ -60,7 +60,7 @@ foreach my $parameter (@$parameters){
 foreach my $file (@$files){
 	
 	my $command = "fastqc $nogroup $file";
-	warn "\nRunning command:\n$command\n\n";
+	warn "\n###CFCMD $command\n\n";
 	
 	if(!system ($command)){
 		print RUN "$job_id\t$file\n";

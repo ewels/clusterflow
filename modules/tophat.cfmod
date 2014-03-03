@@ -109,7 +109,7 @@ if($se_files && scalar(@$se_files) > 0){
 		my $output_fn = $output_dir."/accepted_hits.bam";
 		
 		my $command = "tophat -p $cores -g 1 $enc $gtf -o $output_dir ".$config{bowtie_path}." $file";
-		warn "\nRunning command:\n$command\n\n";
+		warn "\n###CFCMD $command\n\n";
 		
 		if(!system ($command)){
 			# Tophat worked - print out resulting filenames
@@ -159,7 +159,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			my $output_fn = $output_dir."/accepted_hits.bam";
 			
 			my $command = "tophat -p $cores -g 1 $enc $gtf -o $output_dir ".$config{bowtie_path}." ".$files[0]." ".$files[1];
-			warn "\nRunning command:\n$command\n\n";
+			warn "\n###CFCMD $command\n\n";
 			
 			if(!system ($command)){
 				# Tophat worked - print out resulting filenames

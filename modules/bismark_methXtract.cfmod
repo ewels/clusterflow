@@ -84,7 +84,7 @@ if($files && scalar(@$files) > 0){
 		if(CF::Helpers::is_bam_paired_end($file)){
 			
 			my $command = "bismark_methylation_extractor $ignore_r1 $ignore_r2 --bedGraph --counts $buffer --gzip -p --no_overlap --report $file";
-			warn "\nRunning command:\n$command\n\n";
+			warn "\n###CFCMD $command\n\n";
 			
 			# Paired End BAM file
 			if(!system ($command)){
@@ -106,7 +106,7 @@ if($files && scalar(@$files) > 0){
 		} else {
 			
 			my $command = "bismark_methylation_extractor $ignore_r1 --bedGraph --counts $buffer --gzip -s --report $file";
-			warn "\nRunning command:\n$command\n\n";
+			warn "\n###CFCMD $command\n\n";
 			
 			# Single End BAM file
 			if(!system ($command)){

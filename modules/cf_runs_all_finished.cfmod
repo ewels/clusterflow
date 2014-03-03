@@ -41,8 +41,10 @@ warn "\n###CF Pipeline $pipeline finished at $date\n\n";
 
 # Read in the log files
 my @highlights;
+my @commands;
 foreach my $outfile (@outfns){
 	
+	push (@commands, "- Output file $outfile\n");
 	push (@highlights, "- Output file $outfile\n");
 	
 	open (IN,'<',$outfile);
@@ -55,13 +57,18 @@ foreach my $outfile (@outfns){
 			next;
 		}
 		
+		# Commands run
+		if(/^###CFCMD/){
+			push (@commands, substr($_, 9));
+			
 		# Highlight statuses
-		if(/^###CF/){
+		} elsif(/^###CF/){
 			push (@highlights, '- '.substr($_, 6));
 		}
 		
 	}
 	close (IN);
+	push (@commands, "\n".("=" x 30));
 	push (@highlights, "\n".("=" x 30));
 }
 
@@ -79,6 +86,9 @@ The working directory was ".getcwd()."/
 
 == Highlighted status messages ==
 ".join("\n", @highlights)."
+\n\n
+== Commands Run ==
+".join("\n", @commands)."
 \n\n";
 
 	open (PIPE , "| mail -s $subject $to") or die "can't open pipe to mail: $!\n";

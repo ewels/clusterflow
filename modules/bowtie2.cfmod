@@ -87,7 +87,7 @@ if($se_files && scalar(@$se_files) > 0){
 		my $output_fn = $file."_bowtie2.bam";
 		
 		my $command = "bowtie2 -p $cores -t $enc -x ".$config{bowtie_path}." -U $file | samtools view -bS - > $output_fn";
-		warn "\nRunning command:\n$command\n\n";
+		warn "\n###CFCMD $command\n\n";
 		
 		if(!system ($command)){
 			# Bowtie worked - print out resulting filenames
@@ -122,7 +122,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			my $output_fn = $files[0]."_bowtie2.bam";
 			
 			my $command = "bowtie2 -p $cores -t $enc -x ".$config{bowtie_path}." -1 ".$files[0]." -2 ".$files[1]." | samtools view -bS - > $output_fn";
-			warn "\nRunning command:\n$command\n\n";
+			warn "\n###CFCMD $command\n\n";
 			
 			if(!system ($command)){
 				# Bowtie worked - print out resulting filenames

@@ -89,7 +89,7 @@ if($se_files && scalar(@$se_files) > 0){
 		
 		# Uses --cores $cores when this is written into Fastq Screen
 		my $command = "fastq_screen --subset 100000 $enc --quiet --aligner bowtie2 $file";
-		warn "\nRunning command:\n$command\n\n";
+		warn "\n###CFCMD $command\n\n";
 		
 		if(!system ($command)){
 			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
@@ -116,7 +116,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			
 			# Uses --cores $cores when this is written into Fastq Screen
 			my $command = "fastq_screen --subset 100000 $enc --quiet --aligner bowtie2 --paired ".$files[0]." ".$files[1];
-			warn "\nRunning command:\n$command\n\n";
+			warn "\n###CFCMD $command\n\n";
 			
 			if(!system ($command)){
 				my $duration =  CF::Helpers::parse_seconds(time - $timestart);

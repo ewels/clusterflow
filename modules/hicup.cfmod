@@ -140,7 +140,8 @@ if(!$digest){
 	# Work out the command and run it
 	my @genome_path_parts = split("/", $config{genome_path});
 	my $command = "hicup_digester -1 $re1 -g ".$genome_path_parts[-2]."_".$genome_path_parts[-1]." ".$config{genome_path}."*.fa";
-	warn "\nCreating new digest file. Command:\n$command\n\n";
+	warn "\nCreating new digest file.\n\n";
+	warn "\n###CFCMD $command\n\n";
 	if(!system ($command)){
 		warn "\nDigest file successfully created.\n\n";
 	} else {
@@ -198,7 +199,7 @@ for (my $i = 0; $i <= $num_files; $i++){
 			my $output_fn = "uniques_".$fn1_base."_trunc_".$fn2_base."_trunc.bam";
 			
 			my $command = "hicup --zip --bowtie bowtie --digest $digest $enc --index ".$config{bowtie_path}." --longest $longest --shortest $shortest --re1 $re1 --threads $cores -o $outputdir --filenames ".$p_files[0].",".$p_files[1];
-			warn "\nRunning command:\n$command\n\n";
+			warn "\n###CFCMD $command\n\n";
 			
 			if(!system ($command)){
 				# Bismark worked - print out resulting filenames
