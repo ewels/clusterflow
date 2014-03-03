@@ -83,7 +83,7 @@ if($files && scalar(@$files) > 0){
 		# Find if PE or SE from input BAM file
 		if(CF::Helpers::is_bam_paired_end($file)){
 			
-			my $command = "bismark_methylation_extractor $ignore_r1 $ignore_r2 $pbat --bedGraph --counts $buffer --gzip -p --no_overlap --report $file";
+			my $command = "bismark_methylation_extractor $ignore_r1 $ignore_r2 --bedGraph --counts $buffer --gzip -p --no_overlap --report $file";
 			warn "\nRunning command:\n$command\n\n";
 			
 			# Paired End BAM file
@@ -105,7 +105,7 @@ if($files && scalar(@$files) > 0){
 			
 		} else {
 			
-			my $command = "bismark_methylation_extractor $ignore_r1 $pbat --bedGraph --counts $buffer --gzip -s --report $file";
+			my $command = "bismark_methylation_extractor $ignore_r1 --bedGraph --counts $buffer --gzip -s --report $file";
 			warn "\nRunning command:\n$command\n\n";
 			
 			# Single End BAM file
