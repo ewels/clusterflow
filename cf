@@ -358,6 +358,7 @@ if($file_list){
 	open (FILES, $file_list) or die "Can't read $file_list: $!";
 	while (<FILES>) {
 		chomp;
+		s/[\n\r]//;
 		if ($_ =~ /^$/) { next; } # Skip blank lines
 		my @sections = split(/\t/);
 		push @files, $sections[0];
@@ -699,7 +700,7 @@ for (my $i = 0; $i <= $#files; $i++){
 	my $run_finish_id = $jid_base."email_run_complete_".int(rand(999));
 	my $run_finish_qsub = "";
 	if($CLUSTER_ENVIRONMENT eq 'LSF'){
-		$run_finish_qsub .= "bsub -n 1 -M 500 -R \"rusage[mem=500]\" -oo $outfn -J $run_finish_id -w \"done(".join("&&", @{$run_job_ids{$runfn}}).")\" -N \"$Bin/modules/cf_run_finished.cfmod $runfn $run_finish_id null 1 1G $pipeline $outfn\"";
+		$run_finish_qsub .= "bsub -n 1 -M 500 -R \"rusage[mem=500]\" -oo $outfn -J $run_finish_id -w \"done(".join(" && ", @{$run_job_ids{$runfn}}).")\" -N \"$Bin/modules/cf_run_finished.cfmod $runfn $run_finish_id null 1 1G $pipeline $outfn\"";
 	} else {
 		$run_finish_qsub .= "echo \"$Bin/modules/cf_run_finished.cfmod $runfn $run_finish_id null 1 1G $pipeline $outfn\" | qsub -cwd -V -o $outfn -j y -N $run_finish_id -hold_jid ".join(",", @{$run_job_ids{$runfn}});
 	}
