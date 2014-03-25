@@ -389,7 +389,7 @@ for (my $i = 0; $i <= $#files; $i++){
 }
 
 # Auto-detect paired end files for fastq input
-if(!$cl_paired_end && !$cl_single_end && $fastq_count > 0){
+if(!$cl_paired_end && !$cl_single_end && $fastq_count > 1){
 	my $paired_count = 0;
 	my $single_count = 0;
 	for (my $i = 0; $i <= $#files; $i++){
