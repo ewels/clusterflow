@@ -36,7 +36,8 @@ if($help){
 The bismark_methXtract module runs the bismark_methylation_extractor script.
 This reads in a bisulfite read alignment results file produced by the Bismark bisulfite
 mapper and extracts the methylation information for individual cytosines in CpG, CHG 
-and CHH context.\n
+and CHH context.\n".
+/*
 Specifying the pbat or single_cell parameters in a pipeline
 will add --ignore 4 to the command. eg:
   #bismark_methXtract	pbat
@@ -44,7 +45,8 @@ or
   #bismark_methXtract	single_cell
 Runs the command:
   bismark_methylation_extractor --ignore 4 ....\n
-Use bismark_methylation_extractor --help for more information.\n\n";
+*/
+"Use bismark_methylation_extractor --help for more information.\n\n";
 	exit;
 }
 
@@ -67,12 +69,12 @@ if($mem =~ /G$/){
 # Read any options from the pipeline parameters
 my $ignore_r1 = "";
 my $ignore_r2 = "--ignore_r2 2";
-foreach my $parameter (@$parameters){
-	if($parameter == "pbat" || $parameter == "single_cell"){
-		$ignore_r1 = "--ignore 4";
-		$ignore_r2 = "--ignore_r2 4";
-	}
-}
+# foreach my $parameter (@$parameters){
+	# if($parameter == "pbat" || $parameter == "single_cell"){
+		# $ignore_r1 = "--ignore 4";
+		# $ignore_r2 = "--ignore_r2 4";
+	# }
+# }
  
 
 
