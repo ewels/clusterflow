@@ -609,7 +609,7 @@ my @finished_run_ids;
 for (my $i = 0; $i <= $#files; $i++){
 	my $fn = $files[$i];
 	my $first_fn = $fn;
-	my $outfn = $fn."_$pipeline.out";
+	my $outfn = $fn."_".$pipeline."_clusterFlow.txt";
 	
 	# Make the run file
 	my $runfn = $fn."_$pipeline.run";
