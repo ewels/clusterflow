@@ -59,8 +59,8 @@ open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
 my $min_readlength = 50;
 my $adapter = "";
 my $RRBS = "";
-$clip_r1 = "";
-$clip_r2 = "";
+my $clip_r1 = "";
+my $clip_r2 = "";
 foreach my $parameter (@$parameters){
 	if($parameter =~ /min_readlength=(\d+)/){
 		$min_readlength = $1;
