@@ -178,7 +178,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			warn "\n###CF ## Tophat paired end files had ".scalar(@files)." input files instead of 2 ##\n";
 		}
 		
-		clean_output($output_dir, $file[0]);
+		clean_output($output_dir, $files[0]);
 	}
 }
 
