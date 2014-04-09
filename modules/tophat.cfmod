@@ -102,8 +102,8 @@ if($se_files && scalar(@$se_files) > 0){
 		$output_dir =~ s/.gz$//;
 		$output_dir =~ s/.fq$//;
 		$output_dir =~ s/.fastq$//;
-		$output_dir =~ s/_1$//;
-		$output_dir =~ s/_2$//;
+		$output_dir =~ s/_[1-4]$//;
+		$output_dir =~ s/_R[1-4]//;
 		$output_dir .= '_tophat';
 		
 		my $output_fn = $output_dir."/accepted_hits.bam";
@@ -123,6 +123,8 @@ if($se_files && scalar(@$se_files) > 0){
 		} else {
 			warn "\n###CF ## Tophat (SE mode) failed ##\n\n";
 		}
+		
+		clean_output($output_dir, $file);
 	}
 }
 
@@ -151,9 +153,8 @@ if($pe_files && scalar(@$pe_files) > 0){
 			$output_dir =~ s/.gz$//;
 			$output_dir =~ s/.fq$//;
 			$output_dir =~ s/.fastq$//;
-			$output_dir =~ s/_1$//;
-			$output_dir =~ s/_2$//;
-			$output_dir =~ s/_R?[1-4]//;
+			$output_dir =~ s/_[1-4]$//;
+			$output_dir =~ s/_R[1-4]//;
 			$output_dir .= '_tophat';
 			
 			my $output_fn = $output_dir."/accepted_hits.bam";
@@ -176,45 +177,51 @@ if($pe_files && scalar(@$pe_files) > 0){
 		} else {
 			warn "\n###CF ## Tophat paired end files had ".scalar(@files)." input files instead of 2 ##\n";
 		}
+		
+		clean_output($output_dir, $file[0]);
 	}
 }
 
 
 # Clear up Tophat output
-if(-e "$output_dir/accepted_hits.bam" && -e "$output_dir/align_summary.txt"){
-	my $fn_prefix = substr($output_dir, 0, -7);
-	if(move ("$output_dir/accepted_hits.bam", $fn_prefix."_accepted_hits.bam")){
-		warn "Moved tophat output to ${fn_prefix}_accepted_hits.bam\n";
-		if(move ("$output_dir/align_summary.txt", $fn_prefix."_align_summary.txt")){
-			warn "Moved tophat summary to ${fn_prefix}_align_summary.txt\n";
-			if(unlink glob "$output_dir/logs/*"){
-				warn "Deleted other tophat output files: $output_dir/logs/*\n";
-				if(rmdir "$output_dir/logs"){
-					warn "Deleted tophat logs directory $output_dir/logs\n";
-					if(unlink glob "$output_dir/*"){
-						warn "Deleted other tophat output files: $output_dir/*\n";
-						if(rmdir $output_dir){
-							warn "Deleted tophat output directory $output_dir\n";
+sub clean_output {
+	
+	my ($output_dir, $file) = @_;
+
+	if(-e "$output_dir/accepted_hits.bam" && -e "$output_dir/align_summary.txt"){
+		if(move ("$output_dir/accepted_hits.bam", $file."_accepted_hits.bam")){
+			warn "Moved tophat output to ${file}_accepted_hits.bam\n";
+			if(move ("$output_dir/align_summary.txt", $file."_align_summary.txt")){
+				warn "Moved tophat summary to ${file}_align_summary.txt\n";
+				if(unlink glob "$output_dir/logs/*"){
+					warn "Deleted other tophat output files: $output_dir/logs/*\n";
+					if(rmdir "$output_dir/logs"){
+						warn "Deleted tophat logs directory $output_dir/logs\n";
+						if(unlink glob "$output_dir/*"){
+							warn "Deleted other tophat output files: $output_dir/*\n";
+							if(rmdir $output_dir){
+								warn "Deleted tophat output directory $output_dir\n";
+							} else {
+								warn "Could not delete tophat output directory $output_dir: $!\n";
+							}
 						} else {
-							warn "Could not delete tophat output directory $output_dir: $!\n";
+							warn "Could not delete other tophat output files: $output_dir/*: $!\n";
 						}
 					} else {
-						warn "Could not delete other tophat output files: $output_dir/*: $!\n";
+						warn "Could not delete tophat logs directory $output_dir/logs: $!\n";
 					}
 				} else {
-					warn "Could not delete tophat logs directory $output_dir/logs: $!\n";
+					warn "Could not delete other tophat log files: $output_dir/logs/*: $!\n";
 				}
 			} else {
-				warn "Could not delete other tophat log files: $output_dir/logs/*: $!\n";
+				warn "Could not move tophat summary to ${file}_align_summary.txt: $!\n";
 			}
 		} else {
-			warn "Could not move tophat summary to ${fn_prefix}_align_summary.txt: $!\n";
+			warn "Could not move tophat output to ${file}_accepted_hits.bam: $!\n";
 		}
 	} else {
-		warn "Could not move tophat output to ${fn_prefix}_accepted_hits.bam: $!\n";
+		warn "Could not find tophat output files $output_dir/accepted_hits.bam and $output_dir/align_summary.txt\n";
 	}
-} else {
-	warn "Could not find tophat output files $output_dir/accepted_hits.bam and $output_dir/align_summary.txt\n";
 }
 
 
