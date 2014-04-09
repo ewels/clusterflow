@@ -77,7 +77,7 @@ foreach my $outfile (@outfns){
 if($config{notifications}{complete} && defined($config{email})){
 	
 	my $to = $config{email};
-	my $subject = "'[CF] $pipeline pipeline compete'";
+	my $subject = "'[CF] $pipeline pipeline complete'";
 	
 	# Start the e-mail body
 my $message_body = "The pipeline $pipeline has completed.
