@@ -46,6 +46,7 @@ my $cl_qstatall;
 my $cl_qstatcolours;
 my $cl_qdel;
 my $cl_make_config;
+my $cl_add_genome;
 my $cl_version;
 my $cl_check_updates;
 my $cl_help;
@@ -76,6 +77,7 @@ my $config_result = GetOptions(
 	"qstatcols" => \$cl_qstatcolours,
 	"qdel=s" => \$cl_qdel,
 	"make_config" => \$cl_make_config,
+	"add_genome" => \$cl_add_genome,
 	"version" => \$cl_version,
 	"check_updates" => \$cl_check_updates,
 	"help" => \$cl_help
@@ -237,6 +239,10 @@ home directory! It's a good idea to set one up, so that
 you can get e-mailed notifications from Cluster Flow.
 To create one, run cf --make_config\n\n\n";
 	}
+}
+if($cl_add_genome){
+	CF::Constants::clusterflow_add_genome();
+	exit;
 }
 if($cl_qdel){
 	if($CLUSTER_ENVIRONMENT eq 'LSF'){

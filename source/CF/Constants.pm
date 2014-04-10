@@ -2,6 +2,7 @@
 use warnings;
 use strict;
 use FindBin qw($Bin);
+use Cwd;
 use Exporter;
 
 package CF::Constants;
@@ -187,7 +188,12 @@ sub parse_updates_file {
 }
 
 
+
+
+
+####################################
 # Lists available genomes
+####################################
 sub list_clusterflow_genomes {
 	
 	my $returnstring = "";
@@ -256,7 +262,13 @@ sub list_clusterflow_genomes {
 }
 
 
+
+
+
+
+####################################
 # Prints help for a specific module or pipeline
+####################################
 sub clusterflow_pipeline_help {
 	
 	my ($pipeline) = @_;
@@ -302,7 +314,13 @@ sub clusterflow_pipeline_help {
 	
 }
 
+
+
+
+
+####################################
 # Prints main cluster flow help
+####################################
 sub clusterflow_help {
 
 	my $help;
@@ -421,6 +439,9 @@ AVAILABLE FLAGS
 		
 	--make_config
 		Interactive prompt to generate a personalised CF config file
+		
+	--add_genome
+		Interactive wizard to add new genomes to your genomes.config files
 	
 	--version
 		Print version of Cluster Flow installed
@@ -449,8 +470,231 @@ EOT
 
 
 
+
+
+
+####################################
+# Function to run interactive shell prompt to add new genomes
+####################################
+sub clusterflow_add_genome {
+
+	print "\n\nCluster Flow Genomes Config Generator\n======================================\nRunning Cluster Flow version $CF_VERSION\n";
+	print "\nThis wizard will add a new genome to your genomes.config file\n\n";
+	
+	# Determine which config file to append to
+	my $cwd = Cwd::getcwd();
+	print "First off, which config file would you like to add this genome to?
+
+1 - Cluster Flow Installation directory, will be visible for all users
+       $FindBin::Bin/genomes.config
+	   
+2 - Your home directory, will be visible for you whenever you run Cluster Flow
+       $homedir/clusterflow/genomes.config
+	   
+3 - This directory, will only be visible when running Cluster Flow here
+       $cwd/genomes.config
+
+Please enter 1-3 to select one of the file paths..\n";
+	
+	my $fn;
+	while ($fn = <STDIN>){
+		chomp ($fn);
+		if ($fn =~ /^1$/){
+			$fn = "$FindBin::Bin/genomes.config";
+			last;
+		} elsif ($fn =~ /^2$/){
+			$fn = "$homedir/clusterflow/genomes.config";
+			last;
+		} elsif ($fn =~ /^3$/){
+			$fn = "./genomes.config";
+			last;
+		} else {
+			print "\nSorry, I didn't understand that.\nPlease enter a number, 1-3..\n\n";
+		}
+	}
+	print "Great - we'll use $fn\n\n";
+	unless (-e $fn) {
+		print "This file doesn't yet exist, and will be created..\n\n";
+	}
+	# Open straight away - if permission errors will die before any further faff
+	open (OUT,'>>',$fn) or die "Can't write to $fn: $!";
+	
+	# Get Species and assembly
+	print "To help identify genomes when using cf --list_genomes,you can specify\na species and an assembly.This are both optional - just\nleave blank and press enter to ignore.\n\n";
+	
+	print "Please enter the species name (eg. Human):\n";
+	my $species = <STDIN>;
+	chomp ($species);
+	
+	print "\nPlease enter the assembly name (eg. GRCh37):\n";
+	my $assembly = <STDIN>;
+	chomp ($assembly);
+	
+	# Get genome ID
+	print "\nNext, we need a unique ID for the genome. This is what\nyou will specify when you run jobs with --genome.\nWe often just use the assembly name. Alphanumeric with _ and - only.\n";
+	my $genomeID;
+	GENOMEIDWHILE: while ($genomeID = <STDIN>){
+		chomp ($genomeID);
+		$genomeID =~ s/[^\w-]//g;
+		if(length($genomeID) == 0){
+			print "Sorry, this ID is required. Please enter a value:\n";
+			next;
+		}
+		my $confirm = 0;
+		if(defined($GENOME_PATH_CONFIGS{$genomeID})){
+			print " # A genome path with this ID already exists! It's defined in ".$GENOME_PATH_CONFIGS{$genomeID}."\n";
+			$confirm = 1;
+		}
+		if(defined($BOWTIE_PATH_CONFIGS{$genomeID})){
+			print " # A bowtie path with this ID already exists! It's defined in ".$BOWTIE_PATH_CONFIGS{$genomeID}."\n";
+			$confirm = 1;
+		}
+		if(defined($GTF_PATH_CONFIGS{$genomeID})){
+			print " # A GTF path with this ID already exists! It's defined in ".$GTF_PATH_CONFIGS{$genomeID}."\n";
+			$confirm = 1;
+		}
+		if($confirm){
+			print "You can still use this ID, but it may overwrite previous path definitions..\nDo you want to continue?\n\n";
+			while (my $continue = <STDIN>){
+				chomp ($continue);
+				if ($continue =~ /^n(o)?/i){
+					print "\nOk, please enter a new ID:\n\n";
+					last;
+				} elsif($continue =~ /^y(es)?/i){
+					print "\nOk, we'll continue with $genomeID then..\n\n";
+					last GENOMEIDWHILE;
+				} else {
+					print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+				}
+			}
+		} else {
+			print "\nGreat - we'll continue with $genomeID\n\n";
+			last;
+		}
+	}
+	
+	# Get paths
+	print "Ok, now we have this information we can add three types of file paths:
+Genome Path: A directory containing the fasta files for the genome
+Bowtie Path: A full path including the filename stub for bowtie indices
+             (everything except .[1-4].ebwt or .[1-4].bt2)
+GTF Path:    A filename path to a genome GTF file.\n\n";
+	
+	print "Please enter the genome path. Leave blank if you don't want to add one..\n";
+	my $genome_path;
+	GENOMEWHILE: while ($genome_path = <STDIN>){
+		chomp ($genome_path);
+		if(length($genome_path) == 0){
+			print "Ok, not adding any genome paths..\n\n";
+			last;
+		} elsif (-d $genome_path) {
+			print "Great! Looks good and I can find it..\n\n";
+			last;
+		} elsif (-e $genome_path) {
+			print "Hmm, this looks like a file rather than a directory..\n\n";
+		} else {
+			print "Oops! This directory doesn't exist!\n\n";
+		}
+		print "Do you want to add this to the config file anyway?\n";
+		while (my $continue = <STDIN>){
+			chomp ($continue);
+			if ($continue =~ /^n(o)?/i){
+				print "\nOk, please enter the genome path again:\n\n";
+				last;
+			} elsif($continue =~ /^y(es)?/i){
+				print "\nOk, I'll add $genome_path\n\n";
+				last GENOMEWHILE;
+			} else {
+				print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+			}
+		}
+	}
+	
+	print "Please enter the bowtie path. Leave blank if you don't want to add one..\n";
+	my $bowtie_path;
+	BOWTIEWHILE: while ($bowtie_path = <STDIN>){
+		chomp ($bowtie_path);
+		if(length($bowtie_path) == 0){
+			print "Ok, not adding any bowtie paths..\n\n";
+			last;
+		} elsif (glob("$bowtie_path.[1-4].ebwt $bowtie_path.[1-4].bt2")) {
+			print "Looks good! I found the following matching bowtie indices:\n - ".join("\n - ", glob("$bowtie_path.[1-4].ebwt $bowtie_path.[1-4].bt2"))."\n\n";
+			last;
+		} else {
+			print "I couldn't find any matching bowtie indices for this path\nI tried $bowtie_path.[1-4].ebwt and $bowtie_path.[1-4].bt2\n\n";
+		}
+		print "Do you want to add this to the config file anyway?\n";
+		while (my $continue = <STDIN>){
+			chomp ($continue);
+			if ($continue =~ /^n(o)?/i){
+				print "\nOk, please enter the bowtie path again:\n\n";
+				last;
+			} elsif($continue =~ /^y(es)?/i){
+				print "\nOk, I'll add $bowtie_path\n\n";
+				last BOWTIEWHILE;
+			} else {
+				print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+			}
+		}
+	}
+	
+	print "Please enter the GTF file path. Leave blank if you don't want to add one..\n";
+	my $gtf_path;
+	GTFWHILE: while ($gtf_path = <STDIN>){
+		chomp ($gtf_path);
+		if(length($gtf_path) == 0){
+			print "Ok, not adding any GTF paths..\n\n";
+			last;
+		} elsif (-e $gtf_path) {
+			print "Looks good! The file exists.\n\n";
+			last;
+		} else {
+			print "This file doesn't seem to exist.";
+		}
+		print "Do you want to add this to the config file anyway?\n";
+		while (my $continue = <STDIN>){
+			chomp ($continue);
+			if ($continue =~ /^n(o)?/i){
+				print "\nOk, please enter the GTF path again:\n\n";
+				last;
+			} elsif($continue =~ /^y(es)?/i){
+				print "\nOk, I'll add $gtf_path\n\n";
+				last GTFWHILE;
+			} else {
+				print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+			}
+		}
+	}
+	
+	# Write the new paths to the file
+	if(length($genome_path) > 0){
+		print OUT "\@genome_path\t$genomeID\t$genome_path\t$species\t$assembly\n";
+		print "Added genome path $genomeID: $genome_path\n";
+	}
+	if(length($bowtie_path) > 0){
+		print OUT "\@bowtie_path\t$genomeID\t$bowtie_path\t$species\t$assembly\n";
+		print "Added bowtie path $genomeID: $bowtie_path\n";
+	}
+	if(length($gtf_path) > 0){
+		print OUT "\@gtf_path\t$genomeID\t$gtf_path\t$species\t$assembly\n";
+		print "Added GTF path $genomeID: $gtf_path\n";
+	}
+	close (OUT);
+	print "Ok, that's all! To check that this wizard has worked, you can run cf --list_genomes\n\n";
+}
+
+
+
+
+
+
+
+
+
+####################################
 # Function to run interactive shell prompt to generate a config file for first run
-sub clusterflow_make_config{
+####################################
+sub clusterflow_make_config {
 	
 	my $fn = $homedir."/clusterflow/clusterflow.config";
 	
