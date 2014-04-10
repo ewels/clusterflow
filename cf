@@ -700,7 +700,7 @@ for (my $i = 0; $i <= $#files; $i++){
 	my $run_finish_id = $jid_base."email_run_complete_".int(rand(999));
 	my $run_finish_qsub = "";
 	if($CLUSTER_ENVIRONMENT eq 'LSF'){
-		$run_finish_qsub .= "bsub -n 1 -M 500 -R \"rusage[mem=500]\" -oo $outfn -J $run_finish_id -w \"done(".join(" && ", @{$run_job_ids{$runfn}}).")\" -N \"$Bin/modules/cf_run_finished.cfmod $runfn $run_finish_id null 1 1G $pipeline $outfn\"";
+		$run_finish_qsub .= "bsub -n 1 -M 500 -R \"rusage[mem=500]\" -oo $outfn -J $run_finish_id -w 'done(\"".join("\") && done(\"", @{$run_job_ids{$runfn}})."\")' -N \"$Bin/modules/cf_run_finished.cfmod $runfn $run_finish_id null 1 1G $pipeline $outfn\"";
 	} else {
 		$run_finish_qsub .= "echo \"$Bin/modules/cf_run_finished.cfmod $runfn $run_finish_id null 1 1G $pipeline $outfn\" | qsub -cwd -V -o $outfn -j y -N $run_finish_id -hold_jid ".join(",", @{$run_job_ids{$runfn}});
 	}
@@ -814,14 +814,14 @@ sub make_qsubs {
 		if($CLUSTER_ENVIRONMENT eq 'LSF'){
 			$mem = CF::Helpers::mem_return_mbs($mem);
 			# Not currently setting priority with -sp $PRIORITY (needs to be > 0)
-			$qsub = "bsub -n $cores -M $mem -R \"rusage[mem=$mem]\" -oo $outfn -J $job_id ";
-			if(length($prev_job) > 0 && $prev_job ne 'start_0000'){
-				$qsub .= "-w \"done($prev_job)\" ";
+			$qsub = "bsub -n $cores -M $mem -R \"rusage[mem=$mem]\" -o $outfn -J $job_id ";
+			if(length($prev_job) > 0 && $prev_job ne 'start_000'){
+				$qsub .= "-w 'done(\"$prev_job\")' ";
 			}
 			$qsub .= "-N \"$module_fn $runfn $job_id $prev_job $cores $mem $parameters\"";
 		} else {
 			$qsub = "echo \"$module_fn $runfn $job_id $prev_job $cores $mem $parameters\" | qsub -cwd -V -pe orte $cores -l vf=$mem -p $PRIORITY -o $outfn -j y $notifications -N $job_id";
-			if(length($prev_job) > 0 && $prev_job ne 'start_0000'){
+			if(length($prev_job) > 0 && $prev_job ne 'start_000'){
 				$qsub .= " -hold_jid $prev_job";
 			}
 		}
