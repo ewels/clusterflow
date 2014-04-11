@@ -423,4 +423,37 @@ sub allocate_memory {
 }
 
 
+
+# Function to properly split up version numbers
+# Returns true if second supplied vn is newer than first
+sub cf_compare_version_numbers {
+	
+	my ($vn1_string, $vn2_string) = @_;
+	
+	my @vn1_parts = split(/\.|\s+/, $vn1_string);
+	my @vn2_parts = split(/\.|\s+/, $vn2_string);
+	
+	for my $i (0 .. $#vn2_parts){
+		if(defined($vn1_parts[$i])){
+			
+			# Numeric checks
+			if($vn1_parts[$i] =~ /^\d+$/ && $vn2_parts[$i] =~ /^\d+$/){
+				if($vn2_parts[$i] > $vn1_parts[$i]){
+					return 1;
+				}
+			} elsif($vn1_parts[$i] !~ /^\d+$/ && $vn2_parts[$i] =~ /^\d+$/){
+				# 0.1.1 beats 0.1 devel
+				return 1;
+			}
+		} else {
+			return 1;
+		}
+	}
+	
+	return 0;
+	
+}
+
+
+
 1; # Must return a true value

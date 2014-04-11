@@ -53,6 +53,13 @@ Use hicup --help for further information.\n\n";
 # MODULE
 my $timestart = time;
 
+# Make sure that we have a recent enough version of HiCUP
+my $hicup_version = `hicup -v`;
+unless(CF::Helpers::cf_compare_version_numbers($hicup_version, '0.5')){
+	warn "\n\n###CF Error - HiCUP version $hicup_version is installed, version 0.5 is required for Cluster Flow. Exiting.. ###\n\n";
+	exit;
+}
+
 # Read in the input files from the run file
 my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
 my %config = %$config_ref;
@@ -202,7 +209,7 @@ for (my $i = 0; $i <= $num_files; $i++){
 			warn "\n###CFCMD $command\n\n";
 			
 			if(!system ($command)){
-				# Bismark worked - print out resulting filenames
+				# HiCUP worked - print out resulting filenames
 				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 				warn "###CF HiCUP successfully exited, took $duration..\n";
 				if(-e $output_fn){
