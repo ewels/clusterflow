@@ -40,7 +40,7 @@ warn "\n###CFCMD $command\n\n";
 if(!system ($command)){
 	# Download worked - print resulting filename to results file
 	print RUN "$job_id\t$dl_fn\n";
-	my $duration =  CF::Helpers::parse_seconds($timestart - time);
+	my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 	warn "###CF Download worked - took $duration\n";
 } else {
 	# Download failed - don't print a filename so that child processes exit silently
