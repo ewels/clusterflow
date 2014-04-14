@@ -224,8 +224,16 @@ sub list_clusterflow_genomes {
 			$returnstring .= " Key                 Species             Assembly            Path\n".("-" x 100)."\n";
 			foreach my $key (sort keys %GENOME_PATHS ) {
 				my $key_spaces = " " x (20 - length($key));
-				my $species_spaces = " " x (20 - length($GENOME_SPECIES{$key}));
-				my $assembly_spaces = " " x (15 - length($GENOME_ASSEMBLIES{$key}));
+				if(defined($GENOME_SPECIES{$key})){
+					my $species_spaces = " " x (20 - length($GENOME_SPECIES{$key}));
+				} else {
+					my $species_spaces = " " x 20;
+				}
+				if(defined($GENOME_ASSEMBLIES{$key})){
+					my $assembly_spaces = " " x (15 - length($GENOME_ASSEMBLIES{$key}));
+				} else {
+					my $assembly_spaces = " " x 15;
+				}
 				if($GENOME_PATH_CONFIGS{$key} eq $config_file){
 					$returnstring .= " ".$key.$key_spaces.$GENOME_SPECIES{$key}.$species_spaces.$GENOME_ASSEMBLIES{$key}.$assembly_spaces.$GENOME_PATHS{$key}."\n";
 				}
