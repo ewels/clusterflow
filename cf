@@ -620,7 +620,7 @@ for (my $i = 0; $i <= $#files; $i++){
 	# Make the run file
 	my $runfn = $fn."_$pipeline.run";
 	my $date = strftime "%H:%M, %d-%m-%Y", localtime;
-	my $this_runfile = "/*\n$runfn\nCreated at $date\n*/\n\n".$runfile."\n\n";
+	my $this_runfile = "/*\nCluster Flow Run File\nPipeline: $pipeline\nCreated at $date\n*/\n\n".$runfile."\n\n";
 	
 	# Add files to run file
 	my $max_i = $i + $SPLIT_FILES;
@@ -821,18 +821,21 @@ sub make_qsubs {
 		
 		# Create qsub command
 		my $qsub = "";
+		my $holdjid = $prev_job;
+		# Strip number from download job ID so that these files are all read in the next module
+		$prev_job =~ s/download_[\d]{3}$/download/;
 		if($CLUSTER_ENVIRONMENT eq 'LSF'){
 			$mem = CF::Helpers::mem_return_mbs($mem);
 			# Not currently setting priority with -sp $PRIORITY (needs to be > 0)
 			$qsub = "bsub -n $cores -M $mem -R \"rusage[mem=$mem]\" -o $outfn -J $job_id ";
-			if(length($prev_job) > 0 && $prev_job ne 'start_000'){
-				$qsub .= "-w 'done(\"$prev_job\")' ";
+			if(length($holdjid) > 0 && $prev_job ne 'start_000'){
+				$qsub .= "-w 'done(\"$holdjid\")' ";
 			}
 			$qsub .= "-N \"$module_fn $runfn $job_id $prev_job $cores $mem $parameters\"";
 		} else {
 			$qsub = "echo \"$module_fn $runfn $job_id $prev_job $cores $mem $parameters\" | qsub -cwd -V -pe orte $cores -l vf=$mem -p $PRIORITY -o $outfn -j y $notifications -N $job_id";
-			if(length($prev_job) > 0 && $prev_job ne 'start_000'){
-				$qsub .= " -hold_jid $prev_job";
+			if(length($holdjid) > 0 && $prev_job ne 'start_000'){
+				$qsub .= " -hold_jid $holdjid";
 			}
 		}
 		

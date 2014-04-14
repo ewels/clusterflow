@@ -28,6 +28,9 @@ my $timestart = time;
 # Read in the input files from the run file
 my ($runfile, $job_id, $url, $dl_fn) = @ARGV;
 
+# Strip number from download job ID so that these files are all read in the next module
+$job_id =~ s/download_[\d]{3}$/download/;
+
 warn "\n---------------------\nDownloading $dl_fn from $url\nStarted at ".strftime("%H:%M, %A - %d/%m/%Y", localtime)."\n";
 
 open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
