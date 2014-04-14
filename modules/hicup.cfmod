@@ -191,8 +191,8 @@ for (my $i = 0; $i <= $num_files; $i++){
 			}
 			
 			# Work out directory
-			my $outputdir = $p_files[0];
-			$outputdir =~ s/(\.)?(r_[12])?(_val_[12])?\.f(ast)?q.+//i;
+			# my $outputdir = $p_files[0];
+			# $outputdir =~ s/(\.)?(r_[12])?(_val_[12])?\.f(ast)?q.+//i;
 			
 			# Work out the output filename
 			my $fn1_base = $p_files[0];
@@ -205,7 +205,8 @@ for (my $i = 0; $i <= $num_files; $i++){
 			$fn2_base =~ s/.fastq$//;
 			my $output_fn = "uniques_".$fn1_base."_trunc_".$fn2_base."_trunc.bam";
 			
-			my $command = "hicup --zip --bowtie bowtie --digest $digest $enc --index ".$config{bowtie_path}." --longest $longest --shortest $shortest --re1 $re1 --threads $cores -o $outputdir --filenames ".$p_files[0].",".$p_files[1];
+			# removed -o $outputdir  from command
+			my $command = "hicup --zip --bowtie bowtie --digest $digest $enc --index ".$config{bowtie_path}." --longest $longest --shortest $shortest --re1 $re1 --threads $cores --filenames ".$p_files[0].",".$p_files[1];
 			warn "\n###CFCMD $command\n\n";
 			
 			if(!system ($command)){
