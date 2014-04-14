@@ -27,7 +27,7 @@ if($required_mem){
 }
 # --modules. Return csv names of any modules which should be loaded.
 if($required_modules){
-	print 'hicup/0.5.0.dev';
+	print 'hicup_cluster/0.0.1.clusterdev';
 	exit;
 }
 # --help. Print help.
