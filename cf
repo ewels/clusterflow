@@ -644,8 +644,13 @@ for (my $i = 0; $i <= $#files; $i++){
 				my @parts = split("/", $fn);
 				$dl_fn = pop(@parts);
 			}
-			$runfn = $dl_fn."_$pipeline.run";
-			$outfn = $dl_fn."_$pipeline.out";
+			
+			# Only do this the first time, else we create a new file for each download when using --split_files
+			if ($runfn =~ /^(((ht|f)tp(s?))\:\/\/)/){
+				$runfn = $dl_fn."_$pipeline.run";
+				$outfn = $dl_fn."_$pipeline.out";
+			}
+			
 			push @outfns, $outfn;
 			
 			# URL - set up download module qsub job, dependent on previous download job

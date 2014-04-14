@@ -83,11 +83,16 @@ if($config{notifications}{complete} && defined($config{email})){
 my $message_body = "The pipeline $pipeline has completed.
 
 The working directory was ".getcwd()."/
+See below for highlighted status messages and the commands that were run.
 
+=================================
 == Highlighted status messages ==
+=================================
 ".join("\n", @highlights)."
-\n\n
+\n\n\n\n\n
+==================
 == Commands Run ==
+==================
 ".join("\n", @commands)."
 \n\n";
 

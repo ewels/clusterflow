@@ -80,12 +80,16 @@ if($config{notifications}{run} && defined($config{email})){
 
 The working directory was ".getcwd()."/
 The runfile is $runfile
+See below for highlighted status messages and the commands that were run.
 
+=================================
 == Highlighted status messages ==
+=================================
 - ".join("\n- ", @highlights)."
-
-
+\n\n\n\n\n
+==================
 == Commands run ==
+==================
 - ".join("\n", @commands)."
 
 
