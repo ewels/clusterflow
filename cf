@@ -679,9 +679,8 @@ for (my $i = 0; $i <= $#files; $i++){
 			$this_runfile .= "$job_id\t$fn\n";
 			push @outfns, $outfn;
 		
-		} else { # Not a URL, file doesn't exist
-			print "\nFile $fn doesn't exist.. Skipping..\n\n";
-			next;
+		} else { # Not a URL, file doesn't exist. Something is wrong!
+			die "\nFile $fn doesn't exist.. Something is wrong! Exiting...\n\n";
 		}
 		
 		# Write status update (now that we have a solid filename)
