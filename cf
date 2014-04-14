@@ -654,7 +654,7 @@ for (my $i = 0; $i <= $#files; $i++){
 			push @outfns, $outfn;
 			
 			# URL - set up download module qsub job, dependent on previous download job
-			$job_id = $jid_base.'download_'.int(rand(999));
+			$job_id = $jid_base.'download_'.sprintf("%03d", rand(999));
 			my $qsub = "";
 			if($CLUSTER_ENVIRONMENT eq 'LSF'){
 				$qsub .= "bsub -n 1 -M 1000 -R \"rusage[mem=1000]\" -oo $outfn -J $job_id ";
@@ -707,7 +707,7 @@ for (my $i = 0; $i <= $#files; $i++){
 	make_qsubs (\%module_tree, $job_id, $runfn, $outfn);
 	
 	# Qsub job to execute on completion of this run
-	my $run_finish_id = $jid_base."email_run_complete_".int(rand(999));
+	my $run_finish_id = $jid_base."email_run_complete_".sprintf("%03d", rand(999));
 	my $run_finish_qsub = "";
 	if($CLUSTER_ENVIRONMENT eq 'LSF'){
 		$run_finish_qsub .= "bsub -n 1 -M 500 -R \"rusage[mem=500]\" -oo $outfn -J $run_finish_id -w 'done(\"".join("\") && done(\"", @{$run_job_ids{$runfn}})."\")' -N \"$Bin/modules/cf_run_finished.cfmod $runfn $run_finish_id null 1 1G $pipeline $outfn\"";
@@ -719,7 +719,7 @@ for (my $i = 0; $i <= $#files; $i++){
 	
 	# Final qsub job to execute on completion of ALL JOBS
 	if($i == $#files){
-		my $all_runs_finish_id = $jid_base."email_pipeline_complete_".int(rand(999));
+		my $all_runs_finish_id = $jid_base."email_pipeline_complete_".sprintf("%03d", rand(999));
 		my $all_runs_finish_qsub = "";
 		if($CLUSTER_ENVIRONMENT eq 'LSF'){
 			$all_runs_finish_qsub .= "bsub -n 1 -M 500 -R \"rusage[mem=500]\" -oo $outfn -J $all_runs_finish_id -w \"done(".join(" && ", @finished_run_ids).")\" -N \"$Bin/modules/cf_runs_all_finished.cfmod $runfn $run_finish_id null 1 1G $pipeline ".join(" ", @outfns)."\"";
@@ -764,7 +764,7 @@ sub make_qsubs {
 	
 		# Set up parameters for these leaves
 		my ($module, $parameters) = split(/\s+/, $_, 2);
-		my $job_id = $jid_base.$module.'_'.int(rand(999));
+		my $job_id = $jid_base.$module.'_'.sprintf("%03d", rand(999));
 		
 		unless(length($module) > 0){
 			next;
