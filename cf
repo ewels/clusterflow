@@ -540,6 +540,7 @@ while (<CONFIG>){
 	
 	# Read the pipeline tree
 	if($_ =~ /^(\t*)#/ && !$comment_block){
+	
 		# Add in any command line parameters to each module
 		if($cl_params){
 			$cl_params =~ s/^\s+|\s+$//g; # trim whitespace
@@ -547,7 +548,8 @@ while (<CONFIG>){
 		} else {
 			$pipeline_string .= "$_\n";
 		}
-		s/^(\t*)#//;
+		
+		$_ =~ s/^(\t*)#//; # Remove hash and count tabs
 		splice @indents, length($1)+1;
 		push @indents, $indents[$#indents]->{$_} = {};
 	}

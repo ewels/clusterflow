@@ -37,15 +37,13 @@ The bismark_methXtract module runs the bismark_methylation_extractor script.
 This reads in a bisulfite read alignment results file produced by the Bismark bisulfite
 mapper and extracts the methylation information for individual cytosines in CpG, CHG 
 and CHH context.\n".
-/*
-Specifying the pbat or single_cell parameters in a pipeline
-will add --ignore 4 to the command. eg:
-  #bismark_methXtract	pbat
-or
-  #bismark_methXtract	single_cell
-Runs the command:
-  bismark_methylation_extractor --ignore 4 ....\n
-*/
+# Specifying the pbat or single_cell parameters in a pipeline
+# will add --ignore 4 to the command. eg:
+  # bismark_methXtract	pbat
+# or
+  # bismark_methXtract	single_cell
+# Runs the command:
+  # bismark_methylation_extractor --ignore 4 ....\n
 "Use bismark_methylation_extractor --help for more information.\n\n";
 	exit;
 }
