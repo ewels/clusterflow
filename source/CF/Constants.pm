@@ -388,9 +388,9 @@ AVAILABLE FLAGS
 	--file_list
 		Text file containing input files or download URLs
 		
-	--mod_params
-		Specify module parameters when running a single module.
-		Ignored if a pipeline name is specified.
+	--params
+		Specify extra module parameters. These will be applied to every
+		module if a pipeline name is specified.
 		
 	--split_files <num>
 		Create one run per <num> files
