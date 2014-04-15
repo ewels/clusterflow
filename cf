@@ -484,15 +484,17 @@ while (<CONFIG>){
 	s/\n//;
 	s/\r//;
 	
-	# Add to runfile string
-	$runfile .= "$_\n";
+	
+	
 	
 	# Ignore comment blocks
 	if($_ =~ /^\/\*/){
+		$runfile .= "$_\n";
 		$comment_block = 1;
 		next;
 	}
 	if($_ =~ /^\*\//){
+		$runfile .= "$_\n";
 		$comment_block = 0;
 		next;
 	}
@@ -543,15 +545,20 @@ while (<CONFIG>){
 	
 		# Add in any command line parameters to each module
 		if($cl_params){
-			$cl_params =~ s/^\s+|\s+$//g; # trim whitespace
 			$pipeline_string .= "$_\t$cl_params\n";
+			$runfile .= "$_\t$cl_params\n";
 		} else {
 			$pipeline_string .= "$_\n";
+			$runfile .= "$_\n";
 		}
 		
 		$_ =~ s/^(\t*)#//; # Remove hash and count tabs
 		splice @indents, length($1)+1;
 		push @indents, $indents[$#indents]->{$_} = {};
+	
+	# Add everything else to runfile string
+	} else {
+		$runfile .= "$_\n";
 	}
 	
 }
