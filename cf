@@ -83,7 +83,9 @@ my $config_result = GetOptions(
 	"help" => \$cl_help
 );
 
-die "Could not parse options" unless ($config_result);
+if(!$config_result){
+	die "Error! could not parse command line options.. For help, run cf --help\n";
+}
 
 # Get the pipeline and file list
 $pipeline = shift(@ARGV);

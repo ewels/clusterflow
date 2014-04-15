@@ -76,10 +76,10 @@ foreach my $parameter (@$parameters){
 	if($parameter eq "pbat"){
 		$pbat = "--pbat";
 	}
-	if($parameter eq "bt2"){
+	if($parameter eq "bt1"){
 		$bt1 = 1;
-	}
-	if($parameter eq "bt2"){
+		$bt2 = "";
+	} elsif($parameter eq "bt2"){
 		$bt2 = "--bowtie2";
 	}
 	if($parameter eq "single_cell"){
