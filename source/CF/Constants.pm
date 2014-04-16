@@ -23,6 +23,7 @@ our $SPLIT_FILES = 1;
 our $PRIORITY = -500;
 our $TOTAL_CORES = 64;
 our $TOTAL_MEM = '4G';
+our $MAX_RUNS = 12;
 our $CLUSTER_ENVIRONMENT = 'GRIDEngine';
 our $CF_MODULES = 1;
 
@@ -92,6 +93,8 @@ sub parse_conf_file {
 						$SPLIT_FILES = $val;
 					} elsif($name eq 'priority'){
 						$PRIORITY = $val;
+					} elsif($name eq 'max_runs'){
+						$MAX_RUNS = $val;
 					} elsif($name eq 'total_cores'){
 						$TOTAL_CORES = $val;
 					} elsif($name eq 'total_mem'){

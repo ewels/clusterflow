@@ -98,6 +98,7 @@ my $AVAILABLE_VERSION = $CF::Constants::AVAILABLE_VERSION;
 my $UPDATES_LAST_CHECKED = $CF::Constants::UPDATES_LAST_CHECKED;
 my @NOTIFICATIONS = @CF::Constants::NOTIFICATIONS;
 my $PRIORITY = $CF::Constants::PRIORITY;
+my $MAX_RUNS = $CF::Constants::MAX_RUNS;
 my $TOTAL_CORES = $CF::Constants::TOTAL_CORES;
 my $TOTAL_MEM = $CF::Constants::TOTAL_MEM;
 my $CLUSTER_ENVIRONMENT = $CF::Constants::CLUSTER_ENVIRONMENT;
@@ -428,16 +429,18 @@ if ($cl_paired_end){
 	}
 }
 
-# Is max_runs set? Set split_files now that we now how many files we have
+# MAX RUNS
+# Is max_runs set on the command line? Override config defaults if so
 if($cl_max_runs){
-	$cl_max_runs =~ s/\D//g; # remove any non-numbers
-	if($cl_max_runs > 0){
-		$SPLIT_FILES = int(($num_files / $cl_max_runs) + 0.99); # + 0.99 is to do a ceiling round
-		if ($cl_paired_end && ($SPLIT_FILES % 2 == 1)){
-			$SPLIT_FILES++;
-		}
-		warn "Processing $num_files files in $cl_max_runs runs. Submitting $SPLIT_FILES files per run.\n\n";
-	}	
+	$MAX_RUNS = ($cl_max_runs =~ s/\D//g); # remove any non-numbers
+}
+# Set split_files now that we know how many files we have
+if($MAX_RUNS > 0){
+	$SPLIT_FILES = int(($num_files / $MAX_RUNS) + 0.99); # + 0.99 is to do a ceiling round
+	if ($cl_paired_end && ($SPLIT_FILES % 2 == 1)){
+		$SPLIT_FILES++;
+	}
+	warn "Processing $num_files files in $MAX_RUNS runs. Submitting $SPLIT_FILES files per run.\n\n";
 }
 my $num_runs = int(($num_files / $SPLIT_FILES) + 0.99); # + 0.99 is to do a ceiling round
 
@@ -483,9 +486,6 @@ while (<CONFIG>){
 	chomp;
 	s/\n//;
 	s/\r//;
-	
-	
-	
 	
 	# Ignore comment blocks
 	if($_ =~ /^\/\*/){
