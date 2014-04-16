@@ -399,8 +399,9 @@ AVAILABLE FLAGS
 		Create one run per <num> files
 	
 	--max_runs <num>
-		Divide input files into <num> runs.
-		Overrides --split_files
+		Divide input files into <num> runs. Overrides --split_files
+		Setting this will override the default value set in
+		clusterflow.config. Set to 0 to disable max_runs.
 		
 	--email <email>
 		Set the e-mail address for notifications

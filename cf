@@ -422,18 +422,24 @@ if(!$cl_paired_end && !$cl_single_end && $fastq_count > 1){
 }
 
 
+
+#
+# MAX RUNS and SPLIT FILES
+#
+# Is max_runs set on the command line? Override config defaults if so
+if(defined($cl_max_runs)){
+	$cl_max_runs =~ s/\D//g; # remove any non-numbers
+	$MAX_RUNS = $cl_max_runs;
+}
+# Is split_files set on the command line? Disable max_runs if so
+if($SPLIT_FILES > 2 && !defined($cl_max_runs)){
+	$MAX_RUNS = 0;
+}
 # Forcing paired end or single end
 if ($cl_paired_end){
 	if($SPLIT_FILES == 1){
 		$SPLIT_FILES = 2;
 	}
-}
-
-# MAX RUNS
-# Is max_runs set on the command line? Override config defaults if so
-if(defined($cl_max_runs)){
-	$cl_max_runs =~ s/\D//g; # remove any non-numbers
-	$MAX_RUNS = $cl_max_runs;
 }
 # Set split_files now that we know how many files we have
 if($MAX_RUNS > 0){
