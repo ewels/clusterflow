@@ -87,13 +87,9 @@ foreach my $parameter (@$parameters){
 		$bt2 = "--bowtie2";
 	}
 }
-if($pbat && $bt2){
-	warn "Error - bowtie 2 cannot be used with PBAT mode. Using bowtie 1...\n";
-	$bt2 = "";
-}
 
 # Work out whether we should use bowtie 1 or 2 by read length
-if(!$bt1 && !$bt2 && !$pbat){
+if(!$bt1 && !$bt2){
 	if(!CF::Helpers::fastq_min_length($files->[0], 75)){
 		warn "First file has reads < 75bp long. Using bowtie 1 for aligning with bismark.\n";
 		$bt1 = 1;

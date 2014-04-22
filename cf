@@ -552,8 +552,9 @@ while (<CONFIG>){
 	
 		# Add in any command line parameters to each module
 		if($cl_params){
-			$pipeline_string .= "$_\t$cl_params\n";
-			$runfile .= "$_\t$cl_params\n";
+			$pipeline_string .= "$_ $cl_params\n";
+			$runfile .= "$_ $cl_params\n";
+			$_ .= " $cl_params";
 		} else {
 			$pipeline_string .= "$_\n";
 			$runfile .= "$_\n";
@@ -780,7 +781,7 @@ sub make_qsubs {
 	foreach ( keys %{$mod_tree} ){
 	
 		# Set up parameters for these leaves
-		my ($module, $parameters) = split(/\s+/, $_, 2);
+		my ($module, $parameters) = split(/\s/, $_, 2);
 		my $job_id = $jid_base.$module.'_'.sprintf("%03d", rand(999));
 		
 		unless(length($module) > 0){
