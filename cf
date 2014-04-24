@@ -5,13 +5,31 @@ use Getopt::Long;
 use POSIX qw(strftime);
 use FindBin qw($Bin);
 use lib "$FindBin::Bin/source";
-# use lib "$Bin/../source";
 use CF::Constants;
 use CF::Helpers;
 use CF::Headnodehelpers;
 use Data::Dumper;
 
 no warnings qw(once);
+
+##########################################################################
+# Copyright 2014, Philip Ewels (phil.ewels@babraham.ac.uk)               #
+#                                                                        #
+# This file is part of Cluster Flow.                                     #
+#                                                                        #
+# Cluster Flow is free software: you can redistribute it and/or modify   #
+# it under the terms of the GNU General Public License as published by   #
+# the Free Software Foundation, either version 3 of the License, or      #
+# (at your option) any later version.                                    #
+#                                                                        #
+# Cluster Flow is distributed in the hope that it will be useful,        #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of         #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          #
+# GNU General Public License for more details.                           #
+#                                                                        #
+# You should have received a copy of the GNU General Public License      #
+# along with Cluster Flow.  If not, see <http://www.gnu.org/licenses/>.  #
+##########################################################################
 
 my $CF_VERSION = $CF::Constants::CF_VERSION;
 my $homedir = $ENV{"HOME"}; #$CF::Constants::homedir;

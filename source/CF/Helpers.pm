@@ -8,6 +8,26 @@ use Exporter;
 use POSIX qw(strftime);
 use Time::Local;
 
+##########################################################################
+# Copyright 2014, Philip Ewels (phil.ewels@babraham.ac.uk)               #
+#                                                                        #
+# This file is part of Cluster Flow.                                     #
+#                                                                        #
+# Cluster Flow is free software: you can redistribute it and/or modify   #
+# it under the terms of the GNU General Public License as published by   #
+# the Free Software Foundation, either version 3 of the License, or      #
+# (at your option) any later version.                                    #
+#                                                                        #
+# Cluster Flow is distributed in the hope that it will be useful,        #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of         #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          #
+# GNU General Public License for more details.                           #
+#                                                                        #
+# You should have received a copy of the GNU General Public License      #
+# along with Cluster Flow.  If not, see <http://www.gnu.org/licenses/>.  #
+##########################################################################
+
+
 sub load_runfile_params {
 	my ($runfile, $job_id, $prev_job_id, $cores, $mem, @parameters) = @_;
 	unless (defined $prev_job_id && length($prev_job_id) > 0) {

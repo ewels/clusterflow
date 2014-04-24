@@ -20,6 +20,7 @@ These will be overwritten by any with the same name in ~/clusterflow/clusterflow
 @priority	-500
 @total_cores	64
 @total_mem	128G
+@max_runs       12
 
 /***********************/
 /* Cluster Environment */
