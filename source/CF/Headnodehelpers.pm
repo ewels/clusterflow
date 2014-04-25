@@ -415,8 +415,7 @@ sub cf_check_updates {
 	my ($current_version) = @_;
 	
 	# Get contents of Cluster Flow current version file using LWP::Simple
-	# my $version_url = 'http://www.bioinformatics.babraham.ac.uk/projects/clusterflow/version.txt';
-	my $version_url = 'http://bilin1/projects/clusterflow/version.txt';
+	my $version_url = 'http://www.bioinformatics.babraham.ac.uk/projects/clusterflow/version.txt';
 	my $avail_version = get($version_url) or return "Can't access address to check available version:\n$version_url\n\n";
 	my $timestamp = time();
 	
