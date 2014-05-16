@@ -120,6 +120,8 @@ my $MAX_RUNS = $CF::Constants::MAX_RUNS;
 my $TOTAL_CORES = $CF::Constants::TOTAL_CORES;
 my $TOTAL_MEM = $CF::Constants::TOTAL_MEM;
 my $CLUSTER_ENVIRONMENT = $CF::Constants::CLUSTER_ENVIRONMENT;
+my $PROJECT_ID = $CF::Constants::PROJECT_ID;
+my $JOB_TIMELIMIT = $CF::Constants::JOB_TIMELIMIT;
 my $CF_MODULES = $CF::Constants::CF_MODULES;
 
 # Set up genomes
@@ -771,30 +773,6 @@ sub make_qsubs {
 	my ($mod_tree, $prev_job, $runfn, $outfn) = @_;
 	my %mod_load_failures;
 	
-	# Work out qsub notification settings
-	my $notifications = "";
-	if(defined($EMAIL) && length($EMAIL) > 0 && @NOTIFICATIONS){
-		my $count = 0;
-		$notifications = "-M $EMAIL -m ";
-		foreach my $not (@NOTIFICATIONS){
-			if($not eq 'suspend'){
-				$notifications .= 's';
-				$count++;
-			}
-			if($not eq 'end'){
-				$notifications .= 'e';
-				$count++;
-			}
-			if($not eq 'abort'){
-				$notifications .= 'a';
-				$count++;
-			}
-		}
-		if($count == 0){
-			$notifications = "";
-		}
-	}
-	
 	# Run through leaves
 	foreach ( keys %{$mod_tree} ){
 	
@@ -854,25 +832,27 @@ sub make_qsubs {
 			}
 		}
 		
-		# Create qsub command
-		my $qsub = "";
+		# Create cluster job submission command
 		my $holdjid = $prev_job;
 		# Strip number from download job ID so that these files are all read in the next module
 		$prev_job =~ s/download_[\d]{3}$/download/;
-		if($CLUSTER_ENVIRONMENT eq 'LSF'){
-			$mem = CF::Helpers::mem_return_mbs($mem);
-			# Not currently setting priority with -sp $PRIORITY (needs to be > 0)
-			$qsub = "bsub -n $cores -M $mem -R \"rusage[mem=$mem]\" -o $outfn -J $job_id ";
-			if(length($holdjid) > 0 && $prev_job ne 'start_000'){
-				$qsub .= "-w 'done(\"$holdjid\")' ";
-			}
-			$qsub .= "-N \"$module_fn $runfn $job_id $prev_job $cores $mem $parameters\"";
-		} else {
-			$qsub = "echo \"$module_fn $runfn $job_id $prev_job $cores $mem $parameters\" | qsub -cwd -V -pe orte $cores -l vf=$mem -p $PRIORITY -o $outfn -j y $notifications -N $job_id";
-			if(length($holdjid) > 0 && $prev_job ne 'start_000'){
-				$qsub .= " -hold_jid $holdjid";
-			}
-		}
+		my $cmd = "$module_fn $runfn $job_id $prev_job $cores $mem $parameters";
+		my $qsub = submit_job($cmd, $job_id, $holdjid, $prev_job, $cores, $mem, $outfn);
+
+		# if($CLUSTER_ENVIRONMENT eq 'LSF'){
+		# 	$mem = CF::Helpers::mem_return_mbs($mem);
+		# 	# Not currently setting priority with -sp $PRIORITY (needs to be > 0)
+		# 	$qsub = "bsub -n $cores -M $mem -R \"rusage[mem=$mem]\" -o $outfn -J $job_id ";
+		# 	if(length($holdjid) > 0 && $prev_job ne 'start_000'){
+		# 		$qsub .= "-w 'done(\"$holdjid\")' ";
+		# 	}
+		# 	$qsub .= "-N \"$module_fn $runfn $job_id $prev_job $cores $mem $parameters\"";
+		# } else {
+		# 	$qsub = "echo \"$module_fn $runfn $job_id $prev_job $cores $mem $parameters\" | qsub -cwd -V -pe orte $cores -l vf=$mem -p $PRIORITY -o $outfn -j y $notifications -N $job_id";
+		# 	if(length($holdjid) > 0 && $prev_job ne 'start_000'){
+		# 		$qsub .= " -hold_jid $holdjid";
+		# 	}
+		# }
 		
 		push @qsubs, $qsub;
 		push @job_ids, $job_id;
@@ -894,7 +874,98 @@ sub make_qsubs {
 	}
 }
 
-
+sub submit_job {
+	
+	# Get the required variables to assemble this job submission
+	my ($cmd, $job_id, $holdjid, $prev_job, $cores, $mem, $outfn) = @_;
+	my $qsub = "";
+	
+	#########################
+	# Build command for LSF #
+	#########################
+	if($CLUSTER_ENVIRONMENT =~ /LSF/i){
+		# Memory has to be specified in megabytes for LSF
+		$mem = CF::Helpers::mem_return_mbs($mem);
+		# Not currently setting priority with -sp $PRIORITY (needs to be > 0)
+		$qsub = "bsub -n $cores -M $mem -R \"rusage[mem=$mem]\" -o $outfn -J $job_id ";
+		if(length($holdjid) > 0 && $prev_job ne 'start_000'){
+			$qsub .= "-w 'done(\"$holdjid\")' ";
+		}
+		$qsub .= "-N \"$cmd\"";
+	
+	###########################
+	# Build command for SLURM #
+	###########################
+	} elsif($CLUSTER_ENVIRONMENT =~ /SLURM/i){
+		# Work out qsub notification settings
+		my $notifications = "";
+		if(defined($EMAIL) && length($EMAIL) > 0 && @NOTIFICATIONS){
+			my $count = 0;
+			$notifications = "--mail-user=$EMAIL";
+			if((grep $_ eq 'suspend', @NOTIFICATIONS) or (grep $_ eq 'abort', @NOTIFICATIONS)){
+				$notifications .= ' --mail-type=FAIL';
+			}
+			if(grep $_ eq 'end', @NOTIFICATIONS){
+				$notifications .= ' --mail-type=END';
+			}
+		}
+		
+		# Look for a project ID
+		my $project = "";
+		if($PROJECT_ID && length($PROJECT_ID) > 0){
+			$project = "-A $PROJECT_ID";
+		}
+		
+		# Look for a project time limit
+		my $timelimit = "";
+		if($JOB_TIMELIMIT && length($JOB_TIMELIMIT) > 0){
+			$timelimit = "-t $JOB_TIMELIMIT";
+		}
+		
+		# Assemble the command
+		$qsub = "sbatch $project -p core -n $cores --priority $PRIORITY $timelimit $notifications -o $outfn -J $job_id --wrap=\"$cmd\"";
+		if(length($holdjid) > 0 && $prev_job ne 'start_000'){
+			$qsub .= " -d=afterany:$holdjid";
+		}
+	
+	###########################################
+	# Default - build command for GRID Engine #
+	###########################################
+	} else {
+		# Work out qsub notification settings
+		my $notifications = "";
+		if(defined($EMAIL) && length($EMAIL) > 0 && @NOTIFICATIONS){
+			my $count = 0;
+			$notifications = "-M $EMAIL -m ";
+			foreach my $not (@NOTIFICATIONS){
+				if($not eq 'suspend'){
+					$notifications .= 's';
+					$count++;
+				}
+				if($not eq 'end'){
+					$notifications .= 'e';
+					$count++;
+				}
+				if($not eq 'abort'){
+					$notifications .= 'a';
+					$count++;
+				}
+			}
+			if($count == 0){
+				$notifications = "";
+			}
+		}
+		
+		# Assemble the command
+		$qsub = "echo \"$cmd\" | qsub -cwd -V -pe orte $cores -l vf=$mem -p $PRIORITY -o $outfn -j y $notifications -N $job_id";
+		if(length($holdjid) > 0 && $prev_job ne 'start_000'){
+			$qsub .= " -hold_jid $holdjid";
+		}
+	}
+	
+	return $qsub;
+	
+}
 
 # Print qsub jobs to the terminal or submit to cluster
 if($cl_dryrun){
