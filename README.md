@@ -53,12 +53,14 @@ Installation
 Typical Usage
 -------------
 Example command:
-    cf --genome NCBIM37 sra_bowtie *sra
+
+	cf --genome NCBIM37 sra_bowtie *sra
 
 This calls Cluster Flow (`cf`), specifies the mouse reference genome (`--genome NCBIM37`), tells Cluster Flow to use the SRA input - bowtie alignment pipeline (`sra_bowtie`) and specifies the input files (`*sra`)
 
 To you can see all availble pipelines, modules and refernece genomes with the following commands:
-    cf --list_pipelines
+
+	cf --list_pipelines
 	cf --list_modules
 	cf --list_genomes
 
