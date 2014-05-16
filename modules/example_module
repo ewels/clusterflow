@@ -27,6 +27,14 @@ use File::Copy qw(move);
 # along with Cluster Flow.  If not, see <http://www.gnu.org/licenses/>.  #
 ##########################################################################
 
+#
+# NOTE - this is an example module for Cluster Flow.
+#        It does not have any real functionality and should not be used in
+#        production. To avoid its accidental use in Cluster Flow, the 
+#        filename does not have the file extension .cfmod
+#        If developing a new module from this example, remember to change
+#        the filename to MODULENAME.cfmod
+#
 
 #
 # CF SETUP

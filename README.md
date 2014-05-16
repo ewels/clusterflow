@@ -33,11 +33,12 @@ Cluster Flow is comprised of several layers:
 Cluster Flow will set off multiple queued jobs on the cluster with queue dependencies as defined in the pipeline. 
 
 
+
 Installation
 ------------
 1. Download Cluster Flow
-	* You can either clone this github repository or download the files
-	* Stable releases can be found on the releases page
+	* Stable releases can be found on the [releases page](https://github.com/ewels/clusterflow/releases)
+	* The current development version can be obtained by either cloning this github repository or [downloading the files](https://github.com/ewels/clusterflow/archive/master.zip) - do so at your own risk, code may be less stable than in the [tagged releases](https://github.com/ewels/clusterflow/releases)
 2. Unpack and set up with environment modules (optional)
 	* Cluster Flow is designed to work with environment modules, if available.
 	* If you don't use the environment module system, add the Cluster Flow directory to your `PATH` so that the cf executable can be found.
@@ -98,7 +99,28 @@ Flag | Description
 `--add_genome` | Interactive wizard to add new genomes to your genomes.config files 
 `--version` | Print version of Cluster Flow installed 
 `--check_updates` | Look for available Cluster Flow updates 
-`--help` | Print help message 
+`--help` | Print help message
+
+Writing Your Own Modules & Pipelines
+------------------------------------
+Cluster Flow has been designed to make it easy to write new modules and pipelines. Full instructions can be found in the [manual](http://www.bioinformatics.babraham.ac.uk/projects/clusterflow/Cluster_Flow_Manual.pdf) and Cluster Flow comes with an [example module](https://github.com/ewels/clusterflow/blob/master/modules/example_module)
+
+See below for the best way to write your code in a way that it can be used by others.
+
+Contributing to Cluster Flow
+----------------------------
+If you write a module or pipeline which could be of use to others, or modify the core Cluster Flow code in a helpful way, it would be great to merge those changes back into the core Cluster Flow project.
+
+The easiest way to do this is to [fork the Cluster Flow repository](https://help.github.com/articles/fork-a-repo), make your changes, committing them and pushing them as you go. When you've finished, submit a [pull request](https://help.github.com/articles/using-pull-requests) and the new code can be merged into the central project.
+
+Change Log
+----------
+* v0.2 devel
+	* Ported repository to github
+	* Wrote new readme for github
+	* Bugfix: Custom modules in `~/clusterflow/modules/` weren't being found
+* v0.1
+	* The first public release of Cluster Flow, although it's been in use at the Babraham Institute for around 6 months. It's been in heavy development throughout that time and is now approaching a state of being relatively stable.
 
 Credits
 -------
