@@ -71,35 +71,35 @@ For a full description of what each command line option does, see the [manual](h
 
 Flag | Description
 ---- | -----------
-`--genome <ID>` | ID of a genome referred to in clusterflow.config 
-`--genome_path <path>` | Path to a genome to be used for alignment 
-`--bowtie_path <path>` | Path to a bowtie index base to be used for alignment 
-`--gtf_path <path>` | Path to a GTF file to be used for alignment (eg. for Tophat) 
-`--paired` | Force paired-end mode 
-`--single` | Force single-end mode 
-`--no_fn_check` | Disable input file type checking 
-`--file_list` | Text file containing input files or download URLs 
-`--params` | Specify extra module parameters for this run 
-`--split_files <num>` | Create one run per `<num>` files 
-`--max_runs <num>` | Divide input files into `<num>` runs. Set as 0 to disable. 
-`--email <email>` | Set the e-mail address for notifications 
-`--priority <num>` | Set the queue priority for cluster jobs 
-`--cores <num>` | Set the maximum number of cores to use for all runs 
-`--mem <string>` | Set the maximum memory to use for all runs 
-`--notifications [cresa]` | Specify desired notifications 
-`--list_pipelines` | Print available pipelines 
-`--list_modules` | Print available modules 
-`--list_genomes` | Print available genomes 
-`--dry_run` | Prints jobs to terminal instead of submitting them to the cluster 
-`--qstat` | Displays formatted qstat output of your jobs 
-`--qstatall` | Displays formatted qstat output of all jobs  
-`--qstatcols` | Colours output from --qstat or --qstatall 
-`--qdel <id>` | Delete all jobs from a running pipeline. `<id>` is printed with `--qstat`
-`--make_config` | Interactive prompt to generate a personalised CF config file 
-`--add_genome` | Interactive wizard to add new genomes to your genomes.config files 
-`--version` | Print version of Cluster Flow installed 
-`--check_updates` | Look for available Cluster Flow updates 
-`--help` | Print help message
+--genome <ID> | ID of a genome referred to in clusterflow.config 
+--genome_path <path> | Path to a genome to be used for alignment 
+--bowtie_path <path> | Path to a bowtie index base to be used for alignment 
+--gtf_path <path> | Path to a GTF file to be used for alignment (eg. for Tophat) 
+--paired | Force paired-end mode 
+--single | Force single-end mode 
+--no_fn_check | Disable input file type checking 
+--file_list | Text file containing input files or download URLs 
+--params | Specify extra module parameters for this run 
+--split_files <num> | Create one run per `<num>` files 
+--max_runs <num> | Divide input files into `<num>` runs. Set as 0 to disable. 
+--email <email> | Set the e-mail address for notifications 
+--priority <num> | Set the queue priority for cluster jobs 
+--cores <num> | Set the maximum number of cores to use for all runs 
+--mem <string> | Set the maximum memory to use for all runs 
+--notifications [cresa] | Specify desired notifications 
+--list_pipelines | Print available pipelines 
+--list_modules | Print available modules 
+--list_genomes | Print available genomes 
+--dry_run | Prints jobs to terminal instead of submitting them to the cluster 
+--qstat | Displays formatted qstat output of your jobs 
+--qstatall | Displays formatted qstat output of all jobs  
+--qstatcols | Colours output from --qstat or --qstatall 
+--qdel <id> | Delete all jobs from a running pipeline. `<id>` is printed with --qstat
+--make_config | Interactive prompt to generate a personalised CF config file 
+--add_genome | Interactive wizard to add new genomes to your genomes.config files 
+--version | Print version of Cluster Flow installed 
+--check_updates | Look for available Cluster Flow updates 
+--help | Print help message
 
 Writing Your Own Modules & Pipelines
 ------------------------------------
