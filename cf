@@ -810,7 +810,6 @@ sub make_qsubs {
 		}
 		
 		# Find the module file
-		my @module_folders = ('./', "$homedir/cf/modules/", "$Bin/modules/");
 		my $module_fn;
 		foreach (@module_folders){
 			if((-e $_."$module.cfmod") && (! -d $_."$module.cfmod")){
