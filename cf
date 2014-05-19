@@ -138,6 +138,8 @@ my %GENOME_ASSEMBLIES = %CF::Constants::GENOME_ASSEMBLIES;
 my %BOWTIE_ASSEMBLIES = %CF::Constants::BOWTIE_ASSEMBLIES;
 my %GTF_ASSEMBLIES = %CF::Constants::GTF_ASSEMBLIES;
 
+my %JOB_NUM_IDS;
+
 if($cl_email){
 	$EMAIL = $cl_email;
 }
@@ -910,7 +912,27 @@ sub make_submit_cmd {
 		}
 		# Job dependency
 		if(scalar @{$holdjid} > 0 && $prev_job ne 'start_000'){
-			$qsub .= " -d=afterany:" . join(':', @{$holdjid});
+			my @jidarray = ();
+			foreach my $jname (@{$holdjid}){
+				if(exists $JOB_NUM_IDS{$jname}){
+					push(@jidarray, $JOB_NUM_IDS{$jname});
+				} else {
+					print "\nCouldn't find numeric job ID for $jname\n";
+				}
+			}
+			if(scalar @jidarray > 0){
+				$qsub .= " --dependency=afterany:" . join(':', @jidarray);
+			}
+		}
+		
+		# Submit Job
+		unless($cl_dryrun) {
+			my $job_submit = `$qsub`;
+			if($job_submit =~ /Submitted batch job (\d+)/){
+				$JOB_NUM_IDS{$job_id} = $1;
+			} else {
+				print "\nError! Couldn't find job id for $job_id: $job_submit\n\n";
+			}
 		}
 	
 	###########################################
@@ -960,11 +982,16 @@ sub make_submit_cmd {
 # Print qsub jobs to the terminal or submit to cluster
 if($cl_dryrun){
 	print "\n\n".('-' x 46)."\n Jobs that would be submitted to the cluster\n".('-' x 46)."\n\n";
+	if($CLUSTER_ENVIRONMENT =~ /SLURM/i){
+		print "\n\n".('-' x 46)."\n Jobs do not have dependencies (need to be launched for this)\n".('-' x 46)."\n\n";
+	}
 }
-foreach(@qsubs){
-	if($cl_dryrun){
-		print "$_\n\n";
-	} else {
-		system $_;
+unless($CLUSTER_ENVIRONMENT =~ /SLURM/i){
+	foreach(@qsubs){
+		if($cl_dryrun){
+			print "$_\n\n";
+		} else {
+			system $_;
+		}
 	}
 }
