@@ -675,6 +675,10 @@ for (my $i = 0; $i <= $#files; $i++){
 		
 		$fn = $files[$i];
 		
+		# Write status update
+		if($CLUSTER_ENVIRONMENT =~ /SLURM/i){ warn "\n"; }
+		warn "Processing file ".($i+1)." - $fn\n";
+		
 		# Is this filename a URL?
 		if ($fn =~ /^(((ht|f)tp(s?))\:\/\/)/){
 			
@@ -690,7 +694,7 @@ for (my $i = 0; $i <= $#files; $i++){
 			# Only do this the first time, else we create a new file for each download when using --split_files
 			if ($runfn =~ /^(((ht|f)tp(s?))\:\/\/)/){
 				$runfn = $dl_fn."_$pipeline.run";
-				$outfn = $dl_fn."_$pipeline.out";
+				$outfn = $dl_fn."_".$pipeline."_clusterFlow.txt";
 			}
 			
 			push @outfns, $outfn;
@@ -722,9 +726,6 @@ for (my $i = 0; $i <= $#files; $i++){
 		} else { # Not a URL, file doesn't exist. Something is wrong!
 			die "\nFile $fn doesn't exist.. Something is wrong! Exiting...\n\n";
 		}
-		
-		# Write status update (now that we have a solid filename)
-		warn "Processing file ".($i+1)." - $fn\n";
 	
 	}
 	$i--; # Loop increments $i when it finishes. Revert this increment before next loop
@@ -895,7 +896,7 @@ sub make_submit_cmd {
 		}
 		
 		# Assemble the command
-		$qsub = "sbatch -p core -n $cores $notifications -o $outfn -J $job_id --wrap=\"$cmd\"";
+		$qsub = "sbatch -p core -n $cores $notifications --open-mode=append -o $outfn -J $job_id --wrap=\"$cmd\"";
 		
 		# Look for a project ID
 		if($PROJECT_ID && length($PROJECT_ID) > 0){
@@ -928,10 +929,12 @@ sub make_submit_cmd {
 		# Submit Job
 		unless($cl_dryrun) {
 			my $job_submit = `$qsub`;
+			chomp($job_submit);
 			if($job_submit =~ /Submitted batch job (\d+)/){
 				$JOB_NUM_IDS{$job_id} = $1;
+				warn "$job_submit ($job_id)\n";
 			} else {
-				print "\nError! Couldn't find job id for $job_id: $job_submit\n\n";
+				print "\nERROR! Couldn't find job id for $job_id: $job_submit\n\n";
 			}
 		}
 	
