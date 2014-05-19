@@ -39,7 +39,7 @@ our $EMAIL;
 our $CHECK_UPDATES;
 our @NOTIFICATIONS;
 our $SPLIT_FILES = 1;
-our $PRIORITY = -500;
+our $PRIORITY;
 our $TOTAL_CORES = 64;
 our $TOTAL_MEM = '4G';
 our $MAX_RUNS = 12;
