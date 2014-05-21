@@ -229,14 +229,20 @@ if($cl_dryrun){
 	sleep(1);
 }
 if($cl_qstat){
-	unless($CLUSTER_ENVIRONMENT eq 'GRIDEngine'){
-		print "Apologies, this function is not yet supported for systems other than GRIDEngine.\n";
-		exit;
-	}
-	if($cl_qstatcolours){
-		print CF::Headnodehelpers::parse_qstat(0, 1);
+	if($CLUSTER_ENVIRONMENT eq 'GRIDEngine'){
+		if($cl_qstatcolours){
+			print CF::Headnodehelpers::parse_qstat(0, 1);
+		} else {
+			print CF::Headnodehelpers::parse_qstat(0, 0);
+		}
+	} elsif($CLUSTER_ENVIRONMENT eq 'SLURM'){
+		if($cl_qstatcolours){
+                        print CF::Headnodehelpers::parse_squeue(0, 1);
+                } else {
+                        print CF::Headnodehelpers::parse_squeue(0, 0);
+                }
 	} else {
-		print CF::Headnodehelpers::parse_qstat(0, 0);
+		print "Apologies, this function is not yet supported for systems other than GRIDEngine.\n";
 	}
 	exit;
 }
