@@ -120,6 +120,7 @@ my $MAX_RUNS = $CF::Constants::MAX_RUNS;
 my $TOTAL_CORES = $CF::Constants::TOTAL_CORES;
 my $TOTAL_MEM = $CF::Constants::TOTAL_MEM;
 my $CLUSTER_ENVIRONMENT = $CF::Constants::CLUSTER_ENVIRONMENT;
+my $ENV_MODULES_PATH = $CF::Constants::ENV_MODULES_PATH;
 my $PROJECT_ID = $CF::Constants::PROJECT_ID;
 my $JOB_TIMELIMIT = $CF::Constants::JOB_TIMELIMIT;
 my $CF_MODULES = $CF::Constants::CF_MODULES;
@@ -811,22 +812,27 @@ sub make_qsubs {
 			$mem = '1G';
 		}
 		if($CF_MODULES){
-			if($required_modules && length($required_modules) > 0){
-				my @req_modules = split(/[\s,]+/, $required_modules);
-				foreach my $mod (@req_modules) {
-					# Redirect STDERR to dev/null but record failures
-					my $bash_string = `/usr/bin/modulecmd bash load $mod 2>/dev/null`;
-					if($bash_string && length($bash_string) > 0){
-						my @bashes = split(';', $bash_string);
-						foreach my $bash (@bashes){
-							my @envs = split('=', $bash);
-							if($envs[0] ne 'export' && defined($envs[1])){
-								$envs[1] =~ s/\\//g; # Hacky fix to get rid of weird backslash problem
-								$ENV{$envs[0]} = $envs[1];
+			# Check that we have the path
+			unless (-e $ENV_MODULES_PATH){
+				warn "WARNING - could not find environment module path: $ENV_MODULES_PATH\nEnvironment modules have not been loaded.\n\n";
+			} else {
+				if($required_modules && length($required_modules) > 0){
+					my @req_modules = split(/[\s,]+/, $required_modules);
+					foreach my $mod (@req_modules) {
+						# Redirect STDERR to dev/null but record failures
+						my $bash_string = `$ENV_MODULES_PATH bash load $mod 2>/dev/null`;
+						if($bash_string && length($bash_string) > 0){
+							my @bashes = split(';', $bash_string);
+							foreach my $bash (@bashes){
+								my @envs = split('=', $bash);
+								if($envs[0] ne 'export' && defined($envs[1])){
+									$envs[1] =~ s/\\//g; # Hacky fix to get rid of weird backslash problem
+									$ENV{$envs[0]} = $envs[1];
+								}
 							}
+						} elsif($?) {
+							$mod_load_failures{$mod} = 1;
 						}
-					} elsif($?) {
-						$mod_load_failures{$mod} = 1;
 					}
 				}
 			}

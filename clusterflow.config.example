@@ -30,5 +30,8 @@ These will be overwritten by any with the same name in ~/clusterflow/clusterflow
 /* Options: GRIDEngine or LSF */
 @cluster_environment	GRIDEngine
 
+/* Path to environment module bin */
+@env_modules_path	/usr/bin/modulecmd
+
 /* To stop cluster flow trying to load environment modules, uncomment the following line: */
 /* @ignore_modules	true */

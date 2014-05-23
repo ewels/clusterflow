@@ -44,6 +44,7 @@ our $TOTAL_CORES = 64;
 our $TOTAL_MEM = '4G';
 our $MAX_RUNS = 12;
 our $CLUSTER_ENVIRONMENT = 'GRIDEngine';
+our $ENV_MODULES_PATH;
 our $PROJECT_ID;
 our $JOB_TIMELIMIT;
 our $CF_MODULES = 1;
@@ -126,6 +127,8 @@ sub parse_conf_file {
 						$TOTAL_MEM = $val;
 					} elsif($name eq 'cluster_environment'){
 						$CLUSTER_ENVIRONMENT = $val;
+					} elsif($name eq 'env_modules_path'){
+						$ENV_MODULES_PATH = $val;
 					} elsif($name eq 'project_id'){
 						$PROJECT_ID = $val;
 					} elsif($name eq 'job_timelimit'){

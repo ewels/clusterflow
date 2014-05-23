@@ -400,20 +400,24 @@ sub print_jobs_pipeline_output {
 			
 			
 			my $timestamp = "";
-			if(${$hashref}{$key}{started}){
-				${$output} .= color 'magenta' if $cols;
-				${$output} .= "running for ";
-				$timestamp = ${$hashref}{$key}{started};
-			} else {
-				${$output} .= color 'yellow' if $cols;
-				${$output} .= "queued for ";
-				$timestamp = ${$hashref}{$key}{submitted};
-			}
 			my ($year, $month, $day, $hour, $minute, $second) = $timestamp =~ /^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)/;
-			my $time = timelocal($second ,$minute, $hour, $day, $month-1, $year);
-			my $duration = CF::Helpers::parse_seconds(time - $time, 0);
-			${$output} .= $duration;
-			
+			if($second){
+				if(${$hashref}{$key}{started}){
+					${$output} .= color 'magenta' if $cols;
+					${$output} .= "running for ";
+					$timestamp = ${$hashref}{$key}{started};
+				} else {
+					${$output} .= color 'yellow' if $cols;
+					${$output} .= "queued for ";
+					$timestamp = ${$hashref}{$key}{submitted};
+				}
+				my $time = timelocal($second ,$minute, $hour, $day, $month-1, $year);
+				my $duration = CF::Helpers::parse_seconds(time - $time, 0);
+				${$output} .= $duration;
+			} else {
+				${$output} .= $timestamp;
+			}
+
 			${$output} .= color 'reset' if $cols;
 		}
 		${$output} .= "\n";
