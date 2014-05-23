@@ -84,6 +84,7 @@ sub parse_squeue {
 		$jobhash{owner} = $owner;
 		$jobhash{priority} = $priority;
 		$jobhash{started} = $started;
+		$jobhash{dependency_reason} = $dependency_reason;
 		$jobhash{children} = {};
 		
 		# If we're queued with dependencies, parse them
@@ -170,6 +171,7 @@ sub parse_qstat {
 			$jobs{$jid}{owner} = $job->{JB_owner};
 			$jobs{$jid}{priority} = $job->{JB_priority};
 			$jobs{$jid}{started} = $job->{JAT_start_time};
+			$jobs{$jid}{dependency_reason} = '';
 			$jobs{$jid}{children} = {};
 			
 		}
@@ -209,6 +211,7 @@ sub parse_qstat {
 			$jobhash{owner} = $job->{JB_owner};
 			$jobhash{priority} = $job->{JB_priority};
 			$jobhash{submitted} = $job->{JB_submission_time};
+			$jobhash{dependency_reason} = '';
 			$jobhash{children} = {};
 			
 			# Find dependency
@@ -392,10 +395,15 @@ sub print_jobs_pipeline_output {
 			${$output} .= " [".${$hashref}{$key}{cores}." core$s] ";
 			${$output} .= color 'reset' if $cols;
 			
-			if(${$hashref}{$key}{state} ne 'running'){
+			unless(${$hashref}{$key}{state} =~ /running/i){
 				${$output} .= color 'yellow' if $cols;
-				${$output} .= " [priority ".${$hashref}{$key}{priority}."] ";
+				${$output} .= " [queued, priority ".${$hashref}{$key}{priority}."] ";
 				${$output} .= color 'reset' if $cols;
+				if(length(${$hashref}{$key}{dependency_reason}) > 0){
+					${$output} .= color 'yellow' if $cols;
+					${$output} .= " (Reason: ".${$hashref}{$key}{dependency_reason}.")";
+					${$output} .= color 'reset' if $cols;
+				}
 			}
 			
 			
@@ -438,8 +446,48 @@ sub print_jobs_pipeline_output {
 
 }
 
+# SLURM Function to delete all jobs with a pipeline ID
+sub cf_pipeline_scancel {
+	
+	my ($pid) = @_;
+	my $jobcount = 0;
+	my $scancel_output;
+	
+	# Build command
+	my $curruser = `whoami`;
+	my $squeue_command = 'squeue -o "%i %T %u %C %S %Q %j %E %r" -u '.$curruser;
+		
+	# Parse results
+	my $squeue = `$squeue_command`;
+	my @sjobs = split(/[\n\r]+/, $squeue);
+	foreach my $job (@sjobs){
+		# Split result
+		my ($jid, $state, $owner, $cores, $started, $priority, $jobname, $dependency, $dependency_reason) = split(/ /, $job);
+		next if($jid eq 'JOBID');
 
-# Function to delete all jobs with a pipeline ID
+		my $pipelinekey;
+		if($jobname =~ /^cf_(.+)_(\d{10})_(.+)_\d{1,3}$/){
+			$pipelinekey = "$1_$2";
+		}
+		
+		if($pipelinekey && $pipelinekey eq $pid){
+			my $scancel_command = "scancel $jid";
+			$jobcount++;
+			my $scancel = `$scancel_command`;
+			$scancel_output .= $scancel;
+		}
+	}
+	
+	if($jobcount > 0){
+		return "$jobcount jobs deleted:\n$scancel_output\n";
+	} else {
+		return "Error - no jobs found for pipeline $pid\n";
+	}
+	
+}
+
+
+# GRID Engine Function to delete all jobs with a pipeline ID
 sub cf_pipeline_qdel {
 	
 	my ($pid) = @_;

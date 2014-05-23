@@ -277,13 +277,18 @@ if($cl_add_genome){
 	exit;
 }
 if($cl_qdel){
-	unless($CLUSTER_ENVIRONMENT eq 'GRIDEngine'){
+	if($CLUSTER_ENVIRONMENT eq 'GRIDEngine'){
+		print "\nDeleting jobs from Pipeline id $cl_qdel\n\n";
+		print CF::Headnodehelpers::cf_pipeline_qdel($cl_qdel);
+		exit;
+	} elsif($CLUSTER_ENVIRONMENT eq 'SLURM'){
+		print "\nDeleting jobs from Pipeline id $cl_qdel\n\n";
+		print CF::Headnodehelpers::cf_pipeline_scancel($cl_qdel);
+		exit;
+	} else {
 		print "Apologies, this function is not yet supported for systems other than GRIDEngine.\n";
 		exit;
 	}
-	print "\nDeleting jobs from Pipeline id $cl_qdel\n\n";
-	print CF::Headnodehelpers::cf_pipeline_qdel($cl_qdel);
-	exit;
 }
 
 if($cl_version){
