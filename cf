@@ -120,6 +120,7 @@ my $MAX_RUNS = $CF::Constants::MAX_RUNS;
 my $TOTAL_CORES = $CF::Constants::TOTAL_CORES;
 my $TOTAL_MEM = $CF::Constants::TOTAL_MEM;
 my $CLUSTER_ENVIRONMENT = $CF::Constants::CLUSTER_ENVIRONMENT;
+my $CUSTOM_JOB_SUBMIT_COMMAND = $CF::Constants::CUSTOM_JOB_SUBMIT_COMMAND;
 my $ENV_MODULES_PATH = $CF::Constants::ENV_MODULES_PATH;
 my $PROJECT_ID = $CF::Constants::PROJECT_ID;
 my $JOB_TIMELIMIT = $CF::Constants::JOB_TIMELIMIT;
@@ -876,66 +877,88 @@ sub make_submit_cmd {
 	# Get the required variables to assemble this job submission
 	# $holdjid should be an array reference
 	my ($cmd, $job_id, $holdjid, $prev_job, $cores, $mem, $outfn) = @_;
-	my $qsub = "";
+	
+	my $qsub = "";	
 	
 	#########################
 	# Build command for LSF #
 	#########################
 	if($CLUSTER_ENVIRONMENT =~ /LSF/i){
+		# Build command string
+		if($CUSTOM_JOB_SUBMIT_COMMAND && length($CUSTOM_JOB_SUBMIT_COMMAND) > 0){
+			$qsub = $CUSTOM_JOB_SUBMIT_COMMAND;
+		} else {
+			$qsub = 'bsub -n {{cores}} -M {{mem}} -R "rusage[mem={{mem}}]" -o {{outfn}} -J {{job_id}} -N "{{command}}"';
+			# Do we have a priority?
+			if($PRIORITY && $PRIORITY >= 0){
+				$qsub .= "-sp {{priority}} ";
+			}
+		}
+		
 		# Memory has to be specified in megabytes for LSF
 		$mem = CF::Helpers::mem_return_mbs($mem);
-		$qsub = "bsub -n $cores -M $mem -R \"rusage[mem=$mem]\" -o $outfn -J $job_id ";
-		# Do we have a priority?
-		if($PRIORITY && $PRIORITY >= 0){
-			$qsub .= "-sp $PRIORITY ";
-		}
-		# Job dependency
+		
+		# Swap in real values
+		$qsub =~ s/{{command}}/$cmd/;
+		$qsub =~ s/{{job_id}}/$job_id/;
+		$qsub =~ s/{{outfn}}/$outfn/;
+		$qsub =~ s/{{cores}}/$cores/;
+		$qsub =~ s/{{mem}}/$mem/;
+		$qsub =~ s/{{priority}}/$PRIORITY/;
+		$qsub =~ s/{{email}}/$EMAIL/;
+		
+		# Job dependencies
 		if(scalar @{$holdjid} > 0 && $prev_job ne 'start_000'){
 			$qsub .= "-w 'done(\"" . join('") && done("', @{$holdjid}) . "\")' ";
 		}
-		$qsub .= "-N \"$cmd\"";
 	
 	###########################
 	# Build command for SLURM #
 	###########################
 	} elsif($CLUSTER_ENVIRONMENT =~ /SLURM/i){
+		
+		# Build command string
+		if($CUSTOM_JOB_SUBMIT_COMMAND && length($CUSTOM_JOB_SUBMIT_COMMAND) > 0){
+			$qsub = $CUSTOM_JOB_SUBMIT_COMMAND;
+		} else {
+			$qsub = 'sbatch -p core -n {{cores}} --open-mode=append -o {{outfn}} -J {{job_id}} {{notifications}} --wrap="{{command}}"';
+			# Do we have a priority?
+			if($PRIORITY && $PRIORITY >= 0){
+				$qsub .= " --priority {{priority}}";
+			}
+		}
+		
 		# Work out qsub notification settings
-		my $notifications = "";
+		my $notification_string = "";
 		if(defined($EMAIL) && length($EMAIL) > 0 && @NOTIFICATIONS){
-			my $count = 0;
-			$notifications = "--mail-user=$EMAIL";
+			$notification_string .= ' --mail-user={{email}} ';
 			if((grep $_ eq 'suspend', @NOTIFICATIONS) or (grep $_ eq 'abort', @NOTIFICATIONS)){
-				$notifications .= ' --mail-type=FAIL';
+				$notification_string .= '--mail-type=FAIL ';
 			}
 			if(grep $_ eq 'end', @NOTIFICATIONS){
-				$notifications .= ' --mail-type=END';
+				$notification_string .= '--mail-type=END ';
 			}
 		}
 		
-		# Assemble the command
-		$qsub = "sbatch -p core -n $cores $notifications --open-mode=append -o $outfn -J $job_id --wrap=\"$cmd\"";
+		# Swap in real values
+		$qsub =~ s/{{command}}/$cmd/;
+		$qsub =~ s/{{job_id}}/$job_id/;
+		$qsub =~ s/{{outfn}}/$outfn/;
+		$qsub =~ s/{{cores}}/$cores/;
+		$qsub =~ s/{{mem}}/$mem/;
+		$qsub =~ s/{{priority}}/$PRIORITY/;
+		$qsub =~ s/{{notifications}}/$notification_string/;
+		$qsub =~ s/{{email}}/$EMAIL/;
 		
-		# Look for a project ID
-		if($PROJECT_ID && length($PROJECT_ID) > 0){
-			$qsub .= " -A $PROJECT_ID";
-		}
-		
-		# Look for a project time limit
-		if($JOB_TIMELIMIT && length($JOB_TIMELIMIT) > 0){
-			$qsub .= " -t $JOB_TIMELIMIT";
-		}
-		# Do we have a priority?
-		if($PRIORITY && $PRIORITY >= 0){
-			$qsub .= " --priority $PRIORITY";
-		}
-		# Job dependency
+		# Job dependencies
+		# This is horrible on SLURM (depends on capturing job submission STDOUT)
 		if(scalar @{$holdjid} > 0 && $prev_job ne 'start_000'){
 			my @jidarray = ();
 			foreach my $jname (@{$holdjid}){
 				if(exists $JOB_NUM_IDS{$jname}){
 					push(@jidarray, $JOB_NUM_IDS{$jname});
-				} else {
-					print "\nCouldn't find numeric job ID for $jname\n";
+				} elsif(!$cl_dryrun) {
+					warn "\nCouldn't find numeric job ID for $jname\n";
 				}
 			}
 			if(scalar @jidarray > 0){
@@ -943,7 +966,7 @@ sub make_submit_cmd {
 			}
 		}
 		
-		# Submit Job
+		# Submit Job and capture ID
 		unless($cl_dryrun) {
 			my $job_submit = `$qsub`;
 			chomp($job_submit);
@@ -951,48 +974,65 @@ sub make_submit_cmd {
 				$JOB_NUM_IDS{$job_id} = $1;
 				warn "$job_submit ($job_id)\n";
 			} else {
-				print "\nERROR! Couldn't find job id for $job_id: $job_submit\n\n";
+				warn "\nERROR! Couldn't find job id for $job_id: $job_submit\n\n";
 			}
 		}
 	
-	###########################################
-	# Default - build command for GRID Engine #
-	###########################################
-	} else {
-		# Work out qsub notification settings
-		my $notifications = "";
-		if(defined($EMAIL) && length($EMAIL) > 0 && @NOTIFICATIONS){
-			my $count = 0;
-			$notifications = "-M $EMAIL -m ";
-			foreach my $not (@NOTIFICATIONS){
-				if($not eq 'suspend'){
-					$notifications .= 's';
-					$count++;
-				}
-				if($not eq 'end'){
-					$notifications .= 'e';
-					$count++;
-				}
-				if($not eq 'abort'){
-					$notifications .= 'a';
-					$count++;
-				}
-			}
-			if($count == 0){
-				$notifications = "";
+	
+	#################################
+	# Build command for GRID Engine #
+	#################################
+	} elsif($CLUSTER_ENVIRONMENT =~ /GRIDEngine/i){
+		
+		# Build command string
+		if($CUSTOM_JOB_SUBMIT_COMMAND && length($CUSTOM_JOB_SUBMIT_COMMAND) > 0){
+			$qsub = $CUSTOM_JOB_SUBMIT_COMMAND;
+		} else {
+			$qsub = 'echo "{{command}}" | qsub -cwd -V -pe orte {{cores}} -l vf={{mem}} -o {{outfn}} -j y -N {{job_id}} {{notifications}}';
+			# Do we have a priority?
+			if($PRIORITY && $PRIORITY <= 0){
+				$qsub .= " -p {{priority}}";
 			}
 		}
 		
-		# Assemble the command
-		$qsub = "echo \"$cmd\" | qsub -cwd -V -pe orte $cores -l vf=$mem -o $outfn -j y $notifications -N $job_id";
-		# Do we have a priority?
-		if($PRIORITY && $PRIORITY <= 0){
-			$qsub .= " -p $PRIORITY";
+		# Work out qsub notification settings
+		my $notification_string = "";
+		if(defined($EMAIL) && length($EMAIL) > 0 && @NOTIFICATIONS){
+			my $count = 0;
+			$notification_string = "-M {{email}} -m ";
+			foreach my $not (@NOTIFICATIONS){
+				if($not eq 'suspend'){
+					$notification_string .= 's';
+				}
+				if($not eq 'end'){
+					$notification_string .= 'e';
+				}
+				if($not eq 'abort'){
+					$notification_string .= 'a';
+				}
+			}
 		}
-		# Job dependency
+		
+		# Swap in real values
+		$qsub =~ s/{{command}}/$cmd/;
+		$qsub =~ s/{{job_id}}/$job_id/;
+		$qsub =~ s/{{outfn}}/$outfn/;
+		$qsub =~ s/{{cores}}/$cores/;
+		$qsub =~ s/{{mem}}/$mem/;
+		$qsub =~ s/{{priority}}/$PRIORITY/;
+		$qsub =~ s/{{notifications}}/$notification_string/;
+		$qsub =~ s/{{email}}/$EMAIL/;
+		
+		# Job dependencies
 		if(scalar @{$holdjid} > 0 && $prev_job ne 'start_000'){
 			$qsub .= " -hold_jid ". join(',', @{$holdjid});
 		}
+	
+	###########################################
+	# Unrecognised Cluster Environment String #
+	###########################################
+	} else {
+		die ("ERROR - Cluster Environment config value not recognised: $CLUSTER_ENVIRONMENT\n\n");
 	}
 	
 	return $qsub;
@@ -1002,16 +1042,16 @@ sub make_submit_cmd {
 # Print qsub jobs to the terminal or submit to cluster
 if($cl_dryrun){
 	print "\n\n".('-' x 46)."\n Jobs that would be submitted to the cluster\n".('-' x 46)."\n\n";
-	if($CLUSTER_ENVIRONMENT =~ /SLURM/i){
-		print "\n\n".('-' x 46)."\n Jobs do not have dependencies (need to be launched for this)\n".('-' x 46)."\n\n";
-	}
 }
-unless($CLUSTER_ENVIRONMENT =~ /SLURM/i){
+if($cl_dryrun){
 	foreach(@qsubs){
-		if($cl_dryrun){
-			print "$_\n\n";
-		} else {
-			system $_;
-		}
+		print "$_\n\n";
+	}
+	if($CLUSTER_ENVIRONMENT =~ /SLURM/i){
+		print "\n\n".('-' x 86)."\n Warning - Jobs do not have dependencies (SLURM jobs have to be launched to do this)\n".('-' x 86)."\n\n";
+	}
+} elsif ($CLUSTER_ENVIRONMENT !~ /SLURM/i){
+	foreach(@qsubs){
+		system $_;
 	}
 }

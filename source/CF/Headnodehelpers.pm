@@ -479,7 +479,7 @@ sub cf_pipeline_scancel {
 	}
 	
 	if($jobcount > 0){
-		return "$jobcount jobs deleted:\n$scancel_output\n";
+		return "$jobcount jobs deleted.\n$scancel_output\n";
 	} else {
 		return "Error - no jobs found for pipeline $pid\n";
 	}
