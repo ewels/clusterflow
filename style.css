@@ -1,4 +1,80 @@
 body {
 	font-family: 'Lato', "Helvetica Neue", Helvetica, Arial, sans-serif;
 	padding: 0 20px;
+	-webkit-font-smoothing: antialiased;
+	font-smoothing: antialiased;
+}
+
+header {
+	background-color: #2d3436;
+	width:300px;
+	height:100%;
+	position:fixed;
+	top:0;
+	left:0;
+	overflow-y:scroll;
+	-webkit-overflow-scrolling:touch;
+	display:block;
+	color:#fff;
+}
+
+header .logo {
+	margin-top:20px;
+	padding:20px;
+}
+
+header nav {
+	padding:20px 0;
+}
+header nav ul {
+	list-style-type:none;
+	margin:0;
+	padding:0;
+}
+header nav ul li a {
+	text-decoration:none;
+	padding:20px;
+	display:block;
+	color:#fff;
+	background-color:#444;
+}
+header nav ul li a:hover {
+	text-decoration:none;
+	color:#fff;
+	background-color:#555;
+}
+header .credits {
+	padding:20px;
+	color:#999;
+}
+
+.sidebar {
+	background-color: #eee;
+	width:300px;
+	height:100%;
+	position:fixed;
+	top:0;
+	right:0;
+	overflow-y:scroll;
+	-webkit-overflow-scrolling:touch;
+	display:block;
+	color:#333;
+}
+.sidebar nav {
+	margin-top:20px;
+	padding:20px;
+}
+.sidebar nav ul {
+	margin-left:15px;
+	padding:3px 5px;
+}
+
+.mainpage {
+	margin-left:300px;
+	margin-right:300px;
+}
+
+/* TOC Styles */
+.toc i {
+	display:none;
 }

@@ -1,16 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title> Cluster Flow |  Cluster Flow</title>
-	<link href='http://fonts.googleapis.com/css?family=Lato:400,700,400italic' rel='stylesheet' type='text/css'>
-	<link rel="stylesheet" href="style.css">
 	<meta name="description" content="A pipelining tool to automate and standardise bioinformatics analyses on cluster environments"/>
 	<meta name="author" content="Phil Ewels"/>
+	
+	<!-- Bootstrap and Google Fonts -->
+	<link href="/resources/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+	<link href='http://fonts.googleapis.com/css?family=Lato:400,700,400italic' rel='stylesheet' type='text/css'>
+	<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+	<!--[if lt IE 9]>
+		<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+		<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+	<![endif]-->
+	
+	<!-- Site Stylesheet -->
+	<link rel="stylesheet" href="/style.css">
 </head>
 <body>
 
-<h1>Cluster Flow</h1>
-Welcome to the new homepage for the Cluster Flow project. This mini-site is currently under construction...
 
+<header>
+	<section class="logo">
+		<h1>Cluster Flow</h1>
+		<p>A pipelining tool to automate and standardise bioinformatics analyses on cluster environments.</p>
+	</section>
+	<nav id="nav">
+		<ul>
+			<li><a href="#">Introduction</a></li>
+			<li><a href="#">Installation</a></li>
+			<li><a href="#">Quick Start</a></li>
+		</ul>
+	</nav>
+	<section class="credits">
+		<p>Cluster Flow was written by Phil Ewels whilst working at the Babraham Institute, in Cambridge (UK). He now maintains it from SciLifeLab in Stockholm, Sweden.</p>
+	</section>
+</header>
+
+<div class="mainpage">
+	<h1>Cluster Flow</h1>
+	<h1 id="intro_text">Intro Text</h1>
+
+<p>Welcome to the new home of Cluster Flow. I’ll put all of the documentation up here shortly and it’ll be fab!</p>
+
+<h1 id="second_heading">Second Heading</h1>
+
+<p>We’ll talk about some other stuff here.</p>
+
+<h2 id="subheading">Subheading</h2>
+
+<p>This could be of interest to you? Then again it could not.</p>
+
+<h2 id="title">Title</h2>
+
+<h2 id="page_1">Page 1</h2>
+
+<h3 id="note_on_paragraph_3">Note on Paragraph 3</h3>
+
+<h2 id="page_2">Page 2</h2>
+
+<h3 id="note_on_paragraph_2">Note on Paragraph 2</h3>
+
+<h3 id="note_on_paragraph_4">Note on Paragraph 4</h3>
+</div>
+
+<aside class="sidebar">
+	<nav id="subnav">
+		<div class="toc"></div>
+	</nav>
+</aside>
+
+	
+	<!-- jQuery -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+	<!-- Bootstrap JS -->
+	<script src="/resources/bootstrap/js/bootstrap.min.js"></script>
+	<!-- Auto TOC Generator -->
+	<script src="/resources/jekyll-table-of-contents-master/toc.js"></script>
+	<script type="text/javascript">
+		$(document).ready(function() {
+		    $('.toc').toc({
+				title: '<h4>Table of Contents</h4>',
+				listType: 'ul'
+			});
+		});
+	</script>
 </body>
 </html>

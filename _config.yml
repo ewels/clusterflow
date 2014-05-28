@@ -2,7 +2,7 @@ name: Cluster Flow
 description: A pipelining tool to automate and standardise bioinformatics analyses on cluster environments
 author: Phil Ewels
 permalink: pretty
-baseurl: http://localhost:4000
+baseurl: /clusterflow
 exclude: [README.markdown, package.json, grunt.js, Gruntfile.js, node_modules]
 
 
