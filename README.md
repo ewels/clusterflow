@@ -25,7 +25,7 @@ Change Log
 		* Custom modules in `~/clusterflow/modules/` weren't being found
 		* General code clean-ups all over the place 
 * v0.1
-        * The first public release of Cluster Flow, although it's been in use at the Babraham Institute for around 6 months. It's been in heavy d
+	* The first public release of Cluster Flow, although it's been in use at the Babraham Institute for around 6 months. It's been in heavy development throughout that time and is now approaching a state of being relatively stable.
 
 
 Credits
