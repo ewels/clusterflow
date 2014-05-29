@@ -26,9 +26,8 @@ package CF::Constants;
 # along with Cluster Flow.  If not, see <http://www.gnu.org/licenses/>.  #
 ##########################################################################
 
-our $CF_VERSION = "0.2 devel";
+our $CF_VERSION = "0.2";
 
-# our $homedir = File::HomeDir->my_home;
 our $homedir = $ENV{"HOME"};
 
 # Old config hash. Delete soon.
@@ -39,25 +38,31 @@ our $EMAIL;
 our $CHECK_UPDATES;
 our @NOTIFICATIONS;
 our $SPLIT_FILES = 1;
-our $PRIORITY = -500;
+our $PRIORITY;
 our $TOTAL_CORES = 64;
 our $TOTAL_MEM = '4G';
 our $MAX_RUNS = 12;
 our $CLUSTER_ENVIRONMENT = 'GRIDEngine';
+our $CUSTOM_JOB_SUBMIT_COMMAND;
+our $ENV_MODULES_PATH;
 our $CF_MODULES = 1;
 
 # Empty genome path vars
 our %GENOME_PATH_CONFIGS;
 our %BOWTIE_PATH_CONFIGS;
+our %BOWTIE2_PATH_CONFIGS;
 our %GTF_PATH_CONFIGS;
 our %GENOME_PATHS;
 our %BOWTIE_PATHS;
+our %BOWTIE2_PATHS;
 our %GTF_PATHS;
 our %GENOME_SPECIES;
 our %BOWTIE_SPECIES;
+our %BOWTIE2_SPECIES;
 our %GTF_SPECIES;
 our %GENOME_ASSEMBLIES;
 our %BOWTIE_ASSEMBLIES;
+our %BOWTIE2_ASSEMBLIES;
 our %GTF_ASSEMBLIES;
 
 # Update checking variables
@@ -93,7 +98,7 @@ sub parse_conf_file {
 					next;
 				}
 				if($_ =~ /^\@/ && !$comment_block){
-					my @sections = split(/\s+/, $_);
+					my @sections = split(/\s+/, $_, 2);
 					$config{substr($sections[0], 1)} = $sections[1];
 					my $name = substr($sections[0], 1);
 					my $val = $sections[1];
@@ -120,6 +125,10 @@ sub parse_conf_file {
 						$TOTAL_MEM = $val;
 					} elsif($name eq 'cluster_environment'){
 						$CLUSTER_ENVIRONMENT = $val;
+					} elsif($name eq 'custom_job_submit_command'){
+						$CUSTOM_JOB_SUBMIT_COMMAND = $val;
+					} elsif($name eq 'env_modules_path'){
+						$ENV_MODULES_PATH = $val;
 					} elsif($name eq 'ignore_modules'){
 						$CF_MODULES = 0;
 					}
@@ -183,6 +192,11 @@ sub parse_genomes_file {
 						$BOWTIE_PATHS{$key} = $path;
 						$BOWTIE_SPECIES{$key} = $species;
 						$BOWTIE_ASSEMBLIES{$key} = $assembly;
+					} elsif($path_type eq 'bowtie2_path'){
+						$BOWTIE2_PATH_CONFIGS{$key} = $genome_file;
+						$BOWTIE2_PATHS{$key} = $path;
+						$BOWTIE2_SPECIES{$key} = $species;
+						$BOWTIE2_ASSEMBLIES{$key} = $assembly;
 					} elsif($path_type eq 'gtf_path'){
 						$GTF_PATH_CONFIGS{$key} = $genome_file;
 						$GTF_PATHS{$key} = $path;
@@ -231,6 +245,10 @@ sub list_clusterflow_genomes {
 	while ( my($key, $value) = each %BOWTIE_PATH_CONFIGS){
 		$BOWTIE_PATH_CONFIGS_COUNTS{$value} = 1;
 	}
+	my %BOWTIE2_PATH_CONFIGS_COUNTS;
+	while ( my($key, $value) = each %BOWTIE2_PATH_CONFIGS){
+		$BOWTIE2_PATH_CONFIGS_COUNTS{$value} = 1;
+	}
 	my %GTF_PATH_CONFIGS_COUNTS;
 	while ( my($key, $value) = each %GTF_PATH_CONFIGS){
 		$GTF_PATH_CONFIGS_COUNTS{$value} = 1;
@@ -238,7 +256,7 @@ sub list_clusterflow_genomes {
 	
 	foreach my $config_file (@config_files){
 		
-		next if(!defined ($GENOME_PATH_CONFIGS_COUNTS{$config_file}) && !defined ($BOWTIE_PATH_CONFIGS_COUNTS{$config_file}) && !defined ($GTF_PATH_CONFIGS_COUNTS{$config_file}));
+		next if(!defined ($GENOME_PATH_CONFIGS_COUNTS{$config_file}) && !defined ($BOWTIE_PATH_CONFIGS_COUNTS{$config_file})&& !defined ($BOWTIE2_PATH_CONFIGS_COUNTS{$config_file}) && !defined ($GTF_PATH_CONFIGS_COUNTS{$config_file}));
 		
 		$returnstring .= "\n".('-' x 50)."\n $config_file\n".('-' x 50)."\n";
 		if(defined ($GENOME_PATH_CONFIGS_COUNTS{$config_file})){
@@ -268,6 +286,18 @@ sub list_clusterflow_genomes {
 				my $assembly_spaces = " " x (15 - length($BOWTIE_ASSEMBLIES{$key}));
 				if($BOWTIE_PATH_CONFIGS{$key} eq $config_file){
 					$returnstring .= " ".$key.$key_spaces.$BOWTIE_SPECIES{$key}.$species_spaces.$BOWTIE_ASSEMBLIES{$key}.$assembly_spaces.$BOWTIE_PATHS{$key}."\n";
+				}
+			}
+		}
+		if(defined ($BOWTIE2_PATH_CONFIGS_COUNTS{$config_file})){
+			$returnstring .= "\n== Bowtie 2 Index Base Paths ==\n";
+			$returnstring .= " Key                 Species             Assembly            Path\n".("-" x 100)."\n";
+			foreach my $key (sort keys %BOWTIE2_PATHS ) {
+				my $key_spaces = " " x (20 - length($key));
+				my $species_spaces = " " x (20 - length($BOWTIE2_SPECIES{$key}));
+				my $assembly_spaces = " " x (15 - length($BOWTIE2_ASSEMBLIES{$key}));
+				if($BOWTIE2_PATH_CONFIGS{$key} eq $config_file){
+					$returnstring .= " ".$key.$key_spaces.$BOWTIE2_SPECIES{$key}.$species_spaces.$BOWTIE2_ASSEMBLIES{$key}.$assembly_spaces.$BOWTIE2_PATHS{$key}."\n";
 				}
 			}
 		}
@@ -646,11 +676,11 @@ GTF Path:    A filename path to a genome GTF file.\n\n";
 		if(length($bowtie_path) == 0){
 			print "Ok, not adding any bowtie paths..\n\n";
 			last;
-		} elsif (glob("$bowtie_path.[1-4].ebwt $bowtie_path.[1-4].bt2")) {
-			print "Looks good! I found the following matching bowtie indices:\n - ".join("\n - ", glob("$bowtie_path.[1-4].ebwt $bowtie_path.[1-4].bt2"))."\n\n";
+		} elsif (glob("$bowtie_path.[1-4].ebwt")) {
+			print "Looks good! I found the following matching bowtie indices:\n - ".join("\n - ", glob("$bowtie_path.[1-4].ebwt"))."\n\n";
 			last;
 		} else {
-			print "I couldn't find any matching bowtie indices for this path\nI tried $bowtie_path.[1-4].ebwt and $bowtie_path.[1-4].bt2\n\n";
+			print "I couldn't find any matching bowtie indices for this path\nI tried $bowtie_path.[1-4].ebwt\n\n";
 		}
 		print "Do you want to add this to the config file anyway?\n";
 		while (my $continue = <STDIN>){
@@ -661,6 +691,34 @@ GTF Path:    A filename path to a genome GTF file.\n\n";
 			} elsif($continue =~ /^y(es)?/i){
 				print "\nOk, I'll add $bowtie_path\n\n";
 				last BOWTIEWHILE;
+			} else {
+				print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+			}
+		}
+	}
+	
+	print "Please enter the bowtie 2 path. Leave blank if you don't want to add one..\n";
+	my $bowtie2_path;
+	BOWTIE2WHILE: while ($bowtie2_path = <STDIN>){
+		chomp ($bowtie2_path);
+		if(length($bowtie2_path) == 0){
+			print "Ok, not adding any bowtie 2 paths..\n\n";
+			last;
+		} elsif (glob("$bowtie2_path.[1-4].bt2")) {
+			print "Looks good! I found the following matching bowtie 2 indices:\n - ".join("\n - ", glob("$bowtie2_path.[1-4].bt2"))."\n\n";
+			last;
+		} else {
+			print "I couldn't find any matching bowtie indices for this path\nI tried $bowtie2_path.[1-4].bt2\n\n";
+		}
+		print "Do you want to add this to the config file anyway?\n";
+		while (my $continue = <STDIN>){
+			chomp ($continue);
+			if ($continue =~ /^n(o)?/i){
+				print "\nOk, please enter the bowtie 2 path again:\n\n";
+				last;
+			} elsif($continue =~ /^y(es)?/i){
+				print "\nOk, I'll add $bowtie2_path\n\n";
+				last BOWTIE2WHILE;
 			} else {
 				print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
 			}
@@ -703,6 +761,10 @@ GTF Path:    A filename path to a genome GTF file.\n\n";
 	if(length($bowtie_path) > 0){
 		print OUT "\@bowtie_path\t$genomeID\t$bowtie_path\t$species\t$assembly\n";
 		print "Added bowtie path $genomeID: $bowtie_path\n";
+	}
+	if(length($bowtie_path) > 0){
+		print OUT "\@bowtie2_path\t$genomeID\t$bowtie2_path\t$species\t$assembly\n";
+		print "Added bowtie 2 path $genomeID: $bowtie2_path\n";
 	}
 	if(length($gtf_path) > 0){
 		print OUT "\@gtf_path\t$genomeID\t$gtf_path\t$species\t$assembly\n";

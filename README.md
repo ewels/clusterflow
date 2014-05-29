@@ -1,126 +1,34 @@
 Cluster Flow
 ============
 
-Cluster Flow is a pipelining tool to automate and standardise bioinformatics analyses on high-performance cluster environments.
+Cluster Flow is a pipelining tool to automate and standardise bioinformatics analyses on high-performance cluster environments. It is designed to be easy to use, quick to set up and flexible to configure.
 
-It is designed to be easy to use, quick to set up and flexible to configure.
+## Cluster Flow Website - [http://ewels.github.io/clusterflow/](http://ewels.github.io/clusterflow/)
 
-Benefits of using Cluster Flow:
-* Routine analyses are very quick to run, for example: `cf --genome GRCh37 fastq_bowtie *fq.gz`
-* Pipelines use identical parameters, standardising analysis and making results more reproducable
-* All commands and output is logged in files for future reference
-* Intuitive commands and a comprehensive manual make Cluster Flow easy to use
-* Works out of the box (almost - see the [video tutorial](http://youtu.be/b2g_zQiz9ys))
+There's a new website which for the Cluster Flow documentation which has loads of helpful information and examples. You can see it here: [http://ewels.github.io/clusterflow/](http://ewels.github.io/clusterflow/)
 
-How Cluster Flow differs from other pipeline tools:
-* Very lightweight and flexible
-* Pipelines and configurations can easily be generated on a project-specific basis if required
-* New modules and pipelines are trivial to write (see the [video tutorial](http://youtu.be/aBHOcsA2M6w))
+If you're anxious to just get your hands on the code, check out the [releases page](https://github.com/ewels/clusterflow/releases)
 
-There is a comprehensive [manual](http://www.bioinformatics.babraham.ac.uk/projects/clusterflow/Cluster_Flow_Manual.pdf) available for Cluster Flow describing installation, usage and customisation. A short version is below:
-
-How Cluster Flow Works
-----------------------
-Cluster Flow is comprised of several layers: 
-* cf 
-	* The main cluster flow command. This is called to initiate a new pipeline run. 
-* Pipelines 
-	* Protocols that describe a series of modules to be run, along with any parameters 
-* Modules 
-	* The instructions for an individual task. These can be written in any language but must conform to a common API, described within this document. 
-* Runs 
-	* Created from the pipeline template for each file. Specifies configuration variables and traces output filenames. 
-Cluster Flow will set off multiple queued jobs on the cluster with queue dependencies as defined in the pipeline. 
-
-
-
-Installation
-------------
-1. Download Cluster Flow
-	* Stable releases can be found on the [releases page](https://github.com/ewels/clusterflow/releases)
-	* The current development version can be obtained by either cloning this github repository or [downloading the files](https://github.com/ewels/clusterflow/archive/master.zip) - do so at your own risk, code may be less stable than in the [tagged releases](https://github.com/ewels/clusterflow/releases)
-2. Unpack and set up with environment modules (optional)
-	* Cluster Flow is designed to work with environment modules, if available.
-	* If you don't use the environment module system, add the Cluster Flow directory to your `PATH` so that the cf executable can be found.
-	* If using environment modules, run `module load clusterflow` to load the module
-3. Configure Cluster Flow (global)
-	* Rename `clusterflow.config.example` and `genomes.config.example` so that they don't end in `.example`
-	* Edit as necessary. See comments within the files.
-4. Confugure Cluster Flow (user)
-	* Run `cf --make_config` to set up Cluster Flow with your e-mail address and preferences
-5. Add some reference genomes
-	* Run `cf --add_genome` to specify the locations of your reference genomes
-
-Typical Usage
--------------
-Example command:
-
-	cf --genome NCBIM37 sra_bowtie *sra
-
-This calls Cluster Flow (`cf`), specifies the mouse reference genome (`--genome NCBIM37`), tells Cluster Flow to use the SRA input - bowtie alignment pipeline (`sra_bowtie`) and specifies the input files (`*sra`)
-
-To you can see all availble pipelines, modules and refernece genomes with the following commands:
-
-	cf --list_pipelines
-	cf --list_modules
-	cf --list_genomes
-
-Command Line Parameters
------------------------
-For a full description of what each command line option does, see the [manual](http://www.bioinformatics.babraham.ac.uk/projects/clusterflow/Cluster_Flow_Manual.pdf) 
-
-Flag | Description
----- | -----------
---genome <ID> | ID of a genome referred to in clusterflow.config 
---genome_path <path> | Path to a genome to be used for alignment 
---bowtie_path <path> | Path to a bowtie index base to be used for alignment 
---gtf_path <path> | Path to a GTF file to be used for alignment (eg. for Tophat) 
---paired | Force paired-end mode 
---single | Force single-end mode 
---no_fn_check | Disable input file type checking 
---file_list | Text file containing input files or download URLs 
---params | Specify extra module parameters for this run 
---split_files <num> | Create one run per `<num>` files 
---max_runs <num> | Divide input files into `<num>` runs. Set as 0 to disable. 
---email <email> | Set the e-mail address for notifications 
---priority <num> | Set the queue priority for cluster jobs 
---cores <num> | Set the maximum number of cores to use for all runs 
---mem <string> | Set the maximum memory to use for all runs 
---notifications [cresa] | Specify desired notifications 
---list_pipelines | Print available pipelines 
---list_modules | Print available modules 
---list_genomes | Print available genomes 
---dry_run | Prints jobs to terminal instead of submitting them to the cluster 
---qstat | Displays formatted qstat output of your jobs 
---qstatall | Displays formatted qstat output of all jobs  
---qstatcols | Colours output from --qstat or --qstatall 
---qdel <id> | Delete all jobs from a running pipeline. `<id>` is printed with --qstat
---make_config | Interactive prompt to generate a personalised CF config file 
---add_genome | Interactive wizard to add new genomes to your genomes.config files 
---version | Print version of Cluster Flow installed 
---check_updates | Look for available Cluster Flow updates 
---help | Print help message
-
-Writing Your Own Modules & Pipelines
-------------------------------------
-Cluster Flow has been designed to make it easy to write new modules and pipelines. Full instructions can be found in the [manual](http://www.bioinformatics.babraham.ac.uk/projects/clusterflow/Cluster_Flow_Manual.pdf) and Cluster Flow comes with an [example module](https://github.com/ewels/clusterflow/blob/master/modules/example_module)
-
-See below for the best way to write your code in a way that it can be used by others.
-
-Contributing to Cluster Flow
-----------------------------
-If you write a module or pipeline which could be of use to others, or modify the core Cluster Flow code in a helpful way, it would be great to merge those changes back into the core Cluster Flow project.
-
-The easiest way to do this is to [fork the Cluster Flow repository](https://help.github.com/articles/fork-a-repo), make your changes, committing them and pushing them as you go. When you've finished, submit a [pull request](https://help.github.com/articles/using-pull-requests) and the new code can be merged into the central project.
+Licence
+-------
+Cluster Flow is released with a GPL v3 licence. Cluster Flow is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. For more information, see the licence that comes bundled with Cluster Flow.
 
 Change Log
 ----------
-* v0.2 devel
-	* Ported repository to github
-	* Wrote new readme for github
-	* Bugfix: Custom modules in `~/clusterflow/modules/` weren't being found
+* v0.2
+	* New Stuff
+		* Now compatable with SLURM
+		* Customise batch job commands in the config (see the [docs](http://ewels.github.io/clusterflow/installation/#making_cluster_flow_work_with_your_environment)
+		* Created new GitHub pages website to hold documentation: http://ewels.github.io/clusterflow
+	* Updates
+		* Ported repository to github: https://github.com/ewels/clusterflow
+		* Wrote new readme for github
+	* Bugs Squashed
+		* Custom modules in `~/clusterflow/modules/` weren't being found
+		* General code clean-ups all over the place 
 * v0.1
 	* The first public release of Cluster Flow, although it's been in use at the Babraham Institute for around 6 months. It's been in heavy development throughout that time and is now approaching a state of being relatively stable.
+
 
 Credits
 -------

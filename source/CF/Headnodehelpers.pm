@@ -33,6 +33,85 @@ use LWP::Simple;
 # along with Cluster Flow.  If not, see <http://www.gnu.org/licenses/>.  #
 ##########################################################################
 
+# Function to parse squeue results on a SLURM system
+sub parse_squeue {
+	
+	my ($all_users, $cols) = @_;
+	
+	# Set up variables
+	my %jobs;
+	my %pipelines;
+	my @jlist;
+	my %pipeline_single_job_ids;
+	
+	# Build command
+	my $curruser = `whoami`;
+	my $squeue_command = 'squeue -o "%i %T %u %C %S %Q %j %E %r"';
+	unless($all_users){
+		$squeue_command .= " -u $curruser";
+	}
+	
+	# Parse results
+	my $squeue = `$squeue_command`;
+	my @sjobs = split(/[\n\r]+/, $squeue);
+	foreach my $job (@sjobs){
+		# Set up vars for this job
+		my %jobhash;
+		my $pipeline = 'unknown';
+                my $pipelinekey = 'unknown';
+		
+		# Split result
+		my ($jid, $state, $owner, $cores, $started, $priority, $jobname, $dependency, $dependency_reason) = split(/ /, $job);
+		next if($jid eq 'JOBID');
+
+		# Parse
+		if($jobname =~ /^cf_(.+)_(\d{10})_(.+)_\d{1,3}$/){
+			$pipeline = $1;
+			$pipelinekey = "$1_$2";
+			$pipelines{$pipelinekey}{started} = $2;
+			$jobhash{module} = $3;
+		}
+		
+		$pipeline_single_job_ids{$pipelinekey} = $jid;
+		
+		$jobhash{pipeline} = $pipeline;
+		$jobhash{pipelinekey} = $pipelinekey;
+		$jobhash{jobname} = $jobname;
+		$jobhash{full_job_name} = $jobname;
+		$jobhash{state} =  $state;
+		$jobhash{cores} = $cores;
+		# $jobhash{mem} = ??
+		$jobhash{owner} = $owner;
+		$jobhash{priority} = $priority;
+		$jobhash{started} = $started;
+		$jobhash{dependency_reason} = $dependency_reason;
+		$jobhash{children} = {};
+		
+		# If we're queued with dependencies, parse them
+		if($dependency_reason eq 'Dependency'){
+			my @parents = split(',', $dependency);
+			# If more than one, assume last element is latest
+			my $parent = pop(@parents);
+			# remove any non-numeric stuff, eg. afterany:
+			$parent =~ s/\D+//g;
+			if($parent && length($parent) > 0){
+				parse_job_dependency_hash(\%jobs, $parent, $jid, \%jobhash);
+			}
+		# No dependencies - give to top level 
+		} else {
+			$jobs{$jid} = \%jobhash;
+		}
+	}
+	
+	# print Dumper (\%jobs); exit;
+	my %pipeline_wds;	
+	my $output = print_jobs_output(\%jobs, \%pipelines, \%pipeline_single_job_ids, \%pipeline_wds, $cols, $all_users);
+    
+
+	return ($output);
+	
+}
+
 # Function to parse qstat results and return them in a nicely formatted manner
 sub parse_qstat {
 	
@@ -92,6 +171,7 @@ sub parse_qstat {
 			$jobs{$jid}{owner} = $job->{JB_owner};
 			$jobs{$jid}{priority} = $job->{JB_priority};
 			$jobs{$jid}{started} = $job->{JAT_start_time};
+			$jobs{$jid}{dependency_reason} = '';
 			$jobs{$jid}{children} = {};
 			
 		}
@@ -131,6 +211,7 @@ sub parse_qstat {
 			$jobhash{owner} = $job->{JB_owner};
 			$jobhash{priority} = $job->{JB_priority};
 			$jobhash{submitted} = $job->{JB_submission_time};
+			$jobhash{dependency_reason} = '';
 			$jobhash{children} = {};
 			
 			# Find dependency
@@ -147,19 +228,62 @@ sub parse_qstat {
 				$parent = $parents;
 			}
 			if($parent && length($parent) > 0){
-				parse_qstat_search_hash(\%jobs, $parent, $jid, \%jobhash);
+				parse_job_dependency_hash(\%jobs, $parent, $jid, \%jobhash);
 			} else {
 				$jobs{$jid} = \%jobhash;
 			}
+		}
+	}
+
+	# Work out pipeline cwds
+	# Figure out the cwd for this pipeline
+	my %pipeline_wds;
+	foreach my $pipelinekey (keys (%pipelines)){
+		my $pipeline_wd;
+		if($pipeline_single_job_ids{$pipelinekey}){
+			my $cwd_command = "qstat -j $pipeline_single_job_ids{$pipelinekey} | grep cwd";
+	        	$pipeline_wd = `$cwd_command`;
+	        	$pipeline_wd =~ s/^cwd:\s+//;
+	        	$pipeline_wd =~ s/\n//;
+			$pipeline_wds{$pipeline_wd} = $pipeline_wd;
 		}
 	}
 	
 	# print Dumper ($data); exit;
 	# print Dumper (\%jobs); exit;
 	
+	my $output = print_jobs_output(\%jobs, \%pipelines, \%pipeline_single_job_ids, \%pipeline_wds, $cols, $all_users);
+	return ($output);
+}
+
+
+sub parse_job_dependency_hash {
+
+	my ($hashref, $parent, $jid, $jobhash) = @_;
+	
+	foreach my $key ( keys (%{$hashref}) ){
+		# If $parent is numeric, it's a job ID. If not, it's a job name
+		my $jobname;
+		if($parent =~ /^\d+$/){
+			$jobname = $key;
+		} else {
+			$jobname = ${$hashref}{$key}{full_job_name};
+		}
+		if($jobname eq $parent){
+			${$hashref}{$key}{children}{$jid} = \%$jobhash;
+		} elsif (scalar(keys(%{${$hashref}{$key}{children}})) > 0){
+			parse_job_dependency_hash(\%{${$hashref}{$key}{children}}, $parent, $jid, \%$jobhash);
+		}
+	}
+}
+
+sub print_jobs_output {
+	
+	my ($jobs, $pipelines, $pipeline_single_job_ids, $pipeline_wds, $cols, $all_users) = @_;
+	
 	# Go through hash and create output
 	my $output = "";
-	foreach my $pipelinekey (keys (%pipelines)){
+	foreach my $pipelinekey (keys (%{$pipelines})){
 		my $pipeline = $pipelinekey;
 		if($pipelinekey =~ /^(.+)_(\d{10})$/){
 			$pipeline = $1;
@@ -167,25 +291,22 @@ sub parse_qstat {
 		
 		# Figure out the cwd for this pipeline
 		my $pipeline_wd;
-		if($pipeline_single_job_ids{$pipelinekey}){
-			my $cwd_command = "qstat -j $pipeline_single_job_ids{$pipelinekey} | grep cwd";
-			$pipeline_wd = `$cwd_command`;
-			$pipeline_wd =~ s/^cwd:\s+//;
-			$pipeline_wd =~ s/\n//;
+		if($pipeline_wds->{$pipelinekey}){
+			$pipeline_wd = $pipeline_wds->{$pipelinekey};
 		}
 		
 		$output .= "\n".('=' x 70)."\n";
 		$output .= sprintf("%-24s%-44s\n", " Cluster Flow Pipeline:", $pipeline);
-		$output .= sprintf("%-24s%-44s\n", " Submitted:", CF::Helpers::parse_seconds(time - $pipelines{$pipelinekey}{started})." ago");
+		$output .= sprintf("%-24s%-44s\n", " Submitted:", CF::Helpers::parse_seconds(time - $pipelines->{$pipelinekey}{started})." ago");
 		$output .= sprintf("%-24s%-44s\n", " Working Directory:", $pipeline_wd) if $pipeline_wd;
 		$output .= sprintf("%-24s%-44s\n", " ID:", $pipelinekey);
 		$output .= "".('=' x 70)."\n";
-		parse_qstat_print_hash(\%jobs, 0, \$output, $all_users, $cols, $pipelinekey);
+		print_jobs_pipeline_output(\%{$jobs}, 0, \$output, $all_users, $cols, $pipelinekey);
 	}
 	
 	# Go through jobs which don't have a pipeline
 	my $notcf_output = "";
-	parse_qstat_print_hash(\%jobs, 0, \$notcf_output, $all_users, $cols, 'unknown');
+	print_jobs_pipeline_output(\%{$jobs}, 0, \$notcf_output, $all_users, $cols, 'unknown');
 	if(length($notcf_output) > 0){
 		$output .= "\n".('=' x 70)."\n";
 		$output .= "  Not Cluster Flow Jobs  ";
@@ -195,7 +316,7 @@ sub parse_qstat {
 	
 	# Go through Queing jobs which don't have a pipeline
 	my $notcfpending_output = "";
-	parse_qstat_print_hash(\%jobs, 0, \$notcfpending_output, $all_users, $cols, 'unknown_pending');
+	print_jobs_pipeline_output(\%{$jobs}, 0, \$notcfpending_output, $all_users, $cols, 'unknown_pending');
 	if(length($notcfpending_output) > 0){
 		$output .= "\n".('=' x 70)."\n";
 		$output .= "  Not Cluster Flow Jobs - Queing  ";
@@ -207,21 +328,7 @@ sub parse_qstat {
 	
 }
 
-sub parse_qstat_search_hash {
-
-	my ($hashref, $parent, $jid, $jobhash) = @_;
-	
-	foreach my $key ( keys (%{$hashref}) ){
-		my $jobname = ${$hashref}{$key}{full_job_name};
-		if($jobname eq $parent){
-			${$hashref}{$key}{children}{$jid} = \%$jobhash;
-		} elsif (scalar(keys(%{${$hashref}{$key}{children}})) > 0){
-			parse_qstat_search_hash(\%{${$hashref}{$key}{children}}, $parent, $jid, \%$jobhash);
-		}
-	}
-}
-
-sub parse_qstat_print_hash {
+sub print_jobs_pipeline_output {
 
 	my ($hashref, $depth, $output, $all_users, $cols, $pipeline) = @_;
 	
@@ -288,28 +395,37 @@ sub parse_qstat_print_hash {
 			${$output} .= " [".${$hashref}{$key}{cores}." core$s] ";
 			${$output} .= color 'reset' if $cols;
 			
-			if(${$hashref}{$key}{state} ne 'running'){
+			unless(${$hashref}{$key}{state} =~ /running/i){
 				${$output} .= color 'yellow' if $cols;
-				${$output} .= " [priority ".${$hashref}{$key}{priority}."] ";
+				${$output} .= " [queued, priority ".${$hashref}{$key}{priority}."] ";
 				${$output} .= color 'reset' if $cols;
+				if(length(${$hashref}{$key}{dependency_reason}) > 0){
+					${$output} .= color 'yellow' if $cols;
+					${$output} .= " (Reason: ".${$hashref}{$key}{dependency_reason}.")";
+					${$output} .= color 'reset' if $cols;
+				}
 			}
 			
 			
 			my $timestamp = "";
-			if(${$hashref}{$key}{started}){
-				${$output} .= color 'magenta' if $cols;
-				${$output} .= "running for ";
-				$timestamp = ${$hashref}{$key}{started};
-			} else {
-				${$output} .= color 'yellow' if $cols;
-				${$output} .= "queued for ";
-				$timestamp = ${$hashref}{$key}{submitted};
-			}
 			my ($year, $month, $day, $hour, $minute, $second) = $timestamp =~ /^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)/;
-			my $time = timelocal($second ,$minute, $hour, $day, $month-1, $year);
-			my $duration = CF::Helpers::parse_seconds(time - $time, 0);
-			${$output} .= $duration;
-			
+			if($second){
+				if(${$hashref}{$key}{started}){
+					${$output} .= color 'magenta' if $cols;
+					${$output} .= "running for ";
+					$timestamp = ${$hashref}{$key}{started};
+				} else {
+					${$output} .= color 'yellow' if $cols;
+					${$output} .= "queued for ";
+					$timestamp = ${$hashref}{$key}{submitted};
+				}
+				my $time = timelocal($second ,$minute, $hour, $day, $month-1, $year);
+				my $duration = CF::Helpers::parse_seconds(time - $time, 0);
+				${$output} .= $duration;
+			} else {
+				${$output} .= $timestamp;
+			}
+
 			${$output} .= color 'reset' if $cols;
 		}
 		${$output} .= "\n";
@@ -319,9 +435,9 @@ sub parse_qstat_print_hash {
 		if($children){
 			if(${$hashref}{$key}{module} eq 'download' && ${$hashref}{$key}{state} ne 'running'){
 				# don't increase the depth if this is a download - avoid the huge christmas trees
-				parse_qstat_print_hash(\%{${$hashref}{$key}{children}}, $depth, \${$output}, $all_users, $cols, $pipeline);
+				print_jobs_pipeline_output(\%{${$hashref}{$key}{children}}, $depth, \${$output}, $all_users, $cols, $pipeline);
 			} else {
-				parse_qstat_print_hash(\%{${$hashref}{$key}{children}}, $depth + 1, \${$output}, $all_users, $cols, $pipeline);
+				print_jobs_pipeline_output(\%{${$hashref}{$key}{children}}, $depth + 1, \${$output}, $all_users, $cols, $pipeline);
 			}
 		}
 	}
@@ -330,8 +446,48 @@ sub parse_qstat_print_hash {
 
 }
 
+# SLURM Function to delete all jobs with a pipeline ID
+sub cf_pipeline_scancel {
+	
+	my ($pid) = @_;
+	my $jobcount = 0;
+	my $scancel_output;
+	
+	# Build command
+	my $curruser = `whoami`;
+	my $squeue_command = 'squeue -o "%i %T %u %C %S %Q %j %E %r" -u '.$curruser;
+		
+	# Parse results
+	my $squeue = `$squeue_command`;
+	my @sjobs = split(/[\n\r]+/, $squeue);
+	foreach my $job (@sjobs){
+		# Split result
+		my ($jid, $state, $owner, $cores, $started, $priority, $jobname, $dependency, $dependency_reason) = split(/ /, $job);
+		next if($jid eq 'JOBID');
 
-# Function to delete all jobs with a pipeline ID
+		my $pipelinekey;
+		if($jobname =~ /^cf_(.+)_(\d{10})_(.+)_\d{1,3}$/){
+			$pipelinekey = "$1_$2";
+		}
+		
+		if($pipelinekey && $pipelinekey eq $pid){
+			my $scancel_command = "scancel $jid";
+			$jobcount++;
+			my $scancel = `$scancel_command`;
+			$scancel_output .= $scancel;
+		}
+	}
+	
+	if($jobcount > 0){
+		return "$jobcount jobs deleted.\n$scancel_output\n";
+	} else {
+		return "Error - no jobs found for pipeline $pid\n";
+	}
+	
+}
+
+
+# GRID Engine Function to delete all jobs with a pipeline ID
 sub cf_pipeline_qdel {
 	
 	my ($pid) = @_;
@@ -415,7 +571,7 @@ sub cf_check_updates {
 	my ($current_version) = @_;
 	
 	# Get contents of Cluster Flow current version file using LWP::Simple
-	my $version_url = 'http://www.bioinformatics.babraham.ac.uk/projects/clusterflow/version.txt';
+	my $version_url = 'http://ewels.github.io/clusterflow/version.txt';
 	my $avail_version = get($version_url) or return "Can't access address to check available version:\n$version_url\n\n";
 	my $timestamp = time();
 	
@@ -429,7 +585,7 @@ sub cf_check_updates {
 	
 	if(cf_compare_version_numbers($current_version, $avail_version)){
 		return "".("="x45)."\n A new version of Cluster Flow is available!\n Running v$current_version, v$avail_version available.\n".("="x45)."\n
-You can download the latest version of Cluster Flow from\nhttp://www.bioinformatics.babraham.ac.uk/projects/cluster_flow/\n\n";
+You can download the latest version of Cluster Flow from\nhttps://github.com/ewels/clusterflow/releases/\n\n";
 	} else {
 		return "Your copy of Cluster Flow is up to date. Running v$current_version, v$avail_version available.\n\n";
 	}
