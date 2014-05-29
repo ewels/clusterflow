@@ -37,9 +37,16 @@ If you write a module or pipeline which could be of use to others, or modify the
 The easiest way to do this is to [fork the Cluster Flow repository](https://help.github.com/articles/fork-a-repo), make your changes, committing them and pushing them as you go. When you've finished, submit a [pull request](https://help.github.com/articles/using-pull-requests) and the new code can be merged into the central project.
 
 ## Change Log
-* v0.2 devel
-	* Ported repository to github
-	* Wrote new readme for github
-	* Bugfix: Custom modules in `~/clusterflow/modules/` weren't being found
+* v0.2
+	* New Stuff
+		* Now compatable with SLURM
+		* Customise batch job commands in the config (see [docs]({{base.url}}/installation/#making_cluster_flow_work_with_your_environment) for more info)
+		* Created new GitHub pages website to hold documentation: [http://ewels.github.io/clusterflow/](http://ewels.github.io/clusterflow/)
+	* Updates
+		* Ported repository to github: [https://github.com/ewels/clusterflow](https://github.com/ewels/clusterflow)
+		* Wrote new readme for github
+	* Bugs Squashed
+		* Custom modules in `~/clusterflow/modules/` weren't being found
+		* General code clean-ups all over the place 
 * v0.1
 	* The first public release of Cluster Flow, although it's been in use at the Babraham Institute for around 6 months. It's been in heavy development throughout that time and is now approaching a state of being relatively stable.
