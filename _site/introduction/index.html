@@ -136,6 +136,192 @@
 </ul>
 </li>
 </ul>
+
+<h1 id="working_example">Working Example</h1>
+
+<h2 id="find_whats_available">Find what’s available</h2>
+
+<p>Often the first step when running a Cluster Flow pipeline is to remind yourself what is possible. Cluster Flow has a handful of functions to help you do this.</p>
+
+<h3 id="available_pipelines">Available Pipelines</h3>
+
+<p>Running</p>
+
+<pre><code>cf --list_pipelines</code></pre>
+
+<p>Will give a list of the pipelines installed in your copy of Cluster Flow, for example:</p>
+
+<pre><code>================================
+Cluster Flow - available pipelines
+================================
+Installed pipelines:
+    Directory /clusterflow/0.1/pipelines/
+	- bismark
+	- bismark_pbat
+	- bismark_singlecell
+	- fastq_bismark
+	- fastq_bowtie
+	... (trimmed) ...</code></pre>
+
+<h3 id="available_modules">Available Modules</h3>
+
+<p>Cluster Flow can run single modules as well as strung-together in pipelines. The analgous command is:</p>
+
+<pre><code>cf --list_modules</code></pre>
+
+<p>Will give:</p>
+
+<pre><code>================================
+Cluster Flow - available modules
+================================
+Available modules:
+    Directory /clusterflow/0.1/modules/
+	- bismark_align
+	- bismark_deduplicate
+	- bismark_messy
+	- bismark_methXtract
+	- bismark_tidy
+	- bowtie
+	... (trimmed) ...</code></pre>
+
+<h3 id="available_genomes">Available Genomes</h3>
+
+<p>Most modules and pipelines require genomes. To see what is set up, run</p>
+
+<pre><code>cf --list_genomes</code></pre>
+
+<p>Will give:</p>
+
+<pre><code>
+================================
+Cluster Flow - available genomes
+================================
+
+--------------------------------------------------
+ /clusterflow/0.1/genomes.config
+--------------------------------------------------
+
+== Genome Paths ==
+ Key                 Species             Assembly            Path
+----------------------------------------------------------------------------------------------------
+ GRCh37              Human               GRCh37         /Genomes/Human/GRCh37/
+ GRCm38              Mouse               GRCm38         /Genomes/Mouse/GRCm38/
+ NCBIM37             Mouse               NCBIM37        /Genomes/Mouse/NCBIM37/
+ 
+== Bowtie Index Base Paths ==
+ Key                 Species             Assembly            Path
+----------------------------------------------------------------------------------------------------
+ GRCh37              Human               GRCh37         /Genomes/Human/GRCh37/Homo_sapiens.GRCh37
+ GRCm38              Mouse               GRCm38         /Genomes/Mouse/GRCm38/Mus_musculus.GRCm38
+ NCBIM37             Mouse               NCBIM37        /Genomes/Mouse/NCBIM37/Mus_musculus.NCBIM37
+ 
+== GTF File Paths ==
+ Key                 Species             Assembly            Path
+----------------------------------------------------------------------------------------------------
+ GRCh37              Human               GRCh37         /Genomes/Human/GRCh37/Homo_sapiens.GRCh37.61.gtf
+ GRCm38              Mouse               GRCm38         /Genomes/Mouse/GRCm38/Mus_musculus.GRCm38.70.gtf
+ NCBIM37             Mouse               NCBIM37        /Genomes/Mouse/NCBIM37/Mus_musculus.NCBIM37.cleaned.gtf
+</code></pre>
+
+<h2 id="running_cluster_flow">Running Cluster Flow</h2>
+
+<p>Once you’re happy with what’s available and what you want to run, you use the <code>cf</code> command.</p>
+
+<p>For example, to run the <code>fastq_bowtie</code> pipeline (runs FastQC, trims the reads with Trim Galore! and then aligns with either bowtie 1 or bowtie 2, depending on the read length) on a selection of FastQ files, I would run:</p>
+
+<pre><code>cf --genome GRCh37 fastq_bowtie *.fq.gz</code></pre>
+
+<p>A typical output might be:</p>
+
+<pre><code>Processing 3 files in 12 runs. Submitting 1 file per run.
+
+Pipeline to be used:
+
+#fastqc
+#trim_galore
+	#bowtie
+
+Processing file 1 - filename_1.fq.gz
+Processing file 2 - filename_2.fq.gz
+Processing file 3 - filename_3.fq.gz
+Your job 191764 (&quot;cf_sra_bowtie_1401371996_sra_fqdump_579&quot;) has been submitted
+Your job 191765 (&quot;cf_sra_bowtie_1401371996_fastqc_975&quot;) has been submitted
+Your job 191766 (&quot;cf_sra_bowtie_1401371996_trim_galore_490&quot;) has been submitted
+Your job 191767 (&quot;cf_sra_bowtie_1401371996_bowtie_576&quot;) has been submitted
+Your job 191768 (&quot;cf_sra_bowtie_1401371996_email_run_complete_840&quot;) has been submitted
+Your job 191769 (&quot;cf_sra_bowtie_1401371996_sra_fqdump_816&quot;) has been submitted
+Your job 191770 (&quot;cf_sra_bowtie_1401371996_fastqc_484&quot;) has been submitted
+Your job 191771 (&quot;cf_sra_bowtie_1401371996_trim_galore_930&quot;) has been submitted
+Your job 191772 (&quot;cf_sra_bowtie_1401371996_bowtie_281&quot;) has been submitted
+Your job 191773 (&quot;cf_sra_bowtie_1401371996_email_run_complete_911&quot;) has been submitted
+Your job 191774 (&quot;cf_sra_bowtie_1401371996_sra_fqdump_940&quot;) has been submitted
+Your job 191775 (&quot;cf_sra_bowtie_1401371996_fastqc_805&quot;) has been submitted
+Your job 191776 (&quot;cf_sra_bowtie_1401371996_trim_galore_634&quot;) has been submitted
+Your job 191777 (&quot;cf_sra_bowtie_1401371996_bowtie_109&quot;) has been submitted
+Your job 191778 (&quot;cf_sra_bowtie_1401371996_email_run_complete_922&quot;) has been submitted
+Your job 191779 (&quot;cf_sra_bowtie_1401371996_email_pipeline_complete_127&quot;) has been submitted</code></pre>
+
+<h2 id="checking_the_status_of_a_run">Checking the status of a run</h2>
+
+<p>I can then check on the progress of my running job using:</p>
+
+<pre><code>cf --qstat</code></pre>
+
+<p>This will give the following report (much easier to read than the default <code>qstat</code>)</p>
+
+<pre><code>======================================================================
+ Cluster Flow Pipeline: sra_bowtie                                  
+ Submitted:             30 seconds ago                              
+ Working Directory:     /bi/group/bioinf/clusterflow/dev/test       
+ ID:                    sra_bowtie_1401371972                       
+======================================================================
+
+ -  sra_fqdump                         [1 core] running for 16s
+      - fastqc 
+      - trim_galore 
+           - bowtie 
+                - email_run_complete 
+
+ -  sra_fqdump                         [1 core]  [priority -500] queued for 27s
+      - trim_galore 
+           - bowtie 
+                - email_run_complete 
+                     - email_pipeline_complete 
+      - fastqc 
+
+ -  sra_fqdump                         [1 core]  [priority -500] queued for 27s
+      - fastqc 
+      - trim_galore 
+           - bowtie 
+                - email_run_complete</code></pre>
+
+<h2 id="cancelling_a_pipeline">Cancelling a pipeline</h2>
+
+<p>I might later realise that I messed something up with the input files, but since then I have started loads of other jobs. I don’t want to pull out all of the job IDs myself manually, so instead I can use Cluster Flow to delete the jobs belonging to the ID printed with the command above:</p>
+
+<pre><code>cf --qdel sra_bowtie_1401371972</code></pre>
+
+<p>Which might give the following outout:</p>
+
+<pre><code>Deleting jobs from Pipeline id sra_bowtie_1401371972
+
+16 jobs deleted:
+ewelsp has registered the job 191748 for deletion
+ewelsp has deleted job 191753
+ewelsp has deleted job 191758
+ewelsp has deleted job 191749
+ewelsp has deleted job 191750
+ewelsp has deleted job 191751
+ewelsp has deleted job 191752
+ewelsp has deleted job 191754
+ewelsp has deleted job 191755
+ewelsp has deleted job 191756
+ewelsp has deleted job 191757
+ewelsp has deleted job 191759
+ewelsp has deleted job 191760
+ewelsp has deleted job 191761
+ewelsp has deleted job 191762
+ewelsp has deleted job 191763</code></pre>
 </div>
 
 <aside class="sidebar">
