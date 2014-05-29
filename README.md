@@ -7,6 +7,10 @@ There's a new website which for the Cluster Flow documentation which has loads o
 
 If you're anxious to just get your hands on the code, check out the [releases page](https://github.com/ewels/clusterflow/releases)
 
+Licence
+-------
+Cluster Flow is released with a GPL v3 licence. Cluster Flow is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. For more information, see the licence that comes bundled with Cluster Flow.
+
 Change Log
 ----------
 * v0.2
