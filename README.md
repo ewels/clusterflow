@@ -7,6 +7,23 @@ There's a new website which for the Cluster Flow documentation which has loads o
 
 If you're anxious to just get your hands on the code, check out the [releases page](https://github.com/ewels/clusterflow/releases)
 
+Change Log
+----------
+* v0.2
+	* New Stuff
+		* Now compatable with SLURM
+		* Customise batch job commands in the config (see [docs]({{base.url}}/installation/#making_cluster_flow_work_with_your_environmen
+		* Created new GitHub pages website to hold documentation: [http://ewels.github.io/clusterflow/](http://ewels.github.io/clusterflo
+	* Updates
+		* Ported repository to github: [https://github.com/ewels/clusterflow](https://github.com/ewels/clusterflow)
+		* Wrote new readme for github
+	* Bugs Squashed
+		* Custom modules in `~/clusterflow/modules/` weren't being found
+		* General code clean-ups all over the place 
+* v0.1
+        * The first public release of Cluster Flow, although it's been in use at the Babraham Institute for around 6 months. It's been in heavy d
+
+
 Credits
 -------
 Cluster Flow was written by [Phil Ewels](http://phil.ewels.co.uk) whilst working in the [Babraham Bioinformatics](http://www.bioinformatics.babraham.ac.uk/) group in Cambridge, UK. He now maintains it whilst working at the [Science for Life Laboratory](http://www.scilifelab.se/) in Stockholm, Sweden.
