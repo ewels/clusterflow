@@ -57,7 +57,198 @@
 
 <div class="mainpage mainpage-toc">
 	<h1 class="page-title">Writing Pipelines & Modules</h1>
-	
+	<h1 id="pipeline_syntax">Pipeline syntax</h1>
+
+<p>All pipelines conform to a standard syntax. The name of the pipeline is given by the filename, which should end in <code>.config</code>. The top of the file should contain a title and description surrounded by <code>/*</code> and <code>*/</code></p>
+
+<p>Variables are set using the same <code>@key value</code> syntax as in <code>clusterflow.config</code> files. Typical variables for pipelines are <code>@require_genome</code>, <code>@require_bowtie</code> or <code>@require_gtf</code></p>
+
+<p>Modules are described using <code>#</code> prefixes. Tab indentation denotes dependencies between modules. Syntax is <code>#module_name parameters</code>, where there can be any number of space separated parameters which will be passed on to the module at run time.</p>
+
+<h2 id="example_pipeline">Example pipeline</h2>
+
+<p>Here is an example pipeline, which requires a genome path and uses three modules:</p>
+
+<pre><code>/*
+Example Pipeline
+================
+This pipeline is an example of running three modules which depend on each other. Module 2 is run with a parameter that modifies its behaviour. This block of text is used when cf --help example_pipeline is run
+*/
+#module1
+       #module2
+       #module2 parameter
+             #module3</code></pre>
+
+<p>Remember to run <code>dos2unix</code> on your pipeline before you run it, if you’re working on a windows machine.</p>
+
+<h1 id="module_syntax">Module syntax</h1>
+
+<p>Modules do not conform to any syntax <em>per se</em> – they can be written in any language and in any style, though they must conform to a common API so that cluster flow can interact with them.</p>
+
+<h2 id="wrappers">Wrappers</h2>
+
+<p>If you have an existing script or tool, it’s almost certain that it’ll be easier to write a new Cluster Flow wrapper module than it will be to customise your script to be compatible with CF.</p>
+
+<p>It’s very easy to execute other code from within a wrapper perl script and will save you a lot of pain!</p>
+
+<h2 id="example_module">Example module</h2>
+
+<p>An example module comes bunded with Cluster Flow, containing some typical pseudocode which you can modify for your own uses. You can view it on GitHub <a href="https://github.com/ewels/clusterflow/blob/master/modules/example_module" title="Browse the Cluster Flow example module code on GitHub">here</a>.</p>
+
+<h2 id="required_command_line_flags">Required command line flags</h2>
+
+<p>All modules will be called directly by Cluster Flow before any cluster jobs are set up, to determine their required job parameters. Each module must return a value for the following command line flags:</p>
+<table class="table"><thead><tr><th>Flag</th><th>Description</th></tr></thead><tbody><tr><td style="text-align: left;"><code>--cores &lt;num&gt;</code></td><td style="text-align: left;">Print required number of cores</td></tr>
+<tr><td style="text-align: left;"><code>--mem &lt;num&gt;</code></td><td style="text-align: left;">Print required amount of memory Print Help</td></tr>
+<tr><td style="text-align: left;"><code>--modules</code></td><td style="text-align: left;">Print names of required environment modules</td></tr>
+<tr><td style="text-align: left;"><code>--help</code></td><td style="text-align: left;">Print Help</td></tr>
+</tbody></table>
+<h3 id=""><code>--cores</code></h3>
+
+<p>Cluster Flow will calculate how many cores are available for the module before launching it as a job on the cluster. It will call the module directly with the <code>--cores</code> flag and the suggested number of cores that the module can use. The module should print a single integer representing the number of cores that it requires and exit.</p>
+
+<p>The maximum number of cores is a recommendation only. Cluster Flow will assign whatever the module returns.</p>
+
+<h3 id="_2"><code>--mem</code></h3>
+
+<p>Much like cores, Cluster Flow will calculate the maximum memory available for the module and call the module with the <code>--mem</code> flag followed by an amount of memory in bytes. The module should print the required memory and exit. Required memory can be returned in bytes or formatted with a number followed by a single letter suffix; eg. <code>4G</code>, <code>4096M</code> or <code>4294967296</code>.</p>
+
+<p>You can use the core Cluster Flow helper functions <code>allocate_cores()</code> and <code>allocate_memory()</code> to convert simple human readable strings to bytes. For example:</p>
+
+<pre><code>return CF::Helpers:: allocate_memory($allocated, &#39;2G&#39;, &#39;10G&#39;);</code></pre>
+
+<p>The maximum available memory is a recommendation only. Cluster Flow will assign whatever the module returns.</p>
+
+<h3 id="_3"><code>--modules</code></h3>
+
+<p>Most Cluster Flow modules will require a system program to exist in the <code>PATH</code>. It’s common practice to use environment modules to manage this. Environment modules need to be loaded from the head node before the qsub jobs are set off. Cluster Flow calls each CF module with the <code>--modules</code> flag before running it. A comma separated list of module names should be printed. Each of these will be loaded with <code>module load &lt;name&gt;</code>.</p>
+
+<h3 id="_4"><code>--help</code></h3>
+
+<p>Cluster Flow can be called with the <code>--help</code> flag followed by any pipeline or module name. If a module name is requested, Cluster Flow will call that module with the <code>--help</code> parameter and print the <code>STDOUT</code>.</p>
+
+<h2 id="command_line_parameters">Command line parameters</h2>
+
+<p>When a module is called by its cluster job, it will have the following parameters passed in this order:</p>
+
+<ul>
+<li>Run file filename</li>
+
+<li>Cluster job ID</li>
+
+<li>Previous job ID</li>
+
+<li>Number of cores assigned</li>
+
+<li>Amount of memory assigned</li>
+
+<li>Extra parameters</li>
+</ul>
+
+<p>A run file is created by Cluster Flow for each batch of files. It describes variables to be used, the pipeline specified and the filenames used by each module. The syntax of variables and pipeline is described in Pipeline syntax.</p>
+
+<p>File names are described by a job identifier followed by a tab then a filename. Each module is provided with its own job ID and the ID of the job that was run previously. By using these identifiers, the module can read which input files to use and write out the resulting filenames to the run file when complete. Example run file syntax:</p>
+
+<pre><code>first_job_938 filename_1.txt
+first_job_938 filename_2.txt
+second_job_375 filename_1_processed.txt
+second_job_375 filename_2_processed.txt</code></pre>
+
+<p>There can be any number of extra parameters, these are specific the module and are specified in the pipeline configuration.</p>
+
+<h2 id="email_report_highlights">E-mail report highlights</h2>
+
+<p>Any <code>STDOUT</code> or <code>STDERR</code> that your module produces will be written to the Cluster Flow log file. At the end of each run and pipeline, an e-mail will be sent to the submitter with details of the run results (if specified by the config settings). Because the log file can be very long Cluster Flow pulls out any lines starting with <code>###CF</code>. Typically, such a line should be printed when a module finishes, with a concise summary of whether it worked or not.</p>
+
+<p>Modules should print the command that they are going to run to STDERR so that this is recorded in the log file. These are also sent in the e-mail notification and should start with <code>###CFCMD</code></p>
+
+<h2 id="exit_codes">Exit codes</h2>
+
+<p>It’s likely that your cluster will continue to fire off the dependent jobs as soon as the parent jobs finish, irrespective of their output. If a module fails, the cleanest way to exit is with a success code, but without printing any resulting output filename. The following modules will not find their input filenames and so should immediately exit.</p>
+
+<h2 id="example_module_2">Example module</h2>
+
+<p>An example module is distributed with Cluster Flow in <code>modules/example_module</code></p>
+
+<p>The module doesn’t do anything but shows the typical workflow for a Perl module, replete with lots of comments saying what everything is doing. Typically, the easiest way to write a new module is to copy and old one, and modify it to suit your needs.</p>
+
+<p>If you write a new module, please let us know! We’d love to package it with Cluster Flow so that other people can benefit.</p>
+
+<h1 id="helper_perl_packages">Helper Perl Packages</h1>
+
+<p>If your module is written in Perl, there are some common Cluster Flow packages that you can use to provide some pre-written functions.</p>
+
+<p>Ok, so the heading should be “Perl Modules”, but I thought that would be too confusing. I’ll stick with packages from now on too.</p>
+
+<h2 id="using_cluster_flow_packages">Using Cluster Flow packages</h2>
+
+<p>There are currently three packages available to Cluster Flow modules. <code>Helpers</code> contains subroutines of general use for most modules. <code>Constants</code> and <code>Headnodehelpers</code> contain subroutines primarily for use in the main <code>cf</code> script. You can include the Helpers package by adding the following to the top of your module file:</p>
+
+<pre><code>use FindBin qw($Bin);
+use lib &quot;$FindBin::Bin/../source&quot;;
+use CF::Helpers;</code></pre>
+
+<p>We use the package <code>FindBin</code> to add the binary directory to the path (where <code>cf</code> is executing from).</p>
+
+<h2 id="cluster_flow_helper_functions">Cluster Flow helper functions</h2>
+
+<h3 id="_5"><code>load_runfile_params(@ARGV);</code></h3>
+
+<p>This function reads the run file and returns a list of input filenames. Note that <code>$files</code> is an array reference and <code>$config</code> is a hash reference.</p>
+
+<pre><code>my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config) = CF::Helpers::load_runfile_params(@ARGV);</code></pre>
+
+<h3 id="_6"><code>is_paired_end(@files);</code></h3>
+
+<p>This function takes an array of file names and returns an array of single end files and an array of arrays of paired end files. It sorts the files alphabetically, removes any occurance of <code>_[1-4]</code> from the filename and compares. Identical pairs are returned as paired end. This function will return the appropriate file arrays if <code>--paired</code> or <code>--single</code> was used at run time.</p>
+
+<pre><code>my ($se_files, $pe_files) = CF::Helpers::is_paired_end(@$files); foreach my $file (@$se_files){
+       print “$file is single end\n”;
+}
+foreach my $files_ref (@$pe_files){
+	my @files = @$files_ref;
+	print $files[0].” and “.$files[1].” are paired end.\n”;
+}</code></pre>
+
+<h3 id="_7"><code>is_bam_paired_end($files);</code></h3>
+
+<p>Looks at BAM/SAM file headers and tries to determine whether it has been generated using paired end input files or single end. The subroutine simply searches the <code>@PG</code> header for the occurrence of <code>-1</code> and <code>-2</code>.</p>
+
+<pre><code>if(CF::Helpers::is_bam_paired_end($file)){
+	# do something with paired end BAM
+} else {
+	# do something with single end BAM
+}</code></pre>
+
+<h3 id="_8"><code>fastq_encoding_type($file);</code></h3>
+
+<p>Scans a FastQ file and tries to determine the encoding type. Returns strings <code>integer</code>, <code>solexa</code>, <code>phred33</code>, <code>phred64</code> or <code>0</code> if too few reads to safely determine. This is done by observing the minimum and maximum quality scores.</p>
+
+<p>For more details, see the <a href="http://en.wikipedia.org/wiki/FASTQ_format#Encoding">Wikipedia page on FastQ encoding</a></p>
+
+<pre><code>($encoding) = CF::Helpers::fastq_encoding_type($file);</code></pre>
+
+<h3 id="_9"><code>fastq_min_length($file);</code></h3>
+
+<p>Scans the first 100000 reads of a FastQ file and returns the longest read length that it finds.</p>
+
+<h3 id="_10"><code>parse_seconds($raw, [$long]);</code></h3>
+
+<p>Simple function that takes time in seconds as an input and returns a human readable string. The optional second <code>$long</code> variable determines whether to use h/m/s (<code>0</code>, false) or hours/minutes/seconds (<code>1</code>, true) and defaults to true.</p>
+
+<h3 id="_11"><code>human_readable_to_bytes($raw);</code></h3>
+
+<h3 id="_12"><code>bytes_to_human_readable($raw);</code></h3>
+
+<p>Two functions which convert between human readable memory strings (eg. <code>4G</code> or <code>100M</code>) and bytes.</p>
+
+<h3 id="_13"><code>allocate_cores($recommended, $min, $max);</code></h3>
+
+<p>Takes the suggested number of cores to use, a minimum and maximum number and returns a sensible result.</p>
+
+<h3 id="_14"><code>allocate_memory($recommended, $min, $max);</code></h3>
+
+<p>Takes the suggested number of memory to use, a minimum and maximum amount and returns a sensible result. Input can be human readable strings or bytes. Returns a value in bytes.</p>
 </div>
 
 <aside class="sidebar">
