@@ -86,7 +86,7 @@ footer .credits {
 	text-align:center;
 }
 .credits .logos a {
-	padding:20px;
+	padding:10px;
 }
 
 .sidebar {
@@ -141,7 +141,7 @@ footer .credits {
 	margin-right:250px;	
 }
 
-@media (max-width:1000px){
+@media (max-width:1200px){
 	.sidebar {
 		display:none;
 	}
@@ -161,7 +161,7 @@ footer .credits {
 		text-align:center;
 	}
 	.mainpage {
-		margin-left:0;
+		margin:0;
 	}
 	header .credits {
 		display:none;

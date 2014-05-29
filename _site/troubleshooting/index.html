@@ -31,7 +31,6 @@
 	<section class="download">
 		<p>
 			<a class="btn btn-default" href="/" title="Download Cluster Flow"><i class="glyphicon glyphicon-folder-open"></i> &nbsp; &nbsp; Download Cluster Flow</a>
-			<a class="text-link" href="" title="Download Current Cluster Flow Development Version" onclick="return(confirm('This code is currently in development and there\'s a good chance that it will contain bugs - are you sure you don\'t want the stable release?'));"><i class="glyphicon glyphicon-folder-open"></i> &nbsp; &nbsp; Download devel version</a>
 			<a class="text-link" href="/" title="View on GitHub"><img src="/resources/img/GitHub-Mark/PNG/GitHub-Mark-Light-16px.png" title="View on GitHub"> &nbsp; View on GitHub</a>
 		</p>
 	</section>
@@ -57,7 +56,74 @@
 
 <div class="mainpage mainpage-toc">
 	<h1 class="page-title">Troubleshooting</h1>
-	
+	<h1 id="bugs_and_errors">Bugs and Errors</h1>
+
+<p>If you come across a strange looking error message or find a bug, please do let us know. You submit new issues here: https://github.com/ewels/clusterflow/issues</p>
+
+<h2 id="feature_requests">Feature Requests</h2>
+
+<p>If you’d like Cluster Flow to do something it doesn’t, log a request! The issue tracker system mentioned above can be used for enhancement requests too.</p>
+
+<h2 id="going_oldschool">Going old-school</h2>
+
+<p>If you can’t face all of this fancy-pants github stuff, feel free to drop the author an e-mail at <a href='mailto:phil.ewels@scilifelab.se'>phil.ewels@scilifelab.se</a></p>
+
+<h1 id="frequently_asked_questions">Frequently Asked Questions</h1>
+
+<h2 id="general">General</h2>
+
+<h3 id="permission_errors">Permission Errors</h3>
+
+<p>A number of errors can be caused by scripts not having executable file privileges. You can see the file permissions with <code>ls -l</code>, you should see something like this:</p>
+
+<pre><code>$ ls -l clusterflow/modules/
+total 608
+-rwxrwxr-x 1 phil phil 6770 May 20 16:40 bismark_align.cfmod
+-rwxrwxr-x 1 phil phil 4291 May 16 12:54 bismark_deduplicate.cfmod
+-rwxrwxr-x 1 phil phil 2748 May 16 12:54 bismark_messy.cfmod
+-rwxrwxr-x 1 phil phil 5652 May 16 12:54 bismark_methXtract.cfmod
+-rwxrwxr-x 1 phil phil 3553 May 16 12:54 bismark_tidy.cfmod
+-rwxrwxr-x 1 phil phil 7119 May 16 12:54 bowtie1.cfmod</code></pre>
+
+<p>This example is for the modules directory (all modules should have executable privileges for all), the same applies to the main <code>cf</code> file.</p>
+
+<h3 id="dos_carriage_returns">DOS carriage returns</h3>
+
+<p>If you’ve edited any files, you may get problems due to windows-based editors putting DOS-style <code>\r</code> carriage returns in.</p>
+
+<p>Most linux environments come with a package called <code>dos2unix</code> which will clean these up. eg:</p>
+
+<pre><code>dos2unix *</code></pre>
+
+<h2 id="errors_from_environment_modules">Errors from environment modules</h2>
+
+<h3 id="error105_unable_to_locate_a_modulefile_for_clusterflow">ERROR:105: Unable to locate a modulefile for ‘clusterflow’</h3>
+
+<p>This error probably means that Cluster Flow isn’t installed in your environment module system, and you’re trying to run <code>module load clusterflow</code></p>
+
+<p>You can skip this step if you have another way of accessing the <code>cf</code> file, or see the <a href="/installation/">Installation Instructions</a> for details about how to set Cluster Flow up with environment modules.</p>
+
+<h2 id="errors_from_job_submission">Errors from job submission</h2>
+
+<h3 id="unable_to_run_job_job_rejected_the_requested_parallel_environment_orte_does_not_exist">Unable to run job: job rejected: the requested parallel environment “orte” does not exist.</h3>
+
+<p>This message means that your GRIDEngine setup doesn’t have the default <code>orte</code> environment set up. If you have different environments set up you can list them with:</p>
+
+<pre><code>qconf -spl</code></pre>
+
+<p>You can get the details of any environment with:</p>
+
+<pre><code>qconf -sp [name]</code></pre>
+
+<p>If you find one which assigns slots to a single node (<code>allocation_rule</code> should be <code>$fill_up</code>) then you can just do a find &amp; replace for <code>orte</code> to the name of your local environment and that should make things work again.</p>
+
+<p><em>(Answered by Simon Andrews)</em></p>
+
+<h3 id="unable_to_run_job_job_rejected_other_reasons">Unable to run job: job rejected (other reasons)</h3>
+
+<p>There may be other differences in the job submission requests that cause them to fail. If you see errors such as this, you can use the <code>@custom_job_submit_command</code> configuration variable to customise the way that jobs are requested.</p>
+
+<p>For more information, see the <a href="/installation/">Installation Instructions</a></p>
 </div>
 
 <aside class="sidebar">

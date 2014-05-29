@@ -3,15 +3,81 @@ title: Installation Instructions
 layout: toc
 ---
 
-# Installation
-To get started with Cluster Flow, first download the source files using the links on the left.
+# Installation Overview
+The heart of Cluster Flow is a simple Perl script. To get it up and running on your system there a few simple steps:
 
-# Config file wizard
-Cluster Flow comes with a command line wizard which can walk you through the creation of your personalised config file.
+* Download the code!
+* Make the main script accessible by adding it to your `PATH` with environment modules or other methods _(optional)_
+* Set up the configuration file to work with your cluster environment
+* Add some genome paths
 
-Simply run `cf --make_config` and answer the on screen questions and cluster flow will generate `~/clusterflow.config` for you. Sensible defaults are suggested.
+## Downloading Cluster Flow
+To get started with Cluster Flow, first download the source files using the links on the left. Stable releases are tagged as downloads. The main github branch will typically contain the latest stable release, with development work going on within development branches.
 
-# Cluster Flow config files
+## Configuring your `PATH`
+Linux systems use an environment variable called `PATH` to keep the locations of executable binaries. If you add the Cluster Flow directory to this, you'll be able to call the Cluster Flow `cf` file from anywhere.
+
+### Environment modules
+Many compute clusters use [environment modules](http://modules.sourceforge.net/) to manage the user’s `PATH`.
+
+If your system uses environment modules, you can create a new module file to add Cluster Flow to the list of available modules. A typical module file example is given below - note that you'll need to change the file paths to where the Cluster Flow files are kept. The code below takes the version of Cluster Flow from the module script filename.
+
+	#%Module1.0#####################################################################
+	##
+	## clusterflow modulefile
+	##
+
+	source $env(MODULE_INCLUDE)/functions.tcl
+	getCluster
+
+	set components [ file split [ module-info name ] ]
+	set version [ lindex $components 1 ]
+
+	set     modroot          /path/to/clusterflow/$version
+
+	proc ModulesHelp { } {
+	        global version modroot
+
+	        puts stderr "\tclusterflow - use clusterflow $version"
+	        puts stderr "\n\tVersion $version\n"
+	}
+
+	module-whatis   "Loads clusterflow environment."
+
+	# Only one version at a time
+	conflict clusterflow
+
+	#Log loading to syslog
+	logToSyslog
+
+	if [module-info mode load] {
+	    prepend-path        PATH            $modroot
+	}
+
+	if [module-info mode remove] {
+	    remove-path         PATH            $modroot
+	}
+
+Once done, you may need to rebuild your module cache. You can load the new module by running
+
+	module load clusterflow
+
+You may also wish to create a symlinked directory called cf so that `module load cf` also works.
+
+### Manually adding Cluster Flow to the `PATH`
+You can manually add the directory containing cluster flow to your `PATH` with the following command :
+
+	PATH=/path/to/clusterflow:$PATH
+
+### Checking it's worked
+For both of the above methods, you can check that the system can find Cluster Flow with the following command:
+
+	which cf
+
+You should see the directory containing the Cluster Flow files.
+
+## Configuring Cluster Flow
+### Cluster Flow config files
 Cluster flow will search three locations for a config file every time it is run. Variables found in each file can override those read from a previous config file. They are, in order of priority:
 
 * `<working directory>/clusterflow.config`
@@ -23,10 +89,58 @@ Cluster flow will search three locations for a config file every time it is run.
 
 Config files contain key: value pairs. Syntax is as follows: `@key value` (tab delimited, one per line). Cluster Flow ships with an example config file called [clusterflow.config.example](https://github.com/ewels/clusterflow/blob/master/clusterflow.config.example "Browse the example config file on GitHub")
 
-# Genome paths
-Many modules within Cluster Flow require reference genomes for alignment. Cluster Flow comes with an interactive wizard to help you add new genome paths, just run: `cf --add_genome`
+Typically, there will be a config file in the installation directory which contains the settings that make Cluster Flow work, then each user will have a personal configuration file in their home directory containing settings such as a notification e-mail address.
 
-Genome paths are stored within files called `genomes.config` which are stored in the same directories as `clusterflow.config`. Within this file, each path is described with `@genome_path` followed by a key used when submitting the Cluster Flow run (eg. `--genome GRCh37`) followed by an absolute path. Optionally, species and assembly can be added after this.
+### Making Cluster Flow work with your environment
+The key things to set up when installing Cluster Flow are the variables that dictate how CF should interact with your cluster - what commands it should use to submit jobs.
+
+Cluster Flow currently supports GRIDEngine (SGE), SLURM and LSF. You can choose which one you're running with the following:
+
+	/* Options: GRIDEngine, SLURM or LSF */
+	@cluster_environment    SLURM
+
+In most cases, that should be enough to get Cluster Flow to work! However, some people have some specific variables that need to be submitted with batch jobs (eg. project identifiers, time limits, other custom flags). If this is the case, the job submission command can be customised with the `@custom_job_submit_command` config variable.
+
+To use this, enter your typical submission command with the following placeholders which will be replaced at run time:
+
+* `{{ "{{command" }}}}`
+	* The actual command which will be run to execute the module file
+* `{{ "{{job_id" }}}}`
+	* The unique identifier which will be assigned to use job dependencies
+* `{{ "{{outfn" }}}}`
+	* The filename of the log file to capture `STDOUT`
+* `{{ "{{cores" }}}}`
+	* How many cores to assign
+* `{{ "{{mem" }}}}`
+	* How much memory to assign
+* `{{ "{{priority" }}}}`
+	* A priority to set, defined in the config file
+* `{{ "{{email" }}}}`
+	* The user's e-mail address for cluster job notifications (if set)
+* `{{ "{{notifications" }}}}`
+	* A string describing which notifications to be sent (syntax depends on environment set above)
+
+For example:
+	
+	@custom_job_submit_command      sbatch  -A MY_PROJECT_ID -t 2-00:00:00 -p core -n {{ "{{cores" }}}} --open-mode=append -o {{ "{{outfn" }}}} -J {{ "{{job_id" }}}} {{ "{{notifications" }}}} --wrap="{{ "{{command" }}}}"
+
+Cluster Flow will generate it's own sensible default if this isn't set, so it's worth trying it without first.
+
+### Environment modules path
+Yup, environment modules again (if you're not using these, you can skip). Many Cluster Flow pipelines will run programs that will have environment module dependencies - for example, if you're running bowtie, bowtie needs to be added to the `PATH`.
+
+You can do this yourself before you start each run, but that's a pain and often goes wrong. To get around this, Cluster Flow can find out what is needed and load the environment modules itself.
+
+To make this work, you need to configure where the environment modules binary is. For example:
+
+	@env_modules_path       /usr/local/Modules/lmod/bin/modulecmd
+
+## Adding genome paths
+Ok, we're nearly there! Many modules within Cluster Flow require reference genomes for alignment. You can do this manually (probably quicker if you have lots to add) or you can use the interactive wizard that comes with Cluster Flow - just run:
+
+	 cf --add_genome
+
+Genome paths are stored within files called `genomes.config` which are stored in the same directories as `clusterflow.config`. Within this file, each path is described with `@genome_path` followed by a unique IDy used when submitting the Cluster Flow run (eg. `--genome GRCh37`). These are then followed by an absolute path. Optionally, species and assembly can be added after this (see [example](https://github.com/ewels/clusterflow/blob/master/genomes.config.example "Browse the example genomes file on GitHub")).
 
 There are four types of paths that can be specified:
 
@@ -41,8 +155,12 @@ There are four types of paths that can be specified:
 
 All four types of path should share genome keys if applicable. The fields should be separated by a tab character. Cluster Flow ships with an example genomes file called [genomes.config.example](https://github.com/ewels/clusterflow/blob/master/genomes.config.example "Browse the example genomes file on GitHub")
 
+## Running Cluster Flow
+Ok, you're done! Cluster Flow should now work (see [General Usage]({{base.url}}/usage/) for instructions on how to run Cluster Flow). If you get any weird errors, have a look through the  [Troubleshooting]({{base.url}}/troubleshooting/) section and if in doubt, drop me an e-mail. Good luck!
 
-# Config File settings
+-------
+
+# Config File reference
 The following section describes the available variables that can be set in the config file. For an example, see the [clusterflow.config.example](https://github.com/ewels/clusterflow/blob/master/clusterflow.config.example "Browse the example config file on GitHub") file that comes bundled with Cluster Flow.
 
 ### @email
