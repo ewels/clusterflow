@@ -496,13 +496,15 @@ my $comment_block = 0;
 
 # Write config variables to runfile header
 $runfile = <<"EOT";
-\@email	$EMAIL
 \@split_files	$SPLIT_FILES
 \@total_cores	$TOTAL_CORES
 \@total_mem	$TOTAL_MEM
 EOT
+if($EMAIL){
+	$runfile .= "\@email	$EMAIL\n";	
+}
 if($PRIORITY){
-	$runfile .= "\@priority		$PRIORITY\n";
+	$runfile .= "\@priority	$PRIORITY\n";
 }
 foreach my $not (@NOTIFICATIONS){
 	$runfile .= "\@notification\t$not\n";
