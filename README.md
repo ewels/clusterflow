@@ -15,19 +15,20 @@ Cluster Flow is released with a GPL v3 licence. Cluster Flow is free software: y
 
 Change Log
 ----------
-* v0.2
-	* New Stuff
-		* Now compatable with SLURM
-		* Customise batch job commands in the config (see the [docs](http://ewels.github.io/clusterflow/installation/#making_cluster_flow_work_with_your_environment)
-		* Created new GitHub pages website to hold documentation: http://ewels.github.io/clusterflow
-	* Updates
-		* Ported repository to github: https://github.com/ewels/clusterflow
-		* Wrote new readme for github
-	* Bugs Squashed
-		* Custom modules in `~/clusterflow/modules/` weren't being found
-		* General code clean-ups all over the place 
-* v0.1
-	* The first public release of Cluster Flow, although it's been in use at the Babraham Institute for around 6 months. It's been in heavy development throughout that time and is now approaching a state of being relatively stable.
+#### [v0.2](https://github.com/ewels/clusterflow/releases/tag/v0.2) - 2014-05-29
+* New Stuff
+	* Now compatable with SLURM
+	* Customise batch job commands in the config (see the [docs](http://ewels.github.io/clusterflow/installation/#making_cluster_flow_work_with_your_environment)
+	* Created new GitHub pages website to hold documentation: http://ewels.github.io/clusterflow
+* Updates
+	* Ported repository to github: https://github.com/ewels/clusterflow
+	* Wrote new readme for github
+* Bugs Squashed
+	* Custom modules in `~/clusterflow/modules/` weren't being found
+	* General code clean-ups all over the place 
+
+#### [v0.1](https://github.com/ewels/clusterflow/releases/tag/v0.1) - 2014-04-25
+* The first public release of Cluster Flow, although it's been in use at the Babraham Institute for around 6 months. It's been in heavy development throughout that time and is now approaching a state of being relatively stable.
 
 
 Credits
