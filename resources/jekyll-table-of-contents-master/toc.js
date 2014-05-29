@@ -51,7 +51,7 @@
       });
     }
     if (0 !== settings.showSpeed) {
-      output.hide().html(html).show(settings.showSpeed);
+      output.hide().html(html).slideDown(settings.showSpeed);
     } else {
       output.html(html);
     }

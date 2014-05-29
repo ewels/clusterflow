@@ -1,31 +1,8 @@
 {% include header.html %}
 
-<header>
-	<section class="logo">
-		<h1>Cluster Flow</h1>
-		<p>A pipelining tool to automate and standardise bioinformatics analyses on cluster environments.</p>
-	</section>
-	<nav id="nav">
-		<ul>
-			<li><a href="#">Introduction</a></li>
-			<li><a href="#">Installation</a></li>
-			<li><a href="#">Quick Start</a></li>
-		</ul>
-	</nav>
-	<section class="credits">
-		<p>Cluster Flow was written by Phil Ewels whilst working at the Babraham Institute, in Cambridge (UK). He now maintains it from SciLifeLab in Stockholm, Sweden.</p>
-	</section>
-</header>
-
 <div class="mainpage">
 	<h1>{{page.title}}</h1>
 	{{content|markdownify}}
 </div>
-
-<aside class="sidebar">
-	<nav id="subnav">
-		<div class="toc"></div>
-	</nav>
-</aside>
 
 {% include footer.html %}

@@ -1,14 +1,21 @@
-	
-	<!-- jQuery -->
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-	<!-- Bootstrap JS -->
+	<footer>
+		<section class="credits">
+			<p>Cluster Flow was written by <a href="http://phil.ewels.co.uk" target="_blank">Phil Ewels</a> whilst working at the <a href="http://www.babraham.ac.uk" target="_blank">Babraham Institute</a>. He now maintains it from <a href="http://www.scilifelab.se" target="_blank">SciLifeLab</a> in Stockholm, Sweden.</p>
+			<p class="logos">
+				<a href="http://www.babraham.ac.uk" target="_blank"><img src="{{ site.baseurl }}/resources/img/Babraham_logo.png" title="Babraham Institute"></a>
+				<a href="http://www.scilifelab.se" target="_blank"><img src="{{ site.baseurl }}/resources/img/SciLifeLab_logo.png" title="SciLifeLab"></a>
+			</p>
+		</section>
+	</footer>
+	<!-- jQuery & Boostrap -->
+	<script src="{{ site.baseurl }}/resources/jquery-1.11.1.min.js"></script>
 	<script src="{{ site.baseurl }}/resources/bootstrap/js/bootstrap.min.js"></script>
 	<!-- Auto TOC Generator -->
 	<script src="{{ site.baseurl }}/resources/jekyll-table-of-contents-master/toc.js"></script>
 	<script type="text/javascript">
 		$(document).ready(function() {
 		    $('.toc').toc({
-				title: '<h4>Table of Contents</h4>',
+				title: '',
 				listType: 'ul'
 			});
 		});
