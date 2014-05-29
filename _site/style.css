@@ -183,3 +183,15 @@ pre code {
   word-wrap: normal;
   white-space: pre;
 }
+
+.version {
+	border-bottom:1px solid #ccc;
+	padding-bottom:5px;
+	margin-top:25px;
+}
+.version a:hover {
+	text-decoration:none;
+}
+.version .label {
+	margin-right:10px;
+}
