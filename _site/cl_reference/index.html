@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title> Command Line Reference |  Cluster Flow</title>
+	<meta name="description" content="A pipelining tool to automate and standardise bioinformatics analyses on cluster environments"/>
+	<meta name="author" content="Phil Ewels"/>
+	
+	<!-- Bootstrap and Google Fonts -->
+	<link href="/resources/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+	<link href='http://fonts.googleapis.com/css?family=Lato:400,700,400italic' rel='stylesheet' type='text/css'>
+	<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+	<!--[if lt IE 9]>
+		<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+		<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+	<![endif]-->
+	
+	<!-- Site Stylesheet -->
+	<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header>
+	<section class="logo">
+		<h1><a href="/"><img src="/resources/img/CF_logo.png" title="Cluster Flow"></a></h1>
+		<p>A pipelining tool to automate and standardise bioinformatics analyses on cluster environments.</p>
+	</section>
+	<section class="download">
+		<p>
+			<a class="btn btn-default" href="/" title="Download Cluster Flow"><i class="glyphicon glyphicon-folder-open"></i> &nbsp; &nbsp; Download Cluster Flow</a>
+			<a class="text-link" href="" title="Download Current Cluster Flow Development Version" onclick="return(confirm('This code is currently in development and there\'s a good chance that it will contain bugs - are you sure you don\'t want the stable release?'));"><i class="glyphicon glyphicon-folder-open"></i> &nbsp; &nbsp; Download devel version</a>
+			<a class="text-link" href="/" title="View on GitHub"><img src="/resources/img/GitHub-Mark/PNG/GitHub-Mark-Light-16px.png" title="View on GitHub"> &nbsp; View on GitHub</a>
+		</p>
+	</section>
+	<nav id="nav">
+		<ul>
+			<li><a href="/introduction/">Introduction</a></li>
+			<li><a href="/installation/">Installation Instructions</a></li>
+			<li><a href="/usage/">General Usage</a></li>
+			<li><a href="/cl_reference/">Command Line Reference</a></li>
+			<li><a href="/writing_pipelines_modules/">Writing Pipelines &amp; Modules</a></li>
+			<li><a href="/troubleshooting/">Troubleshooting</a></li>
+		</ul>
+	</nav>
+	<section class="credits">
+		<p>Cluster Flow was written by <a href="http://phil.ewels.co.uk" target="_blank">Phil Ewels</a> whilst working at the <a href="http://www.babraham.ac.uk" target="_blank">Babraham Institute</a>. He now maintains it from <a href="http://www.scilifelab.se" target="_blank">SciLifeLab</a> in Stockholm, Sweden.</p>
+		<p class="logos">
+			<a href="http://www.babraham.ac.uk" target="_blank"><img src="/resources/img/Babraham_logo.png" title="Babraham Institute"></a>
+			<a href="http://www.scilifelab.se" target="_blank"><img src="/resources/img/SciLifeLab_logo.png" title="SciLifeLab"></a>
+		</p>
+		<p>This documentation is written using <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> and hosted using <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.</p>
+	</section>
+</header>
+
+<div class="mainpage mainpage-toc">
+	<h1 class="page-title">Command Line Reference</h1>
+	<h1 id="command_line_parameter_overview">Command Line Parameter Overview</h1>
+<table class="table"><thead><tr><th>Flag</th><th>Description</th></tr></thead><tbody><tr><td style="text-align: left;"><code>--genome &lt;ID&gt;</code></td><td style="text-align: left;">ID of a genome referred to in <code>genomes.config </code></td></tr>
+<tr><td style="text-align: left;"><code>--genome_path &lt;path&gt;</code></td><td style="text-align: left;">Path to a genome to be used for alignment</td></tr>
+<tr><td style="text-align: left;"><code>--bowtie_path &lt;path&gt;</code></td><td style="text-align: left;">Path to a bowtie index base to be used for alignment</td></tr>
+<tr><td style="text-align: left;"><code>--gtf_path &lt;path&gt;</code></td><td style="text-align: left;">Path to a GTF file to be used for alignment (eg. for Tophat)</td></tr>
+<tr><td style="text-align: left;"><code>--paired</code></td><td style="text-align: left;">Force paired-end mode</td></tr>
+<tr><td style="text-align: left;"><code>--single</code></td><td style="text-align: left;">Force single-end mode</td></tr>
+<tr><td style="text-align: left;"><code>--no_fn_check</code></td><td style="text-align: left;">Disable input file type checking</td></tr>
+<tr><td style="text-align: left;"><code>--file_list</code></td><td style="text-align: left;">Text file containing input files or download URLs</td></tr>
+<tr><td style="text-align: left;"><code>--params</code></td><td style="text-align: left;">Specify extra module parameters for this run</td></tr>
+<tr><td style="text-align: left;"><code>--split_files &lt;num&gt;</code></td><td style="text-align: left;">Create one run per <code>&lt;num&gt;</code> files</td></tr>
+<tr><td style="text-align: left;"><code>--max_runs &lt;num&gt;</code></td><td style="text-align: left;">Divide input files into <code>&lt;num&gt;</code> runs. Set as 0 to disable.</td></tr>
+<tr><td style="text-align: left;"><code>--email &lt;email&gt;</code></td><td style="text-align: left;">Set the e-mail address for notifications</td></tr>
+<tr><td style="text-align: left;"><code>--priority &lt;num&gt;</code></td><td style="text-align: left;">Set the queue priority for cluster jobs</td></tr>
+<tr><td style="text-align: left;"><code>--cores &lt;num&gt;</code></td><td style="text-align: left;">Set the maximum number of cores to use for all runs</td></tr>
+<tr><td style="text-align: left;"><code>--mem &lt;string&gt;</code></td><td style="text-align: left;">Set the maximum memory to use for all runs</td></tr>
+<tr><td style="text-align: left;"><code>--notifications [cresa]</code></td><td style="text-align: left;">Specify desired notifications</td></tr>
+<tr><td style="text-align: left;"><code>--list_pipelines</code></td><td style="text-align: left;">Print available pipelines</td></tr>
+<tr><td style="text-align: left;"><code>--list_modules</code></td><td style="text-align: left;">Print available modules</td></tr>
+<tr><td style="text-align: left;"><code>--list_genomes</code></td><td style="text-align: left;">Print available genomes</td></tr>
+<tr><td style="text-align: left;"><code>--dry_run</code></td><td style="text-align: left;">Prints jobs to terminal instead of submitting them to the cluster</td></tr>
+<tr><td style="text-align: left;"><code>--qstat</code></td><td style="text-align: left;">Displays formatted qstat output of your jobs</td></tr>
+<tr><td style="text-align: left;"><code>--qstatall</code></td><td style="text-align: left;">Displays formatted qstat output of all jobs</td></tr>
+<tr><td style="text-align: left;"><code>--qstatcols</code></td><td style="text-align: left;">Colours output from –qstat or –qstatall</td></tr>
+<tr><td style="text-align: left;"><code>--qdel &lt;id&gt;</code></td><td style="text-align: left;">Delete all jobs from a running pipeline. <code>&lt;id&gt;</code> is printed with –qstat</td></tr>
+<tr><td style="text-align: left;"><code>--make_config</code></td><td style="text-align: left;">Interactive prompt to generate a personalised CF config file</td></tr>
+<tr><td style="text-align: left;"><code>--add_genome</code></td><td style="text-align: left;">Interactive wizard to add new genomes to your genomes.config files</td></tr>
+<tr><td style="text-align: left;"><code>--version</code></td><td style="text-align: left;">Print version of Cluster Flow installed</td></tr>
+<tr><td style="text-align: left;"><code>--check_updates</code></td><td style="text-align: left;">Look for available Cluster Flow updates</td></tr>
+<tr><td style="text-align: left;"><code>--help</code></td><td style="text-align: left;">Print help message</td></tr>
+</tbody></table>
+<h1 id="parameter_details">Parameter Details</h1>
+
+<h2 id=""><code>--genome</code></h2>
+
+<p><strong>Default: none</strong></p>
+
+<p>Some pipelines which carry out a reference genome alignment require a genome directory path to be set. Requirements for format may vary between modules.</p>
+
+<h2 id="_2"><code>--paired</code></h2>
+
+<p><strong>Default: Auto-detect</strong></p>
+
+<p>If specified, Cluster Flow will send two files to each run, assuming that the order that the file list is supplied in corresponds to two read files. If an odd number of files is supplied, the final file is submitted as single end.</p>
+
+<h2 id="_3"><code>--single</code></h2>
+
+<p><strong>Default: Auto-detect</strong></p>
+
+<p>If specified, Cluster Flow will ignore its auto-detection of paired end input files and force the single end processing of each input file.</p>
+
+<h2 id="_4"><code>--no_fn_check</code></h2>
+
+<p><strong>Default: none</strong></p>
+
+<p>Cluster Flow will make sure that all of the input files have the same file extension to avoid accidentally submitting files that aren’t part of the run. Specifying this parameter disables this check.</p>
+
+<h2 id="_5"><code>--file_list</code></h2>
+
+<p><strong>Default: none</strong></p>
+
+<p>If specified, you can define a file containing a list of filenames to pass to the pipeline (one per line). This is particularly useful when supplying a list of download URLs.</p>
+
+<h2 id="_6"><code>--params</code></h2>
+
+<p><strong>Default: none</strong></p>
+
+<p>Pipelines and their modules are configured to run with sensible defaults. Some modules accept parameters which change their behaviour. Typically, these are set within a pipeline config file. By using <code>--params</code>, you can add extra parameters at run time. These will be set for every module in the pipeline (though they probably won’t all recognise them).</p>
+
+<h2 id="_7"><code>--split_files</code></h2>
+
+<p><strong>Default: (config file - typically 1)</strong></p>
+
+<p>Cluster Flow generates multiple parallel runs for the supplied input files when run. This is typically a good thing, the cluster is designed to run jobs in parallel. Some jobs may involve many small tasks with a large number of input files however, and 1:1 parallelisation may not be practical. In such cases, the number of input files to assign to each run can be set this flag.</p>
+
+<h2 id="_8"><code>--max_runs</code></h2>
+
+<p><strong>Default: none</strong></p>
+
+<p>It can sometimes be a pain to count the number of input files and work out a sensible number to use with <code>--split_files</code>. Cluster Flow can take the <code>--max_runs</code> value and divide the input files into this number of runs, setting <code>--split_files</code> automatically.</p>
+
+<p>A default can be set for <code>--max_runs</code> in the <code>clusterflow.config</code> file, and this value is set to 12 if no value is found in the config files. Set to 0 to disable.</p>
+
+<p>This parameter will override anything set using <code>--split_files</code>.</p>
+
+<h2 id="_9"><code>--email</code></h2>
+
+<p><strong>Default: (config file)</strong></p>
+
+<p>Cluster Flow can send notification e-mails regarding the status of runs. Typically, e-mail address should be set using a personalised ~/clusterflow.config value (see below). This parameter allows you to override that setting on a one-off basis.</p>
+
+<h2 id="_10"><code>--priority</code></h2>
+
+<p><strong>Default: (config file - typically -500)</strong></p>
+
+<p>GRID Engine uses a priority system to manage jobs in the queue. Priorities can be set ranging from -1000 to 0.</p>
+
+<h2 id="_11"><code>--cores</code></h2>
+
+<p><strong>Default: (config file - typically 64)</strong></p>
+
+<p>Override the maximum number of cores allowed for each Cluster Flow pipeline, typically set in the Cluster Flow config file. For more information see Avoiding cluster overload.</p>
+
+<h2 id="_12"><code>--mem</code></h2>
+
+<p><strong>Default: (config file - typically 128G)</strong></p>
+
+<p>Setting <code>--mem</code> allows you to override the maximum amount of simultaneously assigned memory. For more information see Avoiding cluster overload.</p>
+
+<h2 id="_13"><code>--notifications</code></h2>
+
+<p><strong>Default: (config file - typically cea)</strong></p>
+
+<p>Cluster Flow can e-mail you notifications about the progress of your runs. There are several levels of notification that you can choose using this flag. They are:</p>
+
+<ul>
+<li><code>c</code> - Send notification when all runs in a pipeline are completed</li>
+
+<li><code>r</code> - Send a notification when each run is completed</li>
+
+<li><code>e</code> - Send a notification when a cluster job ends</li>
+
+<li><code>s</code> - Send a notification if a cluster job is suspended</li>
+
+<li><code>a</code> - Send a notification if a cluster job is aborted</li>
+</ul>
+
+<p>Setting these options at run time with the <code>--notifications</code> flag will override the settings present in your clusterflow.config configuration files. Note: setting the <code>s</code> flag when using many input files with a long pipeline may cause your inbox to be flooded.</p>
+
+<h2 id="_and_"><code>--qstat</code> and <code>--qstatall</code></h2>
+
+<p>When you have a lot of jobs running and queued, the qstat summary can get a little overwhelming. To combat this and show job hierarchy in an intuitive manner, you can enter into the console <code>cf --qstat</code>. This parses qstat output and displays it nicely. <code>cf --qstatall</code> does the same but for all jobs by all users.</p>
+
+<h2 id="_14"><code>--qstatcols</code></h2>
+
+<p>How this will look depends entirely on your terminal colour setup. It works nicely in terminal windows with light backgrounds and can look really horrible on terminal windows with dark backgrounds. For this reason it is only enabled when specified. To make the command a little less clumsy, you can create aliases in your .bashrc script. Typically, these two lines:</p>
+
+<pre><code>alias qs=&#39;cf --qstat --qstatcols&#39;
+alias qsa=&#39;cf --qstatall --qstatcols&#39;</code></pre>
+
+<p>If you’re feeling lazy, you can append these lines to your .bashrc script through the command line by copying and pasting the following commands:</p>
+
+<pre><code>sed -i &quot;$ a\alias qs=&#39;cf --qstat --qstatcols&#39;&quot; ~/.bashrc
+sed -i &quot;$ a\alias qsa=&#39;cf --qstatall --qstatcols&#39;&quot; ~/.bashrc</code></pre>
+
+<h2 id="_15"><code>--qdel</code></h2>
+
+<p>Sometimes you may be running multiple pipelines and want to stop just one. It can be a pain to find the job numbers to do this manually, so instead you can use Cluster Flow to kill these jobs. When running <code>cf --qstat</code>, ID values are printed for each pipeline. Use this with <code>--qdel</code>. eg:</p>
+
+<pre><code>cf --qdel sra_bowtie_1391074179</code></pre>
+</div>
+
+<aside class="sidebar">
+	<nav id="subnav">
+		<h3>Table of Contents</h3>
+		<div class="toc"></div>
+	</nav>
+</aside>
+
+	<footer>
+		<section class="credits">
+			<p>Cluster Flow was written by <a href="http://phil.ewels.co.uk" target="_blank">Phil Ewels</a> whilst working at the <a href="http://www.babraham.ac.uk" target="_blank">Babraham Institute</a>. He now maintains it from <a href="http://www.scilifelab.se" target="_blank">SciLifeLab</a> in Stockholm, Sweden.</p>
+			<p class="logos">
+				<a href="http://www.babraham.ac.uk" target="_blank"><img src="/resources/img/Babraham_logo.png" title="Babraham Institute"></a>
+				<a href="http://www.scilifelab.se" target="_blank"><img src="/resources/img/SciLifeLab_logo.png" title="SciLifeLab"></a>
+			</p>
+			<p>This documentation is written using <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> and hosted using <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.</p>
+		</section>
+	</footer>
+	<!-- jQuery & Boostrap -->
+	<script src="/resources/jquery-1.11.1.min.js"></script>
+	<script src="/resources/bootstrap/js/bootstrap.min.js"></script>
+	<!-- Auto TOC Generator -->
+	<script src="/resources/jekyll-table-of-contents-master/toc.js"></script>
+	<script type="text/javascript">
+		$(document).ready(function() {
+		    $('.toc').toc({
+				title: '',
+				listType: 'ul'
+			});
+		});
+	</script>
+</body>
+</html>

@@ -70,6 +70,7 @@ header nav ul li:last-child a {
 }
 footer .credits {
 	display:none;
+	text-align:center;
 }
 .credits {
 	/* Styles both the header and footer credits blocks */
@@ -110,17 +111,15 @@ footer .credits {
 	margin:0;
 	padding:0;
 	list-style-type:none;
+	border-top:1px solid #ccc;
+}
+.sidebar nav ul ul {
+	border-top:0;
 }
 .sidebar nav ul li a {
 	border-bottom:1px solid #ccc;
 	padding:10px 20px;
 	display:block;
-}
-.sidebar nav ul li:first-child a {
-	border-top:1px solid #ccc;
-}
-.sidebar nav ul ul li:first-child a {
-	border-top:0;
 }
 .sidebar nav ul ul li a {
 	font-size: 0.9em;
@@ -136,6 +135,7 @@ footer .credits {
 	margin-top:20px;
 	margin-left:300px;
 	padding:20px;
+	font-size:16px;
 }
 .mainpage-toc {
 	margin-right:250px;	
@@ -169,4 +169,12 @@ footer .credits {
 	footer .credits {
 		display:block;
 	}
+}
+
+
+
+.page-title {
+	font-size:3.6em;
+	border-bottom:1px solid #666;
+	margin-bottom:30px;
 }

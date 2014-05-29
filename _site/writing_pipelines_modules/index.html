@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title> Cluster Flow |  Cluster Flow</title>
+	<title> Writing Pipelines & Modules |  Cluster Flow</title>
 	<meta name="description" content="A pipelining tool to automate and standardise bioinformatics analyses on cluster environments"/>
 	<meta name="author" content="Phil Ewels"/>
 	
@@ -55,78 +55,17 @@
 	</section>
 </header>
 
-<div class="mainpage">
-	<h1 class="page-title">Cluster Flow</h1>
-	<p class="lead">Welcome to the new home of Cluster Flow. As of version 0.2, this website will serve as the primary home for the Cluster Flow documentation.</p>
-
-<p class="alert alert-danger"><strong>This documentation is still under construction.</strong> For now, please see the <a href="/resources/old_manual/Cluster_Flow_Manual.pdf">PDF manual</a>.</p>
-
-<p>Cluster Flow is a command-line program which uses common cluster managers to run analysis pipelines. It currently supports GRIDEngine (SGE), LSF and SLURM, plus it should be fairly easy to port to others.</p>
-
-<p>Benefits of using Cluster Flow:</p>
-
-<ul>
-<li>Routine analyses are very quick to run, for example: <code>cf --genome GRCh37 fastq_bowtie *fq.gz</code></li>
-
-<li>Pipelines use identical parameters, standardising analysis and making results more reproducable</li>
-
-<li>Integrated parallelisation tools help prevent your cluster becoming overloaded</li>
-
-<li>All commands and output is logged in files for future reference</li>
-
-<li>Intuitive commands and a comprehensive manual make Cluster Flow easy to use</li>
-
-<li>Very easy to get up and running (in theory at least!)</li>
-</ul>
-
-<p>How Cluster Flow differs from other pipeline tools:</p>
-
-<ul>
-<li>Very lightweight and flexible</li>
-
-<li>Pipelines and configurations can easily be generated on a project-specific basis if required</li>
-
-<li>New modules and pipelines are super easy to write (see video tutorial)</li>
-</ul>
-
-<h2 id="tutorial_videos">Tutorial Videos</h2>
-
-<p>There are two tutorial videos up on YouTube, see below:</p>
-
-<ul>
-<li><a href="http://youtu.be/b2g_zQiz9ys">Usage / Installation Tutorial</a> - How to configure and run Cluster Flow</li>
-
-<li><a href="http://youtu.be/aBHOcsA2M6w">Advanced Tutorial</a> - How to write your own pipelines and modules</li>
-</ul>
-
-<p>Please see the sidebar for access to the full Cluster Flow documentation. If you’re looking for a quick overview of what Cluster Flow is and how it works, see the <a href="/introduction/">Introduction</a>.</p>
-
-<h2 id="contributing_to_cluster_flow">Contributing to Cluster Flow</h2>
-
-<p>If you write a module or pipeline which could be of use to others, or modify the core Cluster Flow code in a helpful way, it would be great to merge those changes back into the core Cluster Flow project.</p>
-
-<p>The easiest way to do this is to <a href="https://help.github.com/articles/fork-a-repo">fork the Cluster Flow repository</a>, make your changes, committing them and pushing them as you go. When you’ve finished, submit a <a href="https://help.github.com/articles/using-pull-requests">pull request</a> and the new code can be merged into the central project.</p>
-
-<h2 id="change_log">Change Log</h2>
-
-<ul>
-<li>v0.2 devel
-<ul>
-<li>Ported repository to github</li>
-
-<li>Wrote new readme for github</li>
-
-<li>Bugfix: Custom modules in <code>~/clusterflow/modules/</code> weren’t being found</li>
-</ul>
-</li>
-
-<li>v0.1
-<ul>
-<li>The first public release of Cluster Flow, although it’s been in use at the Babraham Institute for around 6 months. It’s been in heavy development throughout that time and is now approaching a state of being relatively stable.</li>
-</ul>
-</li>
-</ul>
+<div class="mainpage mainpage-toc">
+	<h1 class="page-title">Writing Pipelines & Modules</h1>
+	
 </div>
+
+<aside class="sidebar">
+	<nav id="subnav">
+		<h3>Table of Contents</h3>
+		<div class="toc"></div>
+	</nav>
+</aside>
 
 	<footer>
 		<section class="credits">

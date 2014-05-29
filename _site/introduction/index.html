@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title> Cluster Flow |  Cluster Flow</title>
+	<title> Introduction |  Cluster Flow</title>
 	<meta name="description" content="A pipelining tool to automate and standardise bioinformatics analyses on cluster environments"/>
 	<meta name="author" content="Phil Ewels"/>
 	
@@ -55,78 +55,95 @@
 	</section>
 </header>
 
-<div class="mainpage">
-	<h1 class="page-title">Cluster Flow</h1>
-	<p class="lead">Welcome to the new home of Cluster Flow. As of version 0.2, this website will serve as the primary home for the Cluster Flow documentation.</p>
+<div class="mainpage mainpage-toc">
+	<h1 class="page-title">Introduction</h1>
+	<h1 id="what_is_cluster_flow">What is Cluster Flow?</h1>
 
-<p class="alert alert-danger"><strong>This documentation is still under construction.</strong> For now, please see the <a href="/resources/old_manual/Cluster_Flow_Manual.pdf">PDF manual</a>.</p>
-
-<p>Cluster Flow is a command-line program which uses common cluster managers to run analysis pipelines. It currently supports GRIDEngine (SGE), LSF and SLURM, plus it should be fairly easy to port to others.</p>
-
-<p>Benefits of using Cluster Flow:</p>
+<p>Cluster Flow is simple package to run pipelines in a cluster environment. It is comprised of several layers:</p>
 
 <ul>
-<li>Routine analyses are very quick to run, for example: <code>cf --genome GRCh37 fastq_bowtie *fq.gz</code></li>
-
-<li>Pipelines use identical parameters, standardising analysis and making results more reproducable</li>
-
-<li>Integrated parallelisation tools help prevent your cluster becoming overloaded</li>
-
-<li>All commands and output is logged in files for future reference</li>
-
-<li>Intuitive commands and a comprehensive manual make Cluster Flow easy to use</li>
-
-<li>Very easy to get up and running (in theory at least!)</li>
-</ul>
-
-<p>How Cluster Flow differs from other pipeline tools:</p>
-
+<li><code>cf</code>
 <ul>
-<li>Very lightweight and flexible</li>
-
-<li>Pipelines and configurations can easily be generated on a project-specific basis if required</li>
-
-<li>New modules and pipelines are super easy to write (see video tutorial)</li>
-</ul>
-
-<h2 id="tutorial_videos">Tutorial Videos</h2>
-
-<p>There are two tutorial videos up on YouTube, see below:</p>
-
-<ul>
-<li><a href="http://youtu.be/b2g_zQiz9ys">Usage / Installation Tutorial</a> - How to configure and run Cluster Flow</li>
-
-<li><a href="http://youtu.be/aBHOcsA2M6w">Advanced Tutorial</a> - How to write your own pipelines and modules</li>
-</ul>
-
-<p>Please see the sidebar for access to the full Cluster Flow documentation. If you’re looking for a quick overview of what Cluster Flow is and how it works, see the <a href="/introduction/">Introduction</a>.</p>
-
-<h2 id="contributing_to_cluster_flow">Contributing to Cluster Flow</h2>
-
-<p>If you write a module or pipeline which could be of use to others, or modify the core Cluster Flow code in a helpful way, it would be great to merge those changes back into the core Cluster Flow project.</p>
-
-<p>The easiest way to do this is to <a href="https://help.github.com/articles/fork-a-repo">fork the Cluster Flow repository</a>, make your changes, committing them and pushing them as you go. When you’ve finished, submit a <a href="https://help.github.com/articles/using-pull-requests">pull request</a> and the new code can be merged into the central project.</p>
-
-<h2 id="change_log">Change Log</h2>
-
-<ul>
-<li>v0.2 devel
-<ul>
-<li>Ported repository to github</li>
-
-<li>Wrote new readme for github</li>
-
-<li>Bugfix: Custom modules in <code>~/clusterflow/modules/</code> weren’t being found</li>
+<li>The main cluster flow command. This is called to initiate a new pipeline run.</li>
 </ul>
 </li>
 
-<li>v0.1
+<li>Pipelines
 <ul>
-<li>The first public release of Cluster Flow, although it’s been in use at the Babraham Institute for around 6 months. It’s been in heavy development throughout that time and is now approaching a state of being relatively stable.</li>
+<li>Protocols that describe a series of modules to be run, along with any parameters</li>
+</ul>
+</li>
+
+<li>Modules
+<ul>
+<li>The instructions for an individual task. These can be written in any language but must conform to a common API, described within this document.</li>
+</ul>
+</li>
+
+<li>Runs
+<ul>
+<li>Created from the pipeline template for each file. Specifies configuration variables and traces output filenames.</li>
+</ul>
+</li>
+</ul>
+
+<p>Cluster Flow will set off multiple queued jobs on the cluster with queue dependencies as defined in the pipeline.</p>
+
+<h1 id="how_does_cluster_flow_work">How does Cluster Flow work?</h1>
+
+<p>A typical Cluster Flow run will work as follows:</p>
+
+<ul>
+<li>Pipelines and modules are written for Cluster Flow</li>
+
+<li>The <code>cf</code> command is run, initiating a pipeline with a set of files</li>
+
+<li>CF decides on a number of runs, each with a set of input files or URLs</li>
+
+<li>Input filenames are checked to make sure that they all have the same file extension</li>
+
+<li>If input files are fastq, CF tries to work out whether they’re paired end or single end from the filenames. It dies with an error if it finds a mixture</li>
+
+<li>CF checks that the files exist (unless they’re URLs) and parses the pipeline file</li>
+
+<li>A run file is created for each run. This contains the configuration variables, a copy of the pipeline used and the starting filenames with the associated id <code>start_000</code></li>
+
+<li>CF submits all of the jobs to the cluster
+<ul>
+<li>Each module in each run has its own cluster job</li>
+
+<li>Jobs are submitted with dependencies so that they execute in the order specified by the pipeline</li>
+</ul>
+</li>
+
+<li>Main CF program finishes and exits</li>
+
+<li>Modules execute, using the run file and the previous job ID to find their input files</li>
+
+<li>STDERR is appended to the log files.
+<ul>
+<li>Commands should print their commands with <code>###CFCMD</code> prepended</li>
+
+<li>Important messages should start with <code>###CF</code></li>
+</ul>
+</li>
+
+<li>Upon the completion of each module, the filenames of any resulting output files are appended to the run file, along with the job ID so that the next module can find them</li>
+
+<li>Once all pipeline modules have finished, core cluster flow notification modules run
+<ul>
+<li>These clean up the output file and send e-mails</li>
 </ul>
 </li>
 </ul>
 </div>
+
+<aside class="sidebar">
+	<nav id="subnav">
+		<h3>Table of Contents</h3>
+		<div class="toc"></div>
+	</nav>
+</aside>
 
 	<footer>
 		<section class="credits">

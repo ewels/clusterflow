@@ -1,0 +1,41 @@
+---
+title: Introduction
+layout: toc
+---
+
+# What is Cluster Flow?
+Cluster Flow is simple package to run pipelines in a cluster environment. It is comprised of several layers:
+
+* `cf`
+    * The main cluster flow command. This is called to initiate a new pipeline run.
+* Pipelines
+    * Protocols that describe a series of modules to be run, along with any parameters
+* Modules
+    * The instructions for an individual task. These can be written in any language but must conform to a common API, described within this document.
+* Runs
+    * Created from the pipeline template for each file. Specifies configuration variables and traces output filenames.
+
+Cluster Flow will set off multiple queued jobs on the cluster with queue dependencies as defined in the pipeline.
+
+# How does Cluster Flow work?
+A typical Cluster Flow run will work as follows:
+
+* Pipelines and modules are written for Cluster Flow
+* The `cf` command is run, initiating a pipeline with a set of files
+* CF decides on a number of runs, each with a set of input files or URLs
+* Input filenames are checked to make sure that they all have the same file extension
+* If input files are fastq, CF tries to work out whether they’re paired end or single end from the filenames. It dies with an error if it finds a mixture
+* CF checks that the files exist (unless they’re URLs) and parses the pipeline file
+* A run file is created for each run. This contains the configuration variables, a copy of the pipeline used and the starting filenames with the associated id `start_000`
+* CF submits all of the jobs to the cluster
+    * Each module in each run has its own cluster job
+    * Jobs are submitted with dependencies so that they execute in the order specified by the pipeline
+* Main CF program finishes and exits
+* Modules execute, using the run file and the previous job ID to find their input files
+* STDERR is appended to the log files.
+    * Commands should print their commands with `###CFCMD` prepended
+    * Important messages should start with `###CF`
+* Upon the completion of each module, the filenames of any resulting output files are appended to the run file, along with the job ID so that the next module can find them
+* Once all pipeline modules have finished, core cluster flow notification modules run
+    * These clean up the output file and send e-mails
+

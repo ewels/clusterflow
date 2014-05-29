@@ -5,6 +5,8 @@ permalink: pretty
 baseurl: /clusterflow
 exclude: [README.markdown, package.json, grunt.js, Gruntfile.js, node_modules]
 
+gems:
+  - jekyll-sitemap
 
 defaults:
   -
