@@ -16,10 +16,10 @@ Change Log
 * v0.2
 	* New Stuff
 		* Now compatable with SLURM
-		* Customise batch job commands in the config (see [docs]({{base.url}}/installation/#making_cluster_flow_work_with_your_environmen
-		* Created new GitHub pages website to hold documentation: [http://ewels.github.io/clusterflow/](http://ewels.github.io/clusterflo
+		* Customise batch job commands in the config (see the [docs](http://ewels.github.io/clusterflow/installation/#making_cluster_flow_work_with_your_environment)
+		* Created new GitHub pages website to hold documentation: http://ewels.github.io/clusterflow
 	* Updates
-		* Ported repository to github: [https://github.com/ewels/clusterflow](https://github.com/ewels/clusterflow)
+		* Ported repository to github: https://github.com/ewels/clusterflow
 		* Wrote new readme for github
 	* Bugs Squashed
 		* Custom modules in `~/clusterflow/modules/` weren't being found
