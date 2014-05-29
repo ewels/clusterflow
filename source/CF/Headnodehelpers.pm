@@ -571,7 +571,7 @@ sub cf_check_updates {
 	my ($current_version) = @_;
 	
 	# Get contents of Cluster Flow current version file using LWP::Simple
-	my $version_url = 'http://www.bioinformatics.babraham.ac.uk/projects/clusterflow/version.txt';
+	my $version_url = 'http://ewels.github.io/clusterflow/version.txt';
 	my $avail_version = get($version_url) or return "Can't access address to check available version:\n$version_url\n\n";
 	my $timestamp = time();
 	
@@ -585,7 +585,7 @@ sub cf_check_updates {
 	
 	if(cf_compare_version_numbers($current_version, $avail_version)){
 		return "".("="x45)."\n A new version of Cluster Flow is available!\n Running v$current_version, v$avail_version available.\n".("="x45)."\n
-You can download the latest version of Cluster Flow from\nhttp://www.bioinformatics.babraham.ac.uk/projects/cluster_flow/\n\n";
+You can download the latest version of Cluster Flow from\nhttps://github.com/ewels/clusterflow/releases/\n\n";
 	} else {
 		return "Your copy of Cluster Flow is up to date. Running v$current_version, v$avail_version available.\n\n";
 	}

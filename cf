@@ -8,7 +8,7 @@ use lib "$FindBin::Bin/source";
 use CF::Constants;
 use CF::Helpers;
 use CF::Headnodehelpers;
-use Data::Dumper;
+# use Data::Dumper;
 
 no warnings qw(once);
 
@@ -32,7 +32,7 @@ no warnings qw(once);
 ##########################################################################
 
 my $CF_VERSION = $CF::Constants::CF_VERSION;
-my $homedir = $ENV{"HOME"}; #$CF::Constants::homedir;
+my $homedir = $ENV{"HOME"};
 my %config = %CF::Constants::config;
 my @pipeline_folders = ('./', "$homedir/clusterflow/pipelines/", "$Bin/pipelines/");
 my @module_folders = ('./', "$homedir/clusterflow/modules/", "$Bin/modules/");
