@@ -189,17 +189,23 @@
 
 <p>When you have a lot of jobs running and queued, the qstat summary can get a little overwhelming. To combat this and show job hierarchy in an intuitive manner, you can enter into the console <code>cf --qstat</code>. This parses qstat output and displays it nicely. <code>cf --qstatall</code> does the same but for all jobs by all users.</p>
 
-<h2 id="_14"><code>--qstatcols</code></h2>
+<p>You’ll probably find that you want to run this command quite a lot. To make it a little less clumsy, you can create aliases in your <code>.bashrc</code> script. Typically, these two lines:</p>
 
-<p>How this will look depends entirely on your terminal colour setup. It works nicely in terminal windows with light backgrounds and can look really horrible on terminal windows with dark backgrounds. For this reason it is only enabled when specified. To make the command a little less clumsy, you can create aliases in your .bashrc script. Typically, these two lines:</p>
-
-<pre><code>alias qs=&#39;cf --qstat --qstatcols&#39;
-alias qsa=&#39;cf --qstatall --qstatcols&#39;</code></pre>
+<pre><code>alias qs=&#39;cf --qstat&#39;
+alias qsa=&#39;cf --qstatall&#39;</code></pre>
 
 <p>If you’re feeling lazy, you can append these lines to your .bashrc script through the command line by copying and pasting the following commands:</p>
 
-<pre><code>sed -i &quot;$ a\alias qs=&#39;cf --qstat --qstatcols&#39;&quot; ~/.bashrc
-sed -i &quot;$ a\alias qsa=&#39;cf --qstatall --qstatcols&#39;&quot; ~/.bashrc</code></pre>
+<pre><code>sed -i &quot;$ a\alias qs=&#39;cf --qstat&#39;&quot; ~/.bashrc
+sed -i &quot;$ a\alias qsa=&#39;cf --qstatall&#39;&quot; ~/.bashrc</code></pre>
+
+<p>Note - these guys don’t work with LSF yet, writing the code to parse the status command outputs is a bit of a pain when I don’t have a LSF testing server to work on. If anyone fancies contributing some code to do so, that would be great!</p>
+
+<h2 id="_14"><code>--qstatcols</code></h2>
+
+<p>How this will look depends entirely on your terminal colour setup. It works nicely in terminal windows with light backgrounds and can look really horrible on terminal windows with dark backgrounds. For this reason it is only enabled when specified. The author uses the lovely <a href="http://ethanschoonover.com/solarized">Solarized</a> theme by Ethan Schoonover and it looks nice when he runs it. Maybe you should use Solarized too ;)</p>
+
+<p>If you like how it looks with colour, you can add th <code>--qstatcols</code> flag to the <code>.bashrc</code> aliases above to use them every time.</p>
 
 <h2 id="_15"><code>--qdel</code></h2>
 
