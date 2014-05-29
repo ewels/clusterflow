@@ -344,9 +344,9 @@ if(!$file_list && scalar(@files) == 0){
 
 # Check whether this cluster has environment modules
 if($CF_MODULES){
-	unless(-x "/usr/bin/modulecmd"){
+	unless(-x $ENV_MODULES_PATH){
 		$CF_MODULES = 0;
-		warn "\nWarning - Cluster doesn't use environment modules. You are responsible for adding programs to the PATH..\nSee the Cluster Flow manual for more information.\n\n";
+		warn "\nWarning - Environment module path $ENV_MODULES_PATH not found.\nIf your cluster doesn't use environment modules you are responsible for adding programs to the PATH..\nSee the Cluster Flow documentation for more information.\n\n";
 	}
 }
 
@@ -804,6 +804,9 @@ sub make_qsubs {
 		}
 		if(!$module_fn){
 			die "Can't find module file $module.cfmod";
+		}
+		unless(-x $module_fn){
+			die "Can't execute module file $module.cfmod\n";
 		}
 		
 		# Get options for module
