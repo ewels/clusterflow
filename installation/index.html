@@ -126,6 +126,8 @@ For example:
 
 Cluster Flow will generate it's own sensible default if this isn't set, so it's worth trying it without first.
 
+**Note** - Cluster Flow will append the job dependency strings to the end of your custom command which are system specific, so it's important that `@cluster_environment` is still correct.
+
 ### Environment modules path
 Yup, environment modules again (if you're not using these, you can skip). Many Cluster Flow pipelines will run programs that will have environment module dependencies - for example, if you're running bowtie, bowtie needs to be added to the `PATH`.
 
@@ -156,7 +158,7 @@ There are four types of paths that can be specified:
 All four types of path should share genome keys if applicable. The fields should be separated by a tab character. Cluster Flow ships with an example genomes file called [genomes.config.example](https://github.com/ewels/clusterflow/blob/master/genomes.config.example "Browse the example genomes file on GitHub")
 
 ## Running Cluster Flow
-Ok, you're done! Cluster Flow should now work (see [General Usage]({{base.url}}/usage/) for instructions on how to run Cluster Flow). If you get any weird errors, have a look through the  [Troubleshooting]({{base.url}}/troubleshooting/) section and if in doubt, drop me an e-mail. Good luck!
+Ok, you're done! Cluster Flow should now work (see [General Usage]({{site.baseurl}}/usage/) for instructions on how to run Cluster Flow). If you get any weird errors, have a look through the  [Troubleshooting]({{site.baseurl}}/troubleshooting/) section and if in doubt, drop me an e-mail. Good luck!
 
 -------
 

@@ -240,6 +240,8 @@ if [module-info mode remove] {
 
 <p>Cluster Flow will generate it’s own sensible default if this isn’t set, so it’s worth trying it without first.</p>
 
+<p><strong>Note</strong> - Cluster Flow will append the job dependency strings to the end of your custom command which are system specific, so it’s important that <code>@cluster_environment</code> is still correct.</p>
+
 <h3 id="environment_modules_path">Environment modules path</h3>
 
 <p>Yup, environment modules again (if you’re not using these, you can skip). Many Cluster Flow pipelines will run programs that will have environment module dependencies - for example, if you’re running bowtie, bowtie needs to be added to the <code>PATH</code>.</p>
