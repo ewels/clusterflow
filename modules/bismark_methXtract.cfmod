@@ -87,7 +87,7 @@ if($mem =~ /G$/){
 my $ignore_r1 = "";
 my $ignore_r2 = "--ignore_r2 2";
 # foreach my $parameter (@$parameters){
-	# if($parameter == "pbat" || $parameter == "single_cell"){
+	# if($parameter eq "pbat" || $parameter eq "single_cell"){
 		# $ignore_r1 = "--ignore 4";
 		# $ignore_r2 = "--ignore_r2 4";
 	# }
