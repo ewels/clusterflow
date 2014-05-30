@@ -17,7 +17,7 @@ These will be overwritten by any with the same name in ~/clusterflow/clusterflow
 @notification	abort
 @notification	complete
 @split_files	1
-@priority	-500
+/* @priority	-500 */
 @total_cores	64
 @total_mem	128G
 @max_runs       12
@@ -25,10 +25,12 @@ These will be overwritten by any with the same name in ~/clusterflow/clusterflow
 /***********************/
 /* Cluster Environment */
 /***********************/
-/* CF is written with support for GRIDEngine and LSF clusters. */
-/* You can specific which you use below (defaults to GRIDEngine) */
-/* Options: GRIDEngine or LSF */
+/* Options: GRIDEngine, SLURM or LSF */
 @cluster_environment	GRIDEngine
+
+/* Custom Job Submit Command - uncomment to customise parameters for job submission */
+/* Accepted variable placeholders: {{command}} {{job_id}} {{outfn}} {{cores}} {{mem}} {{priority}} {{email}} */
+/* @custom_job_submit_command qsub -MY --CUSTOM --PARAMS -pe orte {{cores}} {{command}} */
 
 /* Path to environment module bin */
 @env_modules_path	/usr/bin/modulecmd
