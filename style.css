@@ -162,6 +162,7 @@ footer .credits {
 	}
 	.mainpage {
 		margin:0;
+		font-size:14px;
 	}
 	header .credits {
 		display:none;
