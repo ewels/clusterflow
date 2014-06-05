@@ -32,8 +32,5 @@ These will be overwritten by any with the same name in ~/clusterflow/clusterflow
 /* Accepted variable placeholders: {{command}} {{job_id}} {{outfn}} {{cores}} {{mem}} {{priority}} {{email}} */
 /* @custom_job_submit_command qsub -MY --CUSTOM --PARAMS -pe orte {{cores}} {{command}} */
 
-/* Path to environment module bin */
-@env_modules_path	/usr/bin/modulecmd
-
 /* To stop cluster flow trying to load environment modules, uncomment the following line: */
 /* @ignore_modules	true */

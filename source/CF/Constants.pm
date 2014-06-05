@@ -44,7 +44,6 @@ our $TOTAL_MEM = '4G';
 our $MAX_RUNS = 12;
 our $CLUSTER_ENVIRONMENT = 'GRIDEngine';
 our $CUSTOM_JOB_SUBMIT_COMMAND;
-our $ENV_MODULES_PATH;
 our $CF_MODULES = 1;
 
 # Empty genome path vars
@@ -127,8 +126,6 @@ sub parse_conf_file {
 						$CLUSTER_ENVIRONMENT = $val;
 					} elsif($name eq 'custom_job_submit_command'){
 						$CUSTOM_JOB_SUBMIT_COMMAND = $val;
-					} elsif($name eq 'env_modules_path'){
-						$ENV_MODULES_PATH = $val;
 					} elsif($name eq 'ignore_modules'){
 						$CF_MODULES = 0;
 					}
