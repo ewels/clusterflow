@@ -884,6 +884,10 @@ sub make_submit_cmd {
 	# $holdjid should be an array reference
 	my ($cmd, $job_id, $holdjid, $prev_job, $cores, $mem, $outfn) = @_;
 	
+	# Make the command prefix all STDOUT and STDERR with the Job ID for parsing
+	# Inspiration: http://stackoverflow.com/questions/2432535/redirect-stdout-and-stderr-to-a-single-file-with-prefixes
+	$cmd = "$cmd 2>&1 | sed s/^/###CF_$job_id:/";
+	
 	my $qsub = "";	
 	
 	#########################

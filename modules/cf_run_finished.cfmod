@@ -56,9 +56,10 @@ my $date = strftime "%H:%M %d-%m-%Y", localtime;
 warn "\n###CF Run finished at $date\n\n";
 
 # Parse the outfile (the run logs)
-my $outfile;
 my @highlights;
 my @commands;
+my %modules;
+my $unrecognised;
 open (IN,'<',$outfn) or die "Can't read ".getcwd()."/$outfn - $!";
 while(<IN>){
 	
@@ -67,6 +68,13 @@ while(<IN>){
 	# Ignore crap
 	if(/^Warning: no access to tty/ || /^Thus no job control in this shell/ || /sh: module: line 1: syntax error: unexpected end of file/ || /sh: error importing function definition for/){
 		next;
+	}
+	
+	# First, strip the module identifier
+	if(s/^###CF_(.*)://){
+		$modules{$1} .= "$_\n";
+	} else {
+		$unrecognised .= "$_\n";
 	}
 	
 	# Commands run
@@ -78,11 +86,15 @@ while(<IN>){
 		push (@highlights, '- '.substr($_, 6));
 	}
 	
-	# Add cleaned text to outfile string
-	$outfile .= "$_\n";
-	
 }
 close (IN);
+
+# Make new, cleaned output
+my $outfile;
+foreach my $key ( keys %modules ) {
+  $outfile .= $modules{$key}."\n\n\n";
+}
+$outfile .= ("-"x80)."\nUnrecognised output:\n".("-"x80)."\n".$unrecognised;
 
 # Write out the cleaned runfile without any crap
 open (OUT,'>',$outfn) or die "Can't write to $runfile: $!";
