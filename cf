@@ -341,6 +341,15 @@ if(!$file_list && scalar(@files) == 0){
 	die("Error - no input files specified. Use --help for instructions.\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n");
 }
 
+# If we're using environment modules, check we can find modulecmd (system returns 1 on error)
+if($CF_MODULES){
+	if (system('which modulecmd > /dev/null 2>&1')){
+		die( "ERROR - could not find modulecmd on the PATH. Aborting run.\n" .
+		"If you don't use environment modules, please set \@ignore_modules\n" .
+		"in your Cluster Flow configuration file.\n\n");
+	} 
+}
+
 # Load in the pipeline config file
 my $config_found = 0;
 foreach my $folder (@pipeline_folders){
@@ -709,7 +718,7 @@ for (my $i = 0; $i <= $#files; $i++){
 			my $dlcmd = "$Bin/modules/cf_download.cfmod $runfn $job_id $fn $dl_fn";
 			my @dlhjid = ();
 			if(length($prev_dl_id) > 0){
-				my @dlhjid = ($prev_dl_id);
+				@dlhjid = ($prev_dl_id);
 			}
 			my $qsub = make_submit_cmd($dlcmd, $job_id, \@dlhjid, $prev_dl_id, '1', '1G', $outfn);
 			push @qsubs, $qsub;
@@ -813,24 +822,16 @@ sub make_qsubs {
 			$mem = '1G';
 		}
 		if($CF_MODULES){
-			# Check that we can find modulecmd (system returns 1 on error)
-			if (system('which modulecmd')){
-				die( "ERROR - could not find modulecmd on the PATH. Aborting run.\n" .
-				"If you don't use environment modules, please set \@ignore_modules\n" .
-				"in your Cluster Flow configuration file.\n\n");
-			} else {
-				if($required_modules && length($required_modules) > 0){
-					my @req_modules = split(/[\s,]+/, $required_modules);
-					foreach my $mod (@req_modules) {
-						my $mod_cmd = `modulecmd perl load $mod 2>/dev/null`;
-						warn "Got module load command: '$mod_cmd'\n";
-						if($mod_cmd && length($mod_cmd) > 0){
-							eval($mod_cmd);
-							if ($@){
-								warn "WARNING - Got error whilst trying to load module $mod:" .
-								"\t$@\nThis module has not been loaded. Skipping..";
-								sleep(2);
-							}
+			if($required_modules && length($required_modules) > 0){
+				my @req_modules = split(/[\s,]+/, $required_modules);
+				foreach my $mod (@req_modules) {
+					my $mod_cmd = `modulecmd perl load $mod 2>/dev/null`;
+					if($mod_cmd && length($mod_cmd) > 0){
+						eval($mod_cmd);
+						if ($@){
+							warn "WARNING - Got error whilst trying to load module $mod:" .
+							"\t$@\nThis module has not been loaded. Skipping..";
+							sleep(2);
 						}
 					}
 				}
@@ -866,7 +867,6 @@ sub make_qsubs {
 }
 
 sub make_submit_cmd {
-	
 	# Get the required variables to assemble this job submission
 	# $holdjid should be an array reference
 	my ($cmd, $job_id, $holdjid, $prev_job, $cores, $mem, $outfn) = @_;
