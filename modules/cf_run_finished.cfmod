@@ -59,7 +59,9 @@ warn "\n###CF Run finished at $date\n\n";
 my @highlights;
 my @commands;
 my %modules;
+my %modkeys;
 my $unrecognised;
+my $i = 1;
 open (IN,'<',$outfn) or die "Can't read ".getcwd()."/$outfn - $!";
 while(<IN>){
 	
@@ -71,8 +73,9 @@ while(<IN>){
 	}
 	
 	# First, strip the module identifier
-	if(s/^###CF_(.*)://){
+	if(s/^###CF_(.*?)://){
 		$modules{$1} .= "$_\n";
+		$modkeys{$1} = $i;
 	} else {
 		$unrecognised .= "$_\n";
 	}
@@ -86,15 +89,21 @@ while(<IN>){
 		push (@highlights, '- '.substr($_, 6));
 	}
 	
+	# Increment counter for module keys hash
+	$i++;
+	
 }
 close (IN);
 
 # Make new, cleaned output
 my $outfile;
-foreach my $key ( keys %modules ) {
-  $outfile .= $modules{$key}."\n\n\n";
+# Go through module keys hash sorting by values (the last counter value seen)
+foreach my $key (sort { $modkeys{$a} <=> $modkeys{$b} or $a cmp $b } keys %modkeys) {
+	$outfile .= $modules{$key}."\n\n\n";
 }
-$outfile .= ("-"x80)."\nUnrecognised output:\n".("-"x80)."\n".$unrecognised;
+if(length($unrecognised) > 0){
+	$outfile .= ("-"x80)."\nUnrecognised output:\n".("-"x80)."\n".$unrecognised;
+}
 
 # Write out the cleaned runfile without any crap
 open (OUT,'>',$outfn) or die "Can't write to $runfile: $!";
@@ -134,7 +143,8 @@ See below for highlighted status messages and the commands that were run.
 	close PIPE;
 	die "mail exited with a non-zero status: $?\n" if $?;
 	
-	sleep(5); # Give mail time to actually send the e-mail before qsub shuts us down
+	# Give mail time to actually send the e-mail before qsub shuts us down
+	sleep(5); 
 	
 	warn "###CF Sent a run e-mail notification to $to\n";
 
