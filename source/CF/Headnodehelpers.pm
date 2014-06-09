@@ -45,12 +45,15 @@ sub parse_squeue {
 	my %pipeline_single_job_ids;
 	
 	# Build command
-	my $curruser = `whoami`;
+	chomp(my $curruser = `whoami`);
 	my $squeue_command = 'squeue -o "%i %T %u %C %S %Q %j %E %r"';
 	unless($all_users){
 		$squeue_command .= " -u $curruser";
 	}
-	
+	#TODO - change code so that ordering isn't important
+	# For now - sort by job ID
+	$squeue_command .= ' |  sort';
+
 	# Parse results
 	my $squeue = `$squeue_command`;
 	my @sjobs = split(/[\n\r]+/, $squeue);
@@ -86,14 +89,18 @@ sub parse_squeue {
 		$jobhash{started} = $started;
 		$jobhash{dependency_reason} = $dependency_reason;
 		$jobhash{children} = {};
+		$jobhash{parent} = '';
 		
 		# If we're queued with dependencies, parse them
 		if($dependency_reason eq 'Dependency'){
-			my @parents = split(',', $dependency);
-			# If more than one, assume last element is latest
-			my $parent = pop(@parents);
 			# remove any non-numeric stuff, eg. afterany:
-			$parent =~ s/\D+//g;
+			$dependency =~ s/[^\d,]+//g;
+			# Split by commas
+			my @parents = split(',', $dependency);
+			# If more than one, take job with highest ID
+			@parents = sort { $a <=> $b } @parents;
+			my $parent = $parents[-1];
+			# Parse tree
 			if($parent && length($parent) > 0){
 				parse_job_dependency_hash(\%jobs, $parent, $jid, \%jobhash);
 			}
@@ -101,9 +108,10 @@ sub parse_squeue {
 		} else {
 			$jobs{$jid} = \%jobhash;
 		}
+		
 	}
 	
-	# print Dumper (\%jobs); exit;
+	#print Dumper (\%jobs); exit;
 	my %pipeline_wds;	
 	my $output = print_jobs_output(\%jobs, \%pipelines, \%pipeline_single_job_ids, \%pipeline_wds, $cols, $all_users);
     
