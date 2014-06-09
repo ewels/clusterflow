@@ -46,7 +46,7 @@ if($required_mem){
 }
 # --modules. Return csv names of any modules which should be loaded.
 if($required_modules){
-	print 'bismark,samtools';
+	print 'bowtie,bowtie2,bismark,samtools';
 	exit;
 }
 # --help. Print help.
