@@ -60,7 +60,7 @@ my @highlights;
 my @commands;
 my %modules;
 my %modkeys;
-my $unrecognised;
+my $unrecognised = "";
 my $i = 1;
 open (IN,'<',$outfn) or die "Can't read ".getcwd()."/$outfn - $!";
 while(<IN>){
@@ -96,7 +96,7 @@ while(<IN>){
 close (IN);
 
 # Make new, cleaned output
-my $outfile;
+my $outfile = "";
 # Go through module keys hash sorting by values (the last counter value seen)
 foreach my $key (sort { $modkeys{$a} <=> $modkeys{$b} or $a cmp $b } keys %modkeys) {
 	$outfile .= $modules{$key}."\n\n\n";
@@ -106,7 +106,7 @@ if(length($unrecognised) > 0){
 }
 
 # Write out the cleaned runfile without any crap
-open (OUT,'>',$outfn) or die "Can't write to $runfile: $!";
+open (OUT,'>',$outfn) or die "Can't write to $outfn: $!";
 print OUT $outfile;
 close OUT;
 
