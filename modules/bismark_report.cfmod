@@ -53,10 +53,10 @@ if($required_modules){
 }
 # --help. Print help.
 if($help){
-	print "".("-"x21)."\n Bismark Tidy Module\n".("-"x21)."\n
-This script takes the bismark output, creates a directory
-based on the filenames and moves everything into that directory.
-It then runs the bismark2report script to generate an overview report.\n
+	print "".("-"x21)."\n Bismark Report Module\n".("-"x21)."\n
+This script runs the bismark2report script to generate an
+overview report. It will run on everything in the directory,
+overwriting previously generated reports.\n
 For further information, please run bismark2report --help\n\n";
 	exit;
 }
@@ -65,42 +65,8 @@ For further information, please run bismark2report --help\n\n";
 # Read in the input files from the run file
 my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
 
-# Figure out directory names
-my %dirs;
-foreach my $file (@$files){
-	$file =~ s/(\.)?(_R[12])?(r_[12])?(_val_[12])?\.f(ast)?q.+//i; # strip stuff from end of filename
-	$file =~ s/^(CpG|Non_CpG|CHG|CHH)_//i; # strip stuff from start of filename
-	$file =~ s/^[COBT]+_//;
-	$dirs{$file} = 1;
-}
-
-# Get current directory listing
-my @dirfiles = glob('*');
-
-foreach my $dir (keys (%dirs)){
-
-	# make directory
-	mkdir $dir;
-
-	# move matching files into this directory
-	my $count = 0;
-	foreach my $dfile (@dirfiles) {
-		if($dfile =~ /$dir/i){
-			unless($dfile =~ /\.run$/i || $dfile =~ /\.out$/i){
-				move ($dfile, $dir."/".$dfile);
-				$count++;
-			}
-		}
-	}
-	warn "###CF $count files tidied into bismark folder\n";
-
-	# run bismark2report in directory
-	chdir ($dir);
-	if(!system ("bismark2report")){
-		warn "###CF Bismark report successfully created\n";
-	} else {
-		warn "###CF Bismark report exited with an error state\n";
-	}
-	chdir ("../");
-
+if(!system ("bismark2report")){
+	warn "###CF Bismark report successfully created\n";
+} else {
+	warn "###CF Bismark report exited with an error state\n";
 }
