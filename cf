@@ -124,6 +124,7 @@ my $CUSTOM_JOB_SUBMIT_COMMAND = $CF::Constants::CUSTOM_JOB_SUBMIT_COMMAND;
 my $PROJECT_ID = $CF::Constants::PROJECT_ID;
 my $JOB_TIMELIMIT = $CF::Constants::JOB_TIMELIMIT;
 my $CF_MODULES = $CF::Constants::CF_MODULES;
+my %ENV_MODULE_ALIASES = %CF::Constants::ENV_MODULE_ALIASES;
 
 # Set up genomes
 my %GENOME_PATH_CONFIGS = %CF::Constants::GENOME_PATH_CONFIGS;
@@ -832,6 +833,10 @@ sub make_qsubs {
 			if($required_modules && length($required_modules) > 0){
 				my @req_modules = split(/[\s,]+/, $required_modules);
 				foreach my $mod (@req_modules) {
+					# Check to see if we have an alias for this module
+					if(defined($ENV_MODULE_ALIASES{$mod})){
+						$mod = $ENV_MODULE_ALIASES{$mod};
+					}
 					# Skip modules that have already been loaded
 					next if $loaded_modules{$mod};
 					# Get perl code needed to load module
