@@ -98,8 +98,8 @@ foreach my $outfile (@outfns){
 		
 	}
 	close (IN);
-	$highlights{$outfile} = @these_highlights;
-	$commands{$outfile} = @these_commands;
+	$highlights{$outfile} = \@these_highlights;
+	$commands{$outfile} = \@these_commands;
 }
 
 
@@ -121,7 +121,7 @@ Working Directory: $cwd
 ";
 foreach my $file (sort keys %highlights) {
 	$plain_content .= "\n".("=" x 30)."\n- Output file $file\n".("=" x 30)."\n";
-	$plain_content .= join("\n", $highlights{$file});
+	$plain_content .= join("\n", @{$highlights{$file}});
 }
 
 $plain_content .= "\n\n\n\n\n
@@ -131,7 +131,7 @@ $plain_content .= "\n\n\n\n\n
 ";
 foreach my $file (sort keys %commands) {
 	$plain_content .= "\n".("=" x 30)."\n- Output file $file\n".("=" x 30)."\n";
-	$plain_content .= join("\n", $commands{$file});
+	$plain_content .= join("\n", @{$commands{$file}});
 }
 $plain_content .= "\n\n";
 
