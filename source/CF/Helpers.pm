@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+package CF::Constants; 
 package CF::Helpers; 
 
 use warnings;
@@ -471,6 +472,78 @@ sub cf_compare_version_numbers {
 	}
 	
 	return 0;
+	
+}
+
+
+### E-MAIL FUNCTIONS
+sub send_email {
+	
+	my ($subject, $to, $title, $html_content, $plain_content) = @_;
+	
+	my $cf_version = $CF::Constants::CF_VERSION;
+	
+	# Get the e-mail templates
+	# Assume that we're running from the installation directory/modules
+	my $html_email;
+	{ local $/ = undef; local *FILE; open FILE, "<$Bin/../source/CF/html_email_template.html"; $html_email = <FILE>; close FILE }
+	my $text_email;
+	{ local $/ = undef; local *FILE; open FILE, "<$Bin/../source/CF/plaintext_email_template.txt"; $text_email = <FILE>; close FILE }
+	
+	# Put in our content
+	$html_email =~ s/{{ PAGE_TITLE }}/$title/;
+	$html_email =~ s/{{ CONTENT }}/$html_content/;
+	$html_email =~ s/{{ CF_VERSION }}/$cf_version/;
+	
+	$text_email =~ s/{{ PAGE_TITLE }}/$title/;
+	$text_email =~ s/{{ CONTENT }}/$plain_content/;
+	$text_email =~ s/{{ CF_VERSION }}/$cf_version/;
+	
+	# Do we have the Perl modules that we need?
+	my $mail;
+	my $mail_packages = eval "use Email::MIME::CreateHTML; use Email::Sender::Simple qw(sendmail); 1;";
+	
+	# Send a fancy HTML e-mail using perl packages
+	if($mail_packages){
+		warn "Sending e-mail using Perl packages..\n";
+		my $email = Email::MIME->create_html(
+			header => [
+				# From => 'my@address',
+				To => $to,
+				Subject => '[CF] '.$subject
+			],
+			body => $html_email,
+			text_body => $text_email
+		);
+		Email::Sender::Simple->send($email);
+	
+	# We don't have them, try with sendmail
+	} elsif (!system('which sendmail > /dev/null 2>&1')) {
+		warn "Sending HTML e-mail with sendmail..\n";
+		$html_email = "To: $to\nSubject: [CF] $subject\nMime-Version: 1.0\nContent-Type: text/html\n\n".$html_email;
+		open (PIPE , "| sendmail -t") or die "can't open pipe to sendmail: $!\n";
+		print PIPE $html_email;
+		close PIPE;
+	
+	# We don't have them, try HTML with mailx
+	} elsif (!system('which mailx > /dev/null 2>&1')) {
+		warn "Sending HTML e-mail with mailx..\n";
+		open (PIPE , "| mail  -s '$(echo -e \"[CF] $subject\nContent-type: text/html;\")' $to") or die "can't open pipe to mailx: $!\n";
+		print PIPE $html_email;
+		close PIPE;
+	
+	# Fallback - use the basic mail with plaintext
+	} else {
+		warn "Sending e-mail using basic plain text mail..\n";
+		open (PIPE , "| mail -s '[CF] $subject' $to") or die "can't open pipe to mail: $!\n";
+		print PIPE $text_email;
+		close PIPE;
+	}
+	
+	# Give the program time to send the e-mail before qsub shuts us down
+	sleep(5); 
+	
+	return 1;
 	
 }
 

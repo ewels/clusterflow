@@ -50,21 +50,32 @@ my $pipeline = shift(@$parameters);
 my @outfns = @$parameters;
 
 # Print run finish status to outfile
-my $date = strftime "%H:%M %d-%m-%Y", localtime;
+my $date = strftime ("%H:%M %d-%m-%Y", localtime);
 warn "\n###CF Pipeline $pipeline finished at $date\n\n";
 
+# Dig out pipeline start from job ID
+my $startdate = "?";
+my $duration = "?";
+if($job_id =~ /^cf_(.+)_(\d{10})_(.+)_\d{1,3}$/){
+	my $startdate_epoch = $2;
+	$startdate = strftime ("%H:%M %d-%m-%Y", localtime($startdate_epoch));
+	# Calculate duration
+	my $duration_secs = time() - $startdate_epoch;
+	$duration = CF::Helpers::parse_seconds($duration_secs);
+}
 
-
+# Find current directory
+my $cwd = getcwd()."/";
 
 
 
 # Read in the log files
-my @highlights;
-my @commands;
+my %highlights;
+my %commands;
 foreach my $outfile (@outfns){
 	
-	push (@commands, "- Output file $outfile\n");
-	push (@highlights, "- Output file $outfile\n");
+	my @these_highlights;
+	my @these_commands;
 	
 	open (IN,'<',$outfile);
 	while(<IN>){
@@ -78,50 +89,153 @@ foreach my $outfile (@outfns){
 		
 		# Commands run
 		if(/^###CFCMD/){
-			push (@commands, substr($_, 9));
+			push (@these_commands, substr($_, 9));
 			
 		# Highlight statuses
 		} elsif(/^###CF/){
-			push (@highlights, '- '.substr($_, 6));
+			push (@these_highlights, '- '.substr($_, 6));
 		}
 		
 	}
 	close (IN);
-	push (@commands, "\n".("=" x 30));
-	push (@highlights, "\n".("=" x 30));
+	$highlights{$outfile} = @these_highlights;
+	$commands{$outfile} = @these_commands;
 }
 
 
 # Send e-mail to submitter, if the config demands it
 if($config{notifications}{complete} && defined($config{email})){
 	
-	my $to = $config{email};
-	my $subject = "'[CF] $pipeline pipeline complete'";
-	
-	# Start the e-mail body
-my $message_body = "The pipeline $pipeline has completed.
+	# Write the plain-text e-mail body
+my $plain_content = "The pipeline $pipeline has completed.
 
-The working directory was ".getcwd()."/
-See below for highlighted status messages and the commands that were run.
+Started: $startdate
+Finished: $date
+Duration: $duration
+Working Directory: $cwd
+
 
 =================================
 == Highlighted status messages ==
 =================================
-".join("\n", @highlights)."
-\n\n\n\n\n
+";
+foreach my $file (sort keys %highlights) {
+	$plain_content .= "\n".("=" x 30)."\n- Output file $file\n".("=" x 30)."\n";
+	$plain_content .= join("\n", $highlights{$file});
+}
+
+$plain_content .= "\n\n\n\n\n
 ==================
 == Commands Run ==
 ==================
-".join("\n", @commands)."
-\n\n";
+";
+foreach my $file (sort keys %commands) {
+	$plain_content .= "\n".("=" x 30)."\n- Output file $file\n".("=" x 30)."\n";
+	$plain_content .= join("\n", $commands{$file});
+}
+$plain_content .= "\n\n";
 
-	open (PIPE , "| mail -s $subject $to") or die "can't open pipe to mail: $!\n";
-	print PIPE $message_body;
-	close PIPE;
+
+
+
+
+
+	# Write the html e-mail body
+	# Inline styles make me want to stab my eyes out, but we have to do this for
+	# e-mail readers such as Gmail which strip any header CSS.
+	my $html_content = '<p class="completion-leader" style="color: #0A440B; font-family: \'Helvetica\', \'Arial\', sans-serif; font-weight: normal; text-align: center; line-height: 19px; font-size: 18px; border-radius: 5px; background: #dff0d8; margin: 0 0 15px; padding: 10px; border: 1px solid #d6e9c6;" align="center">
+The pipeline <strong>'.$pipeline.'</strong> has completed</p>
+
+<hr style="color: #d9d9d9; height: 1px; background: #d9d9d9; border: none;" />
+
+<table class="run-stats" style="border-spacing: 0; border-collapse: collapse; vertical-align: top; text-align: left; padding: 0;">
+	<tr style="vertical-align: top; text-align: left; padding: 0;" align="left">
+		<th style="text-align: right; padding-right: 10px; min-width: 70px;" align="right">
+			Started
+		</th>
+		<td style="word-break: break-word; -webkit-hyphens: auto; -moz-hyphens: auto; hyphens: auto; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #222222; font-family: \'Helvetica\', \'Arial\', sans-serif; font-weight: normal; line-height: 19px; font-size: 14px; margin: 0; padding: 0px 0px 10px;" align="left" valign="top">
+			'.$date.'
+		</td>
+	</tr>
+	<tr>
+		<th style="text-align: right; padding-right: 10px; min-width: 70px;" align="right">
+			Finished
+		</th>
+		<td style="word-break: break-word; -webkit-hyphens: auto; -moz-hyphens: auto; hyphens: auto; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #222222; font-family: \'Helvetica\', \'Arial\', sans-serif; font-weight: normal; line-height: 19px; font-size: 14px; margin: 0; padding: 0px 0px 10px;" align="left" valign="top">
+			'.$startdate.'
+		</td>
+	</tr>
+	<tr>
+		<th style="text-align: right; padding-right: 10px; min-width: 70px;" align="right">
+			Duration
+		</th>
+		<td style="word-break: break-word; -webkit-hyphens: auto; -moz-hyphens: auto; hyphens: auto; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #222222; font-family: \'Helvetica\', \'Arial\', sans-serif; font-weight: normal; line-height: 19px; font-size: 14px; margin: 0; padding: 0px 0px 10px;" align="left" valign="top">
+			'.$duration.'
+		</td>
+	</tr>
+	<tr>
+		<th style="text-align: right; padding-right: 10px; min-width: 70px;" align="right">
+			Working directory
+		</th>
+		<td style="word-break: break-word; -webkit-hyphens: auto; -moz-hyphens: auto; hyphens: auto; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #222222; font-family: \'Helvetica\', \'Arial\', sans-serif; font-weight: normal; line-height: 19px; font-size: 14px; margin: 0; padding: 0px 0px 10px;" align="left" valign="top">
+			<code style="font-family: \'Lucida Console\', Monaco, monospace; font-size: 12px; background: #efefef; padding: 3px 5px;">
+				'.$cwd.'
+			</code>
+		</td>
+	</tr>
+</table>
+
+<hr style="color: #d9d9d9; height: 1px; background: #d9d9d9; border: none;" />
+
+<h3 style="color: #222222; font-family: \'Helvetica\', \'Arial\', sans-serif; font-weight: normal; text-align: left; line-height: 1.3; word-break: normal; font-size: 32px; margin: 0; padding: 0;" align="left">Highlighted Status Messages</h3>
+<ul class="status-messages">';
+
+foreach my $file (sort keys %highlights) {
+	$html_content .= '<li style="margin-bottom: 20px;">
+	<span class="run-name" style="font-weight: bold; margin-bottom: 10px;">
+	'.$file.'</span>
+	<ul><li style="margin-top: 5px;">'.
+		join('</li><li style="margin-top: 5px;">', $highlights{$file})
+	.'</li></ul></li>';
+}
+
+$html_content .= '
+</ul>
+
+<hr style="color: #d9d9d9; height: 1px; background: #d9d9d9; border: none;" />
+<h3 style="color: #222222; font-family: \'Helvetica\', \'Arial\', sans-serif; font-weight: normal; text-align: left; line-height: 1.3; word-break: normal; font-size: 32px; margin: 0; padding: 0;" align="left">Commands Run</h3>
+
+<ul class="status-messages commands-run">';
+
+foreach my $file (sort keys %commands) {
+	$html_content .= '<li style="margin-bottom: 20px;">
+	<span class="run-name" style="font-weight: bold; margin-bottom: 10px;">
+	'.$file.'</span>
+	<ul><li style="margin-top: 5px; font-family: \'Lucida Console\', Monaco, monospace; font-size: 12px; background: #efefef; padding: 3px 5px;">'.
+		join('</li><li style="margin-top: 5px; font-family: \'Lucida Console\', Monaco, monospace; font-size: 12px; background: #efefef; padding: 3px 5px;">', $commands{$file})
+	.'</li></ul></li>';
+}
+
+$html_content .= '
+</ul>
+
+<hr style="color: #d9d9d9; height: 1px; background: #d9d9d9; border: none;" />';
 	
-	sleep(5); # Give mail time to actually send the e-mail before qsub shuts us down
 	
-	warn "###CF Sent a pipeline e-mail notification to $to\n";
+	
+	
+	
+	
+	#### SEND THE EMAIL
+	my $to = $config{email};
+	my $subject = "$pipeline pipeline complete";
+	my $title = "Run Complete";
+	
+	if(CF::Helpers::send_email($subject, $to, $title, $html_content, $plain_content)){
+		warn "###CF Sent a pipeline e-mail notification to $to\n";
+	} else {
+		warn "###CF Error whilst trying to send a pipeline e-mail notification to $to\n";
+	}
 
 } elsif($config{notifications}{complete} && !defined($config{email})){
 	warn "###CF Tried to send run e-mail notification but no e-mail address found in config\n";

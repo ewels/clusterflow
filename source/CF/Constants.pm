@@ -26,7 +26,7 @@ package CF::Constants;
 # along with Cluster Flow.  If not, see <http://www.gnu.org/licenses/>.  #
 ##########################################################################
 
-our $CF_VERSION = "0.2";
+our $CF_VERSION = "0.3 devel";
 
 our $homedir = $ENV{"HOME"};
 
