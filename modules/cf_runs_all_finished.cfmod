@@ -193,10 +193,19 @@ The pipeline <strong>'.$pipeline.'</strong> has completed</p>
 foreach my $file (sort keys %highlights) {
 	$html_content .= '<li style="margin-bottom: 20px;">
 	<span class="run-name" style="font-weight: bold; margin-bottom: 10px;">
-	'.$file.'</span>
-	<ul><li style="margin-top: 5px;">'.
-		join('</li><li style="margin-top: 5px;">', $highlights{$file})
-	.'</li></ul></li>';
+	'.$file.'</span>';
+	if(scalar @{$highlights{$file}} > 0){
+		$html_content .= '<ul>';
+		foreach my $highlight (@{$highlights{$file}}){
+			$html_content .= '<li style="margin-top: 5px;';
+			if($highlight =~ /error/i){
+				$html_content .= ' background: #ebccd1; color:color: #a94442; font-weight:bold; padding: 3px 5px;';
+			}
+			$html_content .= '">'.$highlight.'</li>';
+		}
+		$html_content .= '</ul>';
+	}
+	$html_content .= '</li>';
 }
 
 $html_content .= '
@@ -210,16 +219,24 @@ $html_content .= '
 foreach my $file (sort keys %commands) {
 	$html_content .= '<li style="margin-bottom: 20px;">
 	<span class="run-name" style="font-weight: bold; margin-bottom: 10px;">
-	'.$file.'</span>
-	<ul><li style="margin-top: 5px; font-family: \'Lucida Console\', Monaco, monospace; font-size: 12px; background: #efefef; padding: 3px 5px;">'.
-		join('</li><li style="margin-top: 5px; font-family: \'Lucida Console\', Monaco, monospace; font-size: 12px; background: #efefef; padding: 3px 5px;">', $commands{$file})
-	.'</li></ul></li>';
+	'.$file.'</span>';
+	if(scalar @{$commands{$file}} > 0){
+		$html_content .= '<ul>';
+		foreach my $command (@{$commands{$file}}){
+			$html_content .= '<li style="margin-top: 5px; font-family: \'Lucida Console\', Monaco, monospace; font-size: 12px; background: #efefef; padding: 3px 5px;">'.$command .'</li>';
+		}
+		$html_content .= '</ul>';
+	}
+	$html_content .= '</li>';
 }
 
 $html_content .= '
 </ul>
 
 <hr style="color: #d9d9d9; height: 1px; background: #d9d9d9; border: none;" />';
+
+# Highlight any errors
+
 	
 	
 	

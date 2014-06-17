@@ -1,5 +1,4 @@
 #!/usr/bin/perl
-package CF::Constants; 
 package CF::Helpers; 
 
 use warnings;
@@ -8,6 +7,7 @@ use FindBin qw($Bin);
 use Exporter;
 use POSIX qw(strftime);
 use Time::Local;
+use CF::Constants; 
 
 ##########################################################################
 # Copyright 2014, Philip Ewels (phil.ewels@babraham.ac.uk)               #
@@ -104,6 +104,42 @@ sub load_runfile_params {
 }
 
 
+
+
+# Function to load environment modules into the perl environment
+sub load_environment_modules {
+	my ($modules, $loaded_modules) = @_;
+	my $use_modules = $CF::Constants::CF_MODULES;
+	my %mod_aliases = %CF::Constants::ENV_MODULE_ALIASES;
+	if($CF::Constants::CF_MODULES){
+		foreach my $mod (@{$modules}) {
+			# Check to see if we have an alias for this module
+			if(defined($mod_aliases{$mod})){
+				$mod = $mod_aliases{$mod};
+			}
+			# Skip modules that have already been loaded
+			next if defined($loaded_modules->{$mod});
+			# Get perl code needed to load module
+			my $mod_cmd = `modulecmd perl load $mod`;
+			if($mod_cmd && length($mod_cmd) > 0){
+				eval($mod_cmd);
+				if ($@){
+					warn "WARNING - Got error whilst trying to parse the module load code for module $mod:" .
+					"\t$@\n\nTHIS MODULE HAS NOT BEEN LOADED. Skipping..\n\n";
+					sleep(2);
+				} else {
+					# Everything worked. Remember so we don't try again.
+					$loaded_modules->{$mod} = 1;
+				}
+			}
+		}
+	}
+	return (\%{$loaded_modules});
+}
+
+
+
+
 # Function to look at supplied file names and work out whether they're paired end or not
 sub is_paired_end {
 	
@@ -159,7 +195,10 @@ sub is_paired_end {
 # Function to look into BAM/SAM header to see whether it's paired end or not
 sub is_bam_paired_end {
 
-	# is paired end or single end being forced?
+	# Load samtools
+	my @modules = ('samtools');
+	my %loaded_mods = {};
+	&CF::Helpers::load_environment_modules(\@modules,\%loaded_mods);
 
 	my ($file) = @_;
 	

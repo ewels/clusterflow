@@ -141,6 +141,7 @@ my %BOWTIE_ASSEMBLIES = %CF::Constants::BOWTIE_ASSEMBLIES;
 my %GTF_ASSEMBLIES = %CF::Constants::GTF_ASSEMBLIES;
 
 my %JOB_NUM_IDS;
+my %LOADED_MODULES;
 
 if($cl_email){
 	$EMAIL = $cl_email;
@@ -776,17 +777,12 @@ for (my $i = 0; $i <= $#files; $i++){
 	}
 }
 
-# Hash to hold a list of modules that have been loaded (as keys)
-# This is so we don't try to load each module for every file
-my %loaded_modules;
-
 ########################################################
 # Recursive function to create and submit cluster jobs
 ########################################################
 sub make_qsubs {
 	# Set up parameters for this branch
 	my ($mod_tree, $prev_job, $runfn, $outfn) = @_;
-	my %mod_load_failures;
 	
 	# Run through leaves
 	foreach ( keys %{$mod_tree} ){
@@ -828,31 +824,11 @@ sub make_qsubs {
 		if(!$mem || length($mem) == 0 || length($mem) > 20){
 			$mem = '1G';
 		}
-		if($CF_MODULES){
-			if($required_modules && length($required_modules) > 0){
-				my @req_modules = split(/[\s,]+/, $required_modules);
-				foreach my $mod (@req_modules) {
-					# Check to see if we have an alias for this module
-					if(defined($ENV_MODULE_ALIASES{$mod})){
-						$mod = $ENV_MODULE_ALIASES{$mod};
-					}
-					# Skip modules that have already been loaded
-					next if $loaded_modules{$mod};
-					# Get perl code needed to load module
-					my $mod_cmd = `modulecmd perl load $mod`;
-					if($mod_cmd && length($mod_cmd) > 0){
-						eval($mod_cmd);
-						if ($@){
-							warn "WARNING - Got error whilst trying to parse the module load code for module $mod:" .
-							"\t$@\n\nTHIS MODULE HAS NOT BEEN LOADED. Skipping..\n\n";
-							sleep(2);
-						} else {
-							# Everything worked. Remember so we don't try again.
-							$loaded_modules{$mod} = 1;
-						}
-					}
-				}
-			}
+		
+		# Load environment modules
+		if($required_modules && length($required_modules) > 0){
+			my @req_modules = split(/[\s,]+/, $required_modules);
+			&CF::Helpers::load_environment_modules(\@req_modules, \%LOADED_MODULES)
 		}
 		
 		# Create cluster job submission command
@@ -874,12 +850,6 @@ sub make_qsubs {
 		if ( ref $mod_tree->{$_} eq 'HASH') {
 			make_qsubs ( $mod_tree->{$_}, $job_id, $runfn, $outfn ) ;
 		}
-	}
-	
-	# Warn about modules which failed to load..
-	if(scalar keys(%mod_load_failures) > 0){
-		warn "\nWarning - the following environment modules could not be loaded: ".join(", ", keys(%mod_load_failures))."\n";
-		warn "To disable this warning, set \@ignore_modules to true in your config file.\n";
 	}
 }
 
