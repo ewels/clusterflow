@@ -530,13 +530,13 @@ sub send_email {
 	{ local $/ = undef; local *FILE; open FILE, "<$Bin/../source/CF/plaintext_email_template.txt"; $text_email = <FILE>; close FILE }
 	
 	# Put in our content
-	$html_email =~ s/{{ PAGE_TITLE }}/$title/;
-	$html_email =~ s/{{ CONTENT }}/$html_content/;
-	$html_email =~ s/{{ CF_VERSION }}/$cf_version/;
+	$html_email =~ s/{{ PAGE_TITLE }}/$title/g;
+	$html_email =~ s/{{ CONTENT }}/$html_content/g;
+	$html_email =~ s/{{ CF_VERSION }}/$cf_version/g;
 	
-	$text_email =~ s/{{ PAGE_TITLE }}/$title/;
-	$text_email =~ s/{{ CONTENT }}/$plain_content/;
-	$text_email =~ s/{{ CF_VERSION }}/$cf_version/;
+	$text_email =~ s/{{ PAGE_TITLE }}/$title/g;
+	$text_email =~ s/{{ CONTENT }}/$plain_content/g;
+	$text_email =~ s/{{ CF_VERSION }}/$cf_version/g;
 	
 	# Do we have the Perl modules that we need?
 	my $mail;
