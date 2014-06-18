@@ -147,14 +147,14 @@ if($se_files && scalar(@$se_files) > 0){
 		if(!system ($command)){
 			# Bismark worked - print out resulting filenames
 			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-			warn "###CF Bismark (SE mode) successfully exited, took $duration..\n";
+			warn "\n###CF Bismark (SE mode) successfully exited, took $duration..\n";
 			if(-e $output_fn){
 				print RUN "$job_id\t$output_fn\n"; 
 			} else {
-				warn "\nBismark output file $output_fn not found..\n";
+				warn "\n###CF Error! Bismark output file $output_fn not found..\n";
 			}
 		} else {
-			die "###CF ## Bismark alignment (SE mode) exited with an error state. Command: $command\n\n";
+			die "\n###CF Error! Bismark alignment (SE mode) exited with an error state: $? $!\n\n";
 		}
 	}
 }
@@ -187,17 +187,17 @@ if($pe_files && scalar(@$pe_files) > 0){
 			if(!system ($command)){
 				# Bismark worked - print out resulting filenames
 				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-				warn "###CF Bismark (PE mode) successfully exited, took $duration..\n";
+				warn "\n###CF Bismark (PE mode) successfully exited, took $duration..\n";
 				if(-e $output_fn){
 					print RUN "$job_id\t$output_fn\n";
 				} else {
-					warn "\nBismark output file $output_fn not found..\n";
+					warn "\n###CF Error! Bismark output file $output_fn not found..\n";
 				}
 			} else {
-				die "###CF ## Bismark alignment (PE mode) exited with an error state. Command: $command\n\n";
+				die "\n###CF Error! Bismark alignment (PE mode) exited with an error state: $? $!\n\n";
 			}
 		} else {
-			warn "\n###CF ## Bismark paired end files had ".scalar(@files)." input files instead of 2..\n";
+			warn "\n###CF Error! Bismark paired end files had ".scalar(@files)." input files instead of 2..\n";
 		}
 	}
 }

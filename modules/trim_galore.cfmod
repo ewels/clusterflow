@@ -144,10 +144,10 @@ if($se_files && scalar(@$se_files) > 0){
 			if(-e $output_fn){
 				print RUN "$job_id\t$output_fn\n";
 			} else {
-				warn "\nTrim Galore output file $output_fn not found..\n";
+				warn "\n###CF Error! Trim Galore output file $output_fn not found..\n";
 			}
 		} else {
-			die "###CF ## Trim Galore (SE mode) exited with an error state ###\n\n";
+			die "###CF Error! Trim Galore (SE mode) exited with an error state: $? $!\n\n";
 		}
 	}
 }
@@ -184,18 +184,18 @@ if($pe_files && scalar(@$pe_files) > 0){
 				if(-e $output_fn_1){
 					print RUN "$job_id\t$output_fn_1\n";
 				} else {
-					warn "\nTrim Galore output file $output_fn_1 not found..\n";
+					warn "\n###CF Error! Trim Galore output file $output_fn_1 not found..\n";
 				}
 				if(-e $output_fn_2){
 					print RUN "$job_id\t$output_fn_2\n";
 				} else {
-					warn "\nTrim Galore output file $output_fn_2 not found..\n";
+					warn "\n###CF Error! Trim Galore output file $output_fn_2 not found..\n";
 				}
 			} else {
-				die "###CF ## Trim Galore (PE mode) exited with an error state ###\n\n";
+				die "###CF Error! Trim Galore (PE mode) exited with an error state: $? $!\n\n";
 			}
 		} else {
-			warn "\n###CF ## Trim Galore paired end files had ".scalar(@files)." input files instead of 2..\n";
+			warn "\n###CF Error! Trim Galore paired end files had ".scalar(@files)." input files instead of 2..\n";
 		}
 	}
 }

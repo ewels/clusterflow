@@ -68,5 +68,5 @@ my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_
 if(!system ("bismark2report")){
 	warn "###CF Bismark report successfully created\n";
 } else {
-	warn "###CF Bismark report exited with an error state\n";
+	warn "###CF Error! Bismark report exited with an error state: $? $!\n";
 }

@@ -137,10 +137,10 @@ if($se_files && scalar(@$se_files) > 0){
 			if(-e $output_fn){
 				print RUN "$job_id\t$output_fn\n"; 
 			} else {
-				warn "\nTophat output file $output_fn not found..\n";
+				warn "\n###CF Error! Tophat output file $output_fn not found..\n";
 			}
 		} else {
-			warn "\n###CF ## Tophat (SE mode) failed ##\n\n";
+			warn "\n###CF Error! Tophat (SE mode) failed: $? $!\n\n";
 		}
 		
 		clean_output($output_dir, $file);
@@ -188,13 +188,13 @@ if($pe_files && scalar(@$pe_files) > 0){
 				if(-e $output_fn){
 					print RUN "$job_id\t$output_fn\n";
 				} else {
-					warn "\n###CF ## Tophat output file $output_fn not found ##\n";
+					warn "\n###CF Error! Tophat output file $output_fn not found\n";
 				}
 			} else {
-				warn "\n###CF ## Tophat (PE mode) failed ##\n\n";
+				warn "\n###CF Error! Tophat (PE mode) failed: $? $!\n\n";
 			}
 		} else {
-			warn "\n###CF ## Tophat paired end files had ".scalar(@files)." input files instead of 2 ##\n";
+			warn "\n###CF Error! Tophat paired end files had ".scalar(@files)." input files instead of 2\n";
 		}
 		
 		clean_output($output_dir, $files[0]);

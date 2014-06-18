@@ -86,7 +86,7 @@ foreach my $file (@$files){
 		my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 		warn "###CF FastQC successfully ran, took $duration\n";
 	} else {
-		print "###CF ## FastQC Failed: $? $!\n";
+		print "###CF Error! FastQC Failed: $? $!\n";
 	}
 }
 

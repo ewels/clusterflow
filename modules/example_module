@@ -197,7 +197,7 @@ if($se_files && scalar(@$se_files) > 0){
 			}
 		} else {
 			# Command returned a non-zero result, probably went wrong...
-			warn "\n###CF ## Example module (SE mode) failed ##\n\n";
+			warn "\n###CF Error! Example module (SE mode) failed: $? $!\n\n";
 		}
 		
 	}
@@ -247,16 +247,16 @@ if($pe_files && scalar(@$pe_files) > 0){
 					# This is so that subsequent modules can use this output
 					print RUN "$job_id\t$output_fn\n";
 				} else {
-					# Oops - can't find the output file! Err...
-					warn "\n###CF ## Example module output file $output_fn not found ##\n";
+					# Oops - can't find the output file!
+					warn "\n###CF Error! Example module output file $output_fn not found\n";
 				}
 			} else {
 				# Command returned a non-zero result, probably went wrong...
-				warn "\n###CF ## Example module (PE mode) failed ##\n\n";
+				warn "\n###CF Error! Example module (PE mode) failed: $? $!\n\n";
 			}
 		} else {
 			# We didn't have two files here..
-			warn "\n###CF ## Example module paired end files had ".scalar(@files)." input files instead of 2 ##\n";
+			warn "\n###CF Error! Example module paired end files had ".scalar(@files)." input files instead of 2\n";
 		}
 		
 	}

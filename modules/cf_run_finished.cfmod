@@ -200,13 +200,13 @@ A <strong>run</strong> in the pipeline <strong>'.$pipeline.'</strong> has comple
 	my $title = "Run Complete";
 	
 	if(CF::Helpers::send_email($subject, $to, $title, $html_content, $plain_content)){
-		warn "###CF Sent a pipeline e-mail notification to $to\n";
+		warn "Sent a pipeline e-mail notification to $to\n";
 	} else {
-		warn "###CF Error whilst trying to send a pipeline e-mail notification to $to\n";
+		warn "Error! Problem whilst trying to send a pipeline e-mail notification to $to\n";
 	}
 
 } elsif($config{notifications}{complete} && !defined($config{email})){
-	warn "###CF Tried to send run e-mail notification but no e-mail address found in config\n";
+	warn "Error! Tried to send run e-mail notification but no e-mail address found in config\n";
 }
 
 

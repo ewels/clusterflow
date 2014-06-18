@@ -109,17 +109,17 @@ if($files && scalar(@$files) > 0){
 			if(!system ($command)){
 				# Bismark worked - print out resulting filenames
 				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-				warn "###CF Bismark methylation extractor (PE mode) successfully exited, took $duration..\n";
+				warn "\n###CF Bismark methylation extractor (PE mode) successfully exited, took $duration..\n";
 				my @output_fns = find_Xtracted_fns($file);
 				if(scalar(@output_fns) > 0){
 					foreach(@output_fns){
 						print RUN "$job_id\t$_\n"; 
 					}
 				} else {
-					warn "\nNo bismark meth extrator output files found..\n";
+					warn "\n###CF Error! No bismark meth extrator output files found..\n";
 				}
 			} else {
-				die "###CF Bismark MethXtractor (PE mode) exited with an error state ###\n\n";
+				die "\n###CF Error! Bismark MethXtractor (PE mode) exited with an error state: $? $!\n\n";
 			}
 			
 		} else {
@@ -131,17 +131,17 @@ if($files && scalar(@$files) > 0){
 			if(!system ($command)){
 				# Bismark worked - print out resulting filenames
 				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-				warn "###CF Bismark methylation extractor (SE mode) successfully exited, took $duration..\n";
+				warn "\n###CF Bismark methylation extractor (SE mode) successfully exited, took $duration..\n";
 				my @output_fns = find_Xtracted_fns($file);
 				if(scalar(@output_fns) > 0){
 					foreach(@output_fns){
 						print RUN "$job_id\t$_\n"; 
 					}
 				} else {
-					warn "\nNo bismark meth extrator output files found..\n";
+					warn "\n###CF Error! No bismark meth extrator output files found..\n";
 				}
 			} else {
-				die "###CF Bismark MethXtractor (SE mode) exited with an error state ###\n\n";
+				die "\n###CF Error! Bismark MethXtractor (SE mode) exited with an error state: $? $!\n\n";
 			}
 			
 		}
