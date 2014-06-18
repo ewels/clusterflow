@@ -17,17 +17,19 @@ Change Log
 ----------
 #### v0.3 devel
 * New Stuff
+	* Awesome new HTML report e-mails
+		* Much more readable HTML report e-mails which look super-snazzy
+		* Any errors are highlighted making them quick to identify
+		* Designed to work on desktop and mobile phone screens
+	* Cluster Flow now re-orders the log file so that output from different modules doesn't overlap
+		* Made each module prepend its stdout and sterr with a CF module flag
+		* Made the `cf_run_finished` module parse the above flag and print out module by module
 	* Rewrote how the environment module loading works - now much more robust
 		* Uses `modulecmd` to prepare perl syntax commands
 		* Moved code into the `load_environment_modules` function in Helpers.pm
 	* Added environment module aliases
 		* This allows you to load specific environment module versions or use different names to those specified within CF modules
 		* eg. Replace `fastqc` with `FastQC/0.11.2`
-	* Awesome new HTML report e-mails
-		* Much more readable HTML report e-mails which look super-snazzy
-	* Cluster Flow now re-orders the log file so that output from different modules doesn't overlap
-		* Made each module prepend its stdout and sterr with a CF module flag
-		* Made the `cf_run_finished` module parse the above flag and print out module by module
 * Updates
 	* Added the `-q` parameter to the FastQC module to make the log files cleaner
 	* Removed the now uneccesary b`ismark_tidy` module and renamed `bismark_messy` to `bismark_report`
