@@ -98,7 +98,17 @@ foreach my $file (@$files){
 	if(!system ($command)){
 		print RUN "$job_id\t$annotated_file\n";
 		my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-		warn "###CF HTSeq successfully ran, took $duration\n";
+		warn "###CF HTSeq successfully exited, took $duration\n";
+		if(-e $annotated_file){
+			print RUN "$job_id\t$annotated_file\n"; 
+		} else {
+			warn "\n###CF Error! Annotated BAM output file $annotated_file not found..\n";
+		}
+		if(-e $counts_file){
+			print RUN "$job_id\t$counts_file\n"; 
+		} else {
+			warn "\n###CF Error! HTSeq counts file $counts_file not found..\n";
+		}
 	} else {
 		print "###CF Error! Error - HTSeq Failed: $? $!\n";
 	}
