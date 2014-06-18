@@ -72,11 +72,14 @@ my $cwd = getcwd()."/";
 # Read in the log files
 my %highlights;
 my %commands;
+my %errorlines;
 my $errors = 0;
+my $warnings = 0;
 foreach my $outfile (@outfns){
 	
 	my @these_highlights;
 	my @these_commands;
+	my @these_errorlines;
 	
 	open (IN,'<',$outfile);
 	while(<IN>){
@@ -99,13 +102,20 @@ foreach my $outfile (@outfns){
 		
 		# Count any errors
 		if(/error/i){
-			$errors++;
+			# If this line is a CF status, mark as error, otherwise a warning
+			if (/^###CFCMD/){
+				$errors++;
+			} else {
+				$warnings++;
+				push (@these_errorlines, $_);
+			}
 		}
 		
 	}
 	close (IN);
 	$highlights{$outfile} = \@these_highlights;
 	$commands{$outfile} = \@these_commands;
+	$errorlines{$outfile} = \@these_errorlines;
 }
 
 
@@ -116,6 +126,8 @@ if($config{notifications}{complete} && defined($config{email})){
 my $plain_content = "The pipeline $pipeline has completed";
 if($errors > 0){
 	$plain_content .= " **with errors**";
+} elsif($warnings > 0){
+	$plain_content .= " **with warnings**";
 }
 $plain_content .= ".
 
@@ -131,7 +143,7 @@ Working Directory: $cwd
 ";
 foreach my $file (sort keys %highlights) {
 	$plain_content .= "\n".("=" x 30)."\n- Output file $file\n".("=" x 30)."\n";
-	$plain_content .= join("\n", @{$highlights{$file}});
+	$plain_content .= join("\n - ", @{$highlights{$file}});
 }
 
 $plain_content .= "\n\n\n\n\n
@@ -141,7 +153,20 @@ $plain_content .= "\n\n\n\n\n
 ";
 foreach my $file (sort keys %commands) {
 	$plain_content .= "\n".("=" x 30)."\n- Output file $file\n".("=" x 30)."\n";
-	$plain_content .= join("\n", @{$commands{$file}});
+	$plain_content .= join("\n\n", @{$commands{$file}});
+}
+if($warnings > 0){
+	$plain_content .= "\n\n\n\n\n
+=========================
+== Unrecognised Errors ==
+=========================
+";
+	foreach my $file (sort keys %errorlines) {
+		if(scalar @{$errorlines{$file}} > 0){
+			$plain_content .= "\n".("=" x 30)."\n- Output file $file\n".("=" x 30)."\n";
+			$plain_content .= join("\n - ", @{$errorlines{$file}});
+		}
+	}	
 }
 $plain_content .= "\n\n";
 
@@ -157,6 +182,9 @@ $plain_content .= "\n\n";
 	if($errors > 0){
 		$html_content .= '<p class="completion-leader" style="color: #723736; font-family: \'Helvetica\', \'Arial\', sans-serif; font-weight: normal; text-align: center; line-height: 19px; font-size: 18px; border-radius: 5px; background: #f2dede; margin: 0 0 15px; padding: 10px; border: 1px solid #ebccd1;" align="center">
 The pipeline <strong>'.$pipeline.'</strong> has completed <strong>with errors</strong></p>';
+	} elsif($warnings > 0){
+		$html_content .= '<p class="completion-leader" style="color: #4D3E25; font-family: \'Helvetica\', \'Arial\', sans-serif; font-weight: normal; text-align: center; line-height: 19px; font-size: 18px; border-radius: 5px; background: #fcf8e3; margin: 0 0 15px; padding: 10px; border: 1px solid #faebcc;" align="center">
+The pipeline <strong>'.$pipeline.'</strong> has completed <strong>with warnings</strong></p>';
 	} else {
 		$html_content .= '<p class="completion-leader" style="color: #0A440B; font-family: \'Helvetica\', \'Arial\', sans-serif; font-weight: normal; text-align: center; line-height: 19px; font-size: 18px; border-radius: 5px; background: #dff0d8; margin: 0 0 15px; padding: 10px; border: 1px solid #d6e9c6;" align="center">
 The pipeline <strong>'.$pipeline.'</strong> has completed</p>';
@@ -218,7 +246,7 @@ foreach my $file (sort keys %highlights) {
 		foreach my $highlight (@{$highlights{$file}}){
 			$html_content .= '<li style="margin-top: 5px;';
 			if($highlight =~ /error/i){
-				$html_content .= ' background: #ebccd1; color:color: #f2dede; font-weight:bold; padding: 3px 5px;';
+				$html_content .= ' background: #ebccd1; color: #f2dede; font-weight:bold; padding: 3px 5px;';
 			}
 			$html_content .= '">'.$highlight.'</li>';
 		}
@@ -249,13 +277,24 @@ foreach my $file (sort keys %commands) {
 	$html_content .= '</li>';
 }
 
-$html_content .= '
-</ul>
+$html_content .= '</ul><hr style="color: #d9d9d9; height: 1px; background: #d9d9d9; border: none;" />';
 
-<hr style="color: #d9d9d9; height: 1px; background: #d9d9d9; border: none;" />';
-
-# Highlight any errors
-
+# Highlight any warnings
+if($warnings > 0){
+	$html_content .= '<h3 style="color: #222222; font-family: \'Helvetica\', \'Arial\', sans-serif; font-weight: normal; text-align: left; line-height: 1.3; word-break: normal; font-size: 32px; margin: 0; padding: 0;" align="left">Unrecognised Errors</h3>';
+	$html_content .= '<ul class="status-messages commands-run" style="padding:0; list-style-type:none;">';
+	foreach my $file (sort keys %errorlines) {
+		if(scalar @{$errorlines{$file}} > 0){
+			$html_content .= '<li style="margin-bottom: 20px;"><span class="run-name" style="font-weight: bold; margin-bottom: 10px;">'.$file.'</span>';
+			$html_content .= '<ul style="padding:0; list-style-type:none;">';
+			foreach my $error (@{$errorlines{$file}}){
+				$html_content .= '<li style="margin-top: 5px; background: #fcf8e3; color: #4D3E25; font-weight:bold; padding: 3px 5px;">'.$error .'</li>';
+			}
+			$html_content .= '</ul></li>';
+		}
+	}
+	$html_content .= '</ul><hr style="color: #d9d9d9; height: 1px; background: #d9d9d9; border: none;" />';
+}
 	
 	
 	
