@@ -72,6 +72,7 @@ my $cwd = getcwd()."/";
 # Read in the log files
 my %highlights;
 my %commands;
+my $errors = 0;
 foreach my $outfile (@outfns){
 	
 	my @these_highlights;
@@ -96,6 +97,11 @@ foreach my $outfile (@outfns){
 			push (@these_highlights, substr($_, 6));
 		}
 		
+		# Count any errors
+		if(/error/i){
+			$errors++;
+		}
+		
 	}
 	close (IN);
 	$highlights{$outfile} = \@these_highlights;
@@ -107,7 +113,11 @@ foreach my $outfile (@outfns){
 if($config{notifications}{complete} && defined($config{email})){
 	
 	# Write the plain-text e-mail body
-my $plain_content = "The pipeline $pipeline has completed.
+my $plain_content = "The pipeline $pipeline has completed";
+if($errors > 0){
+	$plain_content .= " **with errors**";
+}
+$plain_content .= ".
 
 Started: $startdate
 Finished: $date
@@ -143,8 +153,17 @@ $plain_content .= "\n\n";
 	# Write the html e-mail body
 	# Inline styles make me want to stab my eyes out, but we have to do this for
 	# e-mail readers such as Gmail which strip any header CSS.
-	my $html_content = '<p class="completion-leader" style="color: #0A440B; font-family: \'Helvetica\', \'Arial\', sans-serif; font-weight: normal; text-align: center; line-height: 19px; font-size: 18px; border-radius: 5px; background: #dff0d8; margin: 0 0 15px; padding: 10px; border: 1px solid #d6e9c6;" align="center">
-The pipeline <strong>'.$pipeline.'</strong> has completed</p>
+	my $html_content = '';
+	if($errors > 0){
+		$html_content .= '<p class="completion-leader" style="color: #723736; font-family: \'Helvetica\', \'Arial\', sans-serif; font-weight: normal; text-align: center; line-height: 19px; font-size: 18px; border-radius: 5px; background: #f2dede; margin: 0 0 15px; padding: 10px; border: 1px solid #ebccd1;" align="center">
+The pipeline <strong>'.$pipeline.'</strong> has completed <strong>with errors</strong></p>';
+	} else {
+		$html_content .= '<p class="completion-leader" style="color: #0A440B; font-family: \'Helvetica\', \'Arial\', sans-serif; font-weight: normal; text-align: center; line-height: 19px; font-size: 18px; border-radius: 5px; background: #dff0d8; margin: 0 0 15px; padding: 10px; border: 1px solid #d6e9c6;" align="center">
+The pipeline <strong>'.$pipeline.'</strong> has completed</p>';
+	}
+	
+
+	$html_content .= '
 
 <hr style="color: #d9d9d9; height: 1px; background: #d9d9d9; border: none;" />
 
@@ -199,7 +218,7 @@ foreach my $file (sort keys %highlights) {
 		foreach my $highlight (@{$highlights{$file}}){
 			$html_content .= '<li style="margin-top: 5px;';
 			if($highlight =~ /error/i){
-				$html_content .= ' background: #ebccd1; color:color: #a94442; font-weight:bold; padding: 3px 5px;';
+				$html_content .= ' background: #ebccd1; color:color: #f2dede; font-weight:bold; padding: 3px 5px;';
 			}
 			$html_content .= '">'.$highlight.'</li>';
 		}

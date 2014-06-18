@@ -65,6 +65,7 @@ my %modules;
 my %modkeys;
 my $unrecognised = "";
 my $i = 1;
+my $errors = 0;
 open (IN,'<',$outfn) or die "Can't read ".getcwd()."/$outfn - $!";
 while(<IN>){
 	
@@ -92,6 +93,11 @@ while(<IN>){
 		push (@highlights, substr($_, 6));
 	}
 	
+	# Count any errors
+	if(/error/i){
+		$errors++;
+	}
+	
 	# Increment counter for module keys hash
 	$i++;
 	
@@ -117,7 +123,11 @@ close OUT;
 if($config{notifications}{run} && defined($config{email})){
 	
 	# Write the plain-text e-mail body
-my $plain_content = "A run in the pipeline $pipeline has completed.
+my $plain_content = "A run in the pipeline $pipeline has completed";
+if($errors > 0){
+	$plain_content .= " **with errors**";
+}
+$plain_content .= ".
 
 Finished: $date
 Working Directory: $cwd
@@ -145,8 +155,15 @@ Working Directory: $cwd
 	# Write the html e-mail body
 	# Inline styles make me want to stab my eyes out, but we have to do this for
 	# e-mail readers such as Gmail which strip any header CSS.
-	my $html_content = '<p class="completion-leader" style="color: #0A440B; font-family: \'Helvetica\', \'Arial\', sans-serif; font-weight: normal; text-align: center; line-height: 19px; font-size: 18px; border-radius: 5px; background: #dff0d8; margin: 0 0 15px; padding: 10px; border: 1px solid #d6e9c6;" align="center">
-A <strong>run</strong> in the pipeline <strong>'.$pipeline.'</strong> has completed</p>
+	my $html_content = '';
+	if($errors > 0){
+		$html_content .= '<p class="completion-leader" style="color: #723736; font-family: \'Helvetica\', \'Arial\', sans-serif; font-weight: normal; text-align: center; line-height: 19px; font-size: 18px; border-radius: 5px; background: #f2dede; margin: 0 0 15px; padding: 10px; border: 1px solid #ebccd1;" align="center">
+A <strong>run</strong> in the pipeline <strong>'.$pipeline.'</strong> has completed <strong>with errors</strong></p>';
+	} else {
+		$html_content .= '<p class="completion-leader" style="color: #0A440B; font-family: \'Helvetica\', \'Arial\', sans-serif; font-weight: normal; text-align: center; line-height: 19px; font-size: 18px; border-radius: 5px; background: #dff0d8; margin: 0 0 15px; padding: 10px; border: 1px solid #d6e9c6;" align="center">
+A <strong>run</strong> in the pipeline <strong>'.$pipeline.'</strong> has completed</p>';
+	}
+	$html_content .= '
 
 <hr style="color: #d9d9d9; height: 1px; background: #d9d9d9; border: none;" />
 
@@ -174,8 +191,16 @@ A <strong>run</strong> in the pipeline <strong>'.$pipeline.'</strong> has comple
 <hr style="color: #d9d9d9; height: 1px; background: #d9d9d9; border: none;" />
 
 <h3 style="color: #222222; font-family: \'Helvetica\', \'Arial\', sans-serif; font-weight: normal; text-align: left; line-height: 1.3; word-break: normal; font-size: 32px; margin: 0; padding: 0;" align="left">Highlighted Status Messages</h3>
-<ul class="status-messages" style="padding-left:20px;">
-	<li style="margin-top: 5px;">'.join('</li><li style="margin-top: 5px;">', @highlights).'</li>
+<ul class="status-messages" style="padding-left:20px;">';
+$html_content .= '<ul style="padding-left:20px;">';
+foreach my $highlight (@highlights){
+	$html_content .= '<li style="margin-top: 5px;';
+	if($highlight =~ /error/i){
+		$html_content .= ' background: #ebccd1; color:color: #f2dede; font-weight:bold; padding: 3px 5px;';
+	}
+	$html_content .= '">'.$highlight.'</li>';
+}
+$html_content .= '
 </ul>
 
 <hr style="color: #d9d9d9; height: 1px; background: #d9d9d9; border: none;" />
