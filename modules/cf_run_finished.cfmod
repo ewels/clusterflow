@@ -118,7 +118,8 @@ my $outfile = "";
 foreach my $key (sort { $modkeys{$a} <=> $modkeys{$b} or $a cmp $b } keys %modkeys) {
 	$outfile .= $modules{$key}."\n\n\n";
 }
-if(length($unrecognised) > 0){
+# count non-whitespace characters only
+if((()= $unrecognised =~ m/\S/g) > 0){
 	$outfile .= ("-"x80)."\nUnrecognised output:\n".("-"x80)."\n".$unrecognised;
 }
 
