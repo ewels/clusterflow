@@ -74,7 +74,7 @@ my %config = %$config_ref;
 
 # Check that we have a genome defined
 if(!defined($config{genome_path})){
-	warn "\n\n###CF No genome path found in run file $runfile for job $job_id. Exiting.. ###\n\n";
+	warn "\n\n###CF Error! No genome path found in run file $runfile for job $job_id.\n\n";
 	exit;
 }
 
