@@ -46,7 +46,7 @@ if($required_mem){
 }
 # --modules. Return csv names of any modules which should be loaded.
 if($required_modules){
-	print 'fastqc,trim_galore,cutadapt';
+	print 'fastqc,cutadapt,trim_galore';
 	exit;
 }
 # --help. Print help.
