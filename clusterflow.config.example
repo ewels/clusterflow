@@ -47,6 +47,7 @@ These will be overwritten by any with the same name in ~/clusterflow/clusterflow
 /* Pipeline Reporting */
 /**********************/
 /* If specific flags are found in the pipeline output log, you can flag them as */
-/* warnings in the report e-mail. Case insensitve. */
+/* warnings or highlights in the report e-mail. Case insensitve. */
+@log_highlight_string alignment rate
 @log_warning_string	Error occured
 @log_warning_string job failed

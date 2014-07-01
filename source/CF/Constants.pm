@@ -46,6 +46,7 @@ our $CLUSTER_ENVIRONMENT = 'GRIDEngine';
 our $CUSTOM_JOB_SUBMIT_COMMAND;
 our $CF_MODULES = 1;
 our %ENV_MODULE_ALIASES;
+our @LOG_HIGHLIGHT_STRINGS;
 our @LOG_WARNING_STRINGS;
 
 # Empty genome path vars
@@ -133,6 +134,8 @@ sub parse_conf_file {
 					} elsif($name eq 'environment_module_alias'){
 						my ($search, $replace) = split(/\s+/, $val, 2);
 						$ENV_MODULE_ALIASES{$search} = $replace;
+					} elsif($name eq 'log_highlight_string'){
+						push @LOG_HIGHLIGHT_STRINGS, $val;
 					} elsif($name eq 'log_warning_string'){
 						push @LOG_WARNING_STRINGS, $val;
 					}

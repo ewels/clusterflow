@@ -59,16 +59,19 @@ warn "\n###CF Run finished at $date\n\n";
 my $cwd = getcwd()."/";
 
 # Parse the outfile (the run logs)
+my @LOG_HIGHLIGHT_STRINGS = @CF::Constants::LOG_HIGHLIGHT_STRINGS;
 my @LOG_WARNING_STRINGS = @CF::Constants::LOG_WARNING_STRINGS;
-my @highlights;
+my @cf_highlights;
 my @commands;
 my @warninglines;
+my @highlightlines;
 my %modules;
 my %modkeys;
 my $unrecognised = "";
 my $i = 1;
 my $errors = 0;
 my $warnings = 0;
+my $highlights = 0;
 open (IN,'<',$outfn) or die "Can't read ".getcwd()."/$outfn - $!";
 while(<IN>){
 	
@@ -93,13 +96,21 @@ while(<IN>){
 		
 	# Highlight statuses
 	} elsif(/^###CF/){
-		push (@highlights, substr($_, 6));
+		push (@cf_highlights, substr($_, 6));
 	}
 	
 	# Count out any CF errors
 	if(/error/i){
 		if (/^###CFCMD/){
 			$errors++;
+		}
+	}
+	
+	# Count any custom string highlights
+	foreach my $highlight_string (@LOG_HIGHLIGHT_STRINGS){
+		if(/$highlight_string/i){
+			$highlights++;
+			push (@highlightlines, $_);
 		}
 	}
 	
@@ -149,11 +160,28 @@ $plain_content .= ".
 Finished: $date
 Working Directory: $cwd
 
+";
 
-=================================
-== Highlighted status messages ==
-=================================
-- ".join("\n- ", @highlights)."
+if($warnings > 0){
+	$plain_content .= "\n\n\n\n\n
+===========================
+== Custom Warnings Found ==
+===========================
+- ".join("\n - ", @warninglines)."\n\n\n\n\n";
+}
+if($highlights > 0){
+	$plain_content .= "\n\n\n\n\n
+===========================
+== Custom Highlights Found ==
+===========================
+- ".join("\n - ", @highlightlines)."\n\n\n\n\n";
+}
+
+$plain_content .= ".
+====================================
+== CF Highlighted status messages ==
+====================================
+- ".join("\n- ", @cf_highlights)."
 \n\n\n\n\n
 ==================
 == Commands Run ==
@@ -161,14 +189,6 @@ Working Directory: $cwd
 - ".join("\n", @commands)."
 
 ";
-
-if($warnings > 0){
-	$plain_content .= "\n\n\n\n\n
-==================================
-== Custom Warning Strings Found ==
-==================================
-- ".join("\n - ", @warninglines)."\n\n\n\n\n";
-}
 
 $plain_content .= "
 
@@ -221,10 +241,33 @@ A <strong>run</strong> in the pipeline <strong>'.$pipeline.'</strong> has comple
 
 <hr style="color: #d9d9d9; height: 1px; background: #d9d9d9; border: none;" />
 
-<h3 style="color: #222222; font-family: \'Helvetica\', \'Arial\', sans-serif; font-weight: normal; text-align: left; line-height: 1.3; word-break: normal; font-size: 32px; margin: 0; padding: 0;" align="left">Highlighted Status Messages</h3>
+';
+
+# Highlight any warnings
+if($warnings > 0){
+	$html_content .= '<h3 style="color: #222222; font-family: \'Helvetica\', \'Arial\', sans-serif; font-weight: normal; text-align: left; line-height: 1.3; word-break: normal; font-size: 32px; margin: 0; padding: 0;" align="left">Custom Warnings Found</h3>';
+	$html_content .= '<ul style="padding:0; list-style-type:none;">';
+	foreach my $warning (@warninglines){
+		$html_content .= '<li style="margin-top: 5px; background: #fcf8e3; color: #4D3E25; font-weight:bold; padding: 3px 5px;">'.$warning.'</li>';
+	}
+	$html_content .= '</ul><hr style="color: #d9d9d9; height: 1px; background: #d9d9d9; border: none;" />';
+}
+
+# Highlight any highlights
+if($highlights > 0){
+	$html_content .= '<h3 style="color: #222222; font-family: \'Helvetica\', \'Arial\', sans-serif; font-weight: normal; text-align: left; line-height: 1.3; word-break: normal; font-size: 32px; margin: 0; padding: 0;" align="left">Custom Highlights Found</h3>';
+	$html_content .= '<ul style="padding:0; list-style-type:none;">';
+	foreach my $highlight (@highlightlines){
+		$html_content .= '<li style="margin-top: 5px;">'.$highlight.'</li>';
+	}
+	$html_content .= '</ul><hr style="color: #d9d9d9; height: 1px; background: #d9d9d9; border: none;" />';
+}
+
+$html_content .= '
+<h3 style="color: #222222; font-family: \'Helvetica\', \'Arial\', sans-serif; font-weight: normal; text-align: left; line-height: 1.3; word-break: normal; font-size: 32px; margin: 0; padding: 0;" align="left">Highlighted CF Status Messages</h3>
 <ul class="status-messages" style="padding-left:20px;">';
 $html_content .= '<ul style="padding-left:20px;">';
-foreach my $highlight (@highlights){
+foreach my $highlight (@cf_highlights){
 	$html_content .= '<li style="margin-top: 5px;';
 	if($highlight =~ /error/i){
 		$html_content .= ' background: #ebccd1; color:color: #f2dede; font-weight:bold; padding: 3px 5px;';
@@ -245,15 +288,6 @@ $html_content .= '
 
 <hr style="color: #d9d9d9; height: 1px; background: #d9d9d9; border: none;" />';
 
-# Highlight any warnings
-if($warnings > 0){
-	$html_content .= '<h3 style="color: #222222; font-family: \'Helvetica\', \'Arial\', sans-serif; font-weight: normal; text-align: left; line-height: 1.3; word-break: normal; font-size: 32px; margin: 0; padding: 0;" align="left">Custom Warning Strings Found</h3>';
-	$html_content .= '<ul style="padding:0; list-style-type:none;">';
-	foreach my $warning (@warninglines){
-		$html_content .= '<li style="margin-top: 5px; background: #fcf8e3; color: #4D3E25; font-weight:bold; padding: 3px 5px;">'.$warning.'</li>';
-	}
-	$html_content .= '</ul><hr style="color: #d9d9d9; height: 1px; background: #d9d9d9; border: none;" />';
-}
 	
 	
 	
