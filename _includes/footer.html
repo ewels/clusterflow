@@ -19,6 +19,15 @@
 				title: '',
 				listType: 'ul'
 			});
+			$('.demo_gif').click(function(){
+				if($(this).hasClass('inactive')){
+					$(this).removeClass('inactive');
+					$(this).addClass('active');
+				} else {
+					$(this).removeClass('active');
+					$(this).addClass('inactive');
+				}
+			});
 		});
 	</script>
 	<!-- Google Analytics-->

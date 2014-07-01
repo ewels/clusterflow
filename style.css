@@ -196,3 +196,31 @@ pre code {
 .version .label {
 	margin-right:10px;
 }
+
+
+.demo_gif {
+	overflow:hidden;
+	text-align:center;
+	cursor:pointer;
+	-webkit-transition: height 1s;
+	transition: max-height 1s;
+}
+.demo_gif.inactive {
+	max-height:100px;
+}
+.demo_gif.active {
+	max-height:1000px;
+}
+.demo_gif img {
+	background-color:#073642;
+	padding:10px 0;
+	max-width:100%;
+	-webkit-transition: opacity 1s;
+	transition: opacity 1s;
+}
+.demo_gif.inactive img {
+	opacity: 0.4;
+}
+.demo_gif.active img {
+	opacity: 1;
+}
