@@ -101,7 +101,7 @@ while(<IN>){
 	
 	# Count out any CF errors
 	if(/error/i){
-		if (/^###CFCMD/){
+		if (/^###CF/){
 			$errors++;
 		}
 	}
