@@ -270,7 +270,7 @@ $html_content .= '<ul style="padding-left:20px;">';
 foreach my $highlight (@cf_highlights){
 	$html_content .= '<li style="margin-top: 5px;';
 	if($highlight =~ /error/i){
-		$html_content .= ' background: #ebccd1; color:color: #f2dede; font-weight:bold; padding: 3px 5px;';
+		$html_content .= ' background: #ebccd1; color: #222222; font-weight:bold; padding: 3px 5px;';
 	}
 	$html_content .= '">'.$highlight.'</li>';
 }
