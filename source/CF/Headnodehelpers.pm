@@ -111,8 +111,23 @@ sub parse_squeue {
 		
 	}
 	
+	# Work out pipeline cwds
+	# Figure out the cwd for this pipeline
+	my %pipeline_wds;
+	foreach my $pipelinekey (keys (%pipelines)){
+		my $pipeline_wd;
+		if($pipeline_single_job_ids{$pipelinekey}){
+			my $cwd_command = "scontrol show job $pipeline_single_job_ids{$pipelinekey} | grep WorkDir";
+			$pipeline_wd = `$cwd_command`;
+			$pipeline_wd =~ s/\s*WorkDir=//;
+			$pipeline_wd =~ s/\n//;
+			if(length($pipeline_wd) > 0){
+				$pipeline_wds{$pipelinekey} = $pipeline_wd;
+			}
+		}
+	}
+	
 	#print Dumper (\%jobs); exit;
-	my %pipeline_wds;	
 	my $output = print_jobs_output(\%jobs, \%pipelines, \%pipeline_single_job_ids, \%pipeline_wds, $cols, $all_users);
     
 
@@ -250,10 +265,10 @@ sub parse_qstat {
 		my $pipeline_wd;
 		if($pipeline_single_job_ids{$pipelinekey}){
 			my $cwd_command = "qstat -j $pipeline_single_job_ids{$pipelinekey} | grep cwd";
-	        	$pipeline_wd = `$cwd_command`;
-	        	$pipeline_wd =~ s/^cwd:\s+//;
-	        	$pipeline_wd =~ s/\n//;
-			$pipeline_wds{$pipeline_wd} = $pipeline_wd;
+	        $pipeline_wd = `$cwd_command`;
+	        $pipeline_wd =~ s/^cwd:\s+//;
+	        $pipeline_wd =~ s/\n//;
+			$pipeline_wds{$pipelinekey} = $pipeline_wd;
 		}
 	}
 	
