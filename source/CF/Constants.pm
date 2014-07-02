@@ -76,10 +76,11 @@ parse_genomes_file();
 parse_updates_file();
 
 sub parse_conf_file {
-		
 	# Read global config variables in. Do in order so that local prefs overwrite.
+	# Look in current directory and parent, as this module can be called
+	# by /cf and by /modules/module.cfmod
 	
-	my @config_files = ("$FindBin::Bin/clusterflow.config", "$homedir/clusterflow/clusterflow.config", './clusterflow.config');
+	my @config_files = ("$FindBin::Bin/clusterflow.config", "$FindBin::Bin/../clusterflow.config", "$homedir/clusterflow/clusterflow.config", './clusterflow.config');
 	foreach my $config_file (@config_files){
 		if(-e $config_file){
 			open (CONFIG, $config_file) or die "Can't read $config_file: $!";
@@ -95,10 +96,11 @@ sub parse_conf_file {
 				} elsif($_ =~ /^\/\*/){		# multiline comments start
 					$comment_block = 1;
 					next;
-				} elsif($_ =~ /^\*\//){		# multiline comments start
+				} elsif($_ =~ /\*\//){		# multiline comments end
 					$comment_block = 0;
 					next;
 				}
+				
 				if($_ =~ /^\@/ && !$comment_block){
 					my @sections = split(/\s+/, $_, 2);
 					$config{substr($sections[0], 1)} = $sections[1];
