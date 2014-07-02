@@ -20,7 +20,7 @@ Change Log
 	* Awesome new HTML report e-mails
 		* Much more readable HTML report e-mails which look super-snazzy (see [example](http://ewels.github.io/clusterflow/example_report_good.html))
 		* Any errors are highlighted making them quick to identify (see [example](http://ewels.github.io/clusterflow/example_report_bad.html))
-		* Custom strings set in the config can flagged as [highlights](http://ewels.github.io/clusterflow/example_report_highlights.html)) or as [warnings](http://ewels.github.io/clusterflow/example_report_warnings.html)) 
+		* Custom strings set in the config can flagged as [highlights](http://ewels.github.io/clusterflow/example_report_highlights.html) or as [warnings](http://ewels.github.io/clusterflow/example_report_warnings.html)
 		* Designed to work on desktop and mobile phone screens
 	* Cluster Flow now re-orders the log file so that output from different modules doesn't overlap
 		* Made each module prepend its stdout and sterr with a CF module flag
