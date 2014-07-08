@@ -128,20 +128,12 @@ Cluster Flow will generate it's own sensible default if this isn't set, so it's 
 
 **Note** - Cluster Flow will append the job dependency strings to the end of your custom command which are system specific, so it's important that `@cluster_environment` is still correct.
 
-#### System specific Gotchas
+### System specific Gotchas
 There are a few non-obvious things that have to be set correctly for some environments to work..
 
 * GridEngine / SGE
   * GridEngine defaults to using `csh` to execute commands instead of the more standard `bash`. This will break some things. To override this behaviour, include the parameter `-S /bin/bash` for the commands
 
-### Environment modules path
-Yup, environment modules again (if you're not using these, you can skip). Many Cluster Flow pipelines will run programs that will have environment module dependencies - for example, if you're running bowtie, bowtie needs to be added to the `PATH`.
-
-You can do this yourself before you start each run, but that's a pain and often goes wrong. To get around this, Cluster Flow can find out what is needed and load the environment modules itself.
-
-To make this work, you need to configure where the environment modules binary is. For example:
-
-	@env_modules_path       /usr/local/Modules/lmod/bin/modulecmd
 
 ## Adding genome paths
 Ok, we're nearly there! Many modules within Cluster Flow require reference genomes for alignment. You can do this manually (probably quicker if you have lots to add) or you can use the interactive wizard that comes with Cluster Flow - just run:
