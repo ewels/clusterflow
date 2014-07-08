@@ -30,7 +30,7 @@ These will be overwritten by any with the same name in ~/clusterflow/clusterflow
 
 /* Custom Job Submit Command - uncomment to customise parameters for job submission */
 /* Accepted variable placeholders: {{command}} {{job_id}} {{outfn}} {{cores}} {{mem}} {{priority}} {{email}} */
-/* @custom_job_submit_command qsub -MY --CUSTOM --PARAMS -pe orte {{cores}} {{command}} */
+/* @custom_job_submit_command qsub -cwd -V -S /bin/bash -MY --CUSTOM --PARAMS -pe orte {{cores}} {{command}} */
 
 
 /***********************/
