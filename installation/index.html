@@ -128,6 +128,12 @@ Cluster Flow will generate it's own sensible default if this isn't set, so it's 
 
 **Note** - Cluster Flow will append the job dependency strings to the end of your custom command which are system specific, so it's important that `@cluster_environment` is still correct.
 
+#### System specific Gotchas
+There are a few non-obvious things that have to be set correctly for some environments to work..
+
+* GridEngine / SGE
+  * GridEngine defaults to using `csh` to execute commands instead of the more standard `bash`. This will break some things. To override this behaviour, include the parameter `-S /bin/bash` for the commands
+
 ### Environment modules path
 Yup, environment modules again (if you're not using these, you can skip). Many Cluster Flow pipelines will run programs that will have environment module dependencies - for example, if you're running bowtie, bowtie needs to be added to the `PATH`.
 
