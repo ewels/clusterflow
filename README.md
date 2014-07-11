@@ -15,7 +15,7 @@ Cluster Flow is released with a GPL v3 licence. Cluster Flow is free software: y
 
 Change Log
 ----------
-#### v0.3 devel
+#### [v0.3](https://github.com/ewels/clusterflow/releases/tag/v0.3) - 2014-07-11
 * New Stuff
 	* Awesome new HTML report e-mails
 		* Much more readable HTML report e-mails which look super-snazzy (see [example](http://ewels.github.io/clusterflow/example_report_good.html))
