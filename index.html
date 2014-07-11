@@ -3,10 +3,8 @@ title: Cluster Flow
 layout: default
 ---
 
-Welcome to the new home of Cluster Flow. As of version 0.2, this website will serve as the primary home for the Cluster Flow documentation.
+A command-line pipeline tool which uses common cluster managers to run bioinformatics analysis pipelines.
 {: .lead}
-
-Cluster Flow is a command-line program which uses common cluster managers to run analysis pipelines. It currently supports GRIDEngine (SGE), LSF and SLURM, plus it should be fairly easy to port to others.
 
 Benefits of using Cluster Flow:
 
@@ -15,12 +13,15 @@ Benefits of using Cluster Flow:
 * Integrated parallelisation tools help prevent your cluster becoming overloaded
 * All commands and output is logged in files for future reference
 * Intuitive commands and a comprehensive manual make Cluster Flow easy to use
+* Job monitoring tools and E-mail notifications allow you to keep track of your jobs
 
 How Cluster Flow differs from other pipeline tools:
 
 * Very lightweight and flexible
 * Pipelines and configurations can easily be generated on a project-specific basis if required
 * New modules and pipelines are super easy to write (see video tutorial)
+
+Cluster Flow currently supports GRIDEngine (SGE), LSF and SLURM, plus it should be fairly easy to port to others.
 
 <div class="demo_gif inactive">
 <img src="resources/CF_mini.gif" title="mini CF demo">
@@ -40,6 +41,34 @@ If you write a module or pipeline which could be of use to others, or modify the
 The easiest way to do this is to [fork the Cluster Flow repository](https://help.github.com/articles/fork-a-repo), make your changes, committing them and pushing them as you go. When you've finished, submit a [pull request](https://help.github.com/articles/using-pull-requests) and the new code can be merged into the central project.
 
 ## Change Log
+
+<h4 class="version"><a href="https://github.com/ewels/clusterflow/releases/tag/v0.3"><span class="label label-success version">Version 0.3</span></a> <small>2014-07-11</small></h4>
+
+* New Stuff
+	* Awesome new HTML report e-mails
+		* Much more readable HTML report e-mails which look super-snazzy (see [example](http://ewels.github.io/clusterflow/example_report_good.html))
+		* Any errors are highlighted making them quick to identify (see [example](http://ewels.github.io/clusterflow/example_report_bad.html))
+		* Custom strings set in the config can flagged as [highlights](http://ewels.github.io/clusterflow/example_report_highlights.html) or as [warnings](http://ewels.github.io/clusterflow/example_report_warnings.html)
+		* Designed to work on desktop and mobile phone screens
+	* Cluster Flow now re-orders the log file so that output from different modules doesn't overlap
+		* Made each module prepend its stdout and sterr with a CF module flag
+		* Made the `cf_run_finished` module parse the above flag and print out module by module
+	* Rewrote how the environment module loading works - now much more robust
+		* Uses `modulecmd` to prepare perl syntax commands
+		* Moved code into the `load_environment_modules` function in Helpers.pm
+	* Added environment module aliases
+		* This allows you to load specific environment module versions or use different names to those specified within CF modules
+		* eg. Replace `fastqc` with `FastQC/0.11.2`
+* Updates
+	* Made the `bismark_methXtract` module create genome-wide coverage reports if GTF path is available
+	* Added the `-q` parameter to the FastQC module to make the log files cleaner
+	* Removed the now uneccesary `bismark_tidy` module and renamed `bismark_messy` to `bismark_report`
+* Bugs Squashed
+	* Fixed dependency bug introduced in v0.2 which was making all downloads fire simultaneously
+	* Fixed issue where modules using the CF::Constants Perl Module couldn't load the central config file
+	* Fixed typo in environment module loading in `bismark_align` module
+	* Reordered loading of the environment modules in `trim_galore` so that FastQC is loaded first, fixing dependency issues
+
 
 <h4 class="version"><a href="https://github.com/ewels/clusterflow/releases/tag/v0.2"><span class="label label-success version">Version 0.2</span></a> <small>2014-05-29</small></h4>
 

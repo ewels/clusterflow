@@ -136,7 +136,7 @@ There are a few non-obvious things that have to be set correctly for some enviro
 
 
 ## Adding genome paths
-Ok, we're nearly there! Many modules within Cluster Flow require reference genomes for alignment. You can do this manually (probably quicker if you have lots to add) or you can use the interactive wizard that comes with Cluster Flow - just run:
+Many modules within Cluster Flow require reference genomes for alignment. You can do this manually (probably quicker if you have lots to add) or you can use the interactive wizard that comes with Cluster Flow - just run:
 
 	 cf --add_genome
 
@@ -154,6 +154,19 @@ There are four types of paths that can be specified:
 	* The file name of a GTF file for a given genome.
 
 All four types of path should share genome keys if applicable. The fields should be separated by a tab character. Cluster Flow ships with an example genomes file called [genomes.config.example](https://github.com/ewels/clusterflow/blob/master/genomes.config.example "Browse the example genomes file on GitHub")
+
+## Environment Module Aliases
+If using environment modules, you may get some errors claiming that certain
+tools are not installed. If you think that you do have that tool installed,
+it could be because of a minor difference in the module name (eg. `fastqc`
+versus `FastQC`). To avoid having to change the name of your modules, you
+can configure aliases in your configuration file. You can also use these
+aliases to specify specific software versions for Cluster Flow.
+
+Aliases are added with the `@environment_module_alias` tag. For example:
+
+	@environment_module_alias	fastqc	FastQC/0.11.2
+	@environment_module_alias	trim_galore	TrimGalore
 
 ## Running Cluster Flow
 Ok, you're done! Cluster Flow should now work (see [General Usage]({{site.baseurl}}/usage/) for instructions on how to run Cluster Flow). If you get any weird errors, have a look through the  [Troubleshooting]({{site.baseurl}}/troubleshooting/) section and if in doubt, drop me an e-mail. Good luck!
@@ -202,9 +215,6 @@ The total number of cores available to a Cluster Flow pipeline. Modules are give
 ### @total_mem
 The total amount of memory available to a Cluster Flow pipeline. Modules are given a recommended quota so that resources can be allocated without swamping the cluster.
 
-### @ignore_modules
-If you do not use environment modules on your system, you can prevent Cluster Flow from trying to use them (and giving a warning) by adding this line to your config file.
-
 ### @cluster_environment
 Cluster Flow can submit jobs to both GRIDEngine and LSF cluster management systems. This configuration variable sets which environment to use. The possible options are:
 
@@ -213,3 +223,20 @@ Cluster Flow can submit jobs to both GRIDEngine and LSF cluster management syste
 * LSF
 
 It is worth noting that Cluster Flow has been developed on GRIDEngine and SLURM Clusters so is likely to be most robust on similar setups. The `--qstat` and `--qstatall` parameters do not currently work with LSR. If you'd like to have a go at implementing it, that would be great!
+
+### @ignore_modules
+If you do not use environment modules on your system, you can prevent Cluster Flow from trying to use them (and giving a warning) by adding this line to your config file.
+
+### @environment_module_alias
+See above for instructions on how to use this tag.
+
+### @log_highlight_string and @log_warning_string
+To pull out specific highlights or warnings from log files, you can specify
+search strings with these tags. If found, the e-mail will be highlighted
+accordingly and the lines from the log file will be displayed at the top
+of the report e-mail.
+
+For example:
+
+	@log_highlight_string at least one reported alignment
+	@log_warning_string job failed
