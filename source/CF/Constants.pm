@@ -26,7 +26,7 @@ package CF::Constants;
 # along with Cluster Flow.  If not, see <http://www.gnu.org/licenses/>.  #
 ##########################################################################
 
-our $CF_VERSION = "0.2";
+our $CF_VERSION = "0.3 devel";
 
 our $homedir = $ENV{"HOME"};
 
@@ -44,8 +44,10 @@ our $TOTAL_MEM = '4G';
 our $MAX_RUNS = 12;
 our $CLUSTER_ENVIRONMENT = 'GRIDEngine';
 our $CUSTOM_JOB_SUBMIT_COMMAND;
-our $ENV_MODULES_PATH;
 our $CF_MODULES = 1;
+our %ENV_MODULE_ALIASES;
+our @LOG_HIGHLIGHT_STRINGS;
+our @LOG_WARNING_STRINGS;
 
 # Empty genome path vars
 our %GENOME_PATH_CONFIGS;
@@ -74,10 +76,11 @@ parse_genomes_file();
 parse_updates_file();
 
 sub parse_conf_file {
-		
 	# Read global config variables in. Do in order so that local prefs overwrite.
+	# Look in current directory and parent, as this module can be called
+	# by /cf and by /modules/module.cfmod
 	
-	my @config_files = ("$FindBin::Bin/clusterflow.config", "$homedir/clusterflow/clusterflow.config", './clusterflow.config');
+	my @config_files = ("$FindBin::Bin/clusterflow.config", "$FindBin::Bin/../clusterflow.config", "$homedir/clusterflow/clusterflow.config", './clusterflow.config');
 	foreach my $config_file (@config_files){
 		if(-e $config_file){
 			open (CONFIG, $config_file) or die "Can't read $config_file: $!";
@@ -93,10 +96,11 @@ sub parse_conf_file {
 				} elsif($_ =~ /^\/\*/){		# multiline comments start
 					$comment_block = 1;
 					next;
-				} elsif($_ =~ /^\*\//){		# multiline comments start
+				} elsif($_ =~ /\*\//){		# multiline comments end
 					$comment_block = 0;
 					next;
 				}
+				
 				if($_ =~ /^\@/ && !$comment_block){
 					my @sections = split(/\s+/, $_, 2);
 					$config{substr($sections[0], 1)} = $sections[1];
@@ -127,10 +131,15 @@ sub parse_conf_file {
 						$CLUSTER_ENVIRONMENT = $val;
 					} elsif($name eq 'custom_job_submit_command'){
 						$CUSTOM_JOB_SUBMIT_COMMAND = $val;
-					} elsif($name eq 'env_modules_path'){
-						$ENV_MODULES_PATH = $val;
 					} elsif($name eq 'ignore_modules'){
 						$CF_MODULES = 0;
+					} elsif($name eq 'environment_module_alias'){
+						my ($search, $replace) = split(/\s+/, $val, 2);
+						$ENV_MODULE_ALIASES{$search} = $replace;
+					} elsif($name eq 'log_highlight_string'){
+						push @LOG_HIGHLIGHT_STRINGS, $val;
+					} elsif($name eq 'log_warning_string'){
+						push @LOG_WARNING_STRINGS, $val;
 					}
 				}
 			}

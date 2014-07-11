@@ -87,7 +87,7 @@ foreach my $file (@$files){
 						$output_fn .= '.gz';
 						print RUN "$job_id\t$output_fn\n";
 					} else {
-						warn "### Error - gzipping $output_fn exited with an error state. Printing ungzipped filename to run file. ###\n";
+						warn "Error - gzipping $output_fn exited with an error state: $? $!\nPrinting ungzipped filename to run file.\n";
 						print RUN "$job_id\t$output_fn\n";
 					}
 				} else {
@@ -104,7 +104,7 @@ foreach my $file (@$files){
 					unlink $output_fn or die "Could not delete $output_fn : $!";
 				}
 			}
-			warn "###CF FastQ Dump failed on attempt $attempt: $? $!\n";
+			warn "###CF Error! FastQ Dump failed on attempt $attempt: $? $!\n";
 			
 		}
 	}

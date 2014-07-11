@@ -78,7 +78,7 @@ foreach my $parameter (@$parameters){
 # Go through each supplied file and run FastQC.
 foreach my $file (@$files){
 	
-	my $command = "fastqc $nogroup $file";
+	my $command = "fastqc -q $nogroup $file";
 	warn "\n###CFCMD $command\n\n";
 	
 	if(!system ($command)){
@@ -86,7 +86,7 @@ foreach my $file (@$files){
 		my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 		warn "###CF FastQC successfully ran, took $duration\n";
 	} else {
-		print "###CF ## FastQC Failed: $? $!\n";
+		print "###CF Error! FastQC Failed: $? $!\n";
 	}
 }
 

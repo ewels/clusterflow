@@ -82,7 +82,7 @@ foreach my $file (@$files){
 				if(-e $output_fn){
 					print RUN "$job_id\t$output_fn\n";
 				} else {
-					warn "\nSRA dump files $output_fn not found..\n\n";
+					warn "\n###CF Error! SRA dump files $output_fn not found..\n\n";
 				}
 			}
 			last;
@@ -95,7 +95,7 @@ foreach my $file (@$files){
 					unlink $output_fn or die "Could not delete $output_fn : $!";
 				}
 			}
-			warn "###CF SOLiD Dump failed on attempt $attempt: $? $!\n";
+			warn "###CF Error! SOLiD Dump failed on attempt $attempt: $? $!\n";
 			
 		}
 	}

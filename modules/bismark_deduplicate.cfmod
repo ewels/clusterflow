@@ -90,10 +90,10 @@ if($files && scalar(@$files) > 0){
 				if(-e $output_fn){
 					print RUN "$job_id\t$output_fn\n"; 
 				} else {
-					warn "\nBismark output file $output_fn not found..\n";
+					warn "\n###CF Error! Bismark output file $output_fn not found..\n";
 				}
 			} else {
-				die "###CF Bismark deduplication (PE mode) exited with an error state ###\n\n";
+				die "\n###CF Error!Bismark deduplication (PE mode) exited with an error state: $? $!\n\n";
 			}
 			
 		} else {
@@ -109,10 +109,10 @@ if($files && scalar(@$files) > 0){
 				if(-e $output_fn){
 					print RUN "$job_id\t$output_fn\n"; 
 				} else {
-					warn "\nBismark output file $output_fn not found..\n";
+					warn "\n###CF Error! Bismark output file $output_fn not found..\n";
 				}
 			} else {
-				die "###CF Bismark deduplication (SE mode) exited with an error state ###\n\n";
+				die "\n###CF Error! Bismark deduplication (SE mode) exited with an error state: $? $!\n\n";
 			}
 			
 		}

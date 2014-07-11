@@ -7,6 +7,7 @@ use FindBin qw($Bin);
 use Exporter;
 use POSIX qw(strftime);
 use Time::Local;
+use CF::Constants; 
 
 ##########################################################################
 # Copyright 2014, Philip Ewels (phil.ewels@babraham.ac.uk)               #
@@ -103,6 +104,42 @@ sub load_runfile_params {
 }
 
 
+
+
+# Function to load environment modules into the perl environment
+sub load_environment_modules {
+	my ($modules, $loaded_modules) = @_;
+	my $use_modules = $CF::Constants::CF_MODULES;
+	my %mod_aliases = %CF::Constants::ENV_MODULE_ALIASES;
+	if($CF::Constants::CF_MODULES){
+		foreach my $mod (@{$modules}) {
+			# Check to see if we have an alias for this module
+			if(defined($mod_aliases{$mod})){
+				$mod = $mod_aliases{$mod};
+			}
+			# Skip modules that have already been loaded
+			next if defined($loaded_modules->{$mod});
+			# Get perl code needed to load module
+			my $mod_cmd = `modulecmd perl load $mod`;
+			if($mod_cmd && length($mod_cmd) > 0){
+				eval($mod_cmd);
+				if ($@){
+					warn "WARNING - Got error whilst trying to parse the module load code for module $mod:" .
+					"\t$@\n\nTHIS MODULE HAS NOT BEEN LOADED. Skipping..\n\n";
+					sleep(2);
+				} else {
+					# Everything worked. Remember so we don't try again.
+					$loaded_modules->{$mod} = 1;
+				}
+			}
+		}
+	}
+	return (\%{$loaded_modules});
+}
+
+
+
+
 # Function to look at supplied file names and work out whether they're paired end or not
 sub is_paired_end {
 	
@@ -158,7 +195,10 @@ sub is_paired_end {
 # Function to look into BAM/SAM header to see whether it's paired end or not
 sub is_bam_paired_end {
 
-	# is paired end or single end being forced?
+	# Load samtools
+	my @modules = ('samtools');
+	my %loaded_mods = {};
+	&CF::Helpers::load_environment_modules(\@modules,\%loaded_mods);
 
 	my ($file) = @_;
 	
@@ -471,6 +511,78 @@ sub cf_compare_version_numbers {
 	}
 	
 	return 0;
+	
+}
+
+
+### E-MAIL FUNCTIONS
+sub send_email {
+	
+	my ($subject, $to, $title, $html_content, $plain_content) = @_;
+	
+	my $cf_version = $CF::Constants::CF_VERSION;
+	
+	# Get the e-mail templates
+	# Assume that we're running from the installation directory/modules
+	my $html_email;
+	{ local $/ = undef; local *FILE; open FILE, "<$Bin/../source/CF/html_email_template.html"; $html_email = <FILE>; close FILE }
+	my $text_email;
+	{ local $/ = undef; local *FILE; open FILE, "<$Bin/../source/CF/plaintext_email_template.txt"; $text_email = <FILE>; close FILE }
+	
+	# Put in our content
+	$html_email =~ s/{{ PAGE_TITLE }}/$title/g;
+	$html_email =~ s/{{ CONTENT }}/$html_content/g;
+	$html_email =~ s/{{ CF_VERSION }}/$cf_version/g;
+	
+	$text_email =~ s/{{ PAGE_TITLE }}/$title/g;
+	$text_email =~ s/{{ CONTENT }}/$plain_content/g;
+	$text_email =~ s/{{ CF_VERSION }}/$cf_version/g;
+	
+	# Do we have the Perl modules that we need?
+	my $mail;
+	my $mail_packages = eval "use Email::MIME::CreateHTML; use Email::Sender::Simple qw(sendmail); 1;";
+	
+	# Send a fancy HTML e-mail using perl packages
+	if($mail_packages){
+		warn "Sending e-mail using Perl packages..\n";
+		my $email = Email::MIME->create_html(
+			header => [
+				# From => 'my@address',
+				To => $to,
+				Subject => '[CF] '.$subject
+			],
+			body => $html_email,
+			text_body => $text_email
+		);
+		Email::Sender::Simple->send($email);
+	
+	# We don't have them, try with sendmail
+	} elsif (!system('which sendmail > /dev/null 2>&1')) {
+		warn "Sending HTML e-mail with sendmail..\n";
+		$html_email = "To: $to\nSubject: [CF] $subject\nMime-Version: 1.0\nContent-Type: text/html\n\n".$html_email;
+		open (PIPE , "| sendmail -t") or die "can't open pipe to sendmail: $!\n";
+		print PIPE $html_email;
+		close PIPE;
+	
+	# We don't have them, try HTML with mailx
+	} elsif (!system('which mailx > /dev/null 2>&1')) {
+		warn "Sending HTML e-mail with mailx..\n";
+		open (PIPE , "| mail  -s '$(echo -e \"[CF] $subject\nContent-type: text/html;\")' $to") or die "can't open pipe to mailx: $!\n";
+		print PIPE $html_email;
+		close PIPE;
+	
+	# Fallback - use the basic mail with plaintext
+	} else {
+		warn "Sending e-mail using basic plain text mail..\n";
+		open (PIPE , "| mail -s '[CF] $subject' $to") or die "can't open pipe to mail: $!\n";
+		print PIPE $text_email;
+		close PIPE;
+	}
+	
+	# Give the program time to send the e-mail before qsub shuts us down
+	sleep(5); 
+	
+	return 1;
 	
 }
 

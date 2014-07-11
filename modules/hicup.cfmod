@@ -75,7 +75,7 @@ my $timestart = time;
 # Make sure that we have a recent enough version of HiCUP
 my $hicup_version = `hicup -v`;
 unless(CF::Helpers::cf_compare_version_numbers($hicup_version, '0.5')){
-	warn "\n\n###CF Error - HiCUP version $hicup_version is installed, version 0.5 is required for Cluster Flow. Exiting.. ###\n\n";
+	warn "\n\n###CF Error! HiCUP version $hicup_version is installed, version 0.5 is required for Cluster Flow. Exiting..\n\n";
 	exit;
 }
 
@@ -85,12 +85,12 @@ my %config = %$config_ref;
 
 # Check that we have a genome defined
 if(!defined($config{genome_path})){
-	warn "\n\n###CF No genome path found in run file $runfile for job $job_id. Exiting.. ###\n\n";
+	warn "\n\n###CF Error! No genome path found in run file $runfile for job $job_id. Exiting.. ###\n\n";
 	exit;
 }
 # Check that we have a bowtie path defined
 if(!defined($config{bowtie_path})){
-	warn "\n\n###CF No bowtie path found in run file $runfile for job $job_id. Exiting.. ###\n\n";
+	warn "\n\n###CF Error! No bowtie path found in run file $runfile for job $job_id. Exiting.. ###\n\n";
 	exit;
 }
 
@@ -171,7 +171,7 @@ if(!$digest){
 	if(!system ($command)){
 		warn "\nDigest file successfully created.\n\n";
 	} else {
-		die "###CF ## HiCUP could not create new digest file. Exiting... Command: $command\n\n";
+		die "###CF Error! HiCUP could not create new digest file. Exiting... Command: $command\n\n";
 	}
 	
 	# Find the really obscure file name that has been created
@@ -188,7 +188,7 @@ if(!$digest){
 }
 # Still can't find the digest file. Die
 if(!$digest){
-	die "###CF ## Could not find or create the HiCUP digest file. Exiting..\n\n";
+	die "###CF Error! Could not find or create the HiCUP digest file. Exiting..\n\n";
 }
 
 
@@ -235,13 +235,13 @@ for (my $i = 0; $i <= $num_files; $i++){
 				if(-e $output_fn){
 					print RUN "$job_id\t$output_fn\n";
 				} else {
-					warn "\nHiCUP output file $output_fn not found..\n";
+					warn "\n###CF Error! HiCUP output file $output_fn not found..\n";
 				}
 			} else {
-				warn "###CF ## HiCUP exited with an error state. Command: $command\n\n";
+				warn "###CF Error! HiCUP exited with an error state: $? $!\n\n";
 			}
 		} else {
-			warn "\n###CF ## HiCUP paired end files had ".scalar(@p_files)." input files instead of 2..\n";
+			warn "\n###CF Error! HiCUP paired end files had ".scalar(@p_files)." input files instead of 2..\n";
 		}
 	}
 	$i++;
