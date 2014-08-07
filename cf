@@ -42,6 +42,7 @@ my $pipeline;
 my $GENOME;
 my $cl_genome_path;
 my $cl_bowtie_path;
+my $cl_bowtie2_path;
 my $cl_gtf_path;
 my $SPLIT_FILES = 1;
 my $cl_max_runs;
@@ -73,6 +74,7 @@ my $config_result = GetOptions(
 	"genome=s" => \$GENOME,
 	"genome_path=s" => \$cl_genome_path,
 	"bowtie_path=s" => \$cl_bowtie_path,
+	"bowtie2_path=s" => \$cl_bowtie2_path,
 	"gtf_path=s" => \$cl_gtf_path,
 	"split_files=i" => \$SPLIT_FILES,
 	"max_runs=i" => \$cl_max_runs,
@@ -131,15 +133,19 @@ my @LOG_WARNING_STRINGS = @CF::Constants::LOG_WARNING_STRINGS;
 # Set up genomes
 my %GENOME_PATH_CONFIGS = %CF::Constants::GENOME_PATH_CONFIGS;
 my %BOWTIE_PATH_CONFIGS = %CF::Constants::BOWTIE_PATH_CONFIGS;
+my %BOWTIE2_PATH_CONFIGS = %CF::Constants::BOWTIE2_PATH_CONFIGS;
 my %GTF_PATH_CONFIGS = %CF::Constants::GTF_PATH_CONFIGS;
 my %GENOME_PATHS = %CF::Constants::GENOME_PATHS;
 my %BOWTIE_PATHS = %CF::Constants::BOWTIE_PATHS;
+my %BOWTIE2_PATHS = %CF::Constants::BOWTIE2_PATHS;
 my %GTF_PATHS = %CF::Constants::GTF_PATHS;
 my %GENOME_SPECIES = %CF::Constants::GENOME_SPECIES;
 my %BOWTIE_SPECIES = %CF::Constants::BOWTIE_SPECIES;
+my %BOWTIE2_SPECIES = %CF::Constants::BOWTIE2_SPECIES;
 my %GTF_SPECIES = %CF::Constants::GTF_SPECIES;
 my %GENOME_ASSEMBLIES = %CF::Constants::GENOME_ASSEMBLIES;
 my %BOWTIE_ASSEMBLIES = %CF::Constants::BOWTIE_ASSEMBLIES;
+my %BOWTIE2_ASSEMBLIES = %CF::Constants::BOWTIE2_ASSEMBLIES;
 my %GTF_ASSEMBLIES = %CF::Constants::GTF_ASSEMBLIES;
 
 my %JOB_NUM_IDS;
@@ -165,6 +171,10 @@ if($cl_genome_path){
 }
 if($cl_bowtie_path){
 	$BOWTIE_PATHS{"command_line"} = $cl_bowtie_path;
+	$GENOME = "command_line";
+}
+if($cl_bowtie2_path){
+	$BOWTIE2_PATHS{"command_line"} = $cl_bowtie2_path;
 	$GENOME = "command_line";
 }
 if($cl_gtf_path){
@@ -519,6 +529,9 @@ if(defined($GENOME) && defined($GENOME_PATHS{$GENOME})){
 if(defined($GENOME) && defined($BOWTIE_PATHS{$GENOME})){
 	$runfile .= "\@bowtie_path\t$BOWTIE_PATHS{$GENOME}\n";
 }
+if(defined($GENOME) && defined($BOWTIE2_PATHS{$GENOME})){
+	$runfile .= "\@bowtie2_path\t$BOWTIE2_PATHS{$GENOME}\n";
+}
 if(defined($GENOME) && defined($GTF_PATHS{$GENOME})){
 	$runfile .= "\@gtf_path\t$GTF_PATHS{$GENOME}\n";
 }
@@ -570,6 +583,19 @@ while (<CONFIG>){
 			warn "\n### Error ###\nNo bowtie path found for $GENOME.\n\nAvailable bowtie paths:\n";
 			while ( (my $genome, my $path) = each %BOWTIE_PATHS ) {
 			  warn "\tGenome: $genome, Path: $BOWTIE_PATHS{$genome}\n";
+			}
+			warn "\n\nExiting...\n\n";
+			exit;
+		}
+	}
+	if($_ =~ /^\@require_bowtie2/ && !$comment_block){
+		if(!defined $GENOME){
+			warn "\n### Error - The pipeline $pipeline requires a bowtie index to be set with --genome or --bowtie2_path. Exiting... ### \n\n";
+			exit;
+		} elsif(!defined $BOWTIE2_PATHS{$GENOME}){
+			warn "\n### Error ###\nNo bowtie2 path found for $GENOME.\n\nAvailable bowtie2 paths:\n";
+			while ( (my $genome, my $path) = each %BOWTIE2_PATHS ) {
+			  warn "\tGenome: $genome, Path: $BOWTIE2_PATHS{$genome}\n";
 			}
 			warn "\n\nExiting...\n\n";
 			exit;
