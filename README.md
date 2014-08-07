@@ -15,6 +15,9 @@ Cluster Flow is released with a GPL v3 licence. Cluster Flow is free software: y
 
 Change Log
 ----------
+#### v0.4 devel
+* Bugs Squashed
+	* Fixed output filename problem in tophat with output cleaning
 #### [v0.3](https://github.com/ewels/clusterflow/releases/tag/v0.3) - 2014-07-11
 * New Stuff
 	* Awesome new HTML report e-mails

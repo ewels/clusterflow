@@ -135,6 +135,7 @@ if($se_files && scalar(@$se_files) > 0){
 			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 			warn "###CF Tophat (SE mode) successfully exited, took $duration..\n";
 			if(-e $output_fn){
+				$output_fn = clean_output($output_dir, $file);
 				print RUN "$job_id\t$output_fn\n"; 
 			} else {
 				warn "\n###CF Error! Tophat output file $output_fn not found..\n";
@@ -143,7 +144,6 @@ if($se_files && scalar(@$se_files) > 0){
 			warn "\n###CF Error! Tophat (SE mode) failed: $? $!\n\n";
 		}
 		
-		clean_output($output_dir, $file);
 	}
 }
 
@@ -186,6 +186,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 				warn "###CF Tophat (PE mode) successfully exited, took $duration....\n";
 				if(-e $output_fn){
+					$output_fn = clean_output($output_dir, $files[0]);
 					print RUN "$job_id\t$output_fn\n";
 				} else {
 					warn "\n###CF Error! Tophat output file $output_fn not found\n";
@@ -196,8 +197,6 @@ if($pe_files && scalar(@$pe_files) > 0){
 		} else {
 			warn "\n###CF Error! Tophat paired end files had ".scalar(@files)." input files instead of 2\n";
 		}
-		
-		clean_output($output_dir, $files[0]);
 	}
 }
 
@@ -206,10 +205,12 @@ if($pe_files && scalar(@$pe_files) > 0){
 sub clean_output {
 	
 	my ($output_dir, $file) = @_;
+	my $results_fn = "$output_dir/accepted_hits.bam";
 
 	if(-e "$output_dir/accepted_hits.bam" && -e "$output_dir/align_summary.txt"){
 		if(move ("$output_dir/accepted_hits.bam", $file."_accepted_hits.bam")){
 			warn "Moved tophat output to ${file}_accepted_hits.bam\n";
+			$results_fn = $file."_accepted_hits.bam";
 			if(move ("$output_dir/align_summary.txt", $file."_align_summary.txt")){
 				warn "Moved tophat summary to ${file}_align_summary.txt\n";
 				if(unlink glob "$output_dir/logs/*"){
@@ -241,6 +242,8 @@ sub clean_output {
 	} else {
 		warn "Could not find tophat output files $output_dir/accepted_hits.bam and $output_dir/align_summary.txt\n";
 	}
+	
+	return $results_fn;
 }
 
 
