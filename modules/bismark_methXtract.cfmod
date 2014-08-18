@@ -87,6 +87,7 @@ if($mem =~ /G$/){
 my $ignore_r1 = "";
 my $ignore_r2 = "--ignore_r2 2";
 my $gw_cov = "";
+my $capture_regions = "";
 foreach my $parameter (@$parameters){
 	# if($parameter eq "pbat" || $parameter eq "single_cell"){
 	# 	$ignore_r1 = "--ignore 4";
@@ -99,6 +100,10 @@ foreach my $parameter (@$parameters){
 		} else {
 			$gw_cov = ' --genome_folder '.$config{genome_path};
 		}
+	}
+	# Capture regions
+	if(substr($parameter, 0, 16) eq "capture_regions="){
+		$capture_regions = substr($parameter, 16);
 	}
 }
  
@@ -119,6 +124,11 @@ if($files && scalar(@$files) > 0){
 				# Bismark worked - print out resulting filenames
 				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 				warn "\n###CF Bismark methylation extractor (PE mode) successfully exited, took $duration..\n";
+				# Attempt to plot visualizations
+				if(length($gw_cov) > 0){
+					warn "\nAttempting to plot coverage visualizations..\n";
+					plot_visualizations($file);
+				}
 				my @output_fns = find_Xtracted_fns($file);
 				if(scalar(@output_fns) > 0){
 					foreach(@output_fns){
@@ -178,6 +188,52 @@ sub find_Xtracted_fns {
 	
 }
 
+
+sub plot_visualizations {
+	
+	my ($file) = @_;
+	
+	# perl script paths
+	my $coverage_script = "~/scripts/visualizations/bismark/bismark_coverage_curves.pl";
+	my $windows_script = "~/scripts/visualizations/bismark/bismark_window_sizes.pl";
+	
+	# work out the filename that we're looking for
+	$file =~ s/.[bs]am$//;
+	$file .= '.bismark.cov';
+	
+	my $regions = '';
+	if(length($capture_regions) > 0 and -e $capture_regions){
+		$regions = "--regions $capture_regions";
+	} elsif(!-e $capture_regions){
+		warn "###CF Error! Can't find capture regions BED file $capture_regions\n";
+	}
+	
+	# Check that the coverage report exists
+	unless(-e $file){
+		warn "###CF Error! Can't find Bismark coverage report: $file\nSkipping visualisations..\n\n";
+	} else {
+		# Plot coverage curves
+		if(-e $coverage_script){
+			if(!system ("perl $coverage_script $regions --stranded $file")){
+				warn "Coverage curves plot successfully created.\n";
+			} else {
+				warn "###CF Error! Coverage curves plotting exited with an error code.\n";
+			}
+		} else {
+			warn "###CF Error! Couldn't find find the coverage script: $coverage_script\nSkipping..\n";
+		}
+		# Plot coverage curves
+		if(-e $windows_script){
+			if(!system ("perl $windows_script $regions $file")){
+				warn "Window sizes plot successfully created.\n";
+			} else {
+				warn "###CF Error! Window size plotting exited with an error code.\n";
+			}
+	    } else {
+   			warn "###CF Error! Couldn't find find the windows script: $windows_script\nSkipping..\n";
+   		}
+	}
+}
 
 
 close (RUN);
