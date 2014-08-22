@@ -116,7 +116,7 @@ if($files && scalar(@$files) > 0){
 		# Find if PE or SE from input BAM file
 		if(CF::Helpers::is_bam_paired_end($file)){
 			
-			my $command = "bismark_methylation_extractor $ignore_r1 $ignore_r2 --bedGraph --counts $buffer --gzip -p --no_overlap --report $gw_cov $file";
+			my $command = "bismark_methylation_extractor $ignore_r1 $ignore_r2 --bedGraph --counts $buffer --cytosine_report --gzip -p --no_overlap --report $gw_cov $file";
 			warn "\n###CFCMD $command\n\n";
 			
 			# Paired End BAM file
@@ -194,18 +194,18 @@ sub plot_visualizations {
 	my ($file) = @_;
 	
 	# perl script paths
-	my $coverage_script = "~/scripts/visualizations/bismark/bismark_coverage_curves.pl";
-	my $windows_script = "~/scripts/visualizations/bismark/bismark_window_sizes.pl";
+	my $coverage_script = "/home/phil/scripts/visualizations/bismark/bismark_coverage_curves.pl";
+	my $windows_script = "/home/phil/scripts/visualizations/bismark/bismark_window_sizes.pl";
 	
 	# work out the filename that we're looking for
 	$file =~ s/.[bs]am$//;
-	$file .= '.bismark.cov';
+	$file .= '.CpG_report.txt';
 	
 	my $regions = '';
 	if(length($capture_regions) > 0 and -e $capture_regions){
 		$regions = "--regions $capture_regions";
 	} elsif(!-e $capture_regions){
-		warn "###CF Error! Can't find capture regions BED file $capture_regions\n";
+		warn "###CF Error! Can't find capture regions BED file $capture_regions - running without capture information.\n";
 	}
 	
 	# Check that the coverage report exists
@@ -214,8 +214,10 @@ sub plot_visualizations {
 	} else {
 		# Plot coverage curves
 		if(-e $coverage_script){
-			if(!system ("perl $coverage_script $regions --stranded $file")){
-				warn "Coverage curves plot successfully created.\n";
+			my $cov_cmd = "perl $coverage_script $regions --stranded $file";
+			warn "###CFCMD $cov_cmd\n\n";
+			if(!system ($cov_cmd)){
+				warn "###CF Coverage curves plot successfully created.\n";
 			} else {
 				warn "###CF Error! Coverage curves plotting exited with an error code.\n";
 			}
@@ -224,8 +226,10 @@ sub plot_visualizations {
 		}
 		# Plot coverage curves
 		if(-e $windows_script){
-			if(!system ("perl $windows_script $regions $file")){
-				warn "Window sizes plot successfully created.\n";
+			my $win_cmd = "perl $windows_script $regions $file";
+			warn "###CFCMD $win_cmd\n\n";
+			if(!system ($win_cmd)){
+				warn "###CF Window sizes plot successfully created.\n";
 			} else {
 				warn "###CF Error! Window size plotting exited with an error code.\n";
 			}
