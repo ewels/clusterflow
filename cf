@@ -69,6 +69,7 @@ my $cl_add_genome;
 my $cl_version;
 my $cl_check_updates;
 my $cl_qname;
+my $cl_verbose;
 my $cl_help;
 
 my $config_result = GetOptions(
@@ -102,6 +103,7 @@ my $config_result = GetOptions(
 	"version" => \$cl_version,
 	"check_updates" => \$cl_check_updates,
 	"qname=s" => \$cl_qname,
+	"verbose" => \$cl_verbose,
 	"help" => \$cl_help
 );
 
@@ -1060,17 +1062,16 @@ sub make_submit_cmd {
 }
 
 # Print qsub jobs to the terminal or submit to cluster
-if($cl_dryrun){
+if($cl_dryrun or $cl_verbose){
 	print "\n\n".('-' x 46)."\n Jobs that would be submitted to the cluster\n".('-' x 46)."\n\n";
-}
-if($cl_dryrun){
 	foreach(@qsubs){
 		print "$_\n\n";
 	}
 	if($CLUSTER_ENVIRONMENT =~ /SLURM/i){
 		print "\n\n".('-' x 86)."\n Warning - Jobs do not have dependencies (SLURM jobs have to be launched to do this)\n".('-' x 86)."\n\n";
 	}
-} elsif ($CLUSTER_ENVIRONMENT !~ /SLURM/i){
+}
+if (!$cl_dryrun and ($CLUSTER_ENVIRONMENT !~ /SLURM/i)){
 	foreach(@qsubs){
 		system $_;
 	}
