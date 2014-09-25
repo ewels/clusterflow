@@ -68,6 +68,7 @@ my $cl_make_config;
 my $cl_add_genome;
 my $cl_version;
 my $cl_check_updates;
+my $cl_qname;
 my $cl_help;
 
 my $config_result = GetOptions(
@@ -100,6 +101,7 @@ my $config_result = GetOptions(
 	"add_genome" => \$cl_add_genome,
 	"version" => \$cl_version,
 	"check_updates" => \$cl_check_updates,
+	"qname=s" => \$cl_qname,
 	"help" => \$cl_help
 );
 
@@ -1001,7 +1003,7 @@ sub make_submit_cmd {
 		if($CUSTOM_JOB_SUBMIT_COMMAND && length($CUSTOM_JOB_SUBMIT_COMMAND) > 0){
 			$qsub = $CUSTOM_JOB_SUBMIT_COMMAND;
 		} else {
-			$qsub = 'echo "{{command}}" | qsub -cwd -V -S /bin/bash -pe orte {{cores}} -l vf={{mem}} -o {{outfn}} -j y -N {{job_id}} {{notifications}}';
+			$qsub = 'echo "{{command}}" | qsub -cwd -V -S /bin/bash -pe orte {{cores}} {{qname}} -l vf={{mem}} -o {{outfn}} -j y -N {{job_id}} {{notifications}}';
 			# Do we have a priority?
 			if($PRIORITY && $PRIORITY <= 0){
 				$qsub .= " -p {{priority}}";
@@ -1026,11 +1028,16 @@ sub make_submit_cmd {
 			}
 		}
 		
+		my $qname ='';
+		if ($cl_qname) {
+			$qname = "-q $cl_qname ";
+		}
 		# Swap in real values
 		$qsub =~ s/{{command}}/$cmd/;
 		$qsub =~ s/{{job_id}}/$job_id/;
 		$qsub =~ s/{{outfn}}/$outfn/;
 		$qsub =~ s/{{cores}}/$cores/;
+		$qsub =~ s/{{qname}}/$qname/;
 		$qsub =~ s/{{mem}}/$mem/;
 		$qsub =~ s/{{priority}}/$PRIORITY/;
 		$qsub =~ s/{{notifications}}/$notification_string/;
