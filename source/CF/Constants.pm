@@ -771,7 +771,7 @@ GTF Path:    A filename path to a genome GTF file.\n\n";
 		print OUT "\@bowtie_path\t$genomeID\t$bowtie_path\t$species\t$assembly\n";
 		print "Added bowtie path $genomeID: $bowtie_path\n";
 	}
-	if(length($bowtie_path) > 0){
+	if(length($bowtie2_path) > 0){
 		print OUT "\@bowtie2_path\t$genomeID\t$bowtie2_path\t$species\t$assembly\n";
 		print "Added bowtie 2 path $genomeID: $bowtie2_path\n";
 	}
