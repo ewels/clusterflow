@@ -847,30 +847,8 @@ sub make_qsubs {
 			die "Can't execute module file $module.cfmod\n";
 		}
 		
-		# Get options for module
-		my $cores = `$module_fn --cores $TOTAL_CORES`;
-		my $mem = `$module_fn --mem $TOTAL_MEM`;
-		# memory type for Grid Engine:
-		#set to vmem if module returns "h_vmem" as a prefix for its --mem request
-		my $memtype = 'vf';
-		if ($mem =~ /^h_vmem(.+)/) {
-			$mem = $1;
-			$memtype = 'h_vmem'			#code
-		}
-		#cli arg overrides module-recommended mem type
-		$memtype = 'h_vmem' if ($cl_h_vmem);
-		
+		# Get options for module. 1 - Load environment modules
 		my $required_modules = `$module_fn --modules`;
-		
-		if(!$cores || length($cores) == 0 || $cores =~ /\D/){
-			$cores = 1;
-		}
-		if(!$mem || length($mem) == 0 || length($mem) > 20){
-			warn "\nWarning: no memory allocation or error parsing memory allocation: setting to 1Gb\n";
-			$mem = '1G';
-		}
-		
-		# Load environment modules
 		if($required_modules && length($required_modules) > 0){
 			my @req_modules = split(/[\s,]+/, $required_modules);
 			&CF::Helpers::load_environment_modules(\@req_modules, \%LOADED_MODULES)
@@ -880,6 +858,34 @@ sub make_qsubs {
 		my $holdjid = $prev_job;
 		# Strip number from download job ID so that these files are all read in the next module
 		$prev_job =~ s/download_[\d]{3}$/download/;
+		
+		
+		# Get options for module. 2 - negotiate cores
+		my $sim_argv = "$runfn $job_id $prev_job cores_placeholder mem_placeholder $parameters";
+		my $cores = `$module_fn $sim_argv --cores $TOTAL_CORES`;
+		if(!$cores || length($cores) == 0 || $cores =~ /\D/){
+			warn "\nWarning: no cores allocation or error parsing cores allocation: setting to 1Gb\n";
+			$cores = 1;
+		}
+		
+		# Get options for module. 3 - negotiate memory
+		$sim_argv = "$runfn $job_id $prev_job $cores mem_placeholder $parameters";
+		my $mem = `$module_fn $sim_argv --mem $TOTAL_MEM`;
+		# memory type for Grid Engine:
+		#set to vmem if module returns "h_vmem" as a prefix for its --mem request
+		my $memtype = 'vf';
+		if ($mem =~ /^h_vmem(.+)/) {
+			$mem = $1;
+			$memtype = 'h_vmem'			#code
+		}
+		#cli arg overrides module-recommended mem type
+		$memtype = 'h_vmem' if ($cl_h_vmem);
+		if(!$mem || length($mem) == 0 || length($mem) > 20){
+			warn "\nWarning: no memory allocation or error parsing memory allocation: setting to 1Gb\n";
+			$mem = '1G';
+		}
+		
+		# formulate qsub command
 		my $cmd = "$module_fn $runfn $job_id $prev_job $cores $mem $parameters";
 		my @holdids = ($holdjid);
 		my $qsub = make_submit_cmd($cmd, $job_id, \@holdids, $prev_job, $cores, $mem, $memtype, $outfn);
