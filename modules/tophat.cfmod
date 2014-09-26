@@ -208,9 +208,9 @@ sub clean_output {
 	my $results_fn = "$output_dir/accepted_hits.bam";
 
 	if(-e "$output_dir/accepted_hits.bam" && -e "$output_dir/align_summary.txt"){
-		if(move ("$output_dir/accepted_hits.bam", $file."_accepted_hits.bam")){
-			warn "Moved tophat output to ${file}_accepted_hits.bam\n";
-			$results_fn = $file."_accepted_hits.bam";
+		if(move ("$output_dir/accepted_hits.bam", $file."_tophat.bam")){
+			warn "Moved tophat output to ${file}_tophat.bam\n";
+			$results_fn = $file."_tophat.bam";
 			if(move ("$output_dir/align_summary.txt", $file."_align_summary.txt")){
 				warn "Moved tophat summary to ${file}_align_summary.txt\n";
 				if(unlink glob "$output_dir/logs/*"){
@@ -237,7 +237,7 @@ sub clean_output {
 				warn "Could not move tophat summary to ${file}_align_summary.txt: $!\n";
 			}
 		} else {
-			warn "Could not move tophat output to ${file}_accepted_hits.bam: $!\n";
+			warn "Could not move tophat output to ${file}_tophat.bam: $!\n";
 		}
 	} else {
 		warn "Could not find tophat output files $output_dir/accepted_hits.bam and $output_dir/align_summary.txt\n";
