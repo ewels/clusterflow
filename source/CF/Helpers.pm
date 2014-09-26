@@ -96,7 +96,7 @@ sub load_runfile_params {
 	
 	# If we don't have any input files, bail now
 	if($num_input_files == 0 && $prev_job_id ne 'null'){
-		print "\n###  Error - no file names found from job $prev_job_id. Exiting... ###\n\n";
+		print "\n###CF Error! No file names found from job $prev_job_id. Exiting...\n\n";
 		exit;
 	}
 	
