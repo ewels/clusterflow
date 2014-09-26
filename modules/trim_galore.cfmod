@@ -90,11 +90,11 @@ foreach my $parameter (@$parameters){
 	if($parameter eq "RRBS"){
 		$RRBS = "--RRBS";
 	}
-	if($parameter == "pbat"){
+	if($parameter eq "pbat"){
 		$clip_r1 = "--clip_r1 4";
 		$clip_r2 = "--clip_r2 4";
 	}
-	if($parameter == "single_cell"){
+	if($parameter eq "single_cell"){
 		$clip_r1 = "--clip_r1 9";
 		$clip_r2 = "--clip_r2 9";
 	}
