@@ -43,6 +43,7 @@ my $GENOME;
 my $cl_genome_path;
 my $cl_bowtie_path;
 my $cl_bowtie2_path;
+my $cl_star_path;
 my $cl_gtf_path;
 my $SPLIT_FILES = 1;
 my $cl_max_runs;
@@ -78,6 +79,7 @@ my $config_result = GetOptions(
 	"genome_path=s" => \$cl_genome_path,
 	"bowtie_path=s" => \$cl_bowtie_path,
 	"bowtie2_path=s" => \$cl_bowtie2_path,
+	"star_path=s" => \$cl_star_path,
 	"gtf_path=s" => \$cl_gtf_path,
 	"split_files=i" => \$SPLIT_FILES,
 	"max_runs=i" => \$cl_max_runs,
@@ -140,10 +142,12 @@ my @LOG_WARNING_STRINGS = @CF::Constants::LOG_WARNING_STRINGS;
 my %GENOME_PATH_CONFIGS = %CF::Constants::GENOME_PATH_CONFIGS;
 my %BOWTIE_PATH_CONFIGS = %CF::Constants::BOWTIE_PATH_CONFIGS;
 my %BOWTIE2_PATH_CONFIGS = %CF::Constants::BOWTIE2_PATH_CONFIGS;
+my %STAR_PATH_CONFIGS = %CF::Constants::STAR_PATH_CONFIGS;
 my %GTF_PATH_CONFIGS = %CF::Constants::GTF_PATH_CONFIGS;
 my %GENOME_PATHS = %CF::Constants::GENOME_PATHS;
 my %BOWTIE_PATHS = %CF::Constants::BOWTIE_PATHS;
 my %BOWTIE2_PATHS = %CF::Constants::BOWTIE2_PATHS;
+my %STAR_PATHS = %CF::Constants::STAR_PATHS;
 my %GTF_PATHS = %CF::Constants::GTF_PATHS;
 my %GENOME_SPECIES = %CF::Constants::GENOME_SPECIES;
 my %BOWTIE_SPECIES = %CF::Constants::BOWTIE_SPECIES;
@@ -182,6 +186,10 @@ if($cl_bowtie_path){
 if($cl_bowtie2_path){
 	$BOWTIE2_PATHS{"command_line"} = $cl_bowtie2_path;
 	$GENOME = "command_line";
+}
+if($cl_star_path){
+	$STAR_PATHS{"command_line"} = $cl_star_path;
+ 	$GENOME = "command_line";
 }
 if($cl_gtf_path){
 	$GTF_PATHS{"command_line"} = $cl_gtf_path;
@@ -538,6 +546,9 @@ if(defined($GENOME) && defined($BOWTIE_PATHS{$GENOME})){
 if(defined($GENOME) && defined($BOWTIE2_PATHS{$GENOME})){
 	$runfile .= "\@bowtie2_path\t$BOWTIE2_PATHS{$GENOME}\n";
 }
+if(defined($GENOME) && defined($STAR_PATHS{$GENOME})){
+	$runfile .= "\@star_path\t$STAR_PATHS{$GENOME}\n";
+}
 if(defined($GENOME) && defined($GTF_PATHS{$GENOME})){
 	$runfile .= "\@gtf_path\t$GTF_PATHS{$GENOME}\n";
 }
@@ -602,6 +613,19 @@ while (<CONFIG>){
 			warn "\n### Error ###\nNo bowtie2 path found for $GENOME.\n\nAvailable bowtie2 paths:\n";
 			while ( (my $genome, my $path) = each %BOWTIE2_PATHS ) {
 			  warn "\tGenome: $genome, Path: $BOWTIE2_PATHS{$genome}\n";
+			}
+			warn "\n\nExiting...\n\n";
+			exit;
+		}
+	}
+	if($_ =~ /^\@require_star/ && !$comment_block){
+		if(!defined $GENOME){
+			warn "\n### Error - The pipeline $pipeline requires a star index to be set with --genome or --star_path. Exiting... ### \n\n";
+			exit;
+		} elsif(!defined $STAR_PATHS{$GENOME}){
+			warn "\n### Error ###\nNo star path found for $GENOME.\n\nAvailable star paths:\n";
+			while ( (my $genome, my $path) = each %STAR_PATHS ) {
+			  warn "\tGenome: $genome, Path: $STAR_PATHS{$genome}\n";
 			}
 			warn "\n\nExiting...\n\n";
 			exit;
@@ -854,7 +878,7 @@ sub make_qsubs {
 			&CF::Helpers::load_environment_modules(\@req_modules, \%LOADED_MODULES)
 		}
 		
-		# Create cluster job submission command
+		# get prerequisite / previous job IDs
 		my $holdjid = $prev_job;
 		# Strip number from download job ID so that these files are all read in the next module
 		$prev_job =~ s/download_[\d]{3}$/download/;
@@ -881,7 +905,7 @@ sub make_qsubs {
 		#cli arg overrides module-recommended mem type
 		$memtype = 'h_vmem' if ($cl_h_vmem);
 		if(!$mem || length($mem) == 0 || length($mem) > 20){
-			warn "\nWarning: no memory allocation or error parsing memory allocation: setting to 1Gb\n";
+			warn "\nWarning: no memory allocation or error parsing memory allocation: setting from $mem to 1Gb\n";
 			$mem = '1G';
 		}
 		
