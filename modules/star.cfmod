@@ -96,11 +96,15 @@ if(!defined($cores) || $cores < 1){
 }
 
 open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
-my $genomeLoad = 'LoadAndKeep';
+my $genomeLoad = 'NoSharedMemory';
 foreach my $parameter (@$parameters){
 	if($parameter =~ /LoadAndRemove/){
-		$genomeLoad='LoadAndRemove';  #No Shared Memory
+		$genomeLoad='LoadAndRemove';
 	}
+	if ($parameter =~ /LoadAndKeep/) {
+		$genomeLoad='LoadAndKeep';
+	}
+	
 }
 
 
