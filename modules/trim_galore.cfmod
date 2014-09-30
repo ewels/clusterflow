@@ -80,6 +80,7 @@ my $adapter = "";
 my $RRBS = "";
 my $clip_r1 = "";
 my $clip_r2 = "";
+my $q_cutoff = "";
 foreach my $parameter (@$parameters){
 	if($parameter =~ /min_readlength=(\d+)/){
 		$min_readlength = $1;
@@ -87,14 +88,17 @@ foreach my $parameter (@$parameters){
 	if($parameter =~ /adapter=([GATCgatc]+)/){
 		$adapter = "--adapter=".uc($1);
 	}
+	if($parameter =~ /q=(\d+)/){
+		$q_cutoff = "-q ".$1;
+	}
 	if($parameter eq "RRBS"){
 		$RRBS = "--RRBS";
 	}
-	if($parameter eq "pbat"){
+	if($parameter == "pbat"){
 		$clip_r1 = "--clip_r1 4";
 		$clip_r2 = "--clip_r2 4";
 	}
-	if($parameter eq "single_cell"){
+	if($parameter == "single_cell"){
 		$clip_r1 = "--clip_r1 9";
 		$clip_r2 = "--clip_r2 9";
 	}
@@ -134,7 +138,7 @@ if($se_files && scalar(@$se_files) > 0){
 		
 		my $output_fn = trim_galore_basename($file).'_trimmed.fq.gz';
 		
-		my $command = "trim_galore --gzip $enc $RRBS $adapter $clip_r1 --fastqc_args \"-q\" $file";
+		my $command = "trim_galore --gzip $enc $RRBS $adapter $q_cutoff $clip_r1 --fastqc_args \"-q\" $file";
 		warn "\n###CFCMD $command\n\n";
 		
 		if(!system ($command)){
@@ -174,7 +178,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			my $output_fn_1 = trim_galore_basename($files[0]).'_val_1.fq.gz';
 			my $output_fn_2 = trim_galore_basename($files[1]).'_val_2.fq.gz';
 			
-			my $command = "trim_galore --paired --trim1 --gzip $enc $RRBS $adapter $clip_r1 $clip_r2 --fastqc ".$files[0]." ".$files[1];
+			my $command = "trim_galore --paired --trim1 --gzip $enc $RRBS $adapter $q_cutoff $clip_r1 $clip_r2 --fastqc ".$files[0]." ".$files[1];
 			warn "\n###CFCMD $command\n\n";
 			
 			if(!system ($command)){
