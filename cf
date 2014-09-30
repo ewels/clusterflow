@@ -885,7 +885,7 @@ sub make_qsubs {
 		
 		
 		# Get options for module. 2 - negotiate cores
-		my $sim_argv = "$runfn $job_id $prev_job cores_placeholder mem_placeholder $parameters";
+		my $sim_argv = "$runfn $GENOME cores_placeholder $parameters";
 		my $cores = `$module_fn $sim_argv --cores $TOTAL_CORES`;
 		if(!$cores || length($cores) == 0 || $cores =~ /\D/){
 			warn "\nWarning: no cores allocation or error parsing cores allocation: setting to 1Gb\n";
@@ -893,7 +893,7 @@ sub make_qsubs {
 		}
 		
 		# Get options for module. 3 - negotiate memory
-		$sim_argv = "$runfn $job_id $prev_job $cores mem_placeholder $parameters";
+		$sim_argv = "$runfn $GENOME $cores $parameters";
 		my $mem = `$module_fn $sim_argv --mem $TOTAL_MEM`;
 		# memory type for Grid Engine:
 		#set to vmem if module returns "h_vmem" as a prefix for its --mem request
