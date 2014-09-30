@@ -1,0 +1,137 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+use Getopt::Long;
+use FindBin qw($Bin);
+use lib "$FindBin::Bin/../source";
+use CF::Constants;
+use CF::Helpers;
+
+##########################################################################
+# Copyright 2014, Philip Ewels (phil.ewels@babraham.ac.uk)               #
+#                                                                        #
+# This file is part of Cluster Flow.                                     #
+#                                                                        #
+# Cluster Flow is free software: you can redistribute it and/or modify   #
+# it under the terms of the GNU General Public License as published by   #
+# the Free Software Foundation, either version 3 of the License, or      #
+# (at your option) any later version.                                    #
+#                                                                        #
+# Cluster Flow is distributed in the hope that it will be useful,        #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of         #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          #
+# GNU General Public License for more details.                           #
+#                                                                        #
+# You should have received a copy of the GNU General Public License      #
+# along with Cluster Flow.  If not, see <http://www.gnu.org/licenses/>.  #
+##########################################################################
+
+# Get Options
+my $required_cores;
+my $required_mem;
+my $required_modules;
+my $help;
+my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "help" => \$help);
+
+# QSUB SETUP
+# --cores i = offered cores. Return number of required cores.
+if($required_cores){
+	print CF::Helpers::allocate_cores($required_cores, 2, 4);
+	exit;
+}
+# --mem. Return the required memory allocation.
+if($required_mem){
+	my ($runfn, $GENOME, $cores, @parameters) = @ARGV;
+	my @h_vmem = grep(/^h_vmem$/, @parameters); 
+	print $h_vmem[0].CF::Helpers::allocate_memory($required_mem, '8G', '30G');	
+	exit;
+}
+# --modules. Return csv names of any modules which should be loaded.
+if($required_modules){
+	print 'samtools';
+	exit;
+}
+# --help. Print help.
+if($help){
+	print "".("-"x17)."\n Samtools_sort Module\n".("-"x17)."\n
+Sorts a bam file if extension is .bam - if extension is anything else, \n
+will assume it is a sam file and attempt to convert to bam first. \n
+Module tested with Samtools v0.1.19, this module may not \n
+work with v1.0 or greater to to file naming changes\n
+Output is basename_srtd.bam.\n\n";
+	exit;
+}
+
+# MODULE
+my $timestart = time;
+
+# Read in the input files from the run file
+my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
+my %config = %$config_ref;
+$mem = CF::Helpers::human_readable_to_bytes($mem);
+my $mem_per_thread = int($mem/$cores);
+warn "\n\n Samtools: mem per thread: $mem_per_thread ; cores: $cores\n\n\n";
+
+foreach (keys %config){
+    print "key: $_  ... value: ".$config{$_}."\n\n";
+}
+
+# Check that we have a genome defined
+
+if(!defined($cores) || $cores < 1){
+	$cores = 1;
+}
+
+open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
+
+
+# we want e.g. samtools view -bS ./test2_trimmedAligned.out.sam | samtools sort - outfile
+
+foreach my $file (@$files){
+		
+		# Figure out the file type
+		my $command = "";
+		my $prefix = $file;
+		my $filetype = "";
+		if ($prefix =~ s/\.([sb]am$)//){
+			$filetype = $1;
+			warn "\nGuessing file $file is a $filetype file\n";
+		} else {
+			warn "\n Cant determine file-type for $file. Assuming sam... \n";
+			$filetype = "sam";
+		}
+
+		my $sortfile;
+		if ($filetype eq "sam"){
+			$command = "samtools view -bS -u $file |";
+			$sortfile = "-";
+		} else {
+			warn "\nGuessing file $file is bam file. \n";
+			$sortfile = $file;
+		}
+		my $output_fn = $prefix."_srtd";
+		
+		$command .= " samtools sort -m $mem_per_thread  $sortfile  $output_fn";
+		
+		warn "\n###CFCMD $command\n\n";
+		
+		$output_fn .= '.bam';  # with samtools < v1.0 only prefix is specified, have to add .bam after calling command
+		
+		if(!system ($command)){
+			# samtools worked - print out resulting filenames
+			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+			warn "###CF samtools successfully exited, took $duration..\n";
+			if(-e $output_fn){
+				print RUN "$job_id\t$output_fn\n"; 
+			} else {
+				warn "\n###CF Error! samtools output file $output_fn not found..\n";
+			}
+		} else {
+			warn "\n###CF Error! samtools failed, exited in an error state: $? $!\n\n";
+		}
+}
+
+
+
+close (RUN);
