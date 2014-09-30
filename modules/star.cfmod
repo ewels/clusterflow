@@ -96,19 +96,19 @@ if(!defined($cores) || $cores < 1){
 }
 
 open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
+my $genomeLoad = 'LoadAndKeep';
+foreach my $parameter (@$parameters){
+	if($parameter =~ /LoadAndRemove/){
+		$genomeLoad='LoadAndRemove';  #No Shared Memory
+	}
+}
+
 
 # Separate file names into single end and paired end
 my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%config, @$files);
 
 # FastQ encoding type. Once found on one file will assume all others are the same
 my $encoding = 0;
-
-
-# this is what we want (second file is paired-end):
-# STAR --genomeDir ./genomes/mm10/star  --outSAMattributes All  --genomeLoad ??LoadAndKeep?? --readFilesCommand zcat --outSAMunmapped within
-# --readFilesIn ./temp_seq/X_L005_R1_001_val_1.fq.gz  ./temp_seq/X_L005_R2_001_val_2.fq.gz     
-# --outFileNamePrefix ./alns/x/  --outReadsUnmapped ./temp_seq/y/  --runThreadN  *NUM THREADS*  
-
 
 # Go through each single end file and run STAR
 if($se_files && scalar(@$se_files) > 0){
@@ -119,8 +119,8 @@ if($se_files && scalar(@$se_files) > 0){
 			($encoding) = CF::Helpers::fastq_encoding_type($file);
 		}
 		my $enc = "";
-		my %convert_enc = ('phred33' => '0', 'phred64' => '-31', 'solexa' => '-31');  # I think this is correct
-		if($encoding eq 'phred33' || $encoding eq 'phred64' || $encoding eq 'solexa'){
+		my %convert_enc = ('phred33' => '0', 'phred64' => '-31', 'solexa' => '-31');  # I *think* this is correct
+		if($encoding eq 'phred33' or $encoding eq 'phred64' or $encoding eq 'solexa'){
 			$enc = '--outQSconversionAdd '.$convert_enc{$encoding};
 		}
 		
@@ -131,7 +131,7 @@ if($se_files && scalar(@$se_files) > 0){
 	
 		my $output_fn = $prefix."Aligned.out.sam";
 		
-		my $command = "STAR --runThreadN $cores $enc --outSAMattributes All --genomeLoad LoadAndKeep";  #NoSharedMemory";
+		my $command = "STAR --runThreadN $cores $enc --outSAMattributes All --genomeLoad $genomeLoad";  
 		if ($file =~ /\.gz$/) {
 			$command .= " --readFilesCommand zcat";	#code
 		}
@@ -178,7 +178,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 		
 			my $output_fn = $prefix."Aligned.out.sam";
 			
-			my $command = "STAR --runThreadN $cores $enc --outSAMattributes All --genomeLoad LoadAndKeep";
+			my $command = "STAR --runThreadN $cores $enc --outSAMattributes All --genomeLoad $genomeLoad";
 			if ($files[0] =~ /\.gz$/) {
 				$command .= " --readFilesCommand zcat";	#code
 			}
