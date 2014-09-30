@@ -105,14 +105,14 @@ sub load_runfile_params {
 
 
 sub parse_runfile_prerun {
-	my ($runfile) = @_;
+	my $runfile = @_[0];
 	my $num_input_files = 0;
-	
-	open (RUN,$runfile) or die "Can't read $runfile: $!";
 	my @starting_files;
 	my %config;
 	$config{notifications} = {};
 	my $comment_block = 0;
+	
+	open (RUN,$runfile) or die "Can't read $runfile: $!";
 	while(<RUN>){
 	
 		# clean up line
