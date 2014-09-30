@@ -92,14 +92,17 @@ foreach my $parameter (@$parameters){
 	if($parameter =~ /q=(\d+)/){
 		$q_cutoff = "-q ".$1;
 	}
+	if($parameter =~ /stringency=(\d+)/){
+		$stringency = "--stringency ".$1;
+	}
 	if($parameter eq "RRBS"){
 		$RRBS = "--RRBS";
 	}
-	if($parameter == "pbat"){
+	if($parameter eq "pbat"){
 		$clip_r1 = "--clip_r1 4";
 		$clip_r2 = "--clip_r2 4";
 	}
-	if($parameter == "single_cell"){
+	if($parameter eq "single_cell"){
 		$clip_r1 = "--clip_r1 9";
 		$clip_r2 = "--clip_r2 9";
 	}
@@ -139,7 +142,7 @@ if($se_files && scalar(@$se_files) > 0){
 		
 		my $output_fn = trim_galore_basename($file).'_trimmed.fq.gz';
 		
-		my $command = "trim_galore --gzip $enc $RRBS $adapter $q_cutoff $clip_r1 --fastqc_args \"-q\" $file";
+		my $command = "trim_galore --gzip $enc $stringency $RRBS $adapter $q_cutoff $clip_r1 --fastqc_args \"-q\" $file";
 		warn "\n###CFCMD $command\n\n";
 		
 		if(!system ($command)){
