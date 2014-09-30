@@ -105,7 +105,7 @@ sub load_runfile_params {
 
 
 sub parse_runfile_prerun {
-	my $runfile = @_[0];
+	my $runfile = $_[0];
 	my $num_input_files = 0;
 	my @starting_files;
 	my %config;

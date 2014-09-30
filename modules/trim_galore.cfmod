@@ -81,6 +81,7 @@ my $RRBS = "";
 my $clip_r1 = "";
 my $clip_r2 = "";
 my $q_cutoff = "";
+my $stringency;
 foreach my $parameter (@$parameters){
 	if($parameter =~ /min_readlength=(\d+)/){
 		$min_readlength = $1;
@@ -178,7 +179,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			my $output_fn_1 = trim_galore_basename($files[0]).'_val_1.fq.gz';
 			my $output_fn_2 = trim_galore_basename($files[1]).'_val_2.fq.gz';
 			
-			my $command = "trim_galore --paired --trim1 --gzip $enc $RRBS $adapter $q_cutoff $clip_r1 $clip_r2 --fastqc ".$files[0]." ".$files[1];
+			my $command = "trim_galore --paired --trim1 --gzip $enc $stringency $RRBS $adapter $q_cutoff $clip_r1 $clip_r2 --fastqc ".$files[0]." ".$files[1];
 			warn "\n###CFCMD $command\n\n";
 			
 			if(!system ($command)){

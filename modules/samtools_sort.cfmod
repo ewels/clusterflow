@@ -73,13 +73,7 @@ $mem = CF::Helpers::human_readable_to_bytes($mem);
 my $mem_per_thread = int($mem/$cores);
 warn "\n\n Samtools: mem per thread: $mem_per_thread ; cores: $cores\n\n\n";
 
-foreach (keys %config){
-    print "key: $_  ... value: ".$config{$_}."\n\n";
-}
-
-# Check that we have a genome defined
-
-if(!defined($cores) || $cores < 1){
+if(!defined($cores) or $cores < 1){
 	$cores = 1;
 }
 
