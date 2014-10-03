@@ -79,10 +79,6 @@ my $timestart = time;
 my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
 my %config = %$config_ref;
 
-foreach (keys %config){
-    print "key: $_  ... value: ".$config{$_}."\n\n";
-}
-
 # Check that we have a genome defined
 if(!defined($config{star_path})){
 	warn "\n\n### No star path found in run file $runfile for job $job_id. Exiting.. ###";
