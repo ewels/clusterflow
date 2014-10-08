@@ -9,7 +9,8 @@ use CF::Constants;
 use CF::Helpers;
 
 ##########################################################################
-# Copyright 2014, Philip Ewels (phil.ewels@babraham.ac.uk)               #
+# Copyright 2014, Stuart Archer                                          #
+# Derivative of: bowtie2.cfmod (Copyright 2014, Philip Ewels)            #
 #                                                                        #
 # This file is part of Cluster Flow.                                     #
 #                                                                        #
@@ -140,7 +141,7 @@ if($se_files && scalar(@$se_files) > 0){
 		warn "\n###CFCMD $command\n\n";
 		
 		if(!system ($command)){
-			# Bowtie worked - print out resulting filenames
+			# STAR worked - print out resulting filenames
 			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 			warn "###CF STAR (SE mode) successfully exited, took $duration..\n";
 			if(-e $output_fn){
@@ -154,7 +155,7 @@ if($se_files && scalar(@$se_files) > 0){
 	}
 }
 
-# Go through the paired end files and run Bowtie
+# Go through the paired end files and run STAR
 if($pe_files && scalar(@$pe_files) > 0){
 	foreach my $files_ref (@$pe_files){
 		my @files = @$files_ref;
