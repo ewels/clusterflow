@@ -38,14 +38,45 @@ sub load_runfile_params {
 		@parameters = ();
 	}
 	
-	my $num_input_files = 0;
-	
 	my $date = strftime "%H:%M, %d-%m-%Y", localtime;
 	my $dashes = "-" x 80;
 	warn "\n$dashes\nRun File:\t\t$runfile\nJob ID:\t\t\t$job_id\nPrevious Job ID:\t$prev_job_id\nParameters:\t\t".join(", ", @parameters)."\nDate & Time:\t\t$date\n$dashes\n\n";
 
-	open (RUN,$runfile) or die "Can't read $runfile: $!";
+	my %config;
+	my @files;
+	my $num_input_files;
+	(${%config}, ${@files}, $num_input_files) = parse_runfile($runfile, $prev_job_id);
+	
+	
+	# If we don't have any input files, bail now
+	if($num_input_files == 0 && $prev_job_id ne 'null'){
+		print "\n###CF Error! No file names found from job $prev_job_id. Exiting...\n\n";
+		exit;
+	}
+	
+	return (\@files, $runfile, $job_id, $prev_job_id, $cores, $mem, \@parameters, \%config);
+}
 
+
+sub parse_runfile_prerun {
+	my $runfile = $_[0];
+	my %config;
+	my @files;
+	my $num_input_files;
+	(${%config}, ${@files}, $num_input_files) = parse_runfile($runfile, "start_000");
+	
+	# If we don't have any input files, bail now
+	if($num_input_files == 0){
+		warn "\n###CF Error! No starting file names found (runfile should contain start_000  filename). Exiting...\n\n";
+		exit;
+	}
+	return(\@files, \%config);
+}
+
+sub parse_runfile{
+	my ($runfile, $prev_job_id) = @_;
+	open (RUN,$runfile) or die "Can't read $runfile: $!";
+	my $num_input_files = 0;
 	my @files;
 	my %config;
 	$config{notifications} = {};
@@ -91,81 +122,9 @@ sub load_runfile_params {
 			}
 		}
 	}
-	
 	close(RUN);
-	
-	# If we don't have any input files, bail now
-	if($num_input_files == 0 && $prev_job_id ne 'null'){
-		print "\n###CF Error! No file names found from job $prev_job_id. Exiting...\n\n";
-		exit;
-	}
-	
-	return (\@files, $runfile, $job_id, $prev_job_id, $cores, $mem, \@parameters, \%config);
+	return(\%config,\@files, $num_input_files);
 }
-
-
-sub parse_runfile_prerun {
-	my $runfile = $_[0];
-	my $num_input_files = 0;
-	my @starting_files;
-	my %config;
-	$config{notifications} = {};
-	my $comment_block = 0;
-	
-	open (RUN,$runfile) or die "Can't read $runfile: $!";
-	while(<RUN>){
-	
-		# clean up line
-		chomp;
-		s/\n//;
-		s/\r//;
-		
-		# Ignore comment blocks
-		if($_ =~ /^\/\*/){
-			$comment_block = 1;
-			next;
-		}
-		if($_ =~ /^\*\//){
-			$comment_block = 0;
-			next;
-		}
-		
-		# Get config variables
-		if($_ =~ /^\@/ && !$comment_block){
-			my @sections = split(/\t/, $_, 2);
-			my $cname = substr($sections[0], 1);
-			if($cname eq 'notification'){
-				$config{notifications}{$sections[1]} = 1;
-			} else {
-				$config{$cname} = $sections[1];
-			}
-		}
-		
-		# Get files
-		if($_ =~ /^[^@#]/ && !$comment_block){
-			my @sections = split(/\t/, $_, 2);
-			if($sections[0] eq "start_000"){
-				# Clear out excess whitespace
-				$sections[1] =~ s/^\s+//;
-				$sections[1] =~ s/\s+$//;
-				# Push to array
-				push(@starting_files, $sections[1]);
-				$num_input_files++;
-			}
-		}
-	}
-	
-	close(RUN);
-	
-	# If we don't have any input files, bail now
-	if($num_input_files == 0){
-		warn "\n###CF Error! No starting file names found (runfile should contain start_000  filename). Exiting...\n\n";
-		exit;
-	}
-	return(\@starting_files, \%config)
-}
-
-
 
 
 # Function to load environment modules into the perl environment
