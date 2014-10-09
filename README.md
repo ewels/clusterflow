@@ -16,16 +16,17 @@ Cluster Flow is released with a GPL v3 licence. Cluster Flow is free software: y
 Change Log
 ----------
 #### v0.4 devel
+* New Stuff - with thanks to @stu2
+	* Support for STAR RNA-seq aligner
+	* Modules are fed more information (eg. number of input files and reference genome) to help decide the amount of memory and cores they bid for
+	* All perl scripts now have `env perl` in shebang to increase portability
+	* Support for GRIDEngine `h_vmem` memory option, if requested in pipeline file or in command line
+	* Support for explicit GRIDEngine queue nomination on the command line
 * Bugs Squashed
 	* Fixed output filename problem in tophat with output cleaning
-        * Fixed bugs causing minimum memory allocation regardless of availability
-        * Fixed bug causing Bowtie2 to fail if Bowtie1 index absent
-* New Stuff
-        * All perl scripts now have "env perl" in shebang to increase portability
-        * Support for STAR RNA-seq aligner
-        * Support for h_vmem memory as requested in pipeline file or in command line
-        * Support for explicit queue nomination in pipeline file
-        * Modules are fed more information to decide the amount of memory and cores they bid for
+	* Fixed bugs causing minimum memory allocation regardless of availability
+	* Fixed bug causing Bowtie2 to fail if Bowtie1 index absent
+
 #### [v0.3](https://github.com/ewels/clusterflow/releases/tag/v0.3) - 2014-07-11
 * New Stuff
 	* Awesome new HTML report e-mails
@@ -71,3 +72,5 @@ Change Log
 Credits
 -------
 Cluster Flow was written by [Phil Ewels](http://phil.ewels.co.uk) whilst working in the [Babraham Bioinformatics](http://www.bioinformatics.babraham.ac.uk/) group in Cambridge, UK. He now maintains it whilst working at the [Science for Life Laboratory](http://www.scilifelab.se/) in Stockholm, Sweden.
+
+Cluster Flow has also had contributions from @stu2 and @s-andrews, amongst others.
