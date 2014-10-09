@@ -69,7 +69,22 @@ if($avail_mem){
 	# The allocate_memory() function looks at what's been offered,
 	# compares this to a minimum and maximum (3G and 4G in this case)
 	# and returns a valid number. Works with any human readable string.
-	print CF::Helpers::allocate_memory($avail_mem, '3G', '4G');
+
+	my ($runfn, $GENOME, $cores, @parameters) = @ARGV;
+	my ($starting_files, $config) = CF::Helpers::parse_runfile_prerun($runfn);
+	my @h_vmem = grep(/^h_vmem$/, @parameters);
+	
+	# examples of how to extract extra information to make memory decision
+	#warn "genome: $GENOME";
+	#warn "cores: $cores";
+	#warn "param: $_" foreach(@parameters);  # display params for this line of pipeline
+	#warn "config key: $_  value: $$config{$_}" foreach(keys(%$config));
+	#warn "starting file: $_" foreach(@$starting_files);
+	#warn "available mem: $avail_mem\n";
+	#warn "h_vmem memory requested in pipeline entry" if (@h_vmem);
+	
+	# return memory request
+	print $h_vmem[0].CF::Helpers::allocate_memory($avail_mem, '3G', '4G');	
 	exit;
 }
 

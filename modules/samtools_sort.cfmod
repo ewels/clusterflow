@@ -1,4 +1,5 @@
 #!/usr/bin/env perl
+
 use warnings;
 use strict;
 use Getopt::Long;
@@ -36,27 +37,29 @@ my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_me
 # QSUB SETUP
 # --cores i = offered cores. Return number of required cores.
 if($required_cores){
-	print 1;
+	print CF::Helpers::allocate_cores($required_cores, 2, 4);
 	exit;
 }
 # --mem. Return the required memory allocation.
 if($required_mem){
-	print '1G';
+	my ($runfn, $GENOME, $cores, @parameters) = @ARGV;
+	my @h_vmem = grep(/^h_vmem$/, @parameters); 
+	print $h_vmem[0].CF::Helpers::allocate_memory($required_mem, '8G', '30G');	
 	exit;
 }
 # --modules. Return csv names of any modules which should be loaded.
 if($required_modules){
-	print 'samtools,htseq';
+	print 'samtools';
 	exit;
 }
 # --help. Print help.
 if($help){
-	print "".("-"x15)."\n HTSeq Module\n".("-"x15)."\n
-Counts reads overlapping exons in a GTF file. Takes an aligned BAM
-file as input and returns an annotated BAM file plus a counts file.
-
-Use parameter stranded or stranded_rev to count in stranded or reverse
-stranded modes. Defaults to not stranded.\n\n";
+	print "".("-"x17)."\n Samtools_sort Module\n".("-"x17)."\n
+Sorts a bam file if extension is .bam - if extension is anything else, \n
+will assume it is a sam file and attempt to convert to bam first. \n
+Module tested with Samtools v0.1.19, this module may not \n
+work with v1.0 or greater to to file naming changes\n
+Output is basename_srtd.bam.\n\n";
 	exit;
 }
 
@@ -66,52 +69,63 @@ my $timestart = time;
 # Read in the input files from the run file
 my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
 my %config = %$config_ref;
+$mem = CF::Helpers::human_readable_to_bytes($mem);
+my $mem_per_thread = int($mem/$cores);
+warn "\n\n Samtools: mem per thread: $mem_per_thread ; cores: $cores\n\n\n";
 
-# Check that we have a GTF file defined
-if(!defined($config{gtf_path})){
-   die "\n\n### No GTF path found in run file $runfile for job $job_id. Exiting.. ###";
-} else {
-    warn "\nUsing GTF file ".$config{gtf_path}."\n\n";
+if(!defined($cores) or $cores < 1){
+	$cores = 1;
 }
 
 open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
 
-# Read any options from the pipeline parameters
-my $stranded = "-s no";
-foreach my $parameter (@$parameters){
-	if($parameter eq "stranded"){
-		$stranded = "-s yes";
-	}
-	if($parameter eq "stranded_rev"){
-		$stranded = "-s reverse";
-	}
-}
 
+# we want e.g. samtools view -bS ./test2_trimmedAligned.out.sam | samtools sort - outfile
 
-# Go through each supplied file and run FastQC.
 foreach my $file (@$files){
-	my $annotated_file = $file."_annotated.sam";
-	my $counts_file = $file."_counts.txt";
-	my $command = "samtools view -h $file | htseq-count -o $annotated_file -t exon $stranded -q -i 'ID' - ".$config{gtf_path}." | sort -n -k 2 -r > $counts_file";
-	warn "\n###CFCMD $command\n\n";
-	
-	if(!system ($command)){
-		print RUN "$job_id\t$annotated_file\n";
-		my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-		warn "###CF HTSeq successfully exited, took $duration\n";
-		if(-e $annotated_file){
-			print RUN "$job_id\t$annotated_file\n"; 
+		
+		# Figure out the file type
+		my $command = "";
+		my $prefix = $file;
+		my $filetype = "";
+		if ($prefix =~ s/\.([sb]am$)//){
+			$filetype = $1;
+			warn "\nGuessing file $file is a $filetype file\n";
 		} else {
-			warn "\n###CF Error! Annotated BAM output file $annotated_file not found..\n";
+			warn "\n Cant determine file-type for $file. Assuming sam... \n";
+			$filetype = "sam";
 		}
-		if(-e $counts_file){
-			print RUN "$job_id\t$counts_file\n"; 
+
+		my $sortfile;
+		if ($filetype eq "sam"){
+			$command = "samtools view -bS -u $file |";
+			$sortfile = "-";
 		} else {
-			warn "\n###CF Error! HTSeq counts file $counts_file not found..\n";
+			warn "\nGuessing file $file is bam file. \n";
+			$sortfile = $file;
 		}
-	} else {
-		print "###CF Error! Error - HTSeq Failed: $? $!\n";
-	}
+		my $output_fn = $prefix."_srtd";
+		
+		$command .= " samtools sort -m $mem_per_thread  $sortfile  $output_fn";
+		
+		warn "\n###CFCMD $command\n\n";
+		
+		$output_fn .= '.bam';  # with samtools < v1.0 only prefix is specified, have to add .bam after calling command
+		
+		if(!system ($command)){
+			# samtools worked - print out resulting filenames
+			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+			warn "###CF samtools successfully exited, took $duration..\n";
+			if(-e $output_fn){
+				print RUN "$job_id\t$output_fn\n"; 
+			} else {
+				warn "\n###CF Error! samtools output file $output_fn not found..\n";
+			}
+		} else {
+			warn "\n###CF Error! samtools failed, exited in an error state: $? $!\n\n";
+		}
 }
+
+
 
 close (RUN);

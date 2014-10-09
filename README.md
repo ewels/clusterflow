@@ -18,6 +18,14 @@ Change Log
 #### v0.4 devel
 * Bugs Squashed
 	* Fixed output filename problem in tophat with output cleaning
+        * Fixed bugs causing minimum memory allocation regardless of availability
+        * Fixed bug causing Bowtie2 to fail if Bowtie1 index absent
+* New Stuff
+        * All perl scripts now have "env perl" in shebang to increase portability
+        * Support for STAR RNA-seq aligner
+        * Support for h_vmem memory as requested in pipeline file or in command line
+        * Support for explicit queue nomination in pipeline file
+        * Modules are fed more information to decide the amount of memory and cores they bid for
 #### [v0.3](https://github.com/ewels/clusterflow/releases/tag/v0.3) - 2014-07-11
 * New Stuff
 	* Awesome new HTML report e-mails
