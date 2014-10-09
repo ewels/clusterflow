@@ -16,7 +16,7 @@ Cluster Flow is released with a GPL v3 licence. Cluster Flow is free software: y
 Change Log
 ----------
 #### v0.4 devel
-* New Stuff - with thanks to @stu2
+* New Stuff - with thanks to [@stu2](https://github.com/stu2)
 	* Support for STAR RNA-seq aligner
 	* Modules are fed more information (eg. number of input files and reference genome) to help decide the amount of memory and cores they bid for
 	* All perl scripts now have `env perl` in shebang to increase portability
@@ -73,4 +73,4 @@ Credits
 -------
 Cluster Flow was written by [Phil Ewels](http://phil.ewels.co.uk) whilst working in the [Babraham Bioinformatics](http://www.bioinformatics.babraham.ac.uk/) group in Cambridge, UK. He now maintains it whilst working at the [Science for Life Laboratory](http://www.scilifelab.se/) in Stockholm, Sweden.
 
-Cluster Flow has also had contributions from @stu2 and @s-andrews, amongst others.
+Cluster Flow has also had contributions from [@stu2](https://github.com/stu2) and [@s-andrews](https://github.com/s-andrews), amongst others.
