@@ -59,7 +59,8 @@ Sorts a bam file if extension is .bam - if extension is anything else, \n
 will assume it is a sam file and attempt to convert to bam first. \n
 Module tested with Samtools v0.1.19, this module may not \n
 work with v1.0 or greater to to file naming changes\n
-Output is basename_srtd.bam.\n\n";
+Output is basename_srtd.bam.\n
+Arg \'byname\' or \'-n\' in pipeline forces sorting by read name\n";
 	exit;
 }
 
@@ -76,6 +77,10 @@ warn "\n\n Samtools: mem per thread: $mem_per_thread ; cores: $cores\n\n\n";
 if(!defined($cores) or $cores < 1){
 	$cores = 1;
 }
+
+my $namesort = '';
+$namesort = '-n' if (grep(/^byname$/, @$parameters) > 0);
+$namesort = '-n' if (grep(/^-n$/, @$parameters) > 0);
 
 open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
 
@@ -105,8 +110,9 @@ foreach my $file (@$files){
 			$sortfile = $file;
 		}
 		my $output_fn = $prefix."_srtd";
+		$output_fn .= 'n' if ($namesort eq '-n');
 		
-		$command .= " samtools sort -m $mem_per_thread  $sortfile  $output_fn";
+		$command .= " samtools sort -m $mem_per_thread $namesort $sortfile  $output_fn";
 		
 		warn "\n###CFCMD $command\n\n";
 		
