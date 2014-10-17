@@ -137,7 +137,7 @@ if($se_files && scalar(@$se_files) > 0){
 		
 		my $output_fn = $output_dir."/accepted_hits.bam";
 		
-		### Changing the command to -g 2 so that we can get proper MAPQ values
+		# Changing the command to -g 2 so that we can get proper MAPQ values
 		my $command = "tophat -p $cores -g 2 $enc $gtf -o $output_dir ".$config{bowtie_path}." $file";
 		warn "\n###CFCMD $command\n\n";
 		
@@ -146,6 +146,7 @@ if($se_files && scalar(@$se_files) > 0){
 			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 			warn "###CF Tophat (SE mode) successfully exited, took $duration..\n";
 			if(-e $output_fn){
+                $output_fn = clean_output($output_dir, $file);
 				print RUN "$job_id\t$output_fn\n"; 
 			} else {
 				warn "\n###CF Error! Tophat output file $output_fn not found..\n";
@@ -154,7 +155,6 @@ if($se_files && scalar(@$se_files) > 0){
 			warn "\n###CF Error! Tophat (SE mode) failed: $? $!\n\n";
 		}
 		
-		clean_output($output_dir, $file);
 	}
 }
 
@@ -189,6 +189,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			
 			my $output_fn = $output_dir."/accepted_hits.bam";
 			
+            # Changing the command to -g 2 so that we can get proper MAPQ values
 			my $command = "tophat -p $cores -g 2 $enc $gtf -o $output_dir ".$config{bowtie_path}." ".$files[0]." ".$files[1];
 			warn "\n###CFCMD $command\n\n";
 			
@@ -197,6 +198,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 				warn "###CF Tophat (PE mode) successfully exited, took $duration....\n";
 				if(-e $output_fn){
+					$output_fn = clean_output($output_dir, $files[0]);
 					print RUN "$job_id\t$output_fn\n";
 				} else {
 					warn "\n###CF Error! Tophat output file $output_fn not found\n";
@@ -208,7 +210,6 @@ if($pe_files && scalar(@$pe_files) > 0){
 			warn "\n###CF Error! Tophat paired end files had ".scalar(@files)." input files instead of 2\n";
 		}
 		
-		clean_output($output_dir, $files[0]);
 	}
 }
 
@@ -217,18 +218,20 @@ if($pe_files && scalar(@$pe_files) > 0){
 sub clean_output {
     
     my ($output_dir, $file) = @_;
+    my $results_fn = $output_dir.".bam";
    
     if(-e "$output_dir/accepted_hits.bam" && -e "$output_dir/align_summary.txt"){
     	
         # Use samtools to remove secondary alignments
-    	my $samtools_command = "samtools view -F 0x100 -b -h $output_dir/accepted_hits.bam > ${output_dir}.bam";
+    	my $samtools_command = "samtools view -F 0x100 -b -h $output_dir/accepted_hits.bam > $results_fn";
         warn "Using samtools to filter out non-primary alignments from the tophat alignments\n\n";
         warn "\n###CFCMD $samtools_command\n\n";
     	if(system ($samtools_command)){
-    	    warn "Failed to remove non-primary alignments from $output_dir/accepted_hits.bam to ${output_dir}.accepted_hits.bam: $!\n";
+    	    $results_fn = "";
+            warn "###CF Error! Failed to remove non-primary alignments from $output_dir/accepted_hits.bam to ${output_dir}.accepted_hits.bam: $? $!\n";
     	} else {
             # System returned 0, samtools worked..
-            warn "Successfully created new alignments file without duplicates.\n"
+            warn "Successfully created new alignments file without duplicates.\n";
     	    
             # Delete old alignments file with the duplicates
             if(unlink "$output_dir/accepted_hits.bam"){
@@ -267,6 +270,8 @@ sub clean_output {
     } else {
         warn "Could not find tophat output files $output_dir/accepted_hits.bam and $output_dir/align_summary.txt\n";
     }
+    
+    return $results_fn;
 }
 
 
