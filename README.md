@@ -23,7 +23,8 @@ Change Log
 	* Support for GRIDEngine `h_vmem` memory option, if requested in pipeline file or in command line
 	* Support for explicit GRIDEngine queue nomination on the command line
     * Added compatability with GRIDEngine `~/.sge_request files` (by ignoring them). Thanks to [@s-andrews](https://github.com/s-andrews)
-    * New tophat module called `tophat_fixedmapq` which introduces a workaround for buggy MAPQ reporting by tophat whilst keeping unique alignments. Thanks to [@FelixKrueger](https://github.com/FelixKrueger).
+    * New tophat module called `tophat` which introduces a workaround for buggy MAPQ reporting by tophat whilst keeping unique alignments. Thanks to [@FelixKrueger](https://github.com/FelixKrueger).
+        * The previous tophat module is still available if you're not interested in MAPQ scores and would like slightly faster processing. This is now called `tophat_broken_MAPQ.cfmod`.
 * Bugs Squashed
 	* Fixed output filename problem in tophat with output cleaning
 	* Fixed bugs causing minimum memory allocation regardless of availability
