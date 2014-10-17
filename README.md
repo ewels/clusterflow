@@ -22,6 +22,8 @@ Change Log
 	* All perl scripts now have `env perl` in shebang to increase portability
 	* Support for GRIDEngine `h_vmem` memory option, if requested in pipeline file or in command line
 	* Support for explicit GRIDEngine queue nomination on the command line
+    * Added compatability with GRIDEngine ~/.sge_request files (by ignoring them). Thanks to [@s-andrews](https://github.com/s-andrews)
+    * New tophat module called `tophat_fixedmapq` which introduces a workaround for buggy MAPQ reporting by tophat whilst keeping unique alignments. Thanks to Felix Krueger.
 * Bugs Squashed
 	* Fixed output filename problem in tophat with output cleaning
 	* Fixed bugs causing minimum memory allocation regardless of availability
@@ -73,4 +75,4 @@ Credits
 -------
 Cluster Flow was written by [Phil Ewels](http://phil.ewels.co.uk) whilst working in the [Babraham Bioinformatics](http://www.bioinformatics.babraham.ac.uk/) group in Cambridge, UK. He now maintains it whilst working at the [Science for Life Laboratory](http://www.scilifelab.se/) in Stockholm, Sweden.
 
-Cluster Flow has also had contributions from [@stu2](https://github.com/stu2) and [@s-andrews](https://github.com/s-andrews), amongst others.
+Cluster Flow has also had contributions from [@stu2](https://github.com/stu2), [@s-andrews](https://github.com/s-andrews) and Felix Krueger, amongst others.
