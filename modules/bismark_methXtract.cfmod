@@ -135,10 +135,10 @@ if($files && scalar(@$files) > 0){
 						print RUN "$job_id\t$_\n"; 
 					}
 				} else {
-					warn "\n###CF Error! No bismark meth extrator output files found..\n";
+					warn "\n###CF Error! No bismark meth extrator output files found for input file '$file'..\n";
 				}
 			} else {
-				die "\n###CF Error! Bismark MethXtractor (PE mode) exited with an error state: $? $!\n\n";
+				die "\n###CF Error! Bismark MethXtractor (PE mode) exited with an error state for file '$file': $? $!\n\n";
 			}
 			
 		} else {
@@ -157,10 +157,10 @@ if($files && scalar(@$files) > 0){
 						print RUN "$job_id\t$_\n"; 
 					}
 				} else {
-					warn "\n###CF Error! No bismark meth extrator output files found..\n";
+					warn "\n###CF Error! No bismark meth extrator output files found for input file '$file'..\n";
 				}
 			} else {
-				die "\n###CF Error! Bismark MethXtractor (SE mode) exited with an error state: $? $!\n\n";
+				die "\n###CF Error! Bismark MethXtractor (SE mode) exited with an error state for input file '$file': $? $!\n\n";
 			}
 			
 		}
@@ -219,7 +219,7 @@ sub plot_visualizations {
 			if(!system ($cov_cmd)){
 				warn "###CF Coverage curves plot successfully created.\n";
 			} else {
-				warn "###CF Error! Coverage curves plotting exited with an error code.\n";
+				warn "###CF Error! Coverage curves plotting exited with an error code for input file '$file'.\n";
 			}
 		} else {
 			warn "###CF Error! Couldn't find find the coverage script: $coverage_script\nSkipping..\n";
@@ -231,7 +231,7 @@ sub plot_visualizations {
 			if(!system ($win_cmd)){
 				warn "###CF Window sizes plot successfully created.\n";
 			} else {
-				warn "###CF Error! Window size plotting exited with an error code.\n";
+				warn "###CF Error! Window size plotting exited with an error code for input file '$file'.\n";
 			}
 	    } else {
    			warn "###CF Error! Couldn't find find the windows script: $windows_script\nSkipping..\n";

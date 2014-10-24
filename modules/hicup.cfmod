@@ -238,7 +238,7 @@ for (my $i = 0; $i <= $num_files; $i++){
 					warn "\n###CF Error! HiCUP output file $output_fn not found..\n";
 				}
 			} else {
-				warn "###CF Error! HiCUP exited with an error state: $? $!\n\n";
+				warn "###CF Error! HiCUP exited with an error state for input file '".$p_files[0]."': $? $!\n\n";
 			}
 		} else {
 			warn "\n###CF Error! HiCUP paired end files had ".scalar(@p_files)." input files instead of 2..\n";

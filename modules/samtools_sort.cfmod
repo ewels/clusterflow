@@ -122,7 +122,7 @@ foreach my $file (@$files){
 				warn "\n###CF Error! samtools output file $output_fn not found..\n";
 			}
 		} else {
-			warn "\n###CF Error! samtools failed, exited in an error state: $? $!\n\n";
+			warn "\n###CF Error! samtools failed, exited in an error state for input file '$file': $? $!\n\n";
 		}
 }
 

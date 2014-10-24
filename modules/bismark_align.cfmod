@@ -154,7 +154,7 @@ if($se_files && scalar(@$se_files) > 0){
 				warn "\n###CF Error! Bismark output file $output_fn not found..\n";
 			}
 		} else {
-			die "\n###CF Error! Bismark alignment (SE mode) exited with an error state: $? $!\n\n";
+			die "\n###CF Error! Bismark alignment (SE mode) exited with an error state for file '$file': $? $!\n\n";
 		}
 	}
 }
@@ -194,7 +194,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 					warn "\n###CF Error! Bismark output file $output_fn not found..\n";
 				}
 			} else {
-				die "\n###CF Error! Bismark alignment (PE mode) exited with an error state: $? $!\n\n";
+				die "\n###CF Error! Bismark alignment (PE mode) exited with an error state for file '".$files[0]."': $? $!\n\n";
 			}
 		} else {
 			warn "\n###CF Error! Bismark paired end files had ".scalar(@files)." input files instead of 2..\n";

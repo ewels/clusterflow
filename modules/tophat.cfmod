@@ -151,7 +151,7 @@ if($se_files && scalar(@$se_files) > 0){
 				warn "\n###CF Error! Tophat output file $output_fn not found..\n";
 			}
 		} else {
-			warn "\n###CF Error! Tophat (SE mode) failed: $? $!\n\n";
+			warn "\n###CF Error! Tophat (SE mode) failed for input file '$file': $? $!\n\n";
 		}
 		
 	}
@@ -203,7 +203,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 					warn "\n###CF Error! Tophat output file $output_fn not found\n";
 				}
 			} else {
-				warn "\n###CF Error! Tophat (PE mode) failed: $? $!\n\n";
+				warn "\n###CF Error! Tophat (PE mode) failed for input file '".$files[0]."': $? $!\n\n";
 			}
 		} else {
 			warn "\n###CF Error! Tophat paired end files had ".scalar(@files)." input files instead of 2\n";

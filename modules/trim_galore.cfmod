@@ -165,7 +165,7 @@ if($se_files && scalar(@$se_files) > 0){
 				warn "\n###CF Error! Trim Galore output file $output_fn not found..\n";
 			}
 		} else {
-			die "###CF Error! Trim Galore (SE mode) exited with an error state: $? $!\n\n";
+			warn "###CF Error! Trim Galore (SE mode) exited with an error state for input file '$file': $? $!\n\n";
 		}
 	}
 }
@@ -215,7 +215,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 					warn "\n###CF Error! Trim Galore output file $output_fn_2 not found..\n";
 				}
 			} else {
-				die "###CF Error! Trim Galore (PE mode) exited with an error state: $? $!\n\n";
+				warn "###CF Error! Trim Galore (PE mode) exited with an error state for input file '".$files[0]."': $? $!\n\n";
 			}
 		} else {
 			warn "\n###CF Error! Trim Galore paired end files had ".scalar(@files)." input files instead of 2..\n";

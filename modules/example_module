@@ -212,7 +212,7 @@ if($se_files && scalar(@$se_files) > 0){
 			}
 		} else {
 			# Command returned a non-zero result, probably went wrong...
-			warn "\n###CF Error! Example module (SE mode) failed: $? $!\n\n";
+			warn "\n###CF Error! Example module (SE mode) failed for input file '$file': $? $!\n\n";
 		}
 		
 	}
@@ -267,7 +267,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 				}
 			} else {
 				# Command returned a non-zero result, probably went wrong...
-				warn "\n###CF Error! Example module (PE mode) failed: $? $!\n\n";
+				warn "\n###CF Error! Example module (PE mode) failed for input file '".$files[0]."': $? $!\n\n";
 			}
 		} else {
 			# We didn't have two files here..

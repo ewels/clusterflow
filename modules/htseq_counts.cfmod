@@ -110,7 +110,7 @@ foreach my $file (@$files){
 			warn "\n###CF Error! HTSeq counts file $counts_file not found..\n";
 		}
 	} else {
-		print "###CF Error! Error - HTSeq Failed: $? $!\n";
+		print "###CF Error! Error - HTSeq Failed for input file '$file': $? $!\n";
 	}
 }
 

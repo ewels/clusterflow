@@ -150,7 +150,7 @@ if($se_files && scalar(@$se_files) > 0){
 				warn "\n###CF Error! star output file $output_fn not found..\n";
 			}
 		} else {
-			warn "\n###CF Error! star (SE mode) failed exited in an error state: $? $!\n\n";
+			warn "\n###CF Error! star (SE mode) failed exited in an error state for input file '$file': $? $!\n\n";
 		}
 	}
 }
@@ -197,7 +197,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 					warn "\n###CF Error! STAR output file $output_fn not found..\n";
 				}	
 			} else {
-				warn "\n###CF Error! STAR (PE mode) exited in an error state: $? $!\n\n";
+				warn "\n###CF Error! STAR (PE mode) exited in an error state for input file '".$files[0]."': $? $!\n\n";
 			}
 			
 		} else {
