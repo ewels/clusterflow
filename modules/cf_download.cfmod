@@ -63,7 +63,7 @@ if(!system ($command)){
 	warn "###CF Download worked - took $duration\n";
 } else {
 	# Download failed - don't print a filename so that child processes exit silently
-	warn "###CF Error! Download failed: $? $!\n";
+	warn "###CF Error! Download '$dl_fn' failed: $? $!\n";
 }
 
 my $date = strftime "%H:%M %d-%m-%Y", localtime;
