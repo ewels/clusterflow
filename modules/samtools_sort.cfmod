@@ -80,7 +80,6 @@ if(!defined($cores) or $cores < 1){
 
 my $namesort = '';
 $namesort = '-n' if (grep(/^byname$/, @$parameters) > 0);
-$namesort = '-n' if (grep(/^-n$/, @$parameters) > 0);
 
 open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
 
