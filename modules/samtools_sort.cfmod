@@ -88,47 +88,48 @@ open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
 
 foreach my $file (@$files){
 		
-		# Figure out the file type
-		my $command = "";
-		my $prefix = $file;
-		my $filetype = "";
-		if ($prefix =~ s/\.([sb]am$)//){
-			$filetype = $1;
-			warn "\nGuessing file $file is a $filetype file\n";
-		} else {
-			warn "\n Cant determine file-type for $file. Assuming sam... \n";
-			$filetype = "sam";
-		}
+	# Figure out the file type
+	my $command = "";
+	$command .= "samtools\n echo ----- samtools output follows ----- \n" if ($$files[0] == $file); # print version number etc on first iteration
+	my $prefix = $file;
+	my $filetype = "";
+	if ($prefix =~ s/\.([sb]am$)//){
+		$filetype = $1;
+		warn "\nGuessing file $file is a $filetype file\n";
+	} else {
+		warn "\n Cant determine file-type for $file. Assuming sam... \n";
+		$filetype = "sam";
+	}
 
-		my $sortfile;
-		if ($filetype eq "sam"){
-			$command = "samtools view -bS -u $file |";
-			$sortfile = "-";
+	my $sortfile;
+	if ($filetype eq "sam"){
+		$command .= "samtools view -bS -u $file |";
+		$sortfile = "-";
+	} else {
+		warn "\nGuessing file $file is bam file. \n";
+		$sortfile = $file;
+	}
+	my $output_fn = $prefix."_srtd";
+	$output_fn .= 'n' if ($namesort eq '-n');
+	
+	$command .= " samtools sort -m $mem_per_thread $namesort $sortfile  $output_fn";
+	
+	warn "\n###CFCMD $command\n\n";
+	
+	$output_fn .= '.bam';  # with samtools < v1.0 only prefix is specified, have to add .bam after calling command
+	
+	if(!system ($command)){
+		# samtools worked - print out resulting filenames
+		my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+		warn "###CF samtools successfully exited, took $duration..\n";
+		if(-e $output_fn){
+			print RUN "$job_id\t$output_fn\n"; 
 		} else {
-			warn "\nGuessing file $file is bam file. \n";
-			$sortfile = $file;
+			warn "\n###CF Error! samtools output file $output_fn not found..\n";
 		}
-		my $output_fn = $prefix."_srtd";
-		$output_fn .= 'n' if ($namesort eq '-n');
-		
-		$command .= " samtools sort -m $mem_per_thread $namesort $sortfile  $output_fn";
-		
-		warn "\n###CFCMD $command\n\n";
-		
-		$output_fn .= '.bam';  # with samtools < v1.0 only prefix is specified, have to add .bam after calling command
-		
-		if(!system ($command)){
-			# samtools worked - print out resulting filenames
-			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-			warn "###CF samtools successfully exited, took $duration..\n";
-			if(-e $output_fn){
-				print RUN "$job_id\t$output_fn\n"; 
-			} else {
-				warn "\n###CF Error! samtools output file $output_fn not found..\n";
-			}
-		} else {
-			warn "\n###CF Error! samtools failed, exited in an error state: $? $!\n\n";
-		}
+	} else {
+		warn "\n###CF Error! samtools failed, exited in an error state: $? $!\n\n";
+	}
 }
 
 
