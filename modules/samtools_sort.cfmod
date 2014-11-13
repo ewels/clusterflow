@@ -86,11 +86,17 @@ open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
 
 # we want e.g. samtools view -bS ./test2_trimmedAligned.out.sam | samtools sort - outfile
 
+my $first = 1;
 foreach my $file (@$files){
 		
 	# Figure out the file type
 	my $command = "";
-	$command .= "samtools\n echo ----- samtools output follows ----- \n" if ($$files[0] == $file); # print version number etc on first iteration
+	if ($first and grep(/^report_v$/, @$parameters) > 0){
+		# print version number etc if 1) first iteration and 2) if parameters contains "report_v"
+		$command .= "samtools\n";
+		$command .= "echo ---------- samtools output follows ---------- \n";
+		$first = 0;
+	}
 	my $prefix = $file;
 	my $filetype = "";
 	if ($prefix =~ s/\.([sb]am$)//){
@@ -114,7 +120,7 @@ foreach my $file (@$files){
 	
 	$command .= " samtools sort -m $mem_per_thread $namesort $sortfile  $output_fn";
 	
-	warn "\n###CFCMD $command\n\n";
+	warn "\n###CFCMD ".join("\n###CFCMD ", split /\n/, $command)."\n\n";
 	
 	$output_fn .= '.bam';  # with samtools < v1.0 only prefix is specified, have to add .bam after calling command
 	

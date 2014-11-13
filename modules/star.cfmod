@@ -113,7 +113,16 @@ my $encoding = 0;
 
 # Go through each single end file and run STAR
 if($se_files && scalar(@$se_files) > 0){
+	my $first = 1;
 	foreach my $file (@$se_files){
+		my $command = "";
+		if ($first and grep(/^report_v$/, @$parameters) > 0){
+			# print version number etc if 1) first iteration and 2) if parameters contains "report_v"
+			$command .= "STAR --version\n";
+			$command .= "echo \n"; # STAR doesn't add its own newline to version output
+			$command .= "echo ---------- STAR output follows ---------- \n";
+			$first = 0;
+		}
 		
 		# Figure out the encoding if we don't already know
 		if(!$encoding){
@@ -132,13 +141,13 @@ if($se_files && scalar(@$se_files) > 0){
 	
 		my $output_fn = $prefix."Aligned.out.sam";
 		
-		my $command = "STAR --runThreadN $cores $enc --outSAMattributes All --genomeLoad $genomeLoad";  
+		$command .= "STAR --runThreadN $cores $enc --outSAMattributes All --genomeLoad $genomeLoad";  
 		if ($file =~ /\.gz$/) {
 			$command .= " --readFilesCommand zcat";	#code
 		}
 		
 		$command .= " --genomeDir ".$config{star_path}." --readFilesIn $file --outFileNamePrefix $prefix";
-		warn "\n###CFCMD $command\n\n";
+		warn "\n###CFCMD ".join("\n###CFCMD ", split /\n/, $command)."\n\n";
 		
 		if(!system ($command)){
 			# STAR worked - print out resulting filenames
@@ -157,9 +166,18 @@ if($se_files && scalar(@$se_files) > 0){
 
 # Go through the paired end files and run STAR
 if($pe_files && scalar(@$pe_files) > 0){
+	my $first = 1;
 	foreach my $files_ref (@$pe_files){
 		my @files = @$files_ref;
 		if(scalar(@files) == 2){
+			my $command = "";
+			if ($first and grep(/^report_v$/, @$parameters) > 0){
+				# print version number etc if 1) first iteration and 2) if parameters contains "report_v"
+				$command .= "STAR --version\n";
+				$command .= "echo \n"; # STAR doesn't add its own newline to version output
+				$command .= "echo ---------- STAR output follows ---------- \n";
+				$first = 0;
+			}
 				
 			# Figure out the encoding if we don't already know
 			if(!$encoding){
@@ -179,13 +197,13 @@ if($pe_files && scalar(@$pe_files) > 0){
 		
 			my $output_fn = $prefix."Aligned.out.sam";
 			
-			my $command = "STAR --runThreadN $cores $enc --outSAMattributes All --genomeLoad $genomeLoad";
+			$command .= "STAR --runThreadN $cores $enc --outSAMattributes All --genomeLoad $genomeLoad";
 			if ($files[0] =~ /\.gz$/) {
 				$command .= " --readFilesCommand zcat";	#code
 			}
 			
 			$command .= " --genomeDir ".$config{star_path}." --readFilesIn $files[0] $files[1] --outFileNamePrefix $prefix";
-			warn "\n###CFCMD $command\n\n";
+			warn "\n###CFCMD ".join("\n###CFCMD ", split /\n/, $command)."\n\n";
 			
 			if(!system ($command)){
 				# STAR worked - print out resulting filenames

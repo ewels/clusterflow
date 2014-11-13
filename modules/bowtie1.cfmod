@@ -101,9 +101,18 @@ my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%config, @$files);
 # FastQ encoding type. Once found on one file will assume all others are the same
 my $encoding = 0;
 
+
 # Go through each single end files and run Bowtie
 if($se_files && scalar(@$se_files) > 0){
+	my $first = 1;
 	foreach my $file (@$se_files){
+		my $command = "";
+		if ($first and grep(/^report_v$/, @$parameters) > 0){
+		    # print version number etc if 1) first iteration and 2) if parameters contains "report_version"
+		    $command .= "bowtie --version\n";
+		    $command .= "echo ---------- Bowtie1 output follows ---------- \n";
+		    $first = 0;
+		}	
 		
 		# Figure out the encoding if we don't already know
 		if(!$encoding){
@@ -123,11 +132,11 @@ if($se_files && scalar(@$se_files) > 0){
 			$file = "-";
 		}
 		
-		my $command = "$gzip bowtie -p $cores -t -m 1 $enc --strata --best -S --chunkmbs 2048 ".$config{bowtie_path}." $file | samtools view -bS - > $output_fn";
+		$command .= "$gzip bowtie -p $cores -t -m 1 $enc --strata --best -S --chunkmbs 2048 ".$config{bowtie_path}." $file | samtools view -bS - > $output_fn";
 		if ($mirna) {
 		    $command = "$gzip bowtie -p $cores -t -n 0 -l 15 -e 99999 -k 200 $enc --best -S --chunkmbs 2048 ".$config{bowtie_path}." $file | samtools view -bS - > $output_fn"
 		}
-		warn "\n###CFCMD $command\n\n";
+		warn "\n###CFCMD ".join("\n###CFCMD ", split /\n/, $command)."\n\n";
 		
 		if(!system ($command)){
 			# Bowtie worked - print out resulting filenames
@@ -146,9 +155,17 @@ if($se_files && scalar(@$se_files) > 0){
 
 # Go through the paired end files and run Bowtie
 if($pe_files && scalar(@$pe_files) > 0){
+	my $first = 1;
 	foreach my $files_ref (@$pe_files){
 		my @files = @$files_ref;
 		if(scalar(@files) == 2){
+			my $command = "";
+			    if ($first and grep(/^report_v$/, @$parameters) > 0){
+			    # print version number etc if 1) first iteration and 2) if parameters contains "report_v"
+			    $command .= "bowtie --version\n";
+			    $command .= "echo ---------- Bowtie1 output follows ---------- \n";
+			    $first = 0;
+			}
 			
 			# Figure out the encoding if we don't already know
 			if(!$encoding){
@@ -170,12 +187,12 @@ if($pe_files && scalar(@$pe_files) > 0){
 			
 			my $output_fn = $files[0]."_bowtie.bam";
 			
-			my $command = "bowtie -p $cores -t -m 1 $enc --strata --best --maxins 700 -S --chunkmbs 2048 ".$config{bowtie_path}." -1 ".$files[0]." -2 ".$files[1]." | samtools view -bSh 2>/dev/null - > $output_fn";
+			$command .= "bowtie -p $cores -t -m 1 $enc --strata --best --maxins 700 -S --chunkmbs 2048 ".$config{bowtie_path}." -1 ".$files[0]." -2 ".$files[1]." | samtools view -bSh 2>/dev/null - > $output_fn";
 
 			if ($mirna) {
 			    $command = "bowtie -p $cores -t -n 0 -l 15 -e 99999 -k 200 $enc --best --maxins 700 -S --chunkmbs 2048 ".$config{bowtie_path}." -1 ".$files[0]." -2 ".$files[1]." | samtools view -bSh 2>/dev/null - > $output_fn";
 			}
-			warn "\n###CFCMD $command\n\n";
+			warn "\n###CFCMD ".join("\n###CFCMD ", split /\n/, $command)."\n\n";
 			
 			if(!system ($command)){
 				# Bowtie worked - print out resulting filenames

@@ -89,11 +89,19 @@ foreach my $parameter (@$parameters){
 
 
 # Go through each supplied file and run FastQC.
+my $first = 1;
 foreach my $file (@$files){
+	my $command = "";
+	if ($first and grep(/^report_v$/, @$parameters) > 0){
+		# print version number etc if 1) first iteration and 2) if parameters contains "report_v"
+		$command .= "htseq-count --help\n";
+		$command .= "echo ---------- htseq-count output follows ---------- \n";
+		$first = 0;
+	}
 	my $annotated_file = $file."_annotated.sam";
 	my $counts_file = $file."_counts.txt";
-	my $command = "samtools view -h $file | htseq-count -o $annotated_file -t exon $stranded -q -i 'ID' - ".$config{gtf_path}." | sort -n -k 2 -r > $counts_file";
-	warn "\n###CFCMD $command\n\n";
+	$command .= "samtools view -h $file | htseq-count -o $annotated_file -t exon $stranded -q -i 'ID' - ".$config{gtf_path}." | sort -n -k 2 -r > $counts_file";
+	warn "\n###CFCMD ".join("\n###CFCMD ", split /\n/, $command)."\n\n";
 	
 	if(!system ($command)){
 		print RUN "$job_id\t$annotated_file\n";
