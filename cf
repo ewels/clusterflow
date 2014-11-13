@@ -51,7 +51,7 @@ my $cl_paired_end;
 my $cl_single_end;
 my $cl_no_fn_check;
 my $file_list;
-my $cl_params;
+my $cl_params = '';
 my $cl_email;
 my $cl_priority;
 my $cl_total_cores;
@@ -557,6 +557,10 @@ if ($cl_paired_end){
 } elsif ($cl_single_end){
 	$runfile .= "\@force_single_end\n";
 }
+if ($cl_verbose) {
+	$cl_params .= " report_v";
+}
+
 
 # Parse pipeline config file
 
