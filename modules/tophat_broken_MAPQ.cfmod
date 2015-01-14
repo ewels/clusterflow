@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 use warnings;
 use strict;
 use Getopt::Long;
@@ -47,28 +47,25 @@ if($required_mem){
 }
 # --modules. Return csv names of any modules which should be loaded.
 if($required_modules){
-	print 'tophat,samtools';
+	print 'tophat';
 	exit;
 }
 # --help. Print help.
 if($help){
 	print "".("-"x15)."\n Tophat Module\n".("-"x15)."\n
-TopHat is a fast splice junction mapper for RNA-Seq reads. 
-It can run with or without a supplied GTF path (\@gtf_path)
-but requires a bowtie path (\@bowtie_path).
+TopHat is a fast splice junction mapper for RNA-Seq reads.
+It aligns RNA-Seq reads to mammalian-sized genomes using the ultra
+high-throughput short read aligner Bowtie, and then analyzes the
+mapping results to identify splice junctions between exons.\n
+This module detects the encoding of input fastq files and whether
+they're paired end or not. It can run with or without a supplied
+GTF path (\@gtf_path) but requires a bowtie path (\@bowtie_path).
 
-This module fixes a bug in tophat that relates to MAPQ values;
-by using –g 1 (as in the previous tophat module), ALL alignments will
-get a MAPQ score of 50, irrespective of whether they were unique
-alignments or not. This module uses –g 2 instead, so reporting up
-to 2 alignments for a given read. One of the alignments is considered
-the primary alignment, and the other one is flagged as secondary
-alignment, and both alignments now get a MAPQ value of 3 to indicate
-that there were multiple alignments. After Tophat has finished, this
-module uses samtools to filter out the secondary alignments.
-
-In short, this module produces a BAM file with an equivalent number
-of hits as the old module, but with fixed MAPQ values.\n\n";
+Note that this module uses the -g 1 parameter to only return unique
+hits. However, a bug in tophat means that all MAPQ values are
+incorrectly returned as 50. This has been reported to the tophat
+authors, in the mean time, you can use the new tophat.cfmod module
+to fix this behaviour.\n\n";
 	exit;
 }
 
@@ -136,8 +133,7 @@ if($se_files && scalar(@$se_files) > 0){
 		
 		my $output_fn = $output_dir."/accepted_hits.bam";
 		
-		# Changing the command to -g 2 so that we can get proper MAPQ values
-		my $command = "tophat -p $cores -g 2 $enc $gtf -o $output_dir ".$config{bowtie_path}." $file";
+		my $command = "tophat -p $cores -g 1 $enc $gtf -o $output_dir ".$config{bowtie_path}." $file";
 		warn "\n###CFCMD $command\n\n";
 		
 		if(!system ($command)){
@@ -145,7 +141,7 @@ if($se_files && scalar(@$se_files) > 0){
 			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 			warn "###CF Tophat (SE mode) successfully exited, took $duration..\n";
 			if(-e $output_fn){
-                $output_fn = clean_output($output_dir, $file);
+				$output_fn = clean_output($output_dir, $file);
 				print RUN "$job_id\t$output_fn\n"; 
 			} else {
 				warn "\n###CF Error! Tophat output file $output_fn not found..\n";
@@ -188,8 +184,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			
 			my $output_fn = $output_dir."/accepted_hits.bam";
 			
-            # Changing the command to -g 2 so that we can get proper MAPQ values
-			my $command = "tophat -p $cores -g 2 $enc $gtf -o $output_dir ".$config{bowtie_path}." ".$files[0]." ".$files[1];
+			my $command = "tophat -p $cores -g 1 $enc $gtf -o $output_dir ".$config{bowtie_path}." ".$files[0]." ".$files[1];
 			warn "\n###CFCMD $command\n\n";
 			
 			if(!system ($command)){
@@ -208,69 +203,53 @@ if($pe_files && scalar(@$pe_files) > 0){
 		} else {
 			warn "\n###CF Error! Tophat paired end files had ".scalar(@files)." input files instead of 2\n";
 		}
-		
 	}
 }
 
 
 # Clear up Tophat output
 sub clean_output {
-    
-    my ($output_dir, $file) = @_;
-    my $results_fn = $output_dir.".bam";
-   
-    if(-e "$output_dir/accepted_hits.bam" && -e "$output_dir/align_summary.txt"){
-    	
-        # Use samtools to remove secondary alignments
-    	my $samtools_command = "samtools view -F 0x100 -b -h $output_dir/accepted_hits.bam > $results_fn";
-        warn "Using samtools to filter out non-primary alignments from the tophat alignments\n\n";
-        warn "\n###CFCMD $samtools_command\n\n";
-    	if(system ($samtools_command)){
-    	    $results_fn = "";
-            warn "###CF Error! Failed to remove non-primary alignments from $output_dir/accepted_hits.bam to ${output_dir}.accepted_hits.bam: $? $!\n";
-    	} else {
-            # System returned 0, samtools worked..
-            warn "Successfully created new alignments file without duplicates.\n";
-    	    
-            # Delete old alignments file with the duplicates
-            if(unlink "$output_dir/accepted_hits.bam"){
-                warn "Deleted original Tophat alignment file with duplicates.\n"
-            } else {
-                warn "Could not delete original Tophat alignment file with duplicates.\n"
-            }
-	    
-            # Go through and clear up all of the other tophat files
-            if(move ("$output_dir/align_summary.txt", $output_dir.".align_summary.txt")){
-                warn "Moved filtered tophat summary to ${output_dir}.align_summary.txt\n";
-                if(unlink glob "$output_dir/logs/*"){
-                    warn "Deleted other tophat output files: $output_dir/logs/*\n";
-                    if(rmdir "$output_dir/logs"){
-                        warn "Deleted tophat logs directory $output_dir/logs\n";
-                        if(unlink glob "$output_dir/*"){
-                            warn "Deleted other tophat output files: $output_dir/*\n";
-                            if(rmdir $output_dir){
-                                warn "Deleted tophat output directory $output_dir\n";
-                            } else {
-                                warn "Could not delete tophat output directory $output_dir: $!\n";
-                            }
-                        } else {
-                            warn "Could not delete other tophat output files: $output_dir/*: $!\n";
-                        }
-                    } else {
-                        warn "Could not delete tophat logs directory $output_dir/logs: $!\n";
-                    }
-                } else {
-                    warn "Could not delete other tophat log files: $output_dir/logs/*: $!\n";
-                }
-            } else {
-                warn "Could not move tophat summary to ${output_dir}.align_summary.txt: $!\n";
-            }
-        }
-    } else {
-        warn "Could not find tophat output files $output_dir/accepted_hits.bam and $output_dir/align_summary.txt\n";
-    }
-    
-    return $results_fn;
+	
+	my ($output_dir, $file) = @_;
+	my $results_fn = "$output_dir/accepted_hits.bam";
+
+	if(-e "$output_dir/accepted_hits.bam" && -e "$output_dir/align_summary.txt"){
+		if(move ("$output_dir/accepted_hits.bam", $file."_tophat.bam")){
+			warn "Moved tophat output to ${file}_tophat.bam\n";
+			$results_fn = $file."_tophat.bam";
+			if(move ("$output_dir/align_summary.txt", $file."_align_summary.txt")){
+				warn "Moved tophat summary to ${file}_align_summary.txt\n";
+				if(unlink glob "$output_dir/logs/*"){
+					warn "Deleted other tophat output files: $output_dir/logs/*\n";
+					if(rmdir "$output_dir/logs"){
+						warn "Deleted tophat logs directory $output_dir/logs\n";
+						if(unlink glob "$output_dir/*"){
+							warn "Deleted other tophat output files: $output_dir/*\n";
+							if(rmdir $output_dir){
+								warn "Deleted tophat output directory $output_dir\n";
+							} else {
+								warn "Could not delete tophat output directory $output_dir: $!\n";
+							}
+						} else {
+							warn "Could not delete other tophat output files: $output_dir/*: $!\n";
+						}
+					} else {
+						warn "Could not delete tophat logs directory $output_dir/logs: $!\n";
+					}
+				} else {
+					warn "Could not delete other tophat log files: $output_dir/logs/*: $!\n";
+				}
+			} else {
+				warn "Could not move tophat summary to ${file}_align_summary.txt: $!\n";
+			}
+		} else {
+			warn "Could not move tophat output to ${file}_tophat.bam: $!\n";
+		}
+	} else {
+		warn "Could not find tophat output files $output_dir/accepted_hits.bam and $output_dir/align_summary.txt\n";
+	}
+	
+	return $results_fn;
 }
 
 

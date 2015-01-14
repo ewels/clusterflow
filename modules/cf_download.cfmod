@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 use warnings;
 use strict;
 use Getopt::Long;
@@ -32,7 +32,7 @@ my $required_cores;
 my $required_mem;
 my $required_modules;
 my $help;
-my $result = GetOptions ("cores=i" => \$required_cores, "mem" => \$required_mem, "modules" => \$required_modules, "help" => \$help);
+my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "help" => \$help);
 if($required_cores || $required_mem || $required_modules){
 	exit;
 }
@@ -63,7 +63,7 @@ if(!system ($command)){
 	warn "###CF Download worked - took $duration\n";
 } else {
 	# Download failed - don't print a filename so that child processes exit silently
-	warn "###CF Error! Download failed: $? $!\n";
+	warn "###CF Error! Download '$dl_fn' failed: $? $!\n";
 }
 
 my $date = strftime "%H:%M %d-%m-%Y", localtime;

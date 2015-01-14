@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 use warnings;
 use strict;
 use Getopt::Long;
@@ -80,6 +80,9 @@ my $adapter = "";
 my $RRBS = "";
 my $clip_r1 = "";
 my $clip_r2 = "";
+my $q_cutoff = "";
+my $stringency;
+my $fqc = "TRUE";
 foreach my $parameter (@$parameters){
 	if($parameter =~ /min_readlength=(\d+)/){
 		$min_readlength = $1;
@@ -87,17 +90,27 @@ foreach my $parameter (@$parameters){
 	if($parameter =~ /adapter=([GATCgatc]+)/){
 		$adapter = "--adapter=".uc($1);
 	}
+	if($parameter =~ /q=(\d+)/){
+		$q_cutoff = "-q ".$1;
+	}
+	if($parameter =~ /stringency=(\d+)/){
+		$stringency = "--stringency ".$1;
+	}
 	if($parameter eq "RRBS"){
 		$RRBS = "--RRBS";
 	}
-	if($parameter == "pbat"){
+	if($parameter eq "pbat"){
 		$clip_r1 = "--clip_r1 4";
 		$clip_r2 = "--clip_r2 4";
 	}
-	if($parameter == "single_cell"){
+	if($parameter eq "single_cell"){
 		$clip_r1 = "--clip_r1 9";
 		$clip_r2 = "--clip_r2 9";
 	}
+	if ($parameter =~ /nofastqc/) {
+		$fqc = "";
+	}
+	
 }
 
 # Are these reads long enough to trim? Check first file and assume same for rest
@@ -134,7 +147,12 @@ if($se_files && scalar(@$se_files) > 0){
 		
 		my $output_fn = trim_galore_basename($file).'_trimmed.fq.gz';
 		
-		my $command = "trim_galore --gzip $enc $RRBS $adapter $clip_r1 --fastqc_args \"-q\" $file";
+		if ($fqc){
+			$fqc = " --fastqc_args \"-q\" ";
+		}
+		
+		my $command = "trim_galore --gzip $enc $stringency $RRBS $adapter $q_cutoff $clip_r1 $fqc $file";
+
 		warn "\n###CFCMD $command\n\n";
 		
 		if(!system ($command)){
@@ -147,7 +165,7 @@ if($se_files && scalar(@$se_files) > 0){
 				warn "\n###CF Error! Trim Galore output file $output_fn not found..\n";
 			}
 		} else {
-			die "###CF Error! Trim Galore (SE mode) exited with an error state: $? $!\n\n";
+			warn "###CF Error! Trim Galore (SE mode) exited with an error state for input file '$file': $? $!\n\n";
 		}
 	}
 }
@@ -174,7 +192,12 @@ if($pe_files && scalar(@$pe_files) > 0){
 			my $output_fn_1 = trim_galore_basename($files[0]).'_val_1.fq.gz';
 			my $output_fn_2 = trim_galore_basename($files[1]).'_val_2.fq.gz';
 			
-			my $command = "trim_galore --paired --trim1 --gzip $enc $RRBS $adapter $clip_r1 $clip_r2 --fastqc ".$files[0]." ".$files[1];
+			if ($fqc) {
+				$fqc = " --fastqc ";
+			}
+			
+			my $command = "trim_galore --paired --trim1 --gzip $enc $stringency $RRBS $adapter $q_cutoff $clip_r1 $clip_r2 $fqc $files[0] $files[1]";
+			
 			warn "\n###CFCMD $command\n\n";
 			
 			if(!system ($command)){
@@ -192,7 +215,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 					warn "\n###CF Error! Trim Galore output file $output_fn_2 not found..\n";
 				}
 			} else {
-				die "###CF Error! Trim Galore (PE mode) exited with an error state: $? $!\n\n";
+				warn "###CF Error! Trim Galore (PE mode) exited with an error state for input file '".$files[0]."': $? $!\n\n";
 			}
 		} else {
 			warn "\n###CF Error! Trim Galore paired end files had ".scalar(@files)." input files instead of 2..\n";

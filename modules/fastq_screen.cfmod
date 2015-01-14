@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 use warnings;
 use strict;
 use Getopt::Long;
@@ -114,7 +114,7 @@ if($se_files && scalar(@$se_files) > 0){
 			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 			warn "###CF Fastq Screen (SE mode) successfully ran, took $duration\n";
 		} else {
-			print "###CF Error! Fastq Screen (SE mode) Failed: $? $!\n";
+			warn "###CF Error! Fastq Screen (SE mode) Failed for input file '$file': $? $!\n";
 		}
 	}
 }
@@ -141,7 +141,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 				warn "###CF Fastq Screen (PE mode) successfully ran, took $duration\n";
 			} else {
-				print "###CF Error! Fastq Screen (PE mode) Failed: $? $!\n";
+				warn "###CF Error! Fastq Screen (PE mode) failed for input file '".$files[0]."': $? $!\n";
 			}
 		} else {
 			warn "\n###CF Error! Fastq Screen paired end files had ".scalar(@files)." input files instead of 2\n";

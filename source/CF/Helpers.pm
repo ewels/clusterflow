@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 package CF::Helpers; 
 
 use warnings;
@@ -96,11 +96,73 @@ sub load_runfile_params {
 	
 	# If we don't have any input files, bail now
 	if($num_input_files == 0 && $prev_job_id ne 'null'){
-		print "\n###  Error - no file names found from job $prev_job_id. Exiting... ###\n\n";
+		print "\n###CF Error! No file names found from job $prev_job_id. Exiting...\n\n";
 		exit;
 	}
 	
 	return (\@files, $runfile, $job_id, $prev_job_id, $cores, $mem, \@parameters, \%config);
+}
+
+
+sub parse_runfile_prerun {
+	my $runfile = $_[0];
+	my $num_input_files = 0;
+	my @starting_files;
+	my %config;
+	$config{notifications} = {};
+	my $comment_block = 0;
+	
+	open (RUN,$runfile) or die "Can't read $runfile: $!";
+	while(<RUN>){
+	
+		# clean up line
+		chomp;
+		s/\n//;
+		s/\r//;
+		
+		# Ignore comment blocks
+		if($_ =~ /^\/\*/){
+			$comment_block = 1;
+			next;
+		}
+		if($_ =~ /^\*\//){
+			$comment_block = 0;
+			next;
+		}
+		
+		# Get config variables
+		if($_ =~ /^\@/ && !$comment_block){
+			my @sections = split(/\t/, $_, 2);
+			my $cname = substr($sections[0], 1);
+			if($cname eq 'notification'){
+				$config{notifications}{$sections[1]} = 1;
+			} else {
+				$config{$cname} = $sections[1];
+			}
+		}
+		
+		# Get files
+		if($_ =~ /^[^@#]/ && !$comment_block){
+			my @sections = split(/\t/, $_, 2);
+			if($sections[0] eq "start_000"){
+				# Clear out excess whitespace
+				$sections[1] =~ s/^\s+//;
+				$sections[1] =~ s/\s+$//;
+				# Push to array
+				push(@starting_files, $sections[1]);
+				$num_input_files++;
+			}
+		}
+	}
+	
+	close(RUN);
+	
+	# If we don't have any input files, bail now
+	if($num_input_files == 0){
+		warn "\n###CF Error! No starting file names found (runfile should contain start_000  filename). Exiting...\n\n";
+		exit;
+	}
+	return(\@starting_files, \%config)
 }
 
 
@@ -197,7 +259,7 @@ sub is_bam_paired_end {
 
 	# Load samtools
 	my @modules = ('samtools');
-	my %loaded_mods = {};
+	my %loaded_mods = ();
 	&CF::Helpers::load_environment_modules(\@modules,\%loaded_mods);
 
 	my ($file) = @_;

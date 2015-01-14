@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 use warnings;
 use strict;
 use FindBin qw($Bin);
@@ -26,7 +26,7 @@ package CF::Constants;
 # along with Cluster Flow.  If not, see <http://www.gnu.org/licenses/>.  #
 ##########################################################################
 
-our $CF_VERSION = "0.3 devel";
+our $CF_VERSION = "0.4 devel";
 
 our $homedir = $ENV{"HOME"};
 
@@ -53,18 +53,22 @@ our @LOG_WARNING_STRINGS;
 our %GENOME_PATH_CONFIGS;
 our %BOWTIE_PATH_CONFIGS;
 our %BOWTIE2_PATH_CONFIGS;
+our %STAR_PATH_CONFIGS;
 our %GTF_PATH_CONFIGS;
 our %GENOME_PATHS;
 our %BOWTIE_PATHS;
 our %BOWTIE2_PATHS;
+our %STAR_PATHS;
 our %GTF_PATHS;
 our %GENOME_SPECIES;
 our %BOWTIE_SPECIES;
 our %BOWTIE2_SPECIES;
+our %STAR_SPECIES;
 our %GTF_SPECIES;
 our %GENOME_ASSEMBLIES;
 our %BOWTIE_ASSEMBLIES;
 our %BOWTIE2_ASSEMBLIES;
+our %STAR_ASSEMBLIES;
 our %GTF_ASSEMBLIES;
 
 # Update checking variables
@@ -206,6 +210,11 @@ sub parse_genomes_file {
 						$BOWTIE2_PATHS{$key} = $path;
 						$BOWTIE2_SPECIES{$key} = $species;
 						$BOWTIE2_ASSEMBLIES{$key} = $assembly;
+					} elsif($path_type eq 'star_path'){
++						$STAR_PATH_CONFIGS{$key} = $genome_file;
++						$STAR_PATHS{$key} = $path;
++						$STAR_SPECIES{$key} = $species;
++						$STAR_ASSEMBLIES{$key} = $assembly;
 					} elsif($path_type eq 'gtf_path'){
 						$GTF_PATH_CONFIGS{$key} = $genome_file;
 						$GTF_PATHS{$key} = $path;
@@ -258,6 +267,10 @@ sub list_clusterflow_genomes {
 	while ( my($key, $value) = each %BOWTIE2_PATH_CONFIGS){
 		$BOWTIE2_PATH_CONFIGS_COUNTS{$value} = 1;
 	}
+	my %STAR_PATH_CONFIGS_COUNTS;
+	while ( my($key, $value) = each %STAR_PATH_CONFIGS){
+		$STAR_PATH_CONFIGS_COUNTS{$value} = 1;
+	}
 	my %GTF_PATH_CONFIGS_COUNTS;
 	while ( my($key, $value) = each %GTF_PATH_CONFIGS){
 		$GTF_PATH_CONFIGS_COUNTS{$value} = 1;
@@ -265,8 +278,7 @@ sub list_clusterflow_genomes {
 	
 	foreach my $config_file (@config_files){
 		
-		next if(!defined ($GENOME_PATH_CONFIGS_COUNTS{$config_file}) && !defined ($BOWTIE_PATH_CONFIGS_COUNTS{$config_file})&& !defined ($BOWTIE2_PATH_CONFIGS_COUNTS{$config_file}) && !defined ($GTF_PATH_CONFIGS_COUNTS{$config_file}));
-		
+		next if(!defined ($GENOME_PATH_CONFIGS_COUNTS{$config_file}) && !defined ($BOWTIE_PATH_CONFIGS_COUNTS{$config_file}) && !defined ($BOWTIE2_PATH_CONFIGS_COUNTS{$config_file}) && !defined ($STAR_PATH_CONFIGS_COUNTS{$config_file}) && !defined ($GTF_PATH_CONFIGS_COUNTS{$config_file}));
 		$returnstring .= "\n".('-' x 50)."\n $config_file\n".('-' x 50)."\n";
 		if(defined ($GENOME_PATH_CONFIGS_COUNTS{$config_file})){
 			$returnstring .= "\n== Genome Paths ==\n";
@@ -310,6 +322,18 @@ sub list_clusterflow_genomes {
 				}
 			}
 		}
+		if(defined ($STAR_PATH_CONFIGS_COUNTS{$config_file})){
+			$returnstring .= "\n== STAR File Paths ==\n";
+			$returnstring .= " Key                 Species             Assembly            Path\n".("-" x 100)."\n";
+			foreach my $key (sort keys %STAR_PATHS ) {
+				my $key_spaces = " " x (20 - length($key));
+				my $species_spaces = " " x (20 - length($STAR_SPECIES{$key}));
+				my $assembly_spaces = " " x (15 - length($STAR_ASSEMBLIES{$key}));
+				if($STAR_PATH_CONFIGS{$key} eq $config_file){
+					$returnstring .= " ".$key.$key_spaces.$STAR_SPECIES{$key}.$species_spaces.$STAR_ASSEMBLIES{$key}.$assembly_spaces.$STAR_PATHS{$key}."\n";
+ 				}
+ 			}
+ 		}
 		if(defined ($GTF_PATH_CONFIGS_COUNTS{$config_file})){
 			$returnstring .= "\n== GTF File Paths ==\n";
 			$returnstring .= " Key                 Species             Assembly            Path\n".("-" x 100)."\n";
@@ -432,6 +456,14 @@ AVAILABLE FLAGS
 	--bowtie_path <path>
 		Path to a bowtie index basename to be used for alignment.
 		Overrides any bowtie path set with --genome
+	
+	--bowtie2_path <path>
+		Path to a bowtie2 index basename to be used for alignment.
+		Overrides any bowtie path set with --genome
+			
+	--star_path <path>
+		Path to a STAR index basename to be used for alignment.
+		Overrides any STAR path set with --genome
 		
 	--gtf_path <path>
 		Path to a GTF file to be used for alignment (eg. Tophat).
@@ -734,6 +766,34 @@ GTF Path:    A filename path to a genome GTF file.\n\n";
 		}
 	}
 	
+	print "Please enter the STAR file path. Leave blank if you don't want to add one..\n";
+	my $star_path;
+	STARWHILE: while ($star_path = <STDIN>){
+		chomp ($star_path);
+		if(length($star_path) == 0){
+			print "Ok, not adding any STAR paths..\n\n";
+			last;
+		} elsif (-e $star_path) {
+			print "Looks good! The file exists.\n\n";
+			last;
+		} else {
+			print "This file doesn't seem to exist.";
+		}
+		print "Do you want to add this to the config file anyway?\n";
+		while (my $continue = <STDIN>){
+			chomp ($continue);
+			if ($continue =~ /^n(o)?/i){
+				print "\nOk, please enter the STAR path again:\n\n";
+				last;
+			} elsif($continue =~ /^y(es)?/i){
+				print "\nOk, I'll add $star_path\n\n";
+				last STARWHILE;
+			} else {
+				print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+			}
+		}
+	}
+	
 	print "Please enter the GTF file path. Leave blank if you don't want to add one..\n";
 	my $gtf_path;
 	GTFWHILE: while ($gtf_path = <STDIN>){
@@ -771,10 +831,14 @@ GTF Path:    A filename path to a genome GTF file.\n\n";
 		print OUT "\@bowtie_path\t$genomeID\t$bowtie_path\t$species\t$assembly\n";
 		print "Added bowtie path $genomeID: $bowtie_path\n";
 	}
-	if(length($bowtie_path) > 0){
+	if(length($bowtie2_path) > 0){
 		print OUT "\@bowtie2_path\t$genomeID\t$bowtie2_path\t$species\t$assembly\n";
 		print "Added bowtie 2 path $genomeID: $bowtie2_path\n";
 	}
+	if(length($star_path) > 0){
+		print OUT "\@star_path\t$genomeID\t$star_path\t$species\t$assembly\n";
+		print "Added STAR path $genomeID: $star_path\n";
+ 	}
 	if(length($gtf_path) > 0){
 		print OUT "\@gtf_path\t$genomeID\t$gtf_path\t$species\t$assembly\n";
 		print "Added GTF path $genomeID: $gtf_path\n";

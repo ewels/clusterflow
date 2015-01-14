@@ -15,6 +15,21 @@ Cluster Flow is released with a GPL v3 licence. Cluster Flow is free software: y
 
 Change Log
 ----------
+#### v0.4 devel
+* New Stuff - with thanks to [@stu2](https://github.com/stu2)
+	* Support for STAR RNA-seq aligner
+	* Modules are fed more information (eg. number of input files and reference genome) to help decide the amount of memory and cores they bid for
+	* All perl scripts now have `env perl` in shebang to increase portability
+	* Support for GRIDEngine `h_vmem` memory option, if requested in pipeline file or in command line
+	* Support for explicit GRIDEngine queue nomination on the command line
+    * Added compatability with GRIDEngine `~/.sge_request files` (by ignoring them). Thanks to [@s-andrews](https://github.com/s-andrews)
+    * New tophat module called `tophat` which introduces a workaround for buggy MAPQ reporting by tophat whilst keeping unique alignments. Thanks to [@FelixKrueger](https://github.com/FelixKrueger).
+        * The previous tophat module is still available if you're not interested in MAPQ scores and would like slightly faster processing. This is now called `tophat_broken_MAPQ.cfmod`.
+* Bugs Squashed
+	* Fixed output filename problem in tophat with output cleaning
+	* Fixed bugs causing minimum memory allocation regardless of availability
+	* Fixed bug causing Bowtie2 to fail if Bowtie1 index absent
+
 #### [v0.3](https://github.com/ewels/clusterflow/releases/tag/v0.3) - 2014-07-11
 * New Stuff
 	* Awesome new HTML report e-mails
@@ -60,3 +75,5 @@ Change Log
 Credits
 -------
 Cluster Flow was written by [Phil Ewels](http://phil.ewels.co.uk) whilst working in the [Babraham Bioinformatics](http://www.bioinformatics.babraham.ac.uk/) group in Cambridge, UK. He now maintains it whilst working at the [Science for Life Laboratory](http://www.scilifelab.se/) in Stockholm, Sweden.
+
+Cluster Flow has also had contributions from [@stu2](https://github.com/stu2), [@s-andrews](https://github.com/s-andrews) and [@FelixKrueger](https://github.com/FelixKrueger), amongst others.

@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 use warnings;
 use strict;
 use Getopt::Long;
@@ -34,7 +34,7 @@ my $required_cores;
 my $required_mem;
 my $required_modules;
 my $help;
-my $result = GetOptions ("cores=i" => \$required_cores, "mem" => \$required_mem, "modules" => \$required_modules, "help" => \$help);
+my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "help" => \$help);
 if($required_cores || $required_mem || $required_modules){
 	exit;
 }

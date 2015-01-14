@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 use warnings;
 use strict;
 use Getopt::Long;
@@ -104,7 +104,7 @@ foreach my $file (@$files){
 					unlink $output_fn or die "Could not delete $output_fn : $!";
 				}
 			}
-			warn "###CF Error! FastQ Dump failed on attempt $attempt: $? $!\n";
+			warn "###CF Error! FastQ Dump failed on attempt $attempt for input file '$file': $? $!\n";
 			
 		}
 	}
