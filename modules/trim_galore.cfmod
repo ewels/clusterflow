@@ -81,7 +81,7 @@ my $RRBS = "";
 my $clip_r1 = "";
 my $clip_r2 = "";
 my $q_cutoff = "";
-my $stringency;
+my $stringency = '';
 my $fqc = "TRUE";
 foreach my $parameter (@$parameters){
 	if($parameter =~ /min_readlength=(\d+)/){
