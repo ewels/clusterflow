@@ -43,9 +43,8 @@ if($required_cores){
 }
 # --mem. Return the required memory allocation.
 if($required_mem){
-	my ($runfn, $GENOME, $cores, @parameters) = @ARGV;
+	my ($runfn, $cores, @parameters) = @ARGV;
 	my ($starting_files, $config) = CF::Helpers::parse_runfile_prerun($runfn);
-	my @h_vmem = grep(/^h_vmem$/, @parameters);
 	my $minmem=32000111000;
 	
 	# estimate memory based on genome size
@@ -57,7 +56,7 @@ if($required_mem){
 		}	
 	}
 	my $maxmem=int($minmem*1.8);	
-	print $h_vmem[0].CF::Helpers::allocate_memory($required_mem, $minmem, $maxmem);
+	print CF::Helpers::allocate_memory($required_mem, $minmem, $maxmem);
 	exit;
 }
 # --modules. Return csv names of any modules which should be loaded.

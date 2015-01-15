@@ -42,9 +42,8 @@ if($required_cores){
 }
 # --mem. Return the required memory allocation.
 if($required_mem){
-	my ($runfn, $GENOME, $cores, @parameters) = @ARGV;
-	my @h_vmem = grep(/^h_vmem$/, @parameters); 
-	print $h_vmem[0].CF::Helpers::allocate_memory($required_mem, '8G', '30G');	
+	my ($runfn, $cores, @parameters) = @ARGV;
+	print CF::Helpers::allocate_memory($required_mem, '8G', '30G');	
 	exit;
 }
 # --modules. Return csv names of any modules which should be loaded.
