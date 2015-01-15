@@ -56,13 +56,6 @@ The bismark_methXtract module runs the bismark_methylation_extractor script.
 This reads in a bisulfite read alignment results file produced by the Bismark bisulfite
 mapper and extracts the methylation information for individual cytosines in CpG, CHG 
 and CHH context.\n".
-# Specifying the pbat or single_cell parameters in a pipeline
-# will add --ignore 4 to the command. eg:
-  # bismark_methXtract	pbat
-# or
-  # bismark_methXtract	single_cell
-# Runs the command:
-  # bismark_methylation_extractor --ignore 4 ....\n
 "Use bismark_methylation_extractor --help for more information.\n\n";
 	exit;
 }
@@ -115,8 +108,8 @@ if($files && scalar(@$files) > 0){
 		
 		# Find if PE or SE from input BAM file
 		if(CF::Helpers::is_bam_paired_end($file)){
-			
-			my $command = "bismark_methylation_extractor $ignore_r1 $ignore_r2 --bedGraph --counts $buffer --cytosine_report --gzip -p --no_overlap --report $gw_cov $file";
+			# using 4 threads for the exctraction
+			my $command = "bismark_methylation_extractor --multi 4 $ignore_r1 $ignore_r2 --bedGraph --counts $buffer --gzip -p --no_overlap --report $gw_cov $file";
 			warn "\n###CFCMD $command\n\n";
 			
 			# Paired End BAM file
@@ -143,7 +136,8 @@ if($files && scalar(@$files) > 0){
 			
 		} else {
 			
-			my $command = "bismark_methylation_extractor $ignore_r1 --bedGraph --counts $buffer --gzip -s --report $file";
+		    # using 4 threads for the extraction
+			my $command = "bismark_methylation_extractor --multi 4 $ignore_r1 --bedGraph --counts $buffer --gzip -s --report $file";
 			warn "\n###CFCMD $command\n\n";
 			
 			# Single End BAM file
