@@ -71,6 +71,7 @@ my $cl_version;
 my $cl_check_updates;
 my $cl_qname;
 my $cl_verbose;
+my $cl_print_versions;
 my $cl_h_vmem;
 my $cl_help;
 
@@ -107,6 +108,7 @@ my $config_result = GetOptions(
 	"check_updates" => \$cl_check_updates,
 	"qname=s" => \$cl_qname,
 	"verbose" => \$cl_verbose,
+    "print_versions" => \$cl_print_versions,
 	"h_vmem" => \$cl_h_vmem,
 	"help" => \$cl_help
 );
@@ -322,6 +324,10 @@ if($cl_qdel){
 if($cl_version){
 	print "Cluster Flow v$CF_VERSION\n\n";
 	exit;
+}
+
+if($cl_verbose){
+    $cl_print_versions = 1;
 }
 
 # Check for updates - either by command line or config file
@@ -818,6 +824,11 @@ for (my $i = 0; $i <= $#files; $i++){
 	
 	# Make up qsub jobs
 	make_qsubs (\%module_tree, $job_id, $runfn, $outfn);
+    
+    # Only print the versions once
+    if($cl_print_versions){
+        $cl_print_versions = 0;
+    }
 	
 	# Qsub job to execute on completion of this run
 	my $run_finish_id = $jid_base."email_run_complete_".sprintf("%03d", rand(999));
@@ -888,7 +899,13 @@ sub make_qsubs {
 		
 		
 		# Get options for module. 2 - negotiate cores
-		my $sim_argv = "$runfn $GENOME cores_placeholder $parameters";
+        my $sim_argv_genome;
+        if(defined($GENOME)){
+            $sim_argv_genome = $GENOME;
+        } else {
+            $sim_argv_genome = "genome_placeholder";
+        }
+        my $sim_argv = "$runfn $sim_argv_genome cores_placeholder $parameters";
 		my $cores = `$module_fn $sim_argv --cores $TOTAL_CORES`;
 		if(!$cores || length($cores) == 0 || $cores =~ /\D/){
 			warn "\nWarning: no cores allocation or error parsing cores allocation for $module: setting to 1Gb\n";
@@ -896,7 +913,7 @@ sub make_qsubs {
 		}
 		
 		# Get options for module. 3 - negotiate memory
-		$sim_argv = "$runfn $GENOME $cores $parameters";
+		$sim_argv = "$runfn $sim_argv_genome $cores $parameters";
 		my $mem = `$module_fn $sim_argv --mem $TOTAL_MEM`;
 		# memory type for Grid Engine:
 		#set to vmem if module returns "h_vmem" as a prefix for its --mem request
@@ -913,9 +930,13 @@ sub make_qsubs {
 		}
         
         # Get options for module. 4 - software version
-        if ($cl_verbose) {
-    		my $version_info = `$module_fn --version`;
-            warn "\nVersion information for module $module:\n$version_info\n\n";
+        if ($cl_print_versions) {
+            # It would be really nice if we could get each module to return just
+            # a version number, but parsing each one differently is quite a
+            # bit of work (and susceptible to variations between software
+            # versions). Instead, just execute and the module can print
+            # to STDOUT
+    		system("$module_fn --version");
         }
 		
 		# formulate qsub command
