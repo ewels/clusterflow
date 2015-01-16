@@ -30,8 +30,9 @@ use CF::Helpers;
 my $required_cores;
 my $required_mem;
 my $required_modules;
+my $version;
 my $help;
-my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "help" => \$help);
+my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "version" => \$version, "help" => \$help);
 
 # QSUB SETUP
 # --cores i = offered cores. Return number of required cores.
@@ -49,6 +50,12 @@ if($required_modules){
 	print 'fastqc';
 	exit;
 }
+# --version. Returns version information about the module.
+if($version){
+    print "---------- FastQC version information ----------\n";
+    print `fastqc --version`;
+    print "\n------- End of FastQC version information ------\n";	
+}
 # --help. Print help.
 if($help){
 	print "".("-"x15)."\n FastQC Module\n".("-"x15)."\n
@@ -63,6 +70,13 @@ my $timestart = time;
 # Read in the input files from the run file
 my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
 my %config = %$config_ref;
+
+# Print the version if it's in the run file config
+if(defined($config{verbose})){
+    print "---------- FastQC version information ----------\n";
+    print `fastqc --version`;
+    print "\n------- End of FastQC version information ------\n";	
+}
 
 open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
 
