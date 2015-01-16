@@ -135,9 +135,10 @@ foreach my $key (sort { $modkeys{$a} <=> $modkeys{$b} or $a cmp $b } keys %modke
 	$outfile .= $modules{$key}."\n\n\n";
 }
 # count non-whitespace characters only
-if((()= $unrecognised =~ m/\S/g) > 0){
-	$outfile .= ("-"x80)."\nUnrecognised output:\n".("-"x80)."\n".$unrecognised;
+if($unrecognised =~ m/\S/g){
+	$outfile .= ("-"x80)."\nUnrecognised output: (indicated with \"->foo<-\")\n".("-"x80)."\n->".join("<-\n->", split "\n", $unrecognised)."<-\n\n";
 }
+$outfile .= ("="x80)."\n\n\n";
 
 # Write out the cleaned runfile without any crap
 open (OUT,'>',$outfn) or die "Can't write to $outfn: $!";

@@ -59,7 +59,8 @@ Sorts a bam file if extension is .bam - if extension is anything else, \n
 will assume it is a sam file and attempt to convert to bam first. \n
 Module tested with Samtools v0.1.19, this module may not \n
 work with v1.0 or greater to to file naming changes\n
-Output is basename_srtd.bam.\n\n";
+Output is basename_srtd.bam.\n
+Arg \'byname\' or \'-n\' in pipeline forces sorting by read name\n";
 	exit;
 }
 
@@ -77,53 +78,64 @@ if(!defined($cores) or $cores < 1){
 	$cores = 1;
 }
 
+my $namesort = '';
+$namesort = '-n' if (grep(/^byname$/, @$parameters) > 0);
+
 open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
 
 
 # we want e.g. samtools view -bS ./test2_trimmedAligned.out.sam | samtools sort - outfile
 
+my $first = 1;
 foreach my $file (@$files){
 		
-		# Figure out the file type
-		my $command = "";
-		my $prefix = $file;
-		my $filetype = "";
-		if ($prefix =~ s/\.([sb]am$)//){
-			$filetype = $1;
-			warn "\nGuessing file $file is a $filetype file\n";
-		} else {
-			warn "\n Cant determine file-type for $file. Assuming sam... \n";
-			$filetype = "sam";
-		}
+	# Figure out the file type
+	my $command = "";
+	if ($first and grep(/^report_v$/, @$parameters) > 0){
+		# print version number etc if 1) first iteration and 2) if parameters contains "report_v"
+		$command .= "samtools\n";
+		$command .= "echo ---------- samtools output follows ---------- \n";
+		$first = 0;
+	}
+	my $prefix = $file;
+	my $filetype = "";
+	if ($prefix =~ s/\.([sb]am$)//){
+		$filetype = $1;
+		warn "\nGuessing file $file is a $filetype file\n";
+	} else {
+		warn "\n Cant determine file-type for $file. Assuming sam... \n";
+		$filetype = "sam";
+	}
 
-		my $sortfile;
-		if ($filetype eq "sam"){
-			$command = "samtools view -bS -u $file |";
-			$sortfile = "-";
+	my $sortfile;
+	if ($filetype eq "sam"){
+		$command .= "samtools view -bS -u $file |";
+		$sortfile = "-";
+	} else {
+		warn "\nGuessing file $file is bam file. \n";
+		$sortfile = $file;
+	}
+	my $output_fn = $prefix."_srtd";
+	$output_fn .= 'n' if ($namesort eq '-n');
+	
+	$command .= " samtools sort -m $mem_per_thread $namesort $sortfile  $output_fn";
+	
+	warn "\n###CFCMD ".join("\n###CFCMD ", split /\n/, $command)."\n\n";
+	
+	$output_fn .= '.bam';  # with samtools < v1.0 only prefix is specified, have to add .bam after calling command
+	
+	if(!system ($command)){
+		# samtools worked - print out resulting filenames
+		my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+		warn "###CF samtools successfully exited, took $duration..\n";
+		if(-e $output_fn){
+			print RUN "$job_id\t$output_fn\n"; 
 		} else {
-			warn "\nGuessing file $file is bam file. \n";
-			$sortfile = $file;
+			warn "\n###CF Error! samtools output file $output_fn not found..\n";
 		}
-		my $output_fn = $prefix."_srtd";
-		
-		$command .= " samtools sort -m $mem_per_thread  $sortfile  $output_fn";
-		
-		warn "\n###CFCMD $command\n\n";
-		
-		$output_fn .= '.bam';  # with samtools < v1.0 only prefix is specified, have to add .bam after calling command
-		
-		if(!system ($command)){
-			# samtools worked - print out resulting filenames
-			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-			warn "###CF samtools successfully exited, took $duration..\n";
-			if(-e $output_fn){
-				print RUN "$job_id\t$output_fn\n"; 
-			} else {
-				warn "\n###CF Error! samtools output file $output_fn not found..\n";
-			}
-		} else {
-			warn "\n###CF Error! samtools failed, exited in an error state for input file '$file': $? $!\n\n";
-		}
+	} else {
+		warn "\n###CF Error! samtools failed, exited in an error state: $? $!\n\n";
+	}
 }
 
 

@@ -172,7 +172,15 @@ my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%config, @$files);
 # Go through each SINGLE END file and run our command
 #
 if($se_files && scalar(@$se_files) > 0){
+	my $first = 1;
 	foreach my $file (@$se_files){
+		my $command = "";
+		if ($first and grep(/^report_v$/, @$parameters) > 0){
+			# print version number etc if 1) first iteration and 2) if parameters contains "report_v"
+			$command .= "MY_COMMAND --version\n"; # assuming your program accepts --version as an argument
+			$command .= "echo ---------- MY COMMAND output follows ---------- \n";
+			$first = 0;
+		}
 		
 		# Figure out the encoding if we don't already know
 		if(!$encoding){
@@ -188,9 +196,9 @@ if($se_files && scalar(@$se_files) > 0){
 		my $output_fn = $file."_processed.output";
 		
 		# Write our command!
-		my $command = "my_command $enc $param1 $param2 -c $cores -m $mem -g ".$config{genome_path}." -i $file -o $output_fn";
+		$command .= "my_command $enc $param1 $param2 -c $cores -m $mem -g ".$config{genome_path}." -i $file -o $output_fn";
 		# Write the command to the log file
-		warn "\n###CFCMD $command\n\n";
+		warn "\n###CFCMD ".join("\n###CFCMD ", split /\n/, $command)."\n\n";
 		
 		# Try to run the command - returns 0 on success (which evaluated to false)
 		if(!system ($command)){
@@ -223,11 +231,19 @@ if($se_files && scalar(@$se_files) > 0){
 # Go through each pair of PAIRED END files and run our command
 #
 if($pe_files && scalar(@$pe_files) > 0){
+	my $first = 1;
 	foreach my $files_ref (@$pe_files){
 		my @files = @$files_ref;
 		
 		# Check that we do actually have two files here
 		if(scalar(@files) == 2){
+			my $command = "";
+			if ($first and grep(/^report_v$/, @$parameters) > 0){
+				# print version number etc if 1) first iteration and 2) if parameters contains "report_v"
+				$command .= "MY_COMMAND --version\n";  # assuming your program accepts --version as an argument
+				$command .= "echo ---------- MY COMMAND output follows ---------- \n";
+				$first = 0;
+			}
 			
 			# Figure out the encoding if we don't already know
 			if(!$encoding){
@@ -243,9 +259,9 @@ if($pe_files && scalar(@$pe_files) > 0){
 			my $output_fn = $files[0]."_".$files[1]."_processed.output";
 			
 			# Write our command!
-			my $command = "my_command $enc $param1 $param2 -c $cores -m $mem -g ".$config{genome_path}." -1 ".$files[0]." -2 ".$files[1]." -o $output_fn";
+			$command .= "my_command $enc $param1 $param2 -c $cores -m $mem -g ".$config{genome_path}." -1 ".$files[0]." -2 ".$files[1]." -o $output_fn";
 			# Write the command to the log file
-			warn "\n###CFCMD $command\n\n";
+			warn "\n###CFCMD ".join("\n###CFCMD ", split /\n/, $command)."\n\n";
 			
 			# Try to run the command - returns 0 on success (which evaluated to false)
 			if(!system ($command)){
