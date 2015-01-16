@@ -558,12 +558,11 @@ if ($cl_paired_end){
 	$runfile .= "\@force_single_end\n";
 }
 if ($cl_verbose) {
-	$cl_params .= " report_v";
+  	$runfile .= "\@verbose\n";
 }
 
 
 # Parse pipeline config file
-
 my $pipeline_string = "";
 while (<CONFIG>){
 	chomp;
@@ -892,7 +891,7 @@ sub make_qsubs {
 		my $sim_argv = "$runfn $GENOME cores_placeholder $parameters";
 		my $cores = `$module_fn $sim_argv --cores $TOTAL_CORES`;
 		if(!$cores || length($cores) == 0 || $cores =~ /\D/){
-			warn "\nWarning: no cores allocation or error parsing cores allocation: setting to 1Gb\n";
+			warn "\nWarning: no cores allocation or error parsing cores allocation for $module: setting to 1Gb\n";
 			$cores = 1;
 		}
 		
@@ -906,12 +905,18 @@ sub make_qsubs {
 			$mem = $1;
 			$memtype = 'h_vmem'			#code
 		}
-		#cli arg overrides module-recommended mem type
+		# cli arg overrides module-recommended mem type
 		$memtype = 'h_vmem' if ($cl_h_vmem);
 		if(!$mem || length($mem) == 0 || length($mem) > 20){
-			warn "\nWarning: no memory allocation or error parsing memory allocation: setting from $mem to 1Gb\n";
+			warn "\nWarning: no memory allocation or error parsing memory allocation for $module: setting from $mem to 1Gb\n";
 			$mem = '1G';
 		}
+        
+        # Get options for module. 4 - software version
+        if ($cl_verbose) {
+    		my $version_info = `$module_fn --version`;
+            warn "\nVersion information for module $module:\n$version_info\n\n";
+        }
 		
 		# formulate qsub command
 		my $cmd = "$module_fn $runfn $job_id $prev_job $cores $mem $parameters";
