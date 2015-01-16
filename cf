@@ -568,6 +568,9 @@ if ($cl_paired_end){
 } elsif ($cl_single_end){
 	$runfile .= "\@force_single_end\n";
 }
+if ($cl_h_vmem) {
+  	$runfile .= "\@h_vmem\n";
+}
 if ($cl_verbose) {
   	$runfile .= "\@verbose\n";
 }
