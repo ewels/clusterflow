@@ -545,6 +545,9 @@ foreach my $not (@NOTIFICATIONS){
 	$runfile .= "\@notification\t$not\n";
 }
 
+if(defined($GENOME)){
+	$runfile .= "\@genome\t$GENOME\n";
+}
 if(defined($GENOME) && defined($GENOME_PATHS{$GENOME})){
 	$runfile .= "\@genome_path\t$GENOME_PATHS{$GENOME}\n";
 }
@@ -888,7 +891,7 @@ sub make_qsubs {
 		}
 		
 		# Get options for module. 1 - Load environment modules
-		my $required_modules = `$module_fn --modules`;
+		my $required_modules = `$module_fn --modules --runfn $runfn`;
 		if($required_modules && length($required_modules) > 0){
 			my @req_modules = split(/[\s,]+/, $required_modules);
 			&CF::Helpers::load_environment_modules(\@req_modules, \%LOADED_MODULES)
@@ -901,30 +904,23 @@ sub make_qsubs {
 		
 		
 		# Get options for module. 2 - negotiate cores
-        my $sim_argv_genome;
-        if(defined($GENOME)){
-            $sim_argv_genome = $GENOME;
-        } else {
-            $sim_argv_genome = "genome_placeholder";
-        }
-        my $sim_argv = "$runfn $sim_argv_genome cores_placeholder $parameters";
-		my $cores = `$module_fn $sim_argv --cores $TOTAL_CORES`;
+		my $cores = `$module_fn --cores $TOTAL_CORES --runfn $runfn`;
 		if(!$cores || length($cores) == 0 || $cores =~ /\D/){
 			warn "\nWarning: no cores allocation or error parsing cores allocation for $module: setting to 1Gb\n";
 			$cores = 1;
 		}
 		
 		# Get options for module. 3 - negotiate memory
-		$sim_argv = "$runfn $sim_argv_genome $cores $parameters";
-		my $mem = `$module_fn $sim_argv --mem $TOTAL_MEM`;
+		my $mem = `$module_fn --mem $TOTAL_MEM --runfn $runfn`;
+        
 		# memory type for Grid Engine:
-		#set to vmem if module returns "h_vmem" as a prefix for its --mem request
+		# set to vmem if module returns "h_vmem" as a prefix for its --mem request
 		my $memtype = 'vf';
 		if ($mem =~ /^h_vmem(.+)/) {
 			$mem = $1;
-			$memtype = 'h_vmem'			#code
+			$memtype = 'h_vmem';
 		}
-		# cli arg overrides module-recommended mem type
+		# Command line argument overrides module-recommended memory type
 		$memtype = 'h_vmem' if ($cl_h_vmem);
 		if(!$mem || length($mem) == 0 || length($mem) > 20){
 			warn "\nWarning: no memory allocation or error parsing memory allocation for $module: setting from $mem to 1Gb\n";
