@@ -51,6 +51,7 @@ my $cl_paired_end;
 my $cl_single_end;
 my $cl_no_fn_check;
 my $file_list;
+my $cl_runfile_prefix = "";
 my $cl_params = '';
 my $cl_email;
 my $cl_priority;
@@ -88,11 +89,13 @@ my $config_result = GetOptions(
 	"single" => \$cl_single_end,
 	"no_fn_check" => \$cl_no_fn_check,
 	"file_list=s" => \$file_list,
+    "runfile_prefix=s" => \$cl_runfile_prefix,
 	"params=s" => \$cl_params,
 	"email=s" => \$cl_email,
 	"priority=i" => \$cl_priority,
 	"cores=i" => \$cl_total_cores,
 	"mem=s" => \$cl_total_mem,
+	"h_vmem" => \$cl_h_vmem,
 	"notifications=s"  => \$cl_notifications,
 	"list_pipelines" => \$cl_list_pipelines,
 	"list_modules" => \$cl_list_modules,
@@ -109,7 +112,6 @@ my $config_result = GetOptions(
 	"qname=s" => \$cl_qname,
 	"verbose" => \$cl_verbose,
     "print_versions" => \$cl_print_versions,
-	"h_vmem" => \$cl_h_vmem,
 	"help" => \$cl_help
 );
 
@@ -743,7 +745,7 @@ for (my $i = 0; $i <= $#files; $i++){
 	my $outfn = $fn."_".$pipeline."_clusterFlow.txt";
 	
 	# Make the run file
-	my $runfn = $fn."_$pipeline.run";
+	my $runfn = $cl_runfile_prefix.$fn."_$pipeline.run";
 	my $date = strftime "%H:%M, %d-%m-%Y", localtime;
 	my $this_runfile = "/*\nCluster Flow Run File\nPipeline: $pipeline\nCreated at $date\n*/\n\n".$runfile."\n\n";
 	
