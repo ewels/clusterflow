@@ -45,22 +45,32 @@ if($required_cores){
 }
 # --mem. Return the required memory allocation.
 if($required_mem){
-	my ($runfn, $GENOME, $cores, @parameters) = @ARGV;
-	my ($starting_files, $config) = CF::Helpers::parse_runfile_prerun($runfn);
-	my @h_vmem = grep(/^h_vmem$/, @parameters);
-	my $minmem=32000111000;
-	
-	# estimate memory based on genome size
-	if (exists($$config{"star_path"})) {
-		my $star_path = $$config{"star_path"}."SA";
-		if (-e $star_path){
-			$minmem = int(1.5* -s $star_path);
-			$minmem = 16000111000 if $minmem < 16000111000;
-		}	
-	}
-	my $maxmem=int($minmem*1.8);	
-	print $h_vmem[0].CF::Helpers::allocate_memory($required_mem, $minmem, $maxmem);
-	exit;
+    if(!$run_fn){
+        print '10G';
+        exit;
+    } else {
+        # Parse the run file
+        my ($starting_files, $config) = CF::Helpers::parse_runfile($run_fn);
+        
+        # Have we specified h_vmem?
+        my $h_vmem = '';
+        if(exists($$config{"h_vmem"})){
+            $h_vmem = 'h_vmem';
+        }
+    	
+    	# estimate memory based on genome size
+        my $minmem = 32000111000;
+    	if (exists($$config{"star_path"})) {
+    		my $star_path = $$config{"star_path"}."SA";
+    		if (-e $star_path){
+    			$minmem = int(1.5 * -s $star_path);
+    			$minmem = 16000111000 if $minmem < 16000111000;
+    		}	
+    	}
+    	my $maxmem = int($minmem * 1.8);	
+    	print $h_vmem.CF::Helpers::allocate_memory($required_mem, $minmem, $maxmem);
+    	exit;
+    }
 }
 # --modules. Return csv names of any modules which should be loaded.
 if($required_modules){
