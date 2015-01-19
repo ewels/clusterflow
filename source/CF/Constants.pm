@@ -509,9 +509,6 @@ AVAILABLE FLAGS
 		
 	--mem <string>
 		Set the maximum memory to use for all runs
-		
-    --h_vmem
-        Set the h_vmem option for SGE clusters
     
 	--notifications <cresa>
 		Specify desired notifications
