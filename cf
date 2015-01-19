@@ -40,11 +40,7 @@ my $pipeline;
 
 # Get command line parameters
 my $GENOME;
-my $cl_genome_path;
-my $cl_bowtie_path;
-my $cl_bowtie2_path;
-my $cl_star_path;
-my $cl_gtf_path;
+my $cl_reference;
 my $SPLIT_FILES = 1;
 my $cl_max_runs;
 my $cl_paired_end;
@@ -77,11 +73,7 @@ my $cl_help;
 
 my $config_result = GetOptions(
 	"genome=s" => \$GENOME,
-	"genome_path=s" => \$cl_genome_path,
-	"bowtie_path=s" => \$cl_bowtie_path,
-	"bowtie2_path=s" => \$cl_bowtie2_path,
-	"star_path=s" => \$cl_star_path,
-	"gtf_path=s" => \$cl_gtf_path,
+    "ref=s" => \$cl_reference,
 	"split_files=i" => \$SPLIT_FILES,
 	"max_runs=i" => \$cl_max_runs,
 	"paired" => \$cl_paired_end,
@@ -141,25 +133,14 @@ my @LOG_HIGHLIGHT_STRINGS = @CF::Constants::LOG_HIGHLIGHT_STRINGS;
 my @LOG_WARNING_STRINGS = @CF::Constants::LOG_WARNING_STRINGS;
 
 # Set up genomes
-my %GENOME_PATH_CONFIGS = %CF::Constants::GENOME_PATH_CONFIGS;
-my %BOWTIE_PATH_CONFIGS = %CF::Constants::BOWTIE_PATH_CONFIGS;
-my %BOWTIE2_PATH_CONFIGS = %CF::Constants::BOWTIE2_PATH_CONFIGS;
-my %STAR_PATH_CONFIGS = %CF::Constants::STAR_PATH_CONFIGS;
-my %GTF_PATH_CONFIGS = %CF::Constants::GTF_PATH_CONFIGS;
-my %GENOME_PATHS = %CF::Constants::GENOME_PATHS;
-my %BOWTIE_PATHS = %CF::Constants::BOWTIE_PATHS;
-my %BOWTIE2_PATHS = %CF::Constants::BOWTIE2_PATHS;
-my %STAR_PATHS = %CF::Constants::STAR_PATHS;
-my %GTF_PATHS = %CF::Constants::GTF_PATHS;
-my %GENOME_SPECIES = %CF::Constants::GENOME_SPECIES;
-my %BOWTIE_SPECIES = %CF::Constants::BOWTIE_SPECIES;
-my %BOWTIE2_SPECIES = %CF::Constants::BOWTIE2_SPECIES;
-my %GTF_SPECIES = %CF::Constants::GTF_SPECIES;
-my %GENOME_ASSEMBLIES = %CF::Constants::GENOME_ASSEMBLIES;
-my %BOWTIE_ASSEMBLIES = %CF::Constants::BOWTIE_ASSEMBLIES;
-my %BOWTIE2_ASSEMBLIES = %CF::Constants::BOWTIE2_ASSEMBLIES;
-my %GTF_ASSEMBLIES = %CF::Constants::GTF_ASSEMBLIES;
+my %REFERENCES = %CF::Constants::REFERENCES;
+if($cl_reference){
+    my ($type, $path) = split('=', $cl_reference, 2);
+	$REFERENCES{$type}{"command_line"} = $path;
+	$GENOME = "command_line";
+}
 
+# Holders for tracking job IDs and loaded modules
 my %JOB_NUM_IDS;
 my %LOADED_MODULES;
 
@@ -176,26 +157,6 @@ if($cl_notifications){
 		push (@NOTIFICATIONS, 'error') if($not eq 'e');
 		push (@NOTIFICATIONS, 'abort') if($not eq 'a');
 	}
-}
-if($cl_genome_path){
-	$GENOME_PATHS{"command_line"} = $cl_genome_path;
-	$GENOME = "command_line";
-}
-if($cl_bowtie_path){
-	$BOWTIE_PATHS{"command_line"} = $cl_bowtie_path;
-	$GENOME = "command_line";
-}
-if($cl_bowtie2_path){
-	$BOWTIE2_PATHS{"command_line"} = $cl_bowtie2_path;
-	$GENOME = "command_line";
-}
-if($cl_star_path){
-	$STAR_PATHS{"command_line"} = $cl_star_path;
- 	$GENOME = "command_line";
-}
-if($cl_gtf_path){
-	$GTF_PATHS{"command_line"} = $cl_gtf_path;
-	$GENOME = "command_line";
 }
 if(defined($cl_priority)){
 	$PRIORITY = $cl_priority;
@@ -316,7 +277,7 @@ if($cl_qdel){
 		print CF::Headnodehelpers::cf_pipeline_scancel($cl_qdel);
 		exit;
 	} else {
-		print "Apologies, this function is not yet supported for systems other than GRIDEngine.\n";
+		print "Apologies, this function is not yet supported for systems other than GRIDEngine and SLURM.\n";
 		exit;
 	}
 }
@@ -545,21 +506,11 @@ foreach my $not (@NOTIFICATIONS){
 
 if(defined($GENOME)){
 	$runfile .= "\@genome\t$GENOME\n";
-}
-if(defined($GENOME) && defined($GENOME_PATHS{$GENOME})){
-	$runfile .= "\@genome_path\t$GENOME_PATHS{$GENOME}\n";
-}
-if(defined($GENOME) && defined($BOWTIE_PATHS{$GENOME})){
-	$runfile .= "\@bowtie_path\t$BOWTIE_PATHS{$GENOME}\n";
-}
-if(defined($GENOME) && defined($BOWTIE2_PATHS{$GENOME})){
-	$runfile .= "\@bowtie2_path\t$BOWTIE2_PATHS{$GENOME}\n";
-}
-if(defined($GENOME) && defined($STAR_PATHS{$GENOME})){
-	$runfile .= "\@star_path\t$STAR_PATHS{$GENOME}\n";
-}
-if(defined($GENOME) && defined($GTF_PATHS{$GENOME})){
-	$runfile .= "\@gtf_path\t$GTF_PATHS{$GENOME}\n";
+    foreach my $ref_type ( keys %REFERENCES){
+        if(defined($REFERENCES{$ref_type}{$GENOME})){
+            $runfile .= "\@reference\t$ref_type\t$REFERENCES{$ref_type}{$GENOME}\n";
+        }
+    }
 }
 if ($cl_paired_end){
 	$runfile .= "\@force_paired_end\n";
@@ -590,68 +541,17 @@ while (<CONFIG>){
 		next;
 	}
 	
-	# Required variables
-	if($_ =~ /^\@require_genome/ && !$comment_block){
+	# Required reference
+	if($_ =~ /^\@require_reference/ && !$comment_block){
+        my $ref_type = (split(/\s+/, $_, 2))[1];        
 		if(!defined $GENOME){
-			warn "\n### Error - The pipeline $pipeline requires a genome to be set with --genome or --genome_path. Exiting... ### \n\n";
+			warn "\n### Error - The pipeline $pipeline requires a genome to be set with --genome or --ref. Exiting... ### \n\n";
 			exit;
-		} elsif(!defined $GENOME_PATHS{$GENOME}){
-			warn "\n### Error ###\nNo genome path found for $GENOME.\n\nAvailable genome paths:\n";
-			while ( (my $genome, my $path) = each %GENOME_PATHS ) {
-				warn "\tGenome: $genome, Path: $GENOME_PATHS{$genome}\n";
-			}
-			warn "\n\nExiting...\n\n";
-			exit;
-		}
-	}
-	if($_ =~ /^\@require_bowtie/ && !$comment_block){
-		if(!defined $GENOME){
-			warn "\n### Error - The pipeline $pipeline requires a bowtie index to be set with --genome or --bowtie_path. Exiting... ### \n\n";
-			exit;
-		} elsif(!defined $BOWTIE_PATHS{$GENOME}){
-			warn "\n### Error ###\nNo bowtie path found for $GENOME.\n\nAvailable bowtie paths:\n";
-			while ( (my $genome, my $path) = each %BOWTIE_PATHS ) {
-			  warn "\tGenome: $genome, Path: $BOWTIE_PATHS{$genome}\n";
-			}
-			warn "\n\nExiting...\n\n";
-			exit;
-		}
-	}
-	if($_ =~ /^\@require_bowtie2/ && !$comment_block){
-		if(!defined $GENOME){
-			warn "\n### Error - The pipeline $pipeline requires a bowtie index to be set with --genome or --bowtie2_path. Exiting... ### \n\n";
-			exit;
-		} elsif(!defined $BOWTIE2_PATHS{$GENOME}){
-			warn "\n### Error ###\nNo bowtie2 path found for $GENOME.\n\nAvailable bowtie2 paths:\n";
-			while ( (my $genome, my $path) = each %BOWTIE2_PATHS ) {
-			  warn "\tGenome: $genome, Path: $BOWTIE2_PATHS{$genome}\n";
-			}
-			warn "\n\nExiting...\n\n";
-			exit;
-		}
-	}
-	if($_ =~ /^\@require_star/ && !$comment_block){
-		if(!defined $GENOME){
-			warn "\n### Error - The pipeline $pipeline requires a star index to be set with --genome or --star_path. Exiting... ### \n\n";
-			exit;
-		} elsif(!defined $STAR_PATHS{$GENOME}){
-			warn "\n### Error ###\nNo star path found for $GENOME.\n\nAvailable star paths:\n";
-			while ( (my $genome, my $path) = each %STAR_PATHS ) {
-			  warn "\tGenome: $genome, Path: $STAR_PATHS{$genome}\n";
-			}
-			warn "\n\nExiting...\n\n";
-			exit;
-		}
-	}
-	if($_ =~ /^\@require_gtf/ && !$comment_block){
-		if(!defined $GENOME){
-			warn "\n### Error - The pipeline $pipeline requires a GTF path to be set with --genome or --gtf_path. Exiting... ### \n\n";
-			exit;
-		} elsif(!defined $GTF_PATHS{$GENOME}){
-			warn "\n### Error ###\nNo GTF path found for $GENOME.\n\nAvailable GTF paths:\n";
-			while ( (my $genome, my $path) = each %GTF_PATHS ) {
-			  warn "\tGenome: $genome, Path: $GTF_PATHS{$genome}\n";
-			}
+		} elsif(!defined $REFERENCES{$ref_type}{$GENOME}{path}){
+			warn "\n### Error ###\nNo $ref_type path found for $GENOME.\n\nAvailable $ref_type paths:\n";
+            foreach my $genome_key ( keys %{$REFERENCES{$ref_type}}){
+                warn "\tGenome: $genome_key, Path: %REFERENCES{$ref_type}{$genome_key}{path}\n";
+            }
 			warn "\n\nExiting...\n\n";
 			exit;
 		}

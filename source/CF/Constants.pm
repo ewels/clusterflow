@@ -49,27 +49,8 @@ our %ENV_MODULE_ALIASES;
 our @LOG_HIGHLIGHT_STRINGS;
 our @LOG_WARNING_STRINGS;
 
-# Empty genome path vars
-our %GENOME_PATH_CONFIGS;
-our %BOWTIE_PATH_CONFIGS;
-our %BOWTIE2_PATH_CONFIGS;
-our %STAR_PATH_CONFIGS;
-our %GTF_PATH_CONFIGS;
-our %GENOME_PATHS;
-our %BOWTIE_PATHS;
-our %BOWTIE2_PATHS;
-our %STAR_PATHS;
-our %GTF_PATHS;
-our %GENOME_SPECIES;
-our %BOWTIE_SPECIES;
-our %BOWTIE2_SPECIES;
-our %STAR_SPECIES;
-our %GTF_SPECIES;
-our %GENOME_ASSEMBLIES;
-our %BOWTIE_ASSEMBLIES;
-our %BOWTIE2_ASSEMBLIES;
-our %STAR_ASSEMBLIES;
-our %GTF_ASSEMBLIES;
+# Empty references hash
+our %REFERENCES;
 
 # Update checking variables
 our $AVAILABLE_VERSION;
@@ -187,40 +168,14 @@ sub parse_genomes_file {
 					$comment_block = 0;
 					next;
 				}
-				if($_ =~ /^\@/ && !$comment_block){
+				if($_ =~ /^\@reference/ && !$comment_block){
 					my @sections = split(/\s+/, $_);
-					$config{substr($sections[0], 1)} = $sections[1];
-					my $path_type = substr($sections[0], 1);
-					my $key = $sections[1];
-					my $path = $sections[2];
-					my $species = $sections[3];
-					my $assembly = $sections[4];
-					if($path_type eq 'genome_path'){
-						$GENOME_PATH_CONFIGS{$key} = $genome_file;
-						$GENOME_PATHS{$key} = $path;
-						$GENOME_SPECIES{$key} = $species;
-						$GENOME_ASSEMBLIES{$key} = $assembly;
-					} elsif($path_type eq 'bowtie_path'){
-						$BOWTIE_PATH_CONFIGS{$key} = $genome_file;
-						$BOWTIE_PATHS{$key} = $path;
-						$BOWTIE_SPECIES{$key} = $species;
-						$BOWTIE_ASSEMBLIES{$key} = $assembly;
-					} elsif($path_type eq 'bowtie2_path'){
-						$BOWTIE2_PATH_CONFIGS{$key} = $genome_file;
-						$BOWTIE2_PATHS{$key} = $path;
-						$BOWTIE2_SPECIES{$key} = $species;
-						$BOWTIE2_ASSEMBLIES{$key} = $assembly;
-					} elsif($path_type eq 'star_path'){
-						$STAR_PATH_CONFIGS{$key} = $genome_file;
-						$STAR_PATHS{$key} = $path;
-						$STAR_SPECIES{$key} = $species;
-						$STAR_ASSEMBLIES{$key} = $assembly;
-					} elsif($path_type eq 'gtf_path'){
-						$GTF_PATH_CONFIGS{$key} = $genome_file;
-						$GTF_PATHS{$key} = $path;
-						$GTF_SPECIES{$key} = $species;
-						$GTF_ASSEMBLIES{$key} = $assembly;
-					}
+					my $ref_type = $sections[1];
+					my $key = $sections[2];
+					$REFERENCES{$ref_type}{$key}{path} = $sections[3];
+					$REFERENCES{$ref_type}{$key}{species} = $sections[4] if defined $sections[4];
+					$REFERENCES{$ref_type}{$key}{assembly} = $sections[5] if defined $sections[5];
+                    $REFERENCES{$ref_type}{$key}{config_file} = $genome_file
 				}
 			}
 			close(GCONFIG);
@@ -254,98 +209,37 @@ sub list_clusterflow_genomes {
 	
 	my @config_files = ("$FindBin::Bin/genomes.config", "$homedir/clusterflow/genomes.config", './genomes.config');
 	
-	# See if we have any paths in each config file
-	my %GENOME_PATH_CONFIGS_COUNTS;
-	while ( my($key, $value) = each %GENOME_PATH_CONFIGS){
-		$GENOME_PATH_CONFIGS_COUNTS{$value} = 1;
-	}
-	my %BOWTIE_PATH_CONFIGS_COUNTS;
-	while ( my($key, $value) = each %BOWTIE_PATH_CONFIGS){
-		$BOWTIE_PATH_CONFIGS_COUNTS{$value} = 1;
-	}
-	my %BOWTIE2_PATH_CONFIGS_COUNTS;
-	while ( my($key, $value) = each %BOWTIE2_PATH_CONFIGS){
-		$BOWTIE2_PATH_CONFIGS_COUNTS{$value} = 1;
-	}
-	my %STAR_PATH_CONFIGS_COUNTS;
-	while ( my($key, $value) = each %STAR_PATH_CONFIGS){
-		$STAR_PATH_CONFIGS_COUNTS{$value} = 1;
-	}
-	my %GTF_PATH_CONFIGS_COUNTS;
-	while ( my($key, $value) = each %GTF_PATH_CONFIGS){
-		$GTF_PATH_CONFIGS_COUNTS{$value} = 1;
-	}
-	
 	foreach my $config_file (@config_files){
-		
-		next if(!defined ($GENOME_PATH_CONFIGS_COUNTS{$config_file}) && !defined ($BOWTIE_PATH_CONFIGS_COUNTS{$config_file}) && !defined ($BOWTIE2_PATH_CONFIGS_COUNTS{$config_file}) && !defined ($STAR_PATH_CONFIGS_COUNTS{$config_file}) && !defined ($GTF_PATH_CONFIGS_COUNTS{$config_file}));
-		$returnstring .= "\n".('-' x 50)."\n $config_file\n".('-' x 50)."\n";
-		if(defined ($GENOME_PATH_CONFIGS_COUNTS{$config_file})){
-			$returnstring .= "\n== Genome Paths ==\n";
-			$returnstring .= " Key                 Species             Assembly            Path\n".("-" x 100)."\n";
-			foreach my $key (sort keys %GENOME_PATHS ) {
-				my $key_spaces = " " x (20 - length($key));
-				my $species_spaces = " " x 20;
-				my $assembly_spaces = " " x 15;
-				if(defined($GENOME_SPECIES{$key})){
-					$species_spaces = " " x (20 - length($GENOME_SPECIES{$key}));
-				}
-				if(defined($GENOME_ASSEMBLIES{$key})){
-					$assembly_spaces = " " x (15 - length($GENOME_ASSEMBLIES{$key}));
-				}
-				if($GENOME_PATH_CONFIGS{$key} eq $config_file){
-					$returnstring .= " ".$key.$key_spaces.$GENOME_SPECIES{$key}.$species_spaces.$GENOME_ASSEMBLIES{$key}.$assembly_spaces.$GENOME_PATHS{$key}."\n";
-				}
-			}
-		}
-		if(defined ($BOWTIE_PATH_CONFIGS_COUNTS{$config_file})){
-			$returnstring .= "\n== Bowtie Index Base Paths ==\n";
-			$returnstring .= " Key                 Species             Assembly            Path\n".("-" x 100)."\n";
-			foreach my $key (sort keys %BOWTIE_PATHS ) {
-				my $key_spaces = " " x (20 - length($key));
-				my $species_spaces = " " x (20 - length($BOWTIE_SPECIES{$key}));
-				my $assembly_spaces = " " x (15 - length($BOWTIE_ASSEMBLIES{$key}));
-				if($BOWTIE_PATH_CONFIGS{$key} eq $config_file){
-					$returnstring .= " ".$key.$key_spaces.$BOWTIE_SPECIES{$key}.$species_spaces.$BOWTIE_ASSEMBLIES{$key}.$assembly_spaces.$BOWTIE_PATHS{$key}."\n";
-				}
-			}
-		}
-		if(defined ($BOWTIE2_PATH_CONFIGS_COUNTS{$config_file})){
-			$returnstring .= "\n== Bowtie 2 Index Base Paths ==\n";
-			$returnstring .= " Key                 Species             Assembly            Path\n".("-" x 100)."\n";
-			foreach my $key (sort keys %BOWTIE2_PATHS ) {
-				my $key_spaces = " " x (20 - length($key));
-				my $species_spaces = " " x (20 - length($BOWTIE2_SPECIES{$key}));
-				my $assembly_spaces = " " x (15 - length($BOWTIE2_ASSEMBLIES{$key}));
-				if($BOWTIE2_PATH_CONFIGS{$key} eq $config_file){
-					$returnstring .= " ".$key.$key_spaces.$BOWTIE2_SPECIES{$key}.$species_spaces.$BOWTIE2_ASSEMBLIES{$key}.$assembly_spaces.$BOWTIE2_PATHS{$key}."\n";
-				}
-			}
-		}
-		if(defined ($STAR_PATH_CONFIGS_COUNTS{$config_file})){
-			$returnstring .= "\n== STAR File Paths ==\n";
-			$returnstring .= " Key                 Species             Assembly            Path\n".("-" x 100)."\n";
-			foreach my $key (sort keys %STAR_PATHS ) {
-				my $key_spaces = " " x (20 - length($key));
-				my $species_spaces = " " x (20 - length($STAR_SPECIES{$key}));
-				my $assembly_spaces = " " x (15 - length($STAR_ASSEMBLIES{$key}));
-				if($STAR_PATH_CONFIGS{$key} eq $config_file){
-					$returnstring .= " ".$key.$key_spaces.$STAR_SPECIES{$key}.$species_spaces.$STAR_ASSEMBLIES{$key}.$assembly_spaces.$STAR_PATHS{$key}."\n";
- 				}
- 			}
- 		}
-		if(defined ($GTF_PATH_CONFIGS_COUNTS{$config_file})){
-			$returnstring .= "\n== GTF File Paths ==\n";
-			$returnstring .= " Key                 Species             Assembly            Path\n".("-" x 100)."\n";
-			foreach my $key (sort keys %GTF_PATHS ) {
-				my $key_spaces = " " x (20 - length($key));
-				my $species_spaces = " " x (20 - length($GTF_SPECIES{$key}));
-				my $assembly_spaces = " " x (15 - length($GTF_ASSEMBLIES{$key}));
-				if($GTF_PATH_CONFIGS{$key} eq $config_file){
-					$returnstring .= " ".$key.$key_spaces.$GTF_SPECIES{$key}.$species_spaces.$GTF_ASSEMBLIES{$key}.$assembly_spaces.$GTF_PATHS{$key}."\n";
-				}
-			}
-		}
+        
+        my $conf_count = 0;
+        my $conf_file_string .= "\n".('-' x 50)."\n $config_file\n".('-' x 50)."\n";
+        foreach my $ref_type ( keys %REFERENCES){
+            my $type_count = 0;
+            my $type_string = "\n== $ref_type Paths ==\n";
+            foreach my $genome_key ( keys %{$REFERENCES{$ref_type}}){
+                if(defined($REFERENCES{$ref_type}{$genome_key}{config_file}) && $REFERENCES{$ref_type}{$genome_key}{config_file} == $config_file){
+                    my $this_key = $genome_key." " x (20 - length($genome_key));
+                    my $this_species = " " x 20;
+                    if(defined($REFERENCES{$ref_type}{$genome_key}{species})){
+                        $this_species = $REFERENCES{$ref_type}{$genome_key}{species}." " x (20 - length($REFERENCES{$ref_type}{$genome_key}{species}));
+                    }
+                    my $this_assembly = " " x 15;
+                    if(defined($REFERENCES{$ref_type}{$genome_key}{assembly})){
+                        $this_species = $REFERENCES{$ref_type}{$genome_key}{assembly}." " x (15 - length($REFERENCES{$ref_type}{$genome_key}{assembly}));
+                    }
+                    my $this_path = $REFERENCES{$ref_type}{$genome_key}{path};
+                    $type_string .= " ".$this_key.$this_species.$this_assembly.$this_path."\n";
+                    $conf_count++;
+                    $type_count++;
+                }
+            }
+            if($type_count > 0){
+                $conf_file_string .= $type_string;
+            }
+        }
+        if($conf_count > 0){
+            $returnstring .= $conf_file_string;
+        }
 	}
 	$returnstring .= "\n";
 	
@@ -450,24 +344,10 @@ AVAILABLE FLAGS
 		This genome ID is used to specify genome paths, bowtie
 		index basenames and GTF file paths.
 		
-	--genome_path <path>
-		Path to a genome to be used for alignment. Overrides --genome
-		
-	--bowtie_path <path>
-		Path to a bowtie index basename to be used for alignment.
-		Overrides any bowtie path set with --genome
-	
-	--bowtie2_path <path>
-		Path to a bowtie2 index basename to be used for alignment.
-		Overrides any bowtie path set with --genome
-			
-	--star_path <path>
-		Path to a STAR index basename to be used for alignment.
-		Overrides any STAR path set with --genome
-		
-	--gtf_path <path>
-		Path to a GTF file to be used for alignment (eg. Tophat).
-		Overrides any GTF path set with --genome
+	--ref <type>=<path>
+		Path to a reference to be used for alignment. Overrides --genome
+        Possible values for type: fasta / bowtie / bowtie2 / star / gtf
+        eg: --ref fasta=/path/to/fasta/files
 		
 	--paired
 		Force paired-end mode
@@ -587,276 +467,283 @@ EOT
 ####################################
 # Function to run interactive shell prompt to add new genomes
 ####################################
-sub clusterflow_add_genome {
 
-	print "\n\nCluster Flow Genomes Config Generator\n======================================\nRunning Cluster Flow version $CF_VERSION\n";
-	print "\nThis wizard will add a new genome to your genomes.config file\n\n";
-	
-	# Determine which config file to append to
-	my $cwd = Cwd::getcwd();
-	print "First off, which config file would you like to add this genome to?
-
-1 - Cluster Flow Installation directory, will be visible for all users
-       $FindBin::Bin/genomes.config
-	   
-2 - Your home directory, will be visible for you whenever you run Cluster Flow
-       $homedir/clusterflow/genomes.config
-	   
-3 - This directory, will only be visible when running Cluster Flow here
-       $cwd/genomes.config
-
-Please enter 1-3 to select one of the file paths..\n";
-	
-	my $fn;
-	while ($fn = <STDIN>){
-		chomp ($fn);
-		if ($fn =~ /^1$/){
-			$fn = "$FindBin::Bin/genomes.config";
-			last;
-		} elsif ($fn =~ /^2$/){
-			$fn = "$homedir/clusterflow/genomes.config";
-			last;
-		} elsif ($fn =~ /^3$/){
-			$fn = "./genomes.config";
-			last;
-		} else {
-			print "\nSorry, I didn't understand that.\nPlease enter a number, 1-3..\n\n";
-		}
-	}
-	print "Great - we'll use $fn\n\n";
-	unless (-e $fn) {
-		print "This file doesn't yet exist, and will be created..\n\n";
-	}
-	# Open straight away - if permission errors will die before any further faff
-	open (OUT,'>>',$fn) or die "Can't write to $fn: $!";
-	
-	# Get Species and assembly
-	print "To help identify genomes when using cf --list_genomes,you can specify\na species and an assembly.This are both optional - just\nleave blank and press enter to ignore.\n\n";
-	
-	print "Please enter the species name (eg. Human):\n";
-	my $species = <STDIN>;
-	chomp ($species);
-	
-	print "\nPlease enter the assembly name (eg. GRCh37):\n";
-	my $assembly = <STDIN>;
-	chomp ($assembly);
-	
-	# Get genome ID
-	print "\nNext, we need a unique ID for the genome. This is what\nyou will specify when you run jobs with --genome.\nWe often just use the assembly name. Alphanumeric with _ and - only.\n";
-	my $genomeID;
-	GENOMEIDWHILE: while ($genomeID = <STDIN>){
-		chomp ($genomeID);
-		$genomeID =~ s/[^\w-]//g;
-		if(length($genomeID) == 0){
-			print "Sorry, this ID is required. Please enter a value:\n";
-			next;
-		}
-		my $confirm = 0;
-		if(defined($GENOME_PATH_CONFIGS{$genomeID})){
-			print " # A genome path with this ID already exists! It's defined in ".$GENOME_PATH_CONFIGS{$genomeID}."\n";
-			$confirm = 1;
-		}
-		if(defined($BOWTIE_PATH_CONFIGS{$genomeID})){
-			print " # A bowtie path with this ID already exists! It's defined in ".$BOWTIE_PATH_CONFIGS{$genomeID}."\n";
-			$confirm = 1;
-		}
-		if(defined($GTF_PATH_CONFIGS{$genomeID})){
-			print " # A GTF path with this ID already exists! It's defined in ".$GTF_PATH_CONFIGS{$genomeID}."\n";
-			$confirm = 1;
-		}
-		if($confirm){
-			print "You can still use this ID, but it may overwrite previous path definitions..\nDo you want to continue?\n\n";
-			while (my $continue = <STDIN>){
-				chomp ($continue);
-				if ($continue =~ /^n(o)?/i){
-					print "\nOk, please enter a new ID:\n\n";
-					last;
-				} elsif($continue =~ /^y(es)?/i){
-					print "\nOk, we'll continue with $genomeID then..\n\n";
-					last GENOMEIDWHILE;
-				} else {
-					print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
-				}
-			}
-		} else {
-			print "\nGreat - we'll continue with $genomeID\n\n";
-			last;
-		}
-	}
-	
-	# Get paths
-	print "Ok, now we have this information we can add three types of file paths:
-Genome Path: A directory containing the fasta files for the genome
-Bowtie Path: A full path including the filename stub for bowtie indices
-             (everything except .[1-4].ebwt or .[1-4].bt2)
-GTF Path:    A filename path to a genome GTF file.\n\n";
-	
-	print "Please enter the genome path. Leave blank if you don't want to add one..\n";
-	my $genome_path;
-	GENOMEWHILE: while ($genome_path = <STDIN>){
-		chomp ($genome_path);
-		if(length($genome_path) == 0){
-			print "Ok, not adding any genome paths..\n\n";
-			last;
-		} elsif (-d $genome_path) {
-			print "Great! Looks good and I can find it..\n\n";
-			last;
-		} elsif (-e $genome_path) {
-			print "Hmm, this looks like a file rather than a directory..\n\n";
-		} else {
-			print "Oops! This directory doesn't exist!\n\n";
-		}
-		print "Do you want to add this to the config file anyway?\n";
-		while (my $continue = <STDIN>){
-			chomp ($continue);
-			if ($continue =~ /^n(o)?/i){
-				print "\nOk, please enter the genome path again:\n\n";
-				last;
-			} elsif($continue =~ /^y(es)?/i){
-				print "\nOk, I'll add $genome_path\n\n";
-				last GENOMEWHILE;
-			} else {
-				print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
-			}
-		}
-	}
-	
-	print "Please enter the bowtie path. Leave blank if you don't want to add one..\n";
-	my $bowtie_path;
-	BOWTIEWHILE: while ($bowtie_path = <STDIN>){
-		chomp ($bowtie_path);
-		if(length($bowtie_path) == 0){
-			print "Ok, not adding any bowtie paths..\n\n";
-			last;
-		} elsif (glob("$bowtie_path.[1-4].ebwt")) {
-			print "Looks good! I found the following matching bowtie indices:\n - ".join("\n - ", glob("$bowtie_path.[1-4].ebwt"))."\n\n";
-			last;
-		} else {
-			print "I couldn't find any matching bowtie indices for this path\nI tried $bowtie_path.[1-4].ebwt\n\n";
-		}
-		print "Do you want to add this to the config file anyway?\n";
-		while (my $continue = <STDIN>){
-			chomp ($continue);
-			if ($continue =~ /^n(o)?/i){
-				print "\nOk, please enter the bowtie path again:\n\n";
-				last;
-			} elsif($continue =~ /^y(es)?/i){
-				print "\nOk, I'll add $bowtie_path\n\n";
-				last BOWTIEWHILE;
-			} else {
-				print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
-			}
-		}
-	}
-	
-	print "Please enter the bowtie 2 path. Leave blank if you don't want to add one..\n";
-	my $bowtie2_path;
-	BOWTIE2WHILE: while ($bowtie2_path = <STDIN>){
-		chomp ($bowtie2_path);
-		if(length($bowtie2_path) == 0){
-			print "Ok, not adding any bowtie 2 paths..\n\n";
-			last;
-		} elsif (glob("$bowtie2_path.[1-4].bt2")) {
-			print "Looks good! I found the following matching bowtie 2 indices:\n - ".join("\n - ", glob("$bowtie2_path.[1-4].bt2"))."\n\n";
-			last;
-		} else {
-			print "I couldn't find any matching bowtie indices for this path\nI tried $bowtie2_path.[1-4].bt2\n\n";
-		}
-		print "Do you want to add this to the config file anyway?\n";
-		while (my $continue = <STDIN>){
-			chomp ($continue);
-			if ($continue =~ /^n(o)?/i){
-				print "\nOk, please enter the bowtie 2 path again:\n\n";
-				last;
-			} elsif($continue =~ /^y(es)?/i){
-				print "\nOk, I'll add $bowtie2_path\n\n";
-				last BOWTIE2WHILE;
-			} else {
-				print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
-			}
-		}
-	}
-	
-	print "Please enter the STAR file path. Leave blank if you don't want to add one..\n";
-	my $star_path;
-	STARWHILE: while ($star_path = <STDIN>){
-		chomp ($star_path);
-		if(length($star_path) == 0){
-			print "Ok, not adding any STAR paths..\n\n";
-			last;
-		} elsif (-e $star_path) {
-			print "Looks good! The file exists.\n\n";
-			last;
-		} else {
-			print "This file doesn't seem to exist.";
-		}
-		print "Do you want to add this to the config file anyway?\n";
-		while (my $continue = <STDIN>){
-			chomp ($continue);
-			if ($continue =~ /^n(o)?/i){
-				print "\nOk, please enter the STAR path again:\n\n";
-				last;
-			} elsif($continue =~ /^y(es)?/i){
-				print "\nOk, I'll add $star_path\n\n";
-				last STARWHILE;
-			} else {
-				print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
-			}
-		}
-	}
-	
-	print "Please enter the GTF file path. Leave blank if you don't want to add one..\n";
-	my $gtf_path;
-	GTFWHILE: while ($gtf_path = <STDIN>){
-		chomp ($gtf_path);
-		if(length($gtf_path) == 0){
-			print "Ok, not adding any GTF paths..\n\n";
-			last;
-		} elsif (-e $gtf_path) {
-			print "Looks good! The file exists.\n\n";
-			last;
-		} else {
-			print "This file doesn't seem to exist.";
-		}
-		print "Do you want to add this to the config file anyway?\n";
-		while (my $continue = <STDIN>){
-			chomp ($continue);
-			if ($continue =~ /^n(o)?/i){
-				print "\nOk, please enter the GTF path again:\n\n";
-				last;
-			} elsif($continue =~ /^y(es)?/i){
-				print "\nOk, I'll add $gtf_path\n\n";
-				last GTFWHILE;
-			} else {
-				print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
-			}
-		}
-	}
-	
-	# Write the new paths to the file
-	if(length($genome_path) > 0){
-		print OUT "\@genome_path\t$genomeID\t$genome_path\t$species\t$assembly\n";
-		print "Added genome path $genomeID: $genome_path\n";
-	}
-	if(length($bowtie_path) > 0){
-		print OUT "\@bowtie_path\t$genomeID\t$bowtie_path\t$species\t$assembly\n";
-		print "Added bowtie path $genomeID: $bowtie_path\n";
-	}
-	if(length($bowtie2_path) > 0){
-		print OUT "\@bowtie2_path\t$genomeID\t$bowtie2_path\t$species\t$assembly\n";
-		print "Added bowtie 2 path $genomeID: $bowtie2_path\n";
-	}
-	if(length($star_path) > 0){
-		print OUT "\@star_path\t$genomeID\t$star_path\t$species\t$assembly\n";
-		print "Added STAR path $genomeID: $star_path\n";
- 	}
-	if(length($gtf_path) > 0){
-		print OUT "\@gtf_path\t$genomeID\t$gtf_path\t$species\t$assembly\n";
-		print "Added GTF path $genomeID: $gtf_path\n";
-	}
-	close (OUT);
-	print "Ok, that's all! To check that this wizard has worked, you can run cf --list_genomes\n\n";
-}
+#
+# VERY BROKEN
+# Needs re-writing after the change in the way that references
+# are handled above (now using %REFERENCES)
+#
+#
+# sub clusterflow_add_genome {
+#
+#     print "\n\nCluster Flow Genomes Config Generator\n======================================\nRunning Cluster Flow version $CF_VERSION\n";
+#     print "\nThis wizard will add a new genome to your genomes.config file\n\n";
+#
+#     # Determine which config file to append to
+#     my $cwd = Cwd::getcwd();
+#     print "First off, which config file would you like to add this genome to?
+#
+# 1 - Cluster Flow Installation directory, will be visible for all users
+#        $FindBin::Bin/genomes.config
+#
+# 2 - Your home directory, will be visible for you whenever you run Cluster Flow
+#        $homedir/clusterflow/genomes.config
+#
+# 3 - This directory, will only be visible when running Cluster Flow here
+#        $cwd/genomes.config
+#
+# Please enter 1-3 to select one of the file paths..\n";
+#
+#     my $fn;
+#     while ($fn = <STDIN>){
+#         chomp ($fn);
+#         if ($fn =~ /^1$/){
+#             $fn = "$FindBin::Bin/genomes.config";
+#             last;
+#         } elsif ($fn =~ /^2$/){
+#             $fn = "$homedir/clusterflow/genomes.config";
+#             last;
+#         } elsif ($fn =~ /^3$/){
+#             $fn = "./genomes.config";
+#             last;
+#         } else {
+#             print "\nSorry, I didn't understand that.\nPlease enter a number, 1-3..\n\n";
+#         }
+#     }
+#     print "Great - we'll use $fn\n\n";
+#     unless (-e $fn) {
+#         print "This file doesn't yet exist, and will be created..\n\n";
+#     }
+#     # Open straight away - if permission errors will die before any further faff
+#     open (OUT,'>>',$fn) or die "Can't write to $fn: $!";
+#
+#     # Get Species and assembly
+#     print "To help identify genomes when using cf --list_genomes,you can specify\na species and an assembly.This are both optional - just\nleave blank and press enter to ignore.\n\n";
+#
+#     print "Please enter the species name (eg. Human):\n";
+#     my $species = <STDIN>;
+#     chomp ($species);
+#
+#     print "\nPlease enter the assembly name (eg. GRCh37):\n";
+#     my $assembly = <STDIN>;
+#     chomp ($assembly);
+#
+#     # Get genome ID
+#     print "\nNext, we need a unique ID for the genome. This is what\nyou will specify when you run jobs with --genome.\nWe often just use the assembly name. Alphanumeric with _ and - only.\n";
+#     my $genomeID;
+#     GENOMEIDWHILE: while ($genomeID = <STDIN>){
+#         chomp ($genomeID);
+#         $genomeID =~ s/[^\w-]//g;
+#         if(length($genomeID) == 0){
+#             print "Sorry, this ID is required. Please enter a value:\n";
+#             next;
+#         }
+#         my $confirm = 0;
+#         if(defined($GENOME_PATH_CONFIGS{$genomeID})){
+#             print " # A genome path with this ID already exists! It's defined in ".$GENOME_PATH_CONFIGS{$genomeID}."\n";
+#             $confirm = 1;
+#         }
+#         if(defined($BOWTIE_PATH_CONFIGS{$genomeID})){
+#             print " # A bowtie path with this ID already exists! It's defined in ".$BOWTIE_PATH_CONFIGS{$genomeID}."\n";
+#             $confirm = 1;
+#         }
+#         if(defined($GTF_PATH_CONFIGS{$genomeID})){
+#             print " # A GTF path with this ID already exists! It's defined in ".$GTF_PATH_CONFIGS{$genomeID}."\n";
+#             $confirm = 1;
+#         }
+#         if($confirm){
+#             print "You can still use this ID, but it may overwrite previous path definitions..\nDo you want to continue?\n\n";
+#             while (my $continue = <STDIN>){
+#                 chomp ($continue);
+#                 if ($continue =~ /^n(o)?/i){
+#                     print "\nOk, please enter a new ID:\n\n";
+#                     last;
+#                 } elsif($continue =~ /^y(es)?/i){
+#                     print "\nOk, we'll continue with $genomeID then..\n\n";
+#                     last GENOMEIDWHILE;
+#                 } else {
+#                     print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+#                 }
+#             }
+#         } else {
+#             print "\nGreat - we'll continue with $genomeID\n\n";
+#             last;
+#         }
+#     }
+#
+#     # Get paths
+#     print "Ok, now we have this information we can add three types of file paths:
+# Genome Path: A directory containing the fasta files for the genome
+# Bowtie Path: A full path including the filename stub for bowtie indices
+#              (everything except .[1-4].ebwt or .[1-4].bt2)
+# GTF Path:    A filename path to a genome GTF file.\n\n";
+#
+#     print "Please enter the genome path. Leave blank if you don't want to add one..\n";
+#     my $genome_path;
+#     GENOMEWHILE: while ($genome_path = <STDIN>){
+#         chomp ($genome_path);
+#         if(length($genome_path) == 0){
+#             print "Ok, not adding any genome paths..\n\n";
+#             last;
+#         } elsif (-d $genome_path) {
+#             print "Great! Looks good and I can find it..\n\n";
+#             last;
+#         } elsif (-e $genome_path) {
+#             print "Hmm, this looks like a file rather than a directory..\n\n";
+#         } else {
+#             print "Oops! This directory doesn't exist!\n\n";
+#         }
+#         print "Do you want to add this to the config file anyway?\n";
+#         while (my $continue = <STDIN>){
+#             chomp ($continue);
+#             if ($continue =~ /^n(o)?/i){
+#                 print "\nOk, please enter the genome path again:\n\n";
+#                 last;
+#             } elsif($continue =~ /^y(es)?/i){
+#                 print "\nOk, I'll add $genome_path\n\n";
+#                 last GENOMEWHILE;
+#             } else {
+#                 print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+#             }
+#         }
+#     }
+#
+#     print "Please enter the bowtie path. Leave blank if you don't want to add one..\n";
+#     my $bowtie_path;
+#     BOWTIEWHILE: while ($bowtie_path = <STDIN>){
+#         chomp ($bowtie_path);
+#         if(length($bowtie_path) == 0){
+#             print "Ok, not adding any bowtie paths..\n\n";
+#             last;
+#         } elsif (glob("$bowtie_path.[1-4].ebwt")) {
+#             print "Looks good! I found the following matching bowtie indices:\n - ".join("\n - ", glob("$bowtie_path.[1-4].ebwt"))."\n\n";
+#             last;
+#         } else {
+#             print "I couldn't find any matching bowtie indices for this path\nI tried $bowtie_path.[1-4].ebwt\n\n";
+#         }
+#         print "Do you want to add this to the config file anyway?\n";
+#         while (my $continue = <STDIN>){
+#             chomp ($continue);
+#             if ($continue =~ /^n(o)?/i){
+#                 print "\nOk, please enter the bowtie path again:\n\n";
+#                 last;
+#             } elsif($continue =~ /^y(es)?/i){
+#                 print "\nOk, I'll add $bowtie_path\n\n";
+#                 last BOWTIEWHILE;
+#             } else {
+#                 print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+#             }
+#         }
+#     }
+#
+#     print "Please enter the bowtie 2 path. Leave blank if you don't want to add one..\n";
+#     my $bowtie2_path;
+#     BOWTIE2WHILE: while ($bowtie2_path = <STDIN>){
+#         chomp ($bowtie2_path);
+#         if(length($bowtie2_path) == 0){
+#             print "Ok, not adding any bowtie 2 paths..\n\n";
+#             last;
+#         } elsif (glob("$bowtie2_path.[1-4].bt2")) {
+#             print "Looks good! I found the following matching bowtie 2 indices:\n - ".join("\n - ", glob("$bowtie2_path.[1-4].bt2"))."\n\n";
+#             last;
+#         } else {
+#             print "I couldn't find any matching bowtie indices for this path\nI tried $bowtie2_path.[1-4].bt2\n\n";
+#         }
+#         print "Do you want to add this to the config file anyway?\n";
+#         while (my $continue = <STDIN>){
+#             chomp ($continue);
+#             if ($continue =~ /^n(o)?/i){
+#                 print "\nOk, please enter the bowtie 2 path again:\n\n";
+#                 last;
+#             } elsif($continue =~ /^y(es)?/i){
+#                 print "\nOk, I'll add $bowtie2_path\n\n";
+#                 last BOWTIE2WHILE;
+#             } else {
+#                 print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+#             }
+#         }
+#     }
+#
+#     print "Please enter the STAR file path. Leave blank if you don't want to add one..\n";
+#     my $star_path;
+#     STARWHILE: while ($star_path = <STDIN>){
+#         chomp ($star_path);
+#         if(length($star_path) == 0){
+#             print "Ok, not adding any STAR paths..\n\n";
+#             last;
+#         } elsif (-e $star_path) {
+#             print "Looks good! The file exists.\n\n";
+#             last;
+#         } else {
+#             print "This file doesn't seem to exist.";
+#         }
+#         print "Do you want to add this to the config file anyway?\n";
+#         while (my $continue = <STDIN>){
+#             chomp ($continue);
+#             if ($continue =~ /^n(o)?/i){
+#                 print "\nOk, please enter the STAR path again:\n\n";
+#                 last;
+#             } elsif($continue =~ /^y(es)?/i){
+#                 print "\nOk, I'll add $star_path\n\n";
+#                 last STARWHILE;
+#             } else {
+#                 print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+#             }
+#         }
+#     }
+#
+#     print "Please enter the GTF file path. Leave blank if you don't want to add one..\n";
+#     my $gtf_path;
+#     GTFWHILE: while ($gtf_path = <STDIN>){
+#         chomp ($gtf_path);
+#         if(length($gtf_path) == 0){
+#             print "Ok, not adding any GTF paths..\n\n";
+#             last;
+#         } elsif (-e $gtf_path) {
+#             print "Looks good! The file exists.\n\n";
+#             last;
+#         } else {
+#             print "This file doesn't seem to exist.";
+#         }
+#         print "Do you want to add this to the config file anyway?\n";
+#         while (my $continue = <STDIN>){
+#             chomp ($continue);
+#             if ($continue =~ /^n(o)?/i){
+#                 print "\nOk, please enter the GTF path again:\n\n";
+#                 last;
+#             } elsif($continue =~ /^y(es)?/i){
+#                 print "\nOk, I'll add $gtf_path\n\n";
+#                 last GTFWHILE;
+#             } else {
+#                 print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+#             }
+#         }
+#     }
+#
+#     # Write the new paths to the file
+#     if(length($genome_path) > 0){
+#         print OUT "\@genome_path\t$genomeID\t$genome_path\t$species\t$assembly\n";
+#         print "Added genome path $genomeID: $genome_path\n";
+#     }
+#     if(length($bowtie_path) > 0){
+#         print OUT "\@bowtie_path\t$genomeID\t$bowtie_path\t$species\t$assembly\n";
+#         print "Added bowtie path $genomeID: $bowtie_path\n";
+#     }
+#     if(length($bowtie2_path) > 0){
+#         print OUT "\@bowtie2_path\t$genomeID\t$bowtie2_path\t$species\t$assembly\n";
+#         print "Added bowtie 2 path $genomeID: $bowtie2_path\n";
+#     }
+#     if(length($star_path) > 0){
+#         print OUT "\@star_path\t$genomeID\t$star_path\t$species\t$assembly\n";
+#         print "Added STAR path $genomeID: $star_path\n";
+#      }
+#     if(length($gtf_path) > 0){
+#         print OUT "\@gtf_path\t$genomeID\t$gtf_path\t$species\t$assembly\n";
+#         print "Added GTF path $genomeID: $gtf_path\n";
+#     }
+#     close (OUT);
+#     print "Ok, that's all! To check that this wizard has worked, you can run cf --list_genomes\n\n";
+# }
 
 
 

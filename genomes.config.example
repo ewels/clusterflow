@@ -2,7 +2,8 @@
 Clusterflow Genomes
 -------------------
 Genome paths for clusterflow.
-Syntax - @path_type  key  path  species  assembly
+Syntax - @reference ref_type genome_key  path  species  assembly
+Reference type can be fasta / bowtie / bowtie2 / star / gtf
 Species and assembly are optional and only serve as additional information
 Fields are delimited by whitespace, so do not include spaces in species name.
 when running cf --list_genomes
@@ -10,29 +11,45 @@ when running cf --list_genomes
 */
 
 
-/****************/
-/* Genome Paths */
-/****************/
+/***************/
+/* Fasta Paths */
+/***************/
 /* These should be the directories containing the fasta files */
-@genome_path	GRCh37	/path/to/genomes/Human/GRCh37/	Human	GRCh37
-@genome_path	GRCm38	/path/to/genomes/Mouse/GRCm38/	Mouse	GRCm38
-@genome_path	NCBIM37	/path/to/genomes/Mouse/NCBIM37/	Mouse	NCBIM37
+@reference fasta	GRCh37	/path/to/genomes/Human/GRCh37/	Human	GRCh37
+@reference fasta	GRCm38	/path/to/genomes/Mouse/GRCm38/	Mouse	GRCm38
+@reference fasta	NCBIM37	/path/to/genomes/Mouse/NCBIM37/	Mouse	NCBIM37
 
 
 /****************/
 /* Bowtie Paths */
 /****************/
 /* These should be the full path including the filename stub */
-/* (everything except .[1-4].ebwt / .[1-4].bt2) */
-@bowtie_path	GRCh37	/path/to/genomes/Human/GRCh37/Homo_sapiens.GRCh37	Human	GRCh37
-@bowtie_path	GRCm38	/path/to/genomes/Mouse/GRCm38/Mus_musculus.GRCm38	Mouse	GRCm38
-@bowtie_path	NCBIM37	/path/to/genomes/Mouse/NCBIM37/Mus_musculus.NCBIM37	Mouse	NCBIM37
+/* (everything except .[1-4].ebwt) */
+@reference bowtie	GRCh37	/path/to/genomes/Human/GRCh37/Homo_sapiens.GRCh37	Human	GRCh37
+@reference bowtie	GRCm38	/path/to/genomes/Mouse/GRCm38/Mus_musculus.GRCm38	Mouse	GRCm38
+@reference bowtie	NCBIM37	/path/to/genomes/Mouse/NCBIM37/Mus_musculus.NCBIM37	Mouse	NCBIM37
+
+/******************/
+/* Bowtie 2 Paths */
+/******************/
+/* These should be the full path including the filename stub */
+/* (everything except .[1-4].bt2) */
+@reference bowtie2	GRCh37	/path/to/genomes/Human/GRCh37/Homo_sapiens.GRCh37	Human	GRCh37
+@reference bowtie2	GRCm38	/path/to/genomes/Mouse/GRCm38/Mus_musculus.GRCm38	Mouse	GRCm38
+@reference bowtie2	NCBIM37	/path/to/genomes/Mouse/NCBIM37/Mus_musculus.NCBIM37	Mouse	NCBIM37
+
+/**************/
+/* STAR Paths */
+/**************/
+@reference star	GRCh37	/path/to/genomes/Human/GRCh37/Homo_sapiens.GRCh37	Human	GRCh37
+@reference star	GRCm38	/path/to/genomes/Mouse/GRCm38/Mus_musculus.GRCm38	Mouse	GRCm38
+@reference star	NCBIM37	/path/to/genomes/Mouse/NCBIM37/Mus_musculus.NCBIM37	Mouse	NCBIM37
 
 
 /*************/
 /* GTF Paths */
 /*************/
 /* These should be the full path and filename. */
-@gtf_path	GRCh37	/path/to/genomes/Human/GRCh37/Homo_sapiens.GRCh37.61.gtf	Human	GRCh37
-@gtf_path	GRCm38	/path/to/genomes/Mouse/GRCm38/Mus_musculus.GRCm38.70.gtf	Mouse	GRCm38
-@gtf_path	NCBIM37	/path/to/genomes/Mouse/NCBIM37/Mus_musculus.NCBIM37.cleaned.gtf	Mouse	NCBIM37
+@reference gtf	GRCh37	/path/to/genomes/Human/GRCh37/Homo_sapiens.GRCh37.61.gtf	Human	GRCh37
+@reference gtf	GRCm38	/path/to/genomes/Mouse/GRCm38/Mus_musculus.GRCm38.70.gtf	Mouse	GRCm38
+@reference gtf	NCBIM37	/path/to/genomes/Mouse/NCBIM37/Mus_musculus.NCBIM37.cleaned.gtf	Mouse	NCBIM37
