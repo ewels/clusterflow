@@ -555,9 +555,6 @@ if(defined($GENOME) && defined($BOWTIE_PATHS{$GENOME})){
 if(defined($GENOME) && defined($BOWTIE2_PATHS{$GENOME})){
 	$runfile .= "\@bowtie2_path\t$BOWTIE2_PATHS{$GENOME}\n";
 }
-elsif (defined($GENOME)) {
-    warn "No bowtie2 path for $GENOME\n";
-}
 if(defined($GENOME) && defined($STAR_PATHS{$GENOME})){
 	$runfile .= "\@star_path\t$STAR_PATHS{$GENOME}\n";
 }
