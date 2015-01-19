@@ -215,7 +215,7 @@ sub is_bam_paired_end {
 
 	# Load samtools
 	my @modules = ('samtools');
-	my %loaded_mods = {};
+	my %loaded_mods = ();
 	&CF::Helpers::load_environment_modules(\@modules,\%loaded_mods);
 
 	my ($file) = @_;

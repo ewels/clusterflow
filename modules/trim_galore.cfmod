@@ -217,7 +217,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 				$fqc = " --fastqc ";
 			}
 			
-			my $command = "trim_galore --paired --trim1 --gzip $enc $stringency $RRBS $adapter $q_cutoff $clip_r1 $clip_r2 $fqc $files[0] $files[1]";
+			my $command = "trim_galore --paired --gzip $enc $stringency $RRBS $adapter $q_cutoff $clip_r1 $clip_r2 $fqc $files[0] $files[1]";
 			
 			warn "\n###CFCMD $command\n\n";
 			

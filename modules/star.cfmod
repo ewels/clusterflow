@@ -51,12 +51,6 @@ if($required_mem){
     } else {
         # Parse the run file
         my ($starting_files, $config) = CF::Helpers::parse_runfile($run_fn);
-        
-        # Have we specified h_vmem?
-        my $h_vmem = '';
-        if(exists($$config{"h_vmem"})){
-            $h_vmem = 'h_vmem';
-        }
     	
     	# estimate memory based on genome size
         my $minmem = 32000111000;
@@ -68,7 +62,7 @@ if($required_mem){
     		}	
     	}
     	my $maxmem = int($minmem * 1.8);	
-    	print $h_vmem.CF::Helpers::allocate_memory($required_mem, $minmem, $maxmem);
+    	print CF::Helpers::allocate_memory($required_mem, $minmem, $maxmem);
     	exit;
     }
 }

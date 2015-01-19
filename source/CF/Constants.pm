@@ -211,10 +211,10 @@ sub parse_genomes_file {
 						$BOWTIE2_SPECIES{$key} = $species;
 						$BOWTIE2_ASSEMBLIES{$key} = $assembly;
 					} elsif($path_type eq 'star_path'){
-+						$STAR_PATH_CONFIGS{$key} = $genome_file;
-+						$STAR_PATHS{$key} = $path;
-+						$STAR_SPECIES{$key} = $species;
-+						$STAR_ASSEMBLIES{$key} = $assembly;
+						$STAR_PATH_CONFIGS{$key} = $genome_file;
+						$STAR_PATHS{$key} = $path;
+						$STAR_SPECIES{$key} = $species;
+						$STAR_ASSEMBLIES{$key} = $assembly;
 					} elsif($path_type eq 'gtf_path'){
 						$GTF_PATH_CONFIGS{$key} = $genome_file;
 						$GTF_PATHS{$key} = $path;
@@ -509,9 +509,6 @@ AVAILABLE FLAGS
 		
 	--mem <string>
 		Set the maximum memory to use for all runs
-		
-    --h_vmem
-        Set the h_vmem option for SGE clusters
     
 	--notifications <cresa>
 		Specify desired notifications
