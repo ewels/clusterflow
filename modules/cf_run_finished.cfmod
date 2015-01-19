@@ -33,9 +33,11 @@ use Cwd;
 my $required_cores;
 my $required_mem;
 my $required_modules;
+my $run_fn;
+my $version;
 my $help;
-my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "help" => \$help);
-if($required_cores || $required_mem || $required_modules){
+my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "runfn" => \$run_fn, "version" => \$version, "help" => \$help);
+if($required_cores || $required_mem || $required_modules || $version){
 	exit;
 }
 if($help){
@@ -135,9 +137,10 @@ foreach my $key (sort { $modkeys{$a} <=> $modkeys{$b} or $a cmp $b } keys %modke
 	$outfile .= $modules{$key}."\n\n\n";
 }
 # count non-whitespace characters only
-if((()= $unrecognised =~ m/\S/g) > 0){
-	$outfile .= ("-"x80)."\nUnrecognised output:\n".("-"x80)."\n".$unrecognised;
+if($unrecognised =~ m/\S/g){
+	$outfile .= ("-"x80)."\nUnrecognised output: (indicated with \"->foo<-\")\n".("-"x80)."\n->".join("<-\n->", split "\n", $unrecognised)."<-\n\n";
 }
+$outfile .= ("="x80)."\n\n\n";
 
 # Write out the cleaned runfile without any crap
 open (OUT,'>',$outfn) or die "Can't write to $outfn: $!";

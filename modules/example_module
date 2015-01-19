@@ -44,11 +44,15 @@ use File::Copy qw(move);
 my $avail_cores;
 my $avail_mem;
 my $required_modules;
+my $run_fn;
+my $version;
 my $help;
 my $result = GetOptions (
 	"cores=i" => \$avail_cores,
 	"mem=s" => \$avail_mem,
 	"modules" => \$required_modules,
+    "runfn" => \$run_fn,
+    "version" => \$version,
 	"help" => \$help
 );
 
@@ -91,6 +95,14 @@ if($required_modules){
 	exit;
 }
 
+# --version. Return version information about the program to be executed.
+# This bit goes to STDERR when the jobs are launched.
+if($version){
+    print "---------- < module > version information ----------\n";
+    print `MY_COMMAND --version`;
+    print "\n------- End of < module > version information ------\n";	
+}
+
 # --help. Print the help.
 if($help){
 	print "".("-"x15)."\n Example Module\n".("-"x15)."\n
@@ -128,6 +140,14 @@ if(!defined($config{genome_path})){
 	die "\n\n###CF No genome path found in run file $runfile for job $job_id. Exiting.. ###";
 } else {
 	warn "\nUsing the genome path: ".$config{genome_path}."\n\n";
+}
+
+# Print the version if it's in the run file config.
+# This time it goes to the pipeline log file
+if(defined($config{verbose})){
+    print "---------- < module > version information ----------\n";
+    print `MY_COMMAND --version`;
+    print "\n------- End of < module > version information ------\n";	
 }
 
 # Sanity check for cores and memory, shouldn't be required but can't hurt

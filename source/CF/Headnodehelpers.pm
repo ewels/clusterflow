@@ -565,9 +565,9 @@ sub cf_pipeline_qdel {
 		foreach my $job (@jlist){
 			my $jid = $job->{JB_job_number};
 			my $jobname = $job->{full_job_name};
-			my $pipelinekey;
-			
-			if($jobname =~ /^cf_(.+)_(\d{10})_(.+)_\d{1,3}$/){
+			my $pipelinekey = '';
+            
+            if($jobname =~ /^cf_(.+)_(\d{10})_(.+)_\d{1,3}$/){
 				$pipelinekey = "$1_$2";
 			}
 			

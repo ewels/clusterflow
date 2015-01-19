@@ -480,6 +480,11 @@ AVAILABLE FLAGS
 	
 	--file_list
 		Text file containing input files or download URLs
+    
+    --runfile_prefix
+        Prefix for run file filename. Avoids potential clashes if
+        running multiple instances of Cluster Flow with the same
+        input file.
 		
 	--params
 		Specify extra module parameters. These will be applied to every
@@ -505,6 +510,9 @@ AVAILABLE FLAGS
 	--mem <string>
 		Set the maximum memory to use for all runs
 		
+    --h_vmem
+        Set the h_vmem option for SGE clusters
+    
 	--notifications <cresa>
 		Specify desired notifications
 		c = pipeline complete, r = run complete, e = qsub job ends
@@ -545,6 +553,12 @@ AVAILABLE FLAGS
 	
 	--version
 		Print version of Cluster Flow installed
+    
+    --verbose
+        Print submitted commands and software version numbers to STDOUT
+        
+    --print_versions
+        Print software versions to STDOUT and log files
 	
 	--check_updates
 		Look for available Cluster Flow updates

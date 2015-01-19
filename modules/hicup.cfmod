@@ -30,8 +30,10 @@ use CF::Helpers;
 my $required_cores;
 my $required_mem;
 my $required_modules;
+my $run_fn;
+my $version;
 my $help;
-my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "help" => \$help);
+my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "runfn" => \$run_fn, "version" => \$version, "help" => \$help);
 
 # QSUB SETUP
 # --cores i = offered cores. Return number of required cores.
@@ -48,6 +50,12 @@ if($required_mem){
 if($required_modules){
 	print 'hicup_cluster/0.0.1.clusterdev';
 	exit;
+}
+# --version. Returns version information about the module.
+if($version){
+    print "---------- HiCUP version information ----------\n";
+    print `hicup --version`;
+    print "\n------- End of HiCUP version information ------\n";	
 }
 # --help. Print help.
 if($help){
@@ -92,6 +100,13 @@ if(!defined($config{genome_path})){
 if(!defined($config{bowtie_path})){
 	warn "\n\n###CF Error! No bowtie path found in run file $runfile for job $job_id. Exiting.. ###\n\n";
 	exit;
+}
+
+# Print the version if it's in the run file config
+if(defined($config{verbose})){
+    print "---------- HiCUP version information ----------\n";
+    print `hicup --version`;
+    print "\n------- End of HiCUP version information ------\n";	
 }
 
 open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
