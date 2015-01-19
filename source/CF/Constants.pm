@@ -175,7 +175,7 @@ sub parse_genomes_file {
 					$REFERENCES{$ref_type}{$key}{path} = $sections[3];
 					$REFERENCES{$ref_type}{$key}{species} = $sections[4] if defined $sections[4];
 					$REFERENCES{$ref_type}{$key}{assembly} = $sections[5] if defined $sections[5];
-                    $REFERENCES{$ref_type}{$key}{config_file} = $genome_file
+					$REFERENCES{$ref_type}{$key}{config_file} = $genome_file
 				}
 			}
 			close(GCONFIG);
@@ -346,8 +346,8 @@ AVAILABLE FLAGS
 		
 	--ref <type>=<path>
 		Path to a reference to be used for alignment. Overrides --genome
-        Possible values for type: fasta / bowtie / bowtie2 / star / gtf
-        eg: --ref fasta=/path/to/fasta/files
+		Possible values for type: fasta / bowtie / bowtie2 / star / gtf
+		eg: --ref fasta=/path/to/fasta/files
 		
 	--paired
 		Force paired-end mode
