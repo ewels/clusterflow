@@ -16,12 +16,16 @@ Cluster Flow is released with a GPL v3 licence. Cluster Flow is free software: y
 Change Log
 ----------
 #### v0.4 devel
-* New Stuff - with thanks to [@stu2](https://github.com/stu2)
+* New Stuff - many thanks to [@stu2](https://github.com/stu2) for much of this
 	* Support for STAR RNA-seq aligner
 	* Modules are fed more information (eg. number of input files and reference genome) to help decide the amount of memory and cores they bid for
 	* All perl scripts now have `env perl` in shebang to increase portability
 	* Support for GRIDEngine `h_vmem` memory option, if requested in pipeline file or in command line
 	* Support for explicit GRIDEngine queue nomination on the command line
+	* New `--verbose` and `print_versions` flags
+        * Prints version information for bowtie 1 & 2, STAR, samtools_sort, trim_galore, tophat and htseq-count to the report file.
+        * Prints the commands submitted to the cluster to `STDOUT` when launched.
+    * New `--runfile_prefix` option to help avoid potential filename clashes.
     * Added compatability with GRIDEngine `~/.sge_request files` (by ignoring them). Thanks to [@s-andrews](https://github.com/s-andrews)
     * New tophat module called `tophat_fixedmapq` which introduces a workaround for buggy MAPQ reporting by tophat whilst keeping unique alignments. Thanks to [@FelixKrueger](https://github.com/FelixKrueger).
 * Bugs Squashed

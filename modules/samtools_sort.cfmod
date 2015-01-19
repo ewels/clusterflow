@@ -31,8 +31,10 @@ use CF::Helpers;
 my $required_cores;
 my $required_mem;
 my $required_modules;
+my $run_fn;
+my $version;
 my $help;
-my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "help" => \$help);
+my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "runfn" => \$run_fn, "version" => \$version, "help" => \$help);
 
 # QSUB SETUP
 # --cores i = offered cores. Return number of required cores.
@@ -42,14 +44,31 @@ if($required_cores){
 }
 # --mem. Return the required memory allocation.
 if($required_mem){
-	my ($runfn, $cores, @parameters) = @ARGV;
-	print CF::Helpers::allocate_memory($required_mem, '8G', '30G');	
-	exit;
+    if(!$run_fn){
+        print CF::Helpers::allocate_memory($required_mem, '8G', '30G');	
+        exit;
+    } else {
+        # Parse the run file
+        my ($starting_files, $config) = CF::Helpers::parse_runfile($run_fn);
+        # Have we specified h_vmem?
+        my $h_vmem = '';
+        if(exists($$config{"h_vmem"})){
+            $h_vmem = 'h_vmem';
+        }
+        print $h_vmem.CF::Helpers::allocate_memory($required_mem, '8G', '30G');	
+        exit;
+    }
 }
 # --modules. Return csv names of any modules which should be loaded.
 if($required_modules){
 	print 'samtools';
 	exit;
+}
+# --version. Returns version information about the module.
+if($version){
+    print "---------- Samtools version information ----------\n";
+    print `samtools`;
+    print "\n------- End of Samtools version information ------\n";	
 }
 # --help. Print help.
 if($help){
@@ -58,7 +77,8 @@ Sorts a bam file if extension is .bam - if extension is anything else, \n
 will assume it is a sam file and attempt to convert to bam first. \n
 Module tested with Samtools v0.1.19, this module may not \n
 work with v1.0 or greater to to file naming changes\n
-Output is basename_srtd.bam.\n\n";
+Output is basename_srtd.bam.\n
+Arg \'byname\' or \'-n\' in pipeline forces sorting by read name\n";
 	exit;
 }
 
@@ -76,53 +96,61 @@ if(!defined($cores) or $cores < 1){
 	$cores = 1;
 }
 
+# Print the version if it's in the run file config
+if(defined($config{verbose})){
+    print "---------- Samtools version information ----------\n";
+    print `samtools`;
+    print "\n------- End of Samtools version information ------\n";	
+}
+
+my $namesort = '';
+$namesort = '-n' if (grep(/^byname$/, @$parameters) > 0);
+
 open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
 
 
 # we want e.g. samtools view -bS ./test2_trimmedAligned.out.sam | samtools sort - outfile
-
 foreach my $file (@$files){
-		
-		# Figure out the file type
-		my $command = "";
-		my $prefix = $file;
-		my $filetype = "";
-		if ($prefix =~ s/\.([sb]am$)//){
-			$filetype = $1;
-			warn "\nGuessing file $file is a $filetype file\n";
-		} else {
-			warn "\n Cant determine file-type for $file. Assuming sam... \n";
-			$filetype = "sam";
-		}
+	my $command = '';
+	# Figure out the file type
+	my $prefix = $file;
+	my $filetype = "";
+	if ($prefix =~ s/\.([sb]am$)//){
+		$filetype = $1;
+		warn "\nGuessing file $file is a $filetype file\n";
+	} else {
+		warn "\n Can't determine file-type for $file. Assuming sam... \n";
+		$filetype = "sam";
+	}
 
-		my $sortfile;
-		if ($filetype eq "sam"){
-			$command = "samtools view -bS -u $file |";
-			$sortfile = "-";
+	my $sortfile;
+	if ($filetype eq "sam"){
+		$command .= "samtools view -bS -u $file | ";
+		$sortfile = "-";
+	} else {
+		warn "\nGuessing file $file is bam file. \n";
+		$sortfile = $file;
+	}
+	my $output_fn = $prefix."_srtd";
+	$output_fn .= 'n' if ($namesort eq '-n');
+	
+	$command .= "samtools sort -m $mem_per_thread $namesort $sortfile  $output_fn";
+	warn "\n###CFCMD $command\n\n";
+	
+	$output_fn .= '.bam';  # with samtools < v1.0 only prefix is specified, have to add .bam after calling command
+	
+	if(!system ($command)){
+		# samtools worked - print out resulting filenames
+		my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+		warn "###CF samtools successfully exited, took $duration..\n";
+		if(-e $output_fn){
+			print RUN "$job_id\t$output_fn\n"; 
 		} else {
-			warn "\nGuessing file $file is bam file. \n";
-			$sortfile = $file;
+			warn "\n###CF Error! samtools output file $output_fn not found..\n";
 		}
-		my $output_fn = $prefix."_srtd";
-		
-		$command .= " samtools sort -m $mem_per_thread  $sortfile  $output_fn";
-		
-		warn "\n###CFCMD $command\n\n";
-		
-		$output_fn .= '.bam';  # with samtools < v1.0 only prefix is specified, have to add .bam after calling command
-		
-		if(!system ($command)){
-			# samtools worked - print out resulting filenames
-			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-			warn "###CF samtools successfully exited, took $duration..\n";
-			if(-e $output_fn){
-				print RUN "$job_id\t$output_fn\n"; 
-			} else {
-				warn "\n###CF Error! samtools output file $output_fn not found..\n";
-			}
-		} else {
-			warn "\n###CF Error! samtools failed, exited in an error state for input file '$file': $? $!\n\n";
-		}
+	} else {
+		warn "\n###CF Error! samtools failed, exited in an error state: $? $!\n\n";
+	}
 }
 
 

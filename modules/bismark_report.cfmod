@@ -32,8 +32,10 @@ use File::Copy qw(move);
 my $required_cores;
 my $required_mem;
 my $required_modules;
+my $run_fn;
+my $version;
 my $help;
-my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "help" => \$help);
+my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "runfn" => \$run_fn, "version" => \$version, "help" => \$help);
 
 # QSUB SETUP
 # --cores i = offered cores. Return number of required cores.
@@ -51,6 +53,12 @@ if($required_modules){
 	print 'bismark';
 	exit;
 }
+# --version. Returns version information about the module.
+if($version){
+    print "---------- bismark2report version information ----------\n";
+    print `bismark2report --version`;
+    print "\n------- End of bismark2report version information ------\n";	
+}
 # --help. Print help.
 if($help){
 	print "".("-"x21)."\n Bismark Report Module\n".("-"x21)."\n
@@ -64,6 +72,14 @@ For further information, please run bismark2report --help\n\n";
 # MODULE
 # Read in the input files from the run file
 my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
+my %config = %$config_ref;
+
+# Print the version if it's in the run file config
+if(defined($config{verbose})){
+    print "---------- bismark2report version information ----------\n";
+    print `bismark2report --version`;
+    print "\n------- End of bismark2report version information ------\n";	
+}
 
 if(!system ("bismark2report")){
 	warn "###CF Bismark report successfully created\n";
