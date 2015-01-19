@@ -44,20 +44,7 @@ if($required_cores){
 }
 # --mem. Return the required memory allocation.
 if($required_mem){
-    if(!$run_fn){
-        print CF::Helpers::allocate_memory($required_mem, '8G', '30G');	
-        exit;
-    } else {
-        # Parse the run file
-        my ($starting_files, $config) = CF::Helpers::parse_runfile($run_fn);
-        # Have we specified h_vmem?
-        my $h_vmem = '';
-        if(exists($$config{"h_vmem"})){
-            $h_vmem = 'h_vmem';
-        }
-        print $h_vmem.CF::Helpers::allocate_memory($required_mem, '8G', '30G');	
-        exit;
-    }
+    print CF::Helpers::allocate_memory($required_mem, '8G', '30G');	
 }
 # --modules. Return csv names of any modules which should be loaded.
 if($required_modules){

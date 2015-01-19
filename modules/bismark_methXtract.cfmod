@@ -38,7 +38,7 @@ my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_me
 # QSUB SETUP
 # --cores i = offered cores. Return number of required cores.
 if($required_cores){
-	print 1;
+	print 4;
 	exit;
 }
 # --mem. Return the required memory allocation.
@@ -64,13 +64,6 @@ The bismark_methXtract module runs the bismark_methylation_extractor script.
 This reads in a bisulfite read alignment results file produced by the Bismark bisulfite
 mapper and extracts the methylation information for individual cytosines in CpG, CHG 
 and CHH context.\n".
-# Specifying the pbat or single_cell parameters in a pipeline
-# will add --ignore 4 to the command. eg:
-  # bismark_methXtract	pbat
-# or
-  # bismark_methXtract	single_cell
-# Runs the command:
-  # bismark_methylation_extractor --ignore 4 ....\n
 "Use bismark_methylation_extractor --help for more information.\n\n";
 	exit;
 }
@@ -104,16 +97,12 @@ my $ignore_r2 = "--ignore_r2 2";
 my $gw_cov = "";
 my $capture_regions = "";
 foreach my $parameter (@$parameters){
-	# if($parameter eq "pbat" || $parameter eq "single_cell"){
-	# 	$ignore_r1 = "--ignore 4";
-	# 	$ignore_r2 = "--ignore_r2 4";
-	# }
 	# Genome wide coverage reports
 	if($parameter eq "gwcov"){
 		if(!defined($config{genome_path})){
 			warn "\n\n###CF Error - gwcov parameter specified but no genome path found..\n\n";
 		} else {
-			$gw_cov = ' --genome_folder '.$config{genome_path};
+			$gw_cov = '--cytosine_report --genome_folder '.$config{genome_path};
 		}
 	}
 	# Capture regions
@@ -130,8 +119,7 @@ if($files && scalar(@$files) > 0){
 		
 		# Find if PE or SE from input BAM file
 		if(CF::Helpers::is_bam_paired_end($file)){
-			
-			my $command = "bismark_methylation_extractor $ignore_r1 $ignore_r2 --bedGraph --counts $buffer --cytosine_report --gzip -p --no_overlap --report $gw_cov $file";
+			my $command = "bismark_methylation_extractor --multi $cores $ignore_r1 $ignore_r2 --bedGraph --counts $buffer --gzip -p --no_overlap --report $gw_cov $file";
 			warn "\n###CFCMD $command\n\n";
 			
 			# Paired End BAM file
@@ -158,7 +146,7 @@ if($files && scalar(@$files) > 0){
 			
 		} else {
 			
-			my $command = "bismark_methylation_extractor $ignore_r1 --bedGraph --counts $buffer --gzip -s --report $file";
+			my $command = "bismark_methylation_extractor --multi $cores $ignore_r1 --bedGraph --counts $buffer --gzip -s --report $gw_cov $file";
 			warn "\n###CFCMD $command\n\n";
 			
 			# Single End BAM file
