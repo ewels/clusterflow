@@ -237,7 +237,7 @@ sub plot_visualizations {
 				warn "###CF Error! Coverage curves plotting exited with an error code for input file '$file'.\n";
 			}
 		} else {
-			warn "###CF Error! Couldn't find find the coverage script: $coverage_script\nSkipping..\n";
+			warn "###CF Warning: Couldn't find find the coverage script: $coverage_script\nSkipping..\n";
 		}
 		# Plot coverage curves
 		if(-e $windows_script){
@@ -249,7 +249,7 @@ sub plot_visualizations {
 				warn "###CF Error! Window size plotting exited with an error code for input file '$file'.\n";
 			}
 	    } else {
-   			warn "###CF Error! Couldn't find find the windows script: $windows_script\nSkipping..\n";
+   			warn "###CF Warning: Couldn't find find the windows script: $windows_script\nSkipping..\n";
    		}
 	}
 }
