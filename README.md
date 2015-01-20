@@ -16,9 +16,11 @@ Cluster Flow is released with a GPL v3 licence. Cluster Flow is free software: y
 Change Log
 ----------
 #### v0.4 devel
-* **Warning:** Break of backwards compatability
+* **Warning: Break of backwards compatability**
 	* The way that genome references are handled has been rewritten. They are now agnostic
-      to the type of reference, making it far easier to use references for whatever module you like.
+      to the type of reference, making it far easier to whatever type of reference you need.
+      Additionally, the wizard to add genome paths has been written and is now largely automated,
+      making it super fast to add new genomes.
 	* A consequence of this change is any `genomes.config` files written before v0.3 of
       Cluster Flow will no longer work. Thankfully the fix is easy! Replace `@bowtie_path`
       with `@reference  bowtie`. `@gtf_path` changes to `@reference gtf` and so on.
