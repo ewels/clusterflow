@@ -16,19 +16,36 @@ Cluster Flow is released with a GPL v3 licence. Cluster Flow is free software: y
 Change Log
 ----------
 #### v0.4 devel
+* **Warning:** Break of backwards compatability
+	* The way that genome references are handled has been rewritten. They are now agnostic
+      to the type of reference, making it far easier to use references for whatever module you like.
+	* A consequence of this change is any `genomes.config` files written before v0.3 of
+      Cluster Flow will no longer work. Thankfully the fix is easy! Replace `@bowtie_path`
+      with `@reference  bowtie`. `@gtf_path` changes to `@reference gtf` and so on.
+      `@genome_path` changes to `@reference  fasta`.
+	* If you have any custom pipelines these will also need to be updated. `@require_bowtie`
+      changes to `@require_reference bowtie`and so on. See updated example module files
+      for examples on how to update custom modules.
+	* Apologies for any inconvenience that this change incurs. Feel free to [get in touch](https://github.com/ewels)
+      if you have any problems.
 * New Stuff - many thanks to [@stu2](https://github.com/stu2) for much of this
 	* Support for STAR RNA-seq aligner
-	* Modules are fed more information (eg. number of input files and reference genome) to help decide the amount of memory and cores they bid for
+	* Modules are fed more information (eg. number of input files and reference genome) to help
+       decide the amount of memory and cores they bid for
 	* All perl scripts now have `env perl` in shebang to increase portability
 	* Support for GRIDEngine `h_vmem` memory option, if requested in pipeline file or in command line
 	* Support for explicit GRIDEngine queue nomination on the command line
 	* New `--verbose` and `print_versions` flags
-        * Prints version information for bowtie 1 & 2, STAR, samtools_sort, trim_galore, tophat and htseq-count to the report file.
+        * Prints version information for bowtie 1 & 2, STAR, samtools_sort, trim_galore, tophat and 
+            htseq-count to the report file.
         * Prints the commands submitted to the cluster to `STDOUT` when launched.
     * New `--runfile_prefix` option to help avoid potential filename clashes.
-    * Added compatability with GRIDEngine `~/.sge_request files` (by ignoring them). Thanks to [@s-andrews](https://github.com/s-andrews)
-    * New tophat module called `tophat` which introduces a workaround for buggy MAPQ reporting by tophat whilst keeping unique alignments. Thanks to [@FelixKrueger](https://github.com/FelixKrueger).
-        * The previous tophat module is still available if you're not interested in MAPQ scores and would like slightly faster processing. This is now called `tophat_broken_MAPQ.cfmod`.
+    * Added compatability with GRIDEngine `~/.sge_request files` (by ignoring them). 
+      Thanks to [@s-andrews](https://github.com/s-andrews)
+    * New tophat module called `tophat` which introduces a workaround for buggy MAPQ 
+        reporting by tophat whilst keeping unique alignments. Thanks to [@FelixKrueger](https://github.com/FelixKrueger).
+        * The previous tophat module is still available if you're not interested in MAPQ scores and 
+            would like slightly faster processing. This is now called `tophat_broken_MAPQ.cfmod`.
 * Bugs Squashed
 	* Fixed output filename problem in tophat with output cleaning
 	* Fixed bugs causing minimum memory allocation regardless of availability
