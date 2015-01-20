@@ -47,6 +47,7 @@ sub parse_runfile {
 	my @files;
 	my %config;
 	$config{notifications} = {};
+	$config{references} = {};
 	my $comment_block = 0;
 	while(<RUN>){
 	
@@ -71,6 +72,9 @@ sub parse_runfile {
 			my $cname = substr($sections[0], 1);
 			if($cname eq 'notification'){
 				$config{notifications}{$sections[1]} = 1;
+			} elsif($cname eq 'reference'){
+                my @ref_sections = split(/\t/, $sections[1], 2);
+				$config{references}{$ref_sections[0]} = $ref_sections[1];
 			} else {
 				$config{$cname} = $sections[1];
 			}
@@ -91,7 +95,7 @@ sub parse_runfile {
 	
 	close(RUN);
     
-    return (@files, %config);
+    return (\@files, \%config);
 }
 
 
@@ -111,7 +115,9 @@ sub load_runfile_params {
 	my $dashes = "-" x 80;
 	warn "\n$dashes\nRun File:\t\t$runfile\nJob ID:\t\t\t$job_id\nPrevious Job ID:\t$prev_job_id\nParameters:\t\t".join(", ", @parameters)."\nDate & Time:\t\t$date\n$dashes\n\n";
 
-    my (@files, %config) = parse_runfile($runfile, $prev_job_id);
+    my ($files_ref, $config_ref) = parse_runfile($runfile, $prev_job_id);
+    my @files = @$files_ref;
+    my %config = %$config_ref;
 	
 	# If we don't have any input files, bail now
 	if(scalar(@files) == 0 && $prev_job_id ne 'null'){

@@ -1031,11 +1031,12 @@ sub make_submit_cmd {
 
 # Print qsub jobs to the terminal or submit to cluster
 if($cl_dryrun or $cl_verbose){
-	print "\n\n".('-' x 46)."\n Jobs that would be submitted to the cluster\n".('-' x 46)."\n\n";
+	print "\n\n".('-' x 46)."\n Jobs that would be submitted to the cluster:\n".('-' x 46)."\n\n" if $cl_dryrun;
+	print "\n\n".('-' x 46)."\n Jobs submitted to the cluster:\n".('-' x 46)."\n\n" if !$cl_dryrun;
 	foreach(@qsubs){
 		print "$_\n\n";
 	}
-	if($CLUSTER_ENVIRONMENT =~ /SLURM/i){
+	if($cl_dryrun && $CLUSTER_ENVIRONMENT =~ /SLURM/i){
 		print "\n\n".('-' x 86)."\n Warning - Jobs do not have dependencies (SLURM jobs have to be launched to do this)\n".('-' x 86)."\n\n";
 	}
 }
