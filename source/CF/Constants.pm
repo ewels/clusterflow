@@ -3,6 +3,7 @@ use warnings;
 use strict;
 use FindBin qw($Bin);
 use File::Find;
+use File::Basename;
 use Cwd;
 use Exporter;
 
@@ -226,7 +227,7 @@ sub list_clusterflow_genomes {
                     }
                     my $this_assembly = " " x 15;
                     if(defined($REFERENCES{$ref_type}{$genome_key}{assembly})){
-                        $this_species = $REFERENCES{$ref_type}{$genome_key}{assembly}." " x (15 - length($REFERENCES{$ref_type}{$genome_key}{assembly}));
+                        $this_assembly = $REFERENCES{$ref_type}{$genome_key}{assembly}." " x (15 - length($REFERENCES{$ref_type}{$genome_key}{assembly}));
                     }
                     my $this_path = $REFERENCES{$ref_type}{$genome_key}{path};
                     $type_string .= " ".$this_key.$this_species.$this_assembly.$this_path."\n";
@@ -520,6 +521,7 @@ sub clusterflow_add_genome {
     print "Please enter the species name (eg. Human):\n";
     my $species = <STDIN>;
     chomp ($species);
+    $species =~ s/\s+/_/g;
 
     print "\nPlease enter the assembly name (eg. GRCh37):\n";
     my $assembly = <STDIN>;
@@ -540,8 +542,8 @@ sub clusterflow_add_genome {
         my $confirm = 0;
         foreach my $ref_type ( keys %REFERENCES){
             if(defined($REFERENCES{$ref_type}{$genomeID})){
-                print " # A $ref_type reference with this ID already exists! It's defined in $REFERENCES{$ref_type}{$genomeID}{path}:\n".
-                      "    $REFERENCES{$ref_type}{$genomeID}{config_file}"."\n\n";
+                print " # A $ref_type reference with this ID already exists in $REFERENCES{$ref_type}{$genomeID}{config_file}:\n".
+                      "    $REFERENCES{$ref_type}{$genomeID}{path}"."\n\n";
                 $confirm = 1;
             }
         }
@@ -581,13 +583,12 @@ sub clusterflow_add_genome {
                 print "Ok, we can skip this step..\n\n";
                 last;
             } elsif (-d $search_path) {
-                print "Great! Looks good and I can find it..\n\n";
                 last;
             } elsif (-e $search_path) {
                 $search_path = dirname($search_path);
                 if (-d $search_path) {
-                    print "Ok, this looks like a file rather than a directory..\n".
-                          "I'll trim off the filename and search this directory:\n$search_path\n\n";
+                    print "This looks like a file rather than a directory..\n".
+                          "I'll trim off the filename and search this directory:\n  $search_path\n\n";
                     last;
                 } else {
                     print "Hmm, this looks like a file but I can't find the\n".
@@ -616,13 +617,13 @@ sub clusterflow_add_genome {
                 SFILES_FOREACH: foreach my $fn (@{$search_files{$type}}){
                     $found_files++;
                     my $ref;
-                    if($type eq 'fasta'){ $ref = dirname($fn); }
-                    if($type eq 'bowtie'){ $ref = substr($fn, -6); }
-                    if($type eq 'bowtie2'){ $ref = substr($fn, -5); }
-                    if($type eq 'star'){ $ref = dirname($fn); }
+                    if($type eq 'fasta'){ $ref = &File::Basename::dirname($fn); }
+                    if($type eq 'bowtie'){ $ref = substr($fn, 0, -7); }
+                    if($type eq 'bowtie2'){ $ref = substr($fn, 0, -6); }
+                    if($type eq 'star'){ $ref = &File::Basename::dirname($fn); }
                     if($type eq 'gtf'){ $ref = $fn; }
-                    print "Found a $type reference - do you want to add the following?\n".
-                          "yes / no / all (to ignore all $type files)\n   $ref\n\n";
+                    print "Found a $type file: $fn\nDo you want to add the following reference?\n   $ref\n\n".
+                          "Enter y(es) / n(o) / a(ll) ('all' to ignore all $type files)\n";
                     while (my $continue = <STDIN>){
                         chomp ($continue);
                         if ($continue =~ /^n(o)?/i){
@@ -642,6 +643,7 @@ sub clusterflow_add_genome {
                     } # Save ref y/n/a
                 } # foreach found file
             } # foreach ref type
+            print "\nReference file search finished..\n\n";
         
             if($added_refs == 0){
                 if($found_files == 0){
@@ -672,7 +674,7 @@ sub clusterflow_add_genome {
 
     
     # Manually add paths
-    print "Ok, now we can add any reference paths manually if you'd like.\n\n".
+    print "Now we can add any reference paths manually if you'd like.\n\n".
           "First, enter the type of reference that this is - Cluster Flow\n".
           "currently uses fasta, bowtie, bowtie2, star and gtf but you can\n".
           "extend it to use any that you like. Lower case letters, numbers, underscores\n".
@@ -682,13 +684,15 @@ sub clusterflow_add_genome {
     
     my $man_ref_type;
     MANREF: while($man_ref_type = <STDIN>){
+        chomp($man_ref_type);
         $man_ref_type = lc($man_ref_type);
-        $man_ref_type =~ s/[a-z0-9_-]//g;
+        $man_ref_type =~ s/[^a-z0-9_-]//g;
         if(length($man_ref_type) == 0){
             print "Ok, we'll continue..\n\n";
             last MANREF;
         } else {
             print "Great - using reference type \"$man_ref_type\"..\n\n";
+            print "Now please enter the full path for this reference:\n";
             my $man_ref_path;
             MANREFPATH: while ($man_ref_path = <STDIN>){
                 chomp ($man_ref_path);
@@ -696,8 +700,7 @@ sub clusterflow_add_genome {
                     print "You need to add a path..\n\n";
                 } else {
                     $new_refs{$man_ref_type}{$genomeID}{path} = $man_ref_path;
-                    print "Great, adding:\n   $man_ref_path\n\n".
-                          "Note that as this is the manual addition I'm not checking\n".
+                    print "\nGreat, Looks good. Note that as this is the manual addition I'm not checking\n".
                           "that this path actually exists..\n\n";
                     last MANREFPATH;
                 }
