@@ -505,11 +505,18 @@ foreach my $not (@NOTIFICATIONS){
 }
 
 if(defined($GENOME)){
+    my $refs_count = 0;
 	$runfile .= "\@genome\t$GENOME\n";
     foreach my $ref_type ( keys %REFERENCES){
         if(defined($REFERENCES{$ref_type}{$GENOME})){
-            $runfile .= "\@reference\t$ref_type\t$REFERENCES{$ref_type}{$GENOME}\n";
+            $runfile .= "\@reference\t$ref_type\t$REFERENCES{$ref_type}{$GENOME}{path}\n";
+            $refs_count++;
         }
+    }
+    if($refs_count == 0){
+        die("### Error ###\n\nNo genome references found for genome key \"$GENOME\"..\n\n".
+            "Use cf --list_genomes to see available references and keys.\n\n".
+            "Exiting...\n\n");
     }
 }
 if ($cl_paired_end){
@@ -548,9 +555,11 @@ while (<CONFIG>){
 			warn "\n### Error - The pipeline $pipeline requires a genome to be set with --genome or --ref. Exiting... ### \n\n";
 			exit;
 		} elsif(!defined $REFERENCES{$ref_type}{$GENOME}{path}){
-			warn "\n### Error ###\nNo $ref_type path found for $GENOME.\n\nAvailable $ref_type paths:\n";
+			warn "\n### Error ###\nNo $ref_type path found for genome key \"$GENOME\".\n\nAvailable $ref_type paths:\n";
             foreach my $genome_key ( keys %{$REFERENCES{$ref_type}}){
-                warn "\tGenome: $genome_key, Path: %REFERENCES{$ref_type}{$genome_key}{path}\n";
+                if(defined($REFERENCES{$ref_type}{$genome_key}{path})){
+                    warn "\tGenome: $genome_key, Path: $REFERENCES{$ref_type}{$genome_key}{path}\n";
+                }
             }
 			warn "\n\nExiting...\n\n";
 			exit;

@@ -217,7 +217,7 @@ sub list_clusterflow_genomes {
             my $type_count = 0;
             my $type_string = "\n== $ref_type Paths ==\n";
             foreach my $genome_key ( keys %{$REFERENCES{$ref_type}}){
-                if(defined($REFERENCES{$ref_type}{$genome_key}{config_file}) && $REFERENCES{$ref_type}{$genome_key}{config_file} == $config_file){
+                if(defined($REFERENCES{$ref_type}{$genome_key}{config_file}) && $REFERENCES{$ref_type}{$genome_key}{config_file} eq $config_file){
                     my $this_key = $genome_key." " x (20 - length($genome_key));
                     my $this_species = " " x 20;
                     if(defined($REFERENCES{$ref_type}{$genome_key}{species})){
