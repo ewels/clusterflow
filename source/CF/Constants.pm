@@ -474,6 +474,8 @@ sub clusterflow_add_genome {
 
     print "\n\nCluster Flow Genomes Config Generator\n======================================\nRunning Cluster Flow version $CF_VERSION\n";
     print "\nThis wizard will add a new reference paths to your genomes.config files\n\n";
+    
+    my %new_refs;
 
     # Determine which config file to append to
     my $cwd = Cwd::getcwd();
@@ -598,18 +600,12 @@ sub clusterflow_add_genome {
         if(length($search_path) > 0){
             my $found_files = 0;
             my $added_refs = 0;
-            my %new_refs;
             my %search_files;
             find(sub {$search_files{fasta} = $File::Find::name if /\.fa(sta)?$/i}, $search_path);
             find(sub {$search_files{bowtie} = $File::Find::name if /\.ebwt$/i}, $search_path);
             find(sub {$search_files{bowtie2} = $File::Find::name if /\.bt2$/i}, $search_path);
             find(sub {$search_files{star} = $File::Find::name if /\^SA$/i}, $search_path);
             find(sub {$search_files{gtf} = $File::Find::name if /\.gtf$/i}, $search_path);
-            # my $search_files{fasta} = File::Find::Rule->file()->name('*.fa', '*.fasta')->in($search_path);
-            # my $search_files{bowtie} = File::Find::Rule->file()->name('*.ebwt')->in($search_path);
-            # my $search_files{bowtie2} = File::Find::Rule->file()->name('*.bt2')->in($search_path);
-            # my $search_files{star} = File::Find::Rule->file()->name('SA')->in($search_path);
-            # my $search_files{gtf} = File::Find::Rule->file()->name('*.gtf')->in($search_path);
     
             foreach my $type (keys %search_files){
                 SFILES_FOREACH: foreach my $fn (@{$search_files{$type}}){
@@ -670,178 +666,58 @@ sub clusterflow_add_genome {
     } # while $do_search
 
     
-    # # Get paths
-    # print "Ok, now we have this information we can add three types of file paths:\n".
-    #       "Genome Path: A directory containing the fasta files for the genome\n".
-    #       "Bowtie Path: A full path including the filename stub for bowtie indices\n".
-    #       "             (everything except .[1-4].ebwt or .[1-4].bt2)\n".
-    #       "GTF Path:    A filename path to a genome GTF file.\n\n";
-    #
-    # print "Please enter the genome path. Leave blank if you don't want to add one..\n";
-    # my $genome_path;
-    # GENOMEWHILE: while ($genome_path = <STDIN>){
-    #     chomp ($genome_path);
-    #     if(length($genome_path) == 0){
-    #         print "Ok, not adding any genome paths..\n\n";
-    #         last;
-    #     } elsif (-d $genome_path) {
-    #         print "Great! Looks good and I can find it..\n\n";
-    #         last;
-    #     } elsif (-e $genome_path) {
-    #         print "Hmm, this looks like a file rather than a directory..\n\n";
-    #     } else {
-    #         print "Oops! This directory doesn't exist!\n\n";
-    #     }
-    #     print "Do you want to add this to the config file anyway?\n";
-    #     while (my $continue = <STDIN>){
-    #         chomp ($continue);
-    #         if ($continue =~ /^n(o)?/i){
-    #             print "\nOk, please enter the genome path again:\n\n";
-    #             last;
-    #         } elsif($continue =~ /^y(es)?/i){
-    #             print "\nOk, I'll add $genome_path\n\n";
-    #             last GENOMEWHILE;
-    #         } else {
-    #             print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
-    #         }
-    #     }
-    # }
-    #
-    # print "Please enter the bowtie path. Leave blank if you don't want to add one..\n";
-    # my $bowtie_path;
-    # BOWTIEWHILE: while ($bowtie_path = <STDIN>){
-    #     chomp ($bowtie_path);
-    #     if(length($bowtie_path) == 0){
-    #         print "Ok, not adding any bowtie paths..\n\n";
-    #         last;
-    #     } elsif (glob("$bowtie_path.[1-4].ebwt")) {
-    #         print "Looks good! I found the following matching bowtie indices:\n - ".join("\n - ", glob("$bowtie_path.[1-4].ebwt"))."\n\n";
-    #         last;
-    #     } else {
-    #         print "I couldn't find any matching bowtie indices for this path\nI tried $bowtie_path.[1-4].ebwt\n\n";
-    #     }
-    #     print "Do you want to add this to the config file anyway?\n";
-    #     while (my $continue = <STDIN>){
-    #         chomp ($continue);
-    #         if ($continue =~ /^n(o)?/i){
-    #             print "\nOk, please enter the bowtie path again:\n\n";
-    #             last;
-    #         } elsif($continue =~ /^y(es)?/i){
-    #             print "\nOk, I'll add $bowtie_path\n\n";
-    #             last BOWTIEWHILE;
-    #         } else {
-    #             print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
-    #         }
-    #     }
-    # }
-    #
-    # print "Please enter the bowtie 2 path. Leave blank if you don't want to add one..\n";
-    # my $bowtie2_path;
-    # BOWTIE2WHILE: while ($bowtie2_path = <STDIN>){
-    #     chomp ($bowtie2_path);
-    #     if(length($bowtie2_path) == 0){
-    #         print "Ok, not adding any bowtie 2 paths..\n\n";
-    #         last;
-    #     } elsif (glob("$bowtie2_path.[1-4].bt2")) {
-    #         print "Looks good! I found the following matching bowtie 2 indices:\n - ".join("\n - ", glob("$bowtie2_path.[1-4].bt2"))."\n\n";
-    #         last;
-    #     } else {
-    #         print "I couldn't find any matching bowtie indices for this path\nI tried $bowtie2_path.[1-4].bt2\n\n";
-    #     }
-    #     print "Do you want to add this to the config file anyway?\n";
-    #     while (my $continue = <STDIN>){
-    #         chomp ($continue);
-    #         if ($continue =~ /^n(o)?/i){
-    #             print "\nOk, please enter the bowtie 2 path again:\n\n";
-    #             last;
-    #         } elsif($continue =~ /^y(es)?/i){
-    #             print "\nOk, I'll add $bowtie2_path\n\n";
-    #             last BOWTIE2WHILE;
-    #         } else {
-    #             print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
-    #         }
-    #     }
-    # }
-    #
-    # print "Please enter the STAR file path. Leave blank if you don't want to add one..\n";
-    # my $star_path;
-    # STARWHILE: while ($star_path = <STDIN>){
-    #     chomp ($star_path);
-    #     if(length($star_path) == 0){
-    #         print "Ok, not adding any STAR paths..\n\n";
-    #         last;
-    #     } elsif (-e $star_path) {
-    #         print "Looks good! The file exists.\n\n";
-    #         last;
-    #     } else {
-    #         print "This file doesn't seem to exist.";
-    #     }
-    #     print "Do you want to add this to the config file anyway?\n";
-    #     while (my $continue = <STDIN>){
-    #         chomp ($continue);
-    #         if ($continue =~ /^n(o)?/i){
-    #             print "\nOk, please enter the STAR path again:\n\n";
-    #             last;
-    #         } elsif($continue =~ /^y(es)?/i){
-    #             print "\nOk, I'll add $star_path\n\n";
-    #             last STARWHILE;
-    #         } else {
-    #             print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
-    #         }
-    #     }
-    # }
-    #
-    # print "Please enter the GTF file path. Leave blank if you don't want to add one..\n";
-    # my $gtf_path;
-    # GTFWHILE: while ($gtf_path = <STDIN>){
-    #     chomp ($gtf_path);
-    #     if(length($gtf_path) == 0){
-    #         print "Ok, not adding any GTF paths..\n\n";
-    #         last;
-    #     } elsif (-e $gtf_path) {
-    #         print "Looks good! The file exists.\n\n";
-    #         last;
-    #     } else {
-    #         print "This file doesn't seem to exist.";
-    #     }
-    #     print "Do you want to add this to the config file anyway?\n";
-    #     while (my $continue = <STDIN>){
-    #         chomp ($continue);
-    #         if ($continue =~ /^n(o)?/i){
-    #             print "\nOk, please enter the GTF path again:\n\n";
-    #             last;
-    #         } elsif($continue =~ /^y(es)?/i){
-    #             print "\nOk, I'll add $gtf_path\n\n";
-    #             last GTFWHILE;
-    #         } else {
-    #             print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
-    #         }
-    #     }
-    # }
-    #
-    # # Write the new paths to the file
-    # if(length($genome_path) > 0){
-    #     print OUT "\@genome_path\t$genomeID\t$genome_path\t$species\t$assembly\n";
-    #     print "Added genome path $genomeID: $genome_path\n";
-    # }
-    # if(length($bowtie_path) > 0){
-    #     print OUT "\@bowtie_path\t$genomeID\t$bowtie_path\t$species\t$assembly\n";
-    #     print "Added bowtie path $genomeID: $bowtie_path\n";
-    # }
-    # if(length($bowtie2_path) > 0){
-    #     print OUT "\@bowtie2_path\t$genomeID\t$bowtie2_path\t$species\t$assembly\n";
-    #     print "Added bowtie 2 path $genomeID: $bowtie2_path\n";
-    # }
-    # if(length($star_path) > 0){
-    #     print OUT "\@star_path\t$genomeID\t$star_path\t$species\t$assembly\n";
-    #     print "Added STAR path $genomeID: $star_path\n";
-    #  }
-    # if(length($gtf_path) > 0){
-    #     print OUT "\@gtf_path\t$genomeID\t$gtf_path\t$species\t$assembly\n";
-    #     print "Added GTF path $genomeID: $gtf_path\n";
-    # }
-    # close (OUT);
-    print "Ok, that's all! To check that this wizard has worked, you can run cf --list_genomes\n\n";
+    # Manually add paths
+    print "Ok, now we can add any reference paths manually if you'd like.\n\n".
+          "First, enter the type of reference that this is - Cluster Flow\n".
+          "currently uses fasta, bowtie, bowtie2, star and gtf but you can\n".
+          "extend it to use any that you like. Lower case letters, numbers, underscores\n".
+          "and hyphens only.\n\n".
+          "If you don't want to add any manual reference paths, just leave\n".
+          "this blank and press enter...\n\n";
+    
+    my $man_ref_type;
+    MANREF: while($man_ref_type = <STDIN>){
+        $man_ref_type = lc($man_ref_type);
+        $man_ref_type =~ s/[a-z0-9_-]//g;
+        if(length($man_ref_type) == 0){
+            print "Ok, we'll continue..\n\n";
+            last MANREF;
+        } else {
+            print "Great - using reference type \"$man_ref_type\"..\n\n";
+            my $man_ref_path;
+            MANREFPATH: while ($man_ref_path = <STDIN>){
+                chomp ($man_ref_path);
+                if(length($man_ref_path) == 0){
+                    print "You need to add a path..\n\n";
+                } else {
+                    $new_refs{$man_ref_type}{$genomeID}{path} = $man_ref_path;
+                    print "Great, adding:\n   $man_ref_path\n\n".
+                          "Note that as this is the manual addition I'm not checking\n".
+                          "that this path actually exists..\n\n";
+                    last MANREFPATH;
+                }
+            }
+        }
+        print "If you want to add another path for this genome ($genomeID) just\n".
+              "add another reference type. Leave blank to continue..\n\n";
+    }
+    
+    # Write the new paths to the file
+    foreach my $type (keys %new_refs){
+        foreach my $genomeID (keys %{$new_refs{$type}}){
+            my $path = $new_refs{$type}{$genomeID}{path};
+            print OUT "\@reference\t$type\t$genomeID\t$path\t$species\t$assembly\n";
+            print "Added a $type reference: $genomeID = $path\n";
+        }
+    }
+    close (OUT);
+    
+    print "\nThese new references were appended to the end of $fn\n".
+          "If a genome key has more than one of the same reference\n".
+          "type, only the last will be used by Cluster Flow.\n\n".
+          "To check that this wizard has worked, you can run cf --list_genomes\n\n";
+          
+    print "All done! Exiting..\n\n";
 }
 
 
@@ -853,7 +729,8 @@ sub clusterflow_add_genome {
 
 
 ####################################
-# Function to run interactive shell prompt to generate a config file for first run
+# Function to run interactive shell prompt
+# to generate a config file for first run
 ####################################
 sub clusterflow_make_config {
 	
