@@ -114,12 +114,13 @@ sub load_runfile_params {
     # Should we print the module header?
     if ( grep $_ eq 'hide_log_header', @parameters ){
         # Don't print. Remove this from parameters.
-        @parameters = grep { $_ != 'hide_log_header' } @parameters;
+        @parameters = grep { $_ ne 'hide_log_header' } @parameters;
     } else {
         my ($package, $modname, $line) = caller;
-        $modname =~ s/\.config$//i;
+        $modname =~ s/\.cfmod$//i;
+        $modname =~ s/^.*\///i;
         if(length($modname) > 0){
-            $modname = "Module:\t\t$modname\n";
+            $modname = "Module:\t\t\t$modname\n";
         }
     	my $date = strftime "%H:%M, %d-%m-%Y", localtime;
     	my $dashes = "-" x 80;
