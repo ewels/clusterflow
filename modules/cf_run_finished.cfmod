@@ -52,11 +52,6 @@ my %config = %$config_ref;
 my $pipeline = $parameters->[0];
 my $outfn = $parameters->[1];
 
-
-# Print run finish status to outfile
-my $date = strftime ("%H:%M %d-%m-%Y", localtime);
-warn "\n###CF Run finished at $date\n\n";
-
 # Find current directory
 my $cwd = getcwd()."/";
 
@@ -138,9 +133,14 @@ foreach my $key (sort { $modkeys{$a} <=> $modkeys{$b} or $a cmp $b } keys %modke
 }
 # count non-whitespace characters only
 if($unrecognised =~ m/\S/g){
-	$outfile .= ("-"x80)."\nUnrecognised output: (indicated with \"->foo<-\")\n".("-"x80)."\n->".join("<-\n->", split "\n", $unrecognised)."<-\n\n";
+	$outfile .= ("-"x80)."\nUnrecognised output: (indicated with \"-> <-\")\n".("-"x80)."\n";
+    $outfile .= "-> ".join(" <-\n-> ", split "\n", $unrecognised)." <-\n\n";
 }
 $outfile .= ("="x80)."\n\n\n";
+
+# Print run finish status to outfile
+my $date = strftime ("%H:%M %d-%m-%Y", localtime);
+$outfile .= "\n\n\n###CF Run finished at $date\n\n";
 
 # Write out the cleaned runfile without any crap
 open (OUT,'>',$outfn) or die "Can't write to $outfn: $!";

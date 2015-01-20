@@ -111,9 +111,20 @@ sub load_runfile_params {
 		@parameters = ();
 	}
 	
-	my $date = strftime "%H:%M, %d-%m-%Y", localtime;
-	my $dashes = "-" x 80;
-	warn "\n$dashes\nRun File:\t\t$runfile\nJob ID:\t\t\t$job_id\nPrevious Job ID:\t$prev_job_id\nParameters:\t\t".join(", ", @parameters)."\nDate & Time:\t\t$date\n$dashes\n\n";
+    # Should we print the module header?
+    if ( grep $_ eq 'hide_log_header', @parameters ){
+        # Don't print. Remove this from parameters.
+        @parameters = grep { $_ != 'hide_log_header' } @parameters;
+    } else {
+        my ($package, $modname, $line) = caller;
+        $modname =~ s/\.config$//i;
+        if(length($modname) > 0){
+            $modname = "Module:\t\t$modname\n";
+        }
+    	my $date = strftime "%H:%M, %d-%m-%Y", localtime;
+    	my $dashes = "-" x 80;
+    	warn "\n$dashes\n".$modname."Run File:\t\t$runfile\nJob ID:\t\t\t$job_id\nPrevious Job ID:\t$prev_job_id\nParameters:\t\t".join(", ", @parameters)."\nDate & Time:\t\t$date\n$dashes\n\n";
+    }
 
     my ($files_ref, $config_ref) = parse_runfile($runfile, $prev_job_id);
     my @files = @$files_ref;
