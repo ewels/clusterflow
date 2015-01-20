@@ -513,9 +513,9 @@ sub clusterflow_add_genome {
     open (OUT,'>>',$fn) or die "Can't write to $fn: $!";
 
     # Get Species and assembly
-    print "To help identify genomes when using cf --list_genomes,you can specify\n"."
-           a species and an assembly.This are both optional - just\n".
-           "leave blank and press enter to ignore.\n\n";
+    print "To help identify genomes when using cf --list_genomes, you can specify\n".
+          "a species and an assembly.This are both optional - just\n".
+          "leave blank and press enter to ignore.\n\n";
 
     print "Please enter the species name (eg. Human):\n";
     my $species = <STDIN>;
@@ -566,10 +566,10 @@ sub clusterflow_add_genome {
     }
     
     # Search for references
-    print "The wizard will now search a setof directories for known reference\n".
-          "file extensions (eg. GTF files).\n\n".
-          "What path would you like to search (recursively)? Leave blank to skip\n".
-          "this step and add paths manually..\n\n";
+    print "The wizard will now search a set of directories for known reference files\n".
+          "(eg. GTF files).\n\n".
+          "What path would you like to search (recursively)?\n".
+          "Leave blank to skip this step and add paths manually..\n\n";
     
     my $do_search = 1;
     while($do_search){
@@ -601,12 +601,17 @@ sub clusterflow_add_genome {
             my $found_files = 0;
             my $added_refs = 0;
             my %search_files;
-            find(sub {$search_files{fasta} = $File::Find::name if /\.fa(sta)?$/i}, $search_path);
-            find(sub {$search_files{bowtie} = $File::Find::name if /\.ebwt$/i}, $search_path);
-            find(sub {$search_files{bowtie2} = $File::Find::name if /\.bt2$/i}, $search_path);
-            find(sub {$search_files{star} = $File::Find::name if /\^SA$/i}, $search_path);
-            find(sub {$search_files{gtf} = $File::Find::name if /\.gtf$/i}, $search_path);
-    
+            $search_files{fasta} = ();
+            $search_files{bowtie} = ();
+            $search_files{bowtie2} = ();
+            $search_files{star} = ();
+            $search_files{gtf} = ();
+            &File::Find::find(sub {push(@{$search_files{fasta}}, $File::Find::name) if /\.fa(sta)?$/i}, $search_path);
+            &File::Find::find(sub {push(@{$search_files{bowtie}}, $File::Find::name) if /\.ebwt$/i}, $search_path);
+            &File::Find::find(sub {push(@{$search_files{bowtie2}}, $File::Find::name) if /\.bt2$/i}, $search_path);
+            &File::Find::find(sub {push(@{$search_files{star}}, $File::Find::name) if /\^SA$/i}, $search_path);
+            &File::Find::find(sub {push(@{$search_files{gtf}}, $File::Find::name) if /\.gtf$/i}, $search_path);
+            
             foreach my $type (keys %search_files){
                 SFILES_FOREACH: foreach my $fn (@{$search_files{$type}}){
                     $found_files++;
