@@ -93,7 +93,7 @@ if(defined($config{verbose})){
 my $namesort = '';
 $namesort = '-n' if (grep(/^byname$/, @$parameters) > 0);
 
-open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
+open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 
 
 # we want e.g. samtools view -bS ./test2_trimmedAligned.out.sam | samtools sort - outfile

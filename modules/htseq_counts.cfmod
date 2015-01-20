@@ -76,10 +76,10 @@ my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_
 my %config = %$config_ref;
 
 # Check that we have a GTF file defined
-if(!defined($config{gtf_path})){
-   die "\n\n### No GTF path found in run file $runfile for job $job_id. Exiting.. ###";
+if(!defined($config{references}{gtf})){
+   die "\n\n###CF Error: No GTF path found in run file $runfile for job $job_id. Exiting.. ###";
 } else {
-    warn "\nUsing GTF file ".$config{gtf_path}."\n\n";
+    warn "\nUsing GTF file ".$config{references}{gtf}."\n\n";
 }
 
 # Print the version if it's in the run file config
@@ -89,7 +89,7 @@ if(defined($config{verbose})){
     print "\n------- End of HTSeq version information ------\n";
 }
 
-open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
+open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 
 # Read any options from the pipeline parameters
 my $stranded = "-s no";
@@ -107,7 +107,7 @@ foreach my $parameter (@$parameters){
 foreach my $file (@$files){
 	my $annotated_file = $file."_annotated.sam";
 	my $counts_file = $file."_counts.txt";
-	my $command = "samtools view -h $file | htseq-count -o $annotated_file -t exon $stranded -q -i 'ID' - ".$config{gtf_path}." | sort -n -k 2 -r > $counts_file";
+	my $command = "samtools view -h $file | htseq-count -o $annotated_file -t exon $stranded -q -i 'ID' - ".$config{references}{gtf}." | sort -n -k 2 -r > $counts_file";
 	warn "\n###CFCMD $command\n\n";
 	
 	if(!system ($command)){

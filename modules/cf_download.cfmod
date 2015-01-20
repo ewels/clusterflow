@@ -54,7 +54,7 @@ $job_id =~ s/download_[\d]{3}$/download/;
 
 warn "\n---------------------\nDownloading $dl_fn from $url\nStarted at ".strftime("%H:%M, %A - %d/%m/%Y", localtime)."\n";
 
-open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
+open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 
 my $command = "wget -nv --tries=10 --output-document=$dl_fn $url";
 warn "\n###CFCMD $command\n\n";

@@ -93,7 +93,7 @@ if(defined($config{verbose})){
     print "\n------- End of Trim Galore! version information ------\n";
 }
 
-open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
+open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 
 # Read any options from the pipeline parameters
 my $min_readlength = 50;

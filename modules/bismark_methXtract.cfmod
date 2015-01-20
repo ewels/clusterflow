@@ -82,7 +82,7 @@ if(defined($config{verbose})){
     print "\n------- End of bismark_methylation_extractor version information ------\n";
 }
 
-open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
+open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 
 # Set buffer size
 my $buffer = "";
@@ -99,10 +99,10 @@ my $capture_regions = "";
 foreach my $parameter (@$parameters){
 	# Genome wide coverage reports
 	if($parameter eq "gwcov"){
-		if(!defined($config{genome_path})){
-			warn "\n\n###CF Error - gwcov parameter specified but no genome path found..\n\n";
+		if(!defined($config{references}{fasta})){
+			warn "\n\n###CF Error - gwcov parameter specified but no genome fasta path found..\n\n";
 		} else {
-			$gw_cov = '--cytosine_report --genome_folder '.$config{genome_path};
+			$gw_cov = '--cytosine_report --genome_folder '.$config{references}{fasta};
 		}
 	}
 	# Capture regions

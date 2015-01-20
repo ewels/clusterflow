@@ -77,7 +77,7 @@ if(defined($config{verbose})){
     print "\n------- End of ABI Dump version information ------\n";	
 }
 
-open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
+open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 
 # Go through each supplied file and run abi-dump.
 foreach my $file (@$files){

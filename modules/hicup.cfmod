@@ -92,15 +92,14 @@ my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_
 my %config = %$config_ref;
 
 # Check that we have a genome defined
-if(!defined($config{genome_path})){
-	warn "\n\n###CF Error! No genome path found in run file $runfile for job $job_id. Exiting.. ###\n\n";
-	exit;
+if(!defined($config{references}{fasta})){
+	die ("\n\n###CF Error! No genome path found in run file $runfile for job $job_id. Exiting.. ###\n\n");
 }
 # Check that we have a bowtie path defined
-if(!defined($config{bowtie_path})){
-	warn "\n\n###CF Error! No bowtie path found in run file $runfile for job $job_id. Exiting.. ###\n\n";
-	exit;
+if(!defined($config{references}{bowtie})){
+	die ("\n\n###CF Error! No bowtie path found in run file $runfile for job $job_id. Exiting.. ###\n\n");
 }
+warn "\nUsing the following references:\n  $config{references}{fasta}\n  $config{references}{bowtie}\n\n";
 
 # Print the version if it's in the run file config
 if(defined($config{verbose})){
@@ -109,7 +108,7 @@ if(defined($config{verbose})){
     print "\n------- End of HiCUP version information ------\n";	
 }
 
-open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
+open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 
 # FastQ encoding type. Once found on one file will assume all others are the same
 my $encoding = 0;
@@ -164,7 +163,7 @@ foreach my $dir (keys (%dirs)){
 # Sort out the digest file
 ##############################
 my $digest;
-my @digest_files = glob($config{genome_path}."Digest_*.txt");
+my @digest_files = glob($config{references}{fasta}."Digest_*.txt");
 foreach my $digest_file (@digest_files){
 	if(index($digest_file, $re1_parts[1]) > 0){
 		$digest = $digest_file;
@@ -179,8 +178,8 @@ if(!$digest){
 	chdir($digest_dir);
 	
 	# Work out the command and run it
-	my @genome_path_parts = split("/", $config{genome_path});
-	my $command = "hicup_digester -1 $re1 -g ".$genome_path_parts[-2]."_".$genome_path_parts[-1]." ".$config{genome_path}."*.fa";
+	my @genome_path_parts = split("/", $config{references}{fasta});
+	my $command = "hicup_digester -1 $re1 -g ".$genome_path_parts[-2]."_".$genome_path_parts[-1]." ".$config{references}{fasta}."*.fa";
 	warn "\nCreating new digest file.\n\n";
 	warn "\n###CFCMD $command\n\n";
 	if(!system ($command)){
@@ -240,7 +239,7 @@ for (my $i = 0; $i <= $num_files; $i++){
 			my $output_fn = "uniques_".$fn1_base."_trunc_".$fn2_base."_trunc.bam";
 			
 			# removed -o $outputdir  from command
-			my $command = "hicup --zip --bowtie bowtie --digest $digest $enc --index ".$config{bowtie_path}." --longest $longest --shortest $shortest --re1 $re1 --threads $cores --filenames ".$p_files[0].",".$p_files[1];
+			my $command = "hicup --zip --bowtie bowtie --digest $digest $enc --index ".$config{references}{bowtie}." --longest $longest --shortest $shortest --re1 $re1 --threads $cores --filenames ".$p_files[0].",".$p_files[1];
 			warn "\n###CFCMD $command\n\n";
 			
 			if(!system ($command)){

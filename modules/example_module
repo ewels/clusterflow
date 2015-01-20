@@ -135,11 +135,11 @@ my (
 ) = CF::Helpers::load_runfile_params(@ARGV);
 my %config = %$config_ref;
 
-# Check that we have a genome defined, die if we don't.
-if(!defined($config{genome_path})){
-	die "\n\n###CF No genome path found in run file $runfile for job $job_id. Exiting.. ###";
+# Check that we have a reference genome defined, die if we don't.
+if(!defined($config{references}{fasta})){
+   die "\n\n###CF Error: No genome fasta path found in run file $runfile for job $job_id. Exiting.. ###";
 } else {
-	warn "\nUsing the genome path: ".$config{genome_path}."\n\n";
+    warn "\nUsing the genome path: ".$config{references}{fasta}."\n\n";
 }
 
 # Print the version if it's in the run file config.
@@ -180,7 +180,7 @@ foreach my $parameter (@$parameters){
 }
 
 # Open up our run file in append mode
-open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
+open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 
 # Separate file names into single end and paired end
 my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%config, @$files);
@@ -205,7 +205,7 @@ if($se_files && scalar(@$se_files) > 0){
 		my $output_fn = $file."_processed.output";
 		
 		# Write our command!
-		my $command = "my_command $enc $param1 $param2 -c $cores -m $mem -g ".$config{genome_path}." -i $file -o $output_fn";
+		my $command = "my_command $enc $param1 $param2 -c $cores -m $mem -g ".$config{references}{fasta}." -i $file -o $output_fn";
 		# Write the command to the log file
 		warn "\n###CFCMD $command\n\n";
 		
@@ -260,7 +260,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			my $output_fn = $files[0]."_".$files[1]."_processed.output";
 			
 			# Write our command!
-			my $command = "my_command $enc $param1 $param2 -c $cores -m $mem -g ".$config{genome_path}." -1 ".$files[0]." -2 ".$files[1]." -o $output_fn";
+			my $command = "my_command $enc $param1 $param2 -c $cores -m $mem -g ".$config{references}{fasta}." -1 ".$files[0]." -2 ".$files[1]." -o $output_fn";
 			# Write the command to the log file
 			warn "\n###CFCMD $command\n\n";
 			

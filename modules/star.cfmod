@@ -51,11 +51,10 @@ if($required_mem){
     } else {
         # Parse the run file
         my ($starting_files, $config) = CF::Helpers::parse_runfile($run_fn);
-    	
     	# estimate memory based on genome size
         my $minmem = 32000111000;
-    	if (exists($$config{"star_path"})) {
-    		my $star_path = $$config{"star_path"}."SA";
+    	if (exists($$config{references}{star})) {
+    		my $star_path = $$config{references}{star}."SA";
     		if (-e $star_path){
     			$minmem = int(1.5 * -s $star_path);
     			$minmem = 16000111000 if $minmem < 16000111000;
@@ -93,11 +92,11 @@ my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_
 my %config = %$config_ref;
 
 # Check that we have a genome defined
-if(!defined($config{star_path})){
-	warn "\n\n### No star path found in run file $runfile for job $job_id. Exiting.. ###";
+if(!defined($config{references}{star})){
+	warn "\n\n###CF Error: No star path found in run file $runfile for job $job_id. Exiting.. ###";
 	exit;
 } else {
-	warn "\nAligning against ".$config{star_path}."\n\n";
+	warn "\nAligning against ".$config{references}{star}."\n\n";
 }
 
 # Print the version if it's in the run file config
@@ -111,7 +110,7 @@ if(!defined($cores) || $cores < 1){
 	$cores = 1;
 }
 
-open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
+open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 my $genomeLoad = 'NoSharedMemory';
 foreach my $parameter (@$parameters){
 	if($parameter =~ /LoadAndRemove/){
@@ -156,7 +155,7 @@ if($se_files && scalar(@$se_files) > 0){
 			$command .= " --readFilesCommand zcat";	#code
 		}
 		
-		$command .= " --genomeDir ".$config{star_path}." --readFilesIn $file --outFileNamePrefix $prefix";
+		$command .= " --genomeDir ".$config{references}{star}." --readFilesIn $file --outFileNamePrefix $prefix";
 		warn "\n###CFCMD $command\n\n";
 		
 		if(!system ($command)){
@@ -203,7 +202,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 				$command .= " --readFilesCommand zcat";	#code
 			}
 			
-			$command .= " --genomeDir ".$config{star_path}." --readFilesIn $files[0] $files[1] --outFileNamePrefix $prefix";
+			$command .= " --genomeDir ".$config{references}{star}." --readFilesIn $files[0] $files[1] --outFileNamePrefix $prefix";
 			warn "\n###CFCMD $command\n\n";
 			
 			if(!system ($command)){

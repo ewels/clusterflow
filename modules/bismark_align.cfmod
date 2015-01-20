@@ -81,9 +81,10 @@ my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_
 my %config = %$config_ref;
 
 # Check that we have a genome defined
-if(!defined($config{genome_path})){
-	warn "\n\n###CF Error! No genome path found in run file $runfile for job $job_id.\n\n";
-	exit;
+if(!defined($config{references}{fasta})){
+   die "\n\n###CF Error: No genome fasta path found in run file $runfile for job $job_id. Exiting.. ###";
+} else {
+    warn "\nAligning against ".$config{references}{fasta}."\n\n";
 }
 
 # Print the version if it's in the run file config
@@ -93,7 +94,7 @@ if(defined($config{verbose})){
     print "\n------- End of Bismark version information ------\n";	
 }
 
-open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
+open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 
 # Separate file names into single end and paired end
 my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%config, @$files);
@@ -156,7 +157,7 @@ if($se_files && scalar(@$se_files) > 0){
 			$output_fn = $file."_bismark.bam";
 		}
 		
-		my $command = "bismark --bam $bt2 $pbat $non_directional $enc ".$config{genome_path}." ".$file;
+		my $command = "bismark --bam $bt2 $pbat $non_directional $enc ".$config{references}{fasta}." ".$file;
 		warn "\n###CFCMD $command\n\n";
 		
 		if(!system ($command)){
@@ -196,7 +197,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 				$output_fn = $files[0]."_bismark_pe.bam";
 			}
 			
-			my $command = "bismark --bam $bt2 $pbat $non_directional $enc ".$config{genome_path}." -1 ".$files[0]." -2 ".$files[1];
+			my $command = "bismark --bam $bt2 $pbat $non_directional $enc ".$config{references}{fasta}." -1 ".$files[0]." -2 ".$files[1];
 			warn "\n###CFCMD $command\n\n";
 			
 			if(!system ($command)){

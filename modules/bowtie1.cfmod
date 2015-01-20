@@ -83,10 +83,10 @@ my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_
 my %config = %$config_ref;
 
 # Check that we have a genome defined
-if(!defined($config{bowtie_path})){
-   die "\n\n### No bowtie path found in run file $runfile for job $job_id. Exiting.. ###";
+if(!defined($config{references}{bowtie})){
+   die "\n\n###CF Error: No bowtie path found in run file $runfile for job $job_id. Exiting.. ###";
 } else {
-    warn "\nAligning against ".$config{bowtie_path}."\n\n";
+    warn "\nAligning against ".$config{references}{bowtie}."\n\n";
 }
 
 # Print the version if it's in the run file config
@@ -108,7 +108,7 @@ foreach my $parameter (@$parameters) {
 	}
 }
 
-open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
+open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 
 # Separate file names into single end and paired end
 my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%config, @$files);
@@ -139,9 +139,9 @@ if($se_files && scalar(@$se_files) > 0){
 			$file = "-";
 		}
 		
-		my $command = "$gzip bowtie -p $cores -t -m 1 $enc --strata --best -S --chunkmbs 2048 ".$config{bowtie_path}." $file | samtools view -bS - > $output_fn";
+		my $command = "$gzip bowtie -p $cores -t -m 1 $enc --strata --best -S --chunkmbs 2048 ".$config{references}{bowtie}." $file | samtools view -bS - > $output_fn";
 		if ($mirna) {
-		    $command = "$gzip bowtie -p $cores -t -n 0 -l 15 -e 99999 -k 200 $enc --best -S --chunkmbs 2048 ".$config{bowtie_path}." $file | samtools view -bS - > $output_fn"
+		    $command = "$gzip bowtie -p $cores -t -n 0 -l 15 -e 99999 -k 200 $enc --best -S --chunkmbs 2048 ".$config{references}{bowtie}." $file | samtools view -bS - > $output_fn"
 		}
 		warn "\n###CFCMD $command\n\n";
 		
@@ -186,10 +186,10 @@ if($pe_files && scalar(@$pe_files) > 0){
 			
 			my $output_fn = $files[0]."_bowtie.bam";
 			
-			my $command = "bowtie -p $cores -t -m 1 $enc --strata --best --maxins 700 -S --chunkmbs 2048 ".$config{bowtie_path}." -1 ".$files[0]." -2 ".$files[1]." | samtools view -bSh 2>/dev/null - > $output_fn";
+			my $command = "bowtie -p $cores -t -m 1 $enc --strata --best --maxins 700 -S --chunkmbs 2048 ".$config{references}{bowtie}." -1 ".$files[0]." -2 ".$files[1]." | samtools view -bSh 2>/dev/null - > $output_fn";
 
 			if ($mirna) {
-			    $command = "bowtie -p $cores -t -n 0 -l 15 -e 99999 -k 200 $enc --best --maxins 700 -S --chunkmbs 2048 ".$config{bowtie_path}." -1 ".$files[0]." -2 ".$files[1]." | samtools view -bSh 2>/dev/null - > $output_fn";
+			    $command = "bowtie -p $cores -t -n 0 -l 15 -e 99999 -k 200 $enc --best --maxins 700 -S --chunkmbs 2048 ".$config{references}{bowtie}." -1 ".$files[0]." -2 ".$files[1]." | samtools view -bSh 2>/dev/null - > $output_fn";
 			}
 			warn "\n###CFCMD $command\n\n";
 			

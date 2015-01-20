@@ -62,8 +62,8 @@ if($version){
 if($help){
 	print "".("-"x15)."\n Tophat Module\n".("-"x15)."\n
 TopHat is a fast splice junction mapper for RNA-Seq reads. 
-It can run with or without a supplied GTF path (\@gtf_path)
-but requires a bowtie path (\@bowtie_path).
+It can run with or without a supplied GTF path but requires
+a bowtie path.
 
 This module fixes a bug in tophat that relates to MAPQ values;
 by using –g 1 (as in the previous tophat module), ALL alignments will
@@ -88,18 +88,18 @@ my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_
 my %config = %$config_ref;
 
 # Check that we have a genome defined
-if(!defined($config{bowtie_path})){
-	warn "\n\n###CF No bowtie path found in run file $runfile for job $job_id. Exiting.. ###";
+if(!defined($config{references}{bowtie})){
+	warn "\n\n###CF Error: No bowtie path found in run file $runfile for job $job_id. Exiting.. ###";
 	exit;
 } else {
-	warn "\nAligning against bowtie path: ".$config{bowtie_path}."\n\n";
+	warn "\nAligning against bowtie path: ".$config{references}{bowtie}."\n\n";
 }
 
 
 my $gtf = '';
-if(defined($config{gtf_path})){
-	warn "\nUsing GTF path: ".$config{gtf_path}."\n\n";
-	$gtf = " -G ".$config{gtf_path};
+if(defined($config{references}{gtf})){
+	warn "\nUsing GTF path: ".$config{references}{gtf}."\n\n";
+	$gtf = " -G ".$config{references}{gtf};
 }
 
 # Print the version if it's in the run file config
@@ -113,7 +113,7 @@ if(!defined($cores) || $cores < 1){
 	$cores = 1;
 }
 
-open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
+open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 
 # Separate file names into single end and paired end
 my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%config, @$files);
@@ -152,7 +152,7 @@ if($se_files && scalar(@$se_files) > 0){
 		my $output_fn = $output_dir."/accepted_hits.bam";
 		
 		# Changing the command to -g 2 so that we can get proper MAPQ values
-		my $command = "tophat -p $cores -g 2 $enc $gtf -o $output_dir ".$config{bowtie_path}." $file";
+		my $command = "tophat -p $cores -g 2 $enc $gtf -o $output_dir ".$config{references}{bowtie}." $file";
 		warn "\n###CFCMD $command\n\n";
 		
 		if(!system ($command)){
@@ -204,7 +204,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			my $output_fn = $output_dir."/accepted_hits.bam";
 			
             # Changing the command to -g 2 so that we can get proper MAPQ values
-			my $command = "tophat -p $cores -g 2 $enc $gtf -o $output_dir ".$config{bowtie_path}." ".$files[0]." ".$files[1];
+			my $command = "tophat -p $cores -g 2 $enc $gtf -o $output_dir ".$config{references}{bowtie}." ".$files[0]." ".$files[1];
 			warn "\n###CFCMD $command\n\n";
 			
 			if(!system ($command)){

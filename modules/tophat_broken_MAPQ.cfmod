@@ -67,7 +67,7 @@ high-throughput short read aligner Bowtie, and then analyzes the
 mapping results to identify splice junctions between exons.\n
 This module detects the encoding of input fastq files and whether
 they're paired end or not. It can run with or without a supplied
-GTF path (\@gtf_path) but requires a bowtie path (\@bowtie_path).
+GTF path but requires a bowtie path.
 
 Note that this module uses the -g 1 parameter to only return unique
 hits. However, a bug in tophat means that all MAPQ values are
@@ -85,25 +85,25 @@ my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_
 my %config = %$config_ref;
 
 # Check that we have a genome defined
-if(!defined($config{bowtie_path})){
-	warn "\n\n###CF No bowtie path found in run file $runfile for job $job_id. Exiting.. ###";
+if(!defined($config{references}{bowtie})){
+	warn "\n\n###CF Error: No bowtie path found in run file $runfile for job $job_id. Exiting.. ###";
 	exit;
 } else {
-	warn "\nAligning against bowtie path: ".$config{bowtie_path}."\n\n";
+	warn "\nAligning against bowtie path: ".$config{references}{bowtie}."\n\n";
 }
 
 
 my $gtf = '';
-if(defined($config{gtf_path})){
-	warn "\nUsing GTF path: ".$config{gtf_path}."\n\n";
-	$gtf = " -G ".$config{gtf_path};
+if(defined($config{references}{gtf})){
+	warn "\nUsing GTF path: ".$config{references}{gtf}."\n\n";
+	$gtf = " -G ".$config{references}{gtf};
 }
 
 if(!defined($cores) || $cores < 1){
 	$cores = 1;
 }
 
-open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
+open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 
 # Separate file names into single end and paired end
 my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%config, @$files);
@@ -141,7 +141,7 @@ if($se_files && scalar(@$se_files) > 0){
 		
 		my $output_fn = $output_dir."/accepted_hits.bam";
 		
-		my $command = "tophat -p $cores -g 1 $enc $gtf -o $output_dir ".$config{bowtie_path}." $file";
+		my $command = "tophat -p $cores -g 1 $enc $gtf -o $output_dir ".$config{references}{bowtie}." $file";
 		warn "\n###CFCMD $command\n\n";
 		
 		if(!system ($command)){
@@ -192,7 +192,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			
 			my $output_fn = $output_dir."/accepted_hits.bam";
 			
-			my $command = "tophat -p $cores -g 1 $enc $gtf -o $output_dir ".$config{bowtie_path}." ".$files[0]." ".$files[1];
+			my $command = "tophat -p $cores -g 1 $enc $gtf -o $output_dir ".$config{references}{bowtie}." ".$files[0]." ".$files[1];
 			warn "\n###CFCMD $command\n\n";
 			
 			if(!system ($command)){

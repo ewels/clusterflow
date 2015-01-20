@@ -79,19 +79,10 @@ my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_
 my %config = %$config_ref;
 
 # Check that we have a genome defined
-if(!defined($config{bowtie2_path})){
-	if (defined($config{bowtie_path})){
-		warn "\n\n###CF Error: No bowtie2 path found in run file $runfile for job $job_id.\n Exiting.. ###\n";
-		exit;
-		# In future version, may do defaulting back to bowtie1:
-		#warn "\n\n###CF No bowtie2 path found in run file $runfile for job $job_id.\n Defaulting to bowtie path: ".$config{bowtie_path}."\n\n";
-		#$config{bowtie2_path} = $config{bowtie_path};
-	}  else  {
-		warn "\n\n###CF Error: No bowtie or bowtie2 path found in run file $runfile for job $job_id. Exiting.. ###";
-		exit;
-	}
+if(!defined($config{references}{bowtie2})){
+   die "\n\n###CF Error: No bowtie2 reference path found in run file $runfile for job $job_id. Exiting.. ###";
 } else {
-	warn "\nAligning against ".$config{bowtie2_path}."\n\n";
+    warn "\nAligning against ".$config{references}{bowtie2}."\n\n";
 }
 
 # Print the version if it's in the run file config
@@ -105,7 +96,7 @@ if(!defined($cores) || $cores < 1){
 	$cores = 1;
 }
 
-open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
+open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 
 # Separate file names into single end and paired end
 my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%config, @$files);
@@ -128,7 +119,7 @@ if($se_files && scalar(@$se_files) > 0){
 		
 		my $output_fn = $file."_bowtie2.bam";
 		
-		my $command = "bowtie2 -p $cores -t $enc -x ".$config{bowtie2_path}." -U $file | samtools view -bS - > $output_fn";
+		my $command = "bowtie2 -p $cores -t $enc -x ".$config{references}{bowtie2}." -U $file | samtools view -bS - > $output_fn";
 		warn "\n###CFCMD $command\n\n";
 		
 		if(!system ($command)){
@@ -163,7 +154,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			
 			my $output_fn = $files[0]."_bowtie2.bam";
 			
-			my $command = "bowtie2 -p $cores -t $enc -x ".$config{bowtie_path}." -1 ".$files[0]." -2 ".$files[1]." | samtools view -bS - > $output_fn";
+			my $command = "bowtie2 -p $cores -t $enc -x ".$config{references}{bowtie2}." -1 ".$files[0]." -2 ".$files[1]." | samtools view -bS - > $output_fn";
 			warn "\n###CFCMD $command\n\n";
 			
 			if(!system ($command)){
