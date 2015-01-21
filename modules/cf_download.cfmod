@@ -33,9 +33,24 @@ my $required_mem;
 my $required_modules;
 my $help;
 my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "help" => \$help);
-if($required_cores || $required_mem || $required_modules){
+
+# QSUB SETUP
+# --cores i = offered cores. Return number of required cores.
+if($required_cores){
+	print 1;
 	exit;
 }
+# --mem. Return the required memory allocation.
+if($required_mem){
+	print '500M';
+	exit;
+}
+# --modules. Return csv names of any modules which should be loaded.
+if($required_modules){
+	exit;
+}
+
+
 if($help){
 	die "\nThis is a core module which downloads files for Cluster Flow.\n";
 }
