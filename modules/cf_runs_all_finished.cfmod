@@ -370,6 +370,11 @@ $html_content .= '</ul><hr style="color: #d9d9d9; height: 1px; background: #d9d9
 		warn "Error! Problem whilst trying to send a pipeline e-mail notification to $to\n";
 	}
 
+	#### SAVE THE REPORT
+	open (OUT,'>',$subject.'.html') or die "Can't write to $subject.html: $!";
+	print OUT '<html><head><title>'.$subject.'</title></head><body>'.$html_content.'</body><html>';
+	close(OUT);
+
 } elsif($config{notifications}{complete} && !defined($config{email})){
 	warn "Error! Tried to send run e-mail notification but no e-mail address found in config\n";
 }
