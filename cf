@@ -1068,6 +1068,11 @@ if (!$cl_dryrun){
     # SLURM jobs are already sent, during command building
     if($CLUSTER_ENVIRONMENT =~ /SLURM/i){
         warn "\nJobs submitted.\n\n";
+        # Print actual commands to the log file too
+        print SUBMIT "\n\n\n\n\nCluster Flow job submission commands:\n".("="x52)."\n\n";
+      	foreach(@qsubs){
+      		print SUBMIT "$_\n";
+      	}
     }
     # Run local jobs
     elsif($CLUSTER_ENVIRONMENT =~ /local/i){
@@ -1087,8 +1092,13 @@ if (!$cl_dryrun){
     else {
     	foreach(@qsubs){
     		my $submit_text = `$_`;
-            chomp($submit_text);
-            print SUBMIT "$submit_text\n";
+          chomp($submit_text);
+          print SUBMIT "$submit_text\n";
+    	}
+      # Print actual commands to the log file too
+      print SUBMIT "\n\n\n\n\nCluster Flow job submission commands:\n".("="x52)."\n\n";
+    	foreach(@qsubs){
+    		print SUBMIT "$_\n";
     	}
     }
 }
