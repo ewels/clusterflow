@@ -366,10 +366,10 @@ AVAILABLE FLAGS
 	--file_list
 		Text file containing input files or download URLs
     
-    --runfile_prefix
-        Prefix for run file filename. Avoids potential clashes if
-        running multiple instances of Cluster Flow with the same
-        input file.
+	--runfile_prefix
+		Prefix for run file filename. Avoids potential clashes if
+		running multiple instances of Cluster Flow with the same
+		input file.
 		
 	--params
 		Specify extra module parameters. These will be applied to every
@@ -431,11 +431,11 @@ AVAILABLE FLAGS
 	--version
 		Print version of Cluster Flow installed
     
-    --verbose
-        Print submitted commands and software version numbers to STDOUT
+	--verbose
+		Print submitted commands and software version numbers to STDOUT
         
-    --print_versions
-        Print software versions to STDOUT and log files
+	--print_versions
+		Print software versions to STDOUT and log files
 	
 	--check_updates
 		Look for available Cluster Flow updates
@@ -771,17 +771,18 @@ These will overwrite any with the same name in the centralised config file
 */\n\n";
 	
 	my $cl_cols;
-	print "Right, let's get started!\nFirst off - how do you like your terminal? Colourful or monochrome?\n";
+	print "Right, let's get started!\nFirst off - Cluster Flow can make nice coloured status messages for you.\n";
+    print "They help to scan quickly, but can look a bit nasty with some colour schemes.\n";
 	print "Would you like to have coloured status messages? (y/n)\n\n";
 	while ($cl_cols = <STDIN>){
 		chomp ($cl_cols);
 		if($cl_cols =~ /^y(es)?/i){
-			print "\nGood choice. You can always edit these later anyway, just see the manual..\n\n";
+			print "\nYeah! Top tip: they look great with the dark solarized colour scheme.\n\n";
 			$cl_cols = 1;
 			sleep(2);
 			last;
 		} elsif ($cl_cols =~ /^n(o)?/i){
-			print "\nOk, let's delve a little deeper..\n\n";
+			print "\nFair enough. You can change you mind later if you fancy a little colour in your life ;)\n\n";
 			$cl_cols = 0;
 			last;
 		} else {

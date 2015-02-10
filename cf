@@ -637,12 +637,15 @@ sub count_leaves {
 	return ($num_leaves, $num_jobs);
 }
 
-
+# Get ready to save the STDOUT from the job submissions
+my $jid_base = 'cf_'.$pipeline.'_'.time.'_';
+my $submit_log = "cf_queuesubmission_".$jid_base.'log.txt';
+open (SUBMIT,'>>',$submit_log) or die "Can't write to $submit_log: $!";
+print SUBMIT "Output from $CLUSTER_ENVIRONMENT when submitting Cluster Flow jobs:\n".("="x52)."\n\n";
 
 # Go through the supplied starting files
 my @qsubs;
 my @job_ids;
-my $jid_base = 'cf_'.$pipeline.'_'.time.'_';
 my %run_job_ids;
 my $job_id;
 my $prev_dl_id = "";
@@ -912,7 +915,7 @@ sub make_submit_cmd {
 			}
 		}
 		
-		# Work out qsub notification settings
+		# Work out notification settings
 		my $notification_string = "";
 		if(defined($EMAIL) && length($EMAIL) > 0 && @NOTIFICATIONS){
 			$notification_string .= ' --mail-user={{email}} ';
@@ -954,6 +957,7 @@ sub make_submit_cmd {
 		unless($cl_dryrun) {
 			my $job_submit = `$qsub`;
 			chomp($job_submit);
+            print SUBMIT $job_submit."\n";
 			if($job_submit =~ /Submitted batch job (\d+)/){
 				$JOB_NUM_IDS{$job_id} = $1;
 				warn "$job_submit ($job_id)\n";
@@ -1039,7 +1043,6 @@ sub make_submit_cmd {
 }
 
 # FINAL STEP - DO SOMETHING WITH THESE COMMANDS
-my $datestamp = strftime "%Y-%m-%d_%H-%M", localtime;
 # Print qsub jobs to the terminal or submit to cluster
 if($cl_dryrun or $cl_verbose){
 	print "\n\n".('-' x 46)."\n Jobs that would be submitted to the cluster:\n".('-' x 46)."\n\n" if $cl_dryrun;
@@ -1053,7 +1056,7 @@ if($cl_dryrun or $cl_verbose){
 }
 if (!$cl_dryrun and ($CLUSTER_ENVIRONMENT =~ /local/i)){
 	# Write commands to a bash file
-	my $bash_fn = "cf_local_commands_".$cl_runfile_prefix.$datestamp.'_'.$pipeline;
+	my $bash_fn = "cf_local_".$jid_base."commands";
 	open (BASHOUT,'>',$bash_fn.".sh") or die "Can't write to $bash_fn.sh: $!";
 	foreach(@qsubs){
 		print BASHOUT $_;
@@ -1064,13 +1067,12 @@ if (!$cl_dryrun and ($CLUSTER_ENVIRONMENT =~ /local/i)){
 	# Tell the user.
 	warn "\nRunning in Local mode..\nWritten commands to ${bash_fn}.sh and submitted a background nohup job.\n\n";
 
-} elsif (!$cl_dryrun and ($CLUSTER_ENVIRONMENT !~ /SLURM/i)){ # SLURM jobs already kicked off to get depencies
-	# Save the STDOUT from the job submissions
-	my $submit_log = "cf_queuesubmission_".$cl_runfile_prefix.$datestamp.'_'.$pipeline.'.txt';
-	open (SUBMIT,'>>',$submit_log) or die "Can't write to $submit_log: $!";
+} elsif (!$cl_dryrun and ($CLUSTER_ENVIRONMENT !~ /SLURM/i)){
+    # SLURM jobs were already kicked off to get their depencies
 	foreach(@qsubs){
 		my $submit_text = `$_`;
-		print SUBMIT $submit_text;
+        chomp($submit_text);
+		print SUBMIT "$submit_text\n";
 	}
-	close (SUBMIT);
 }
+close (SUBMIT);
