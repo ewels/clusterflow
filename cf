@@ -234,7 +234,7 @@ if($cl_qstat){
                         print CF::Headnodehelpers::parse_squeue(0, 0);
                 }
 	} else {
-		print "Apologies, this function is not yet supported for systems other than GRIDEngine.\n";
+		print "Apologies, this function is not yet supported for systems other than GRIDEngine and SLURM.\n";
 	}
 	exit;
 }
@@ -1018,6 +1018,16 @@ sub make_submit_cmd {
 			$qsub .= " -hold_jid ". join(',', @{$holdjid});
 		}
 	
+
+	###########################
+	# Build command for local #
+	###########################
+	} elsif($CLUSTER_ENVIRONMENT =~ /local/i){
+		# Keepin' it simple..
+		$qsub = "$cmd\n";
+
+
+
 	###########################################
 	# Unrecognised Cluster Environment String #
 	###########################################
@@ -1040,7 +1050,18 @@ if($cl_dryrun or $cl_verbose){
 		print "\n\n".('-' x 86)."\n Warning - Jobs do not have dependencies (SLURM jobs have to be launched to do this)\n".('-' x 86)."\n\n";
 	}
 }
-if (!$cl_dryrun and ($CLUSTER_ENVIRONMENT !~ /SLURM/i)){
+if (!$cl_dryrun and $CLUSTER_ENVIRONMENT =~ /local/i)){
+	# Write commands to a bash file
+	$bash_fn = "cf_local_commands_${cl_runfile_prefix}${fn}_$pipeline.sh";
+	open (BASHOUT,'>',$bash_fn) or die "Can't write to $bash_fn: $!";
+	foreach(@qsubs){
+		print BASHOUT $_;
+	}
+	close(BASHOUT);
+	# Execute the bash file in a single background job
+	system "nohup bash $bash_fn &";
+
+} else if (!$cl_dryrun and $CLUSTER_ENVIRONMENT !~ /SLURM/i){ # SLURM jobs already kicked off to get depencies
 	foreach(@qsubs){
 		system $_;
 	}
