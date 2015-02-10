@@ -645,7 +645,7 @@ sub count_leaves {
 
 # Get ready to save the STDOUT from the job submissions
 my $jid_base = 'cf_'.$pipeline.'_'.time.'_';
-my $submit_log = "cf_queuesubmission_".$jid_base.'log.txt';
+my $submit_log = $jid_base.'submissionlog.txt';
 if($CLUSTER_ENVIRONMENT =~ /local/i){
     $submit_log = '/dev/null';
 }

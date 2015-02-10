@@ -55,11 +55,13 @@ my @outfns = @$parameters;
 my $date = strftime ("%H:%M %d-%m-%Y", localtime);
 warn "\n###CF Pipeline $pipeline finished at $date\n\n";
 
-# Dig out pipeline start from job ID
+# Dig out pipeline ID and start from job ID
 my $startdate = "?";
 my $duration = "?";
+my $pipeline_id = 'unknown_pipeline';
 if($job_id =~ /^cf_(.+)_(\d{10})_(.+)_\d{1,3}$/){
 	my $startdate_epoch = $2;
+  $pipeline_id = "cf_$1_$2";
 	$startdate = strftime ("%H:%M %d-%m-%Y", localtime($startdate_epoch));
 	# Calculate duration
 	my $duration_secs = time() - $startdate_epoch;
@@ -370,10 +372,14 @@ $html_content .= '</ul><hr style="color: #d9d9d9; height: 1px; background: #d9d9
 		warn "Error! Problem whilst trying to send a pipeline e-mail notification to $to\n";
 	}
 
-	#### SAVE THE REPORT
-	open (OUT,'>',$subject.'.html') or die "Can't write to $subject.html: $!";
-	print OUT '<html><head><title>'.$subject.'</title></head><body>'.$html_content.'</body><html>';
-	close(OUT);
+	#### SAVE THE REPORTS
+  my ($html_email, $text_email) = CF::Helpers::build_emails($title, $html_content, $plain_content);
+	open (HTML,'>',$pipeline_id.'.html') or die "Can't write to $pipeline_id.html: $!";
+	print HTML $html_email;
+	close(HTML);
+	open (PLAIN,'>',$pipeline_id.'.txt') or die "Can't write to $pipeline_id.txt: $!";
+	print PLAIN $text_email;
+	close(PLAIN);
 
 } elsif($config{notifications}{complete} && !defined($config{email})){
 	warn "Error! Tried to send run e-mail notification but no e-mail address found in config\n";

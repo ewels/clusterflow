@@ -552,12 +552,10 @@ sub cf_compare_version_numbers {
 
 
 ### E-MAIL FUNCTIONS
-sub send_email {
-	
-	my ($subject, $to, $title, $html_content, $plain_content) = @_;
-	
-	my $cf_version = $CF::Constants::CF_VERSION;
-	
+sub build_emails {
+  
+  my ($title, $html_content, $plain_content) = @_;
+  
 	# Get the e-mail templates
 	# Assume that we're running from the installation directory/modules
 	my $html_email;
@@ -565,6 +563,8 @@ sub send_email {
 	my $text_email;
 	{ local $/ = undef; local *FILE; open FILE, "<$Bin/../source/CF/plaintext_email_template.txt"; $text_email = <FILE>; close FILE }
 	
+	my $cf_version = $CF::Constants::CF_VERSION;
+  
 	# Put in our content
 	$html_email =~ s/{{ PAGE_TITLE }}/$title/g;
 	$html_email =~ s/{{ CONTENT }}/$html_content/g;
@@ -573,6 +573,16 @@ sub send_email {
 	$text_email =~ s/{{ PAGE_TITLE }}/$title/g;
 	$text_email =~ s/{{ CONTENT }}/$plain_content/g;
 	$text_email =~ s/{{ CF_VERSION }}/$cf_version/g;
+  
+  return($html_email, $text_email);
+  
+}
+
+sub send_email {
+	
+	my ($subject, $to, $title, $html_content, $plain_content) = @_;
+	
+  my ($html_email, $text_email) = build_emails($title, $html_content, $plain_content);
 	
 	# Do we have the Perl modules that we need?
 	my $mail;
