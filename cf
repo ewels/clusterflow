@@ -220,20 +220,26 @@ if($cl_dryrun){
 	sleep(1);
 }
 if($cl_qstat){
-	if($CLUSTER_ENVIRONMENT eq 'GRIDEngine'){
+	if($CLUSTER_ENVIRONMENT =~ /GRIDEngine/i){
 		if($CL_COLOURS){
 			print CF::Headnodehelpers::parse_qstat(0, 1);
 		} else {
 			print CF::Headnodehelpers::parse_qstat(0, 0);
 		}
-	} elsif($CLUSTER_ENVIRONMENT eq 'SLURM'){
+	} elsif($CLUSTER_ENVIRONMENT =~ /SLURM/i){
 		if($CL_COLOURS){
-                        print CF::Headnodehelpers::parse_squeue(0, 1);
-                } else {
-                        print CF::Headnodehelpers::parse_squeue(0, 0);
-                }
+                print CF::Headnodehelpers::parse_squeue(0, 1);
+        } else {
+                print CF::Headnodehelpers::parse_squeue(0, 0);
+        }
+	} elsif($CLUSTER_ENVIRONMENT =~ /local/i){
+		if($CL_COLOURS){
+                print CF::Headnodehelpers::parse_localjobs(0, 1);
+        } else {
+                print CF::Headnodehelpers::parse_localjobs(0, 0);
+        }
 	} else {
-		print "Apologies, this function is not yet supported for systems other than GRIDEngine and SLURM.\n";
+		print "Apologies, this function is not yet supported for systems other than GRIDEngine, SLURM and local.\n";
 	}
 	exit;
 }
@@ -963,7 +969,6 @@ sub make_submit_cmd {
             print SUBMIT $job_submit."\n";
 			if($job_submit =~ /Submitted batch job (\d+)/){
 				$JOB_NUM_IDS{$job_id} = $1;
-				warn "$job_submit ($job_id)\n";
 			} else {
 				warn "\nERROR! Couldn't find job id for $job_id: $job_submit\n\n";
 			}

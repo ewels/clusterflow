@@ -34,6 +34,56 @@ use LWP::Simple;
 ##########################################################################
 
 # Function to parse squeue results on a SLURM system
+sub parse_localjobs {
+	
+	my ($all_users, $cols) = @_;
+    
+    # Get job list
+    my $jobs = `ps -o cmd`;
+    chomp($jobs);
+    
+    # Mac, not linux
+    if($jobs =~ /cmd: keyword not found/){
+        $jobs = `ps -o comm`;
+        chomp($jobs);
+    }
+	
+	my $output = "";
+	foreach my $job (split(/\n/, $jobs)){
+        # Look for root cluster flow bash jobs
+        if($job =~ /cf_(.+)_(\d{10})_(.+)_\d{1,3}$/){
+    		
+            # Get parts
+            my $pipeline = $1;
+            my $pipelinekey = "$1_$2";
+            my $started = $2;
+            my $module = $3;
+		
+    		# Figure out the cwd for this pipeline
+    		my $pipeline_wd;
+		
+    		$output .= "\n".('=' x 70)."\n";
+    		$output .= sprintf("%-24s%-44s\n", " Cluster Flow Pipeline:", $pipeline);
+            $output .= sprintf("%-24s%-44s\n", " Parent Process ID:", $pipeline);
+    		$output .= sprintf("%-24s%-44s\n", " Submitted:", CF::Helpers::parse_seconds(time - $started)." ago");
+    		$output .= sprintf("%-24s%-44s\n", " Working Directory:", $pipeline_wd) if $pipeline_wd;
+    		$output .= sprintf("%-24s%-44s\n", " Cluster Flow ID:", $pipelinekey);
+    		$output .= "".('=' x 70)."\n";
+            
+            # Work out what module is currently running
+            # Look at child processes using pgrep
+            
+            # Look into the bash script to see how many steps there are
+            # Count how far through we are. Maybe output each module name?
+        }
+	}
+    
+
+	return ($output);
+	
+}
+
+# Function to parse squeue results on a SLURM system
 sub parse_squeue {
 	
 	my ($all_users, $cols) = @_;
@@ -322,7 +372,7 @@ sub print_jobs_output {
 		$output .= sprintf("%-24s%-44s\n", " Cluster Flow Pipeline:", $pipeline);
 		$output .= sprintf("%-24s%-44s\n", " Submitted:", CF::Helpers::parse_seconds(time - $pipelines->{$pipelinekey}{started})." ago");
 		$output .= sprintf("%-24s%-44s\n", " Working Directory:", $pipeline_wd) if $pipeline_wd;
-		$output .= sprintf("%-24s%-44s\n", " ID:", $pipelinekey);
+		$output .= sprintf("%-24s%-44s\n", " Cluster Flow ID:", $pipelinekey);
 		$output .= "".('=' x 70)."\n";
 		print_jobs_pipeline_output(\%{$jobs}, 0, \$output, $all_users, $cols, $pipelinekey);
 	}
