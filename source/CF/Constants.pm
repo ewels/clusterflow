@@ -37,6 +37,7 @@ our %config;
 
 # Empty config vars
 our $EMAIL;
+our $CL_COLOURS = 0;
 our $CHECK_UPDATES;
 our @NOTIFICATIONS;
 our $SPLIT_FILES = 1;
@@ -96,6 +97,8 @@ sub parse_conf_file {
 					
 					if($name eq 'email'){
 						$EMAIL = $val;
+					} elsif($name eq 'colourful' or $name eq 'colorful'){
+						$CL_COLOURS = $val;
 					} elsif($name eq 'check_updates'){
 						$CHECK_UPDATES = $val;
 					} elsif($name eq 'available_version'){
@@ -772,8 +775,29 @@ These will overwrite any with the same name in the centralised config file
 -------------------
 */\n\n";
 	
+	my $cl_cols;
+	print "Right, let's get started!\nFirst off - how do you like your terminal? Colourful or monochrome?\n";
+	print "Would you like to have coloured status messages? (y/n)\n\n";
+	while ($cl_cols = <STDIN>){
+		chomp ($cl_cols);
+		if($cl_cols =~ /^y(es)?/i){
+			print "\nGood choice. You can always edit these later anyway, just see the manual..\n\n";
+			$cl_cols = 1;
+			sleep(2);
+			last;
+		} elsif ($cl_cols =~ /^n(o)?/i){
+			print "\nOk, let's delve a little deeper..\n\n";
+			$cl_cols = 0;
+			last;
+		} else {
+			print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+		}
+	}
+	$config .= "\@colourful	$cl_cols\n";
+
+
 	my $email;
-	print "Right, let's get started! First off - what is your e-mail address?\nThis will be used for sending notifications.\n\n";
+	print "Next up - what is your e-mail address?\nThis will be used for sending notifications.\n\n";
 	while ($email = <STDIN>){
 		chomp ($email);
 		if($email =~ /^\w[\w\.\-]*\w\@\w[\w\.\-]*\w(\.\w{2,4})$/){
