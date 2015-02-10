@@ -418,11 +418,6 @@ AVAILABLE FLAGS
 	--qstatall
 		Same as --qstat, but for all jobs submitted by all users
 	
-	--qstatcols
-		Colour the output from --qstat and --qstatall. Looks nice in terminal
-		windows with light backgrounds. Horrible on dark backgrounds.
-		See the manual for recommended .bashrc aliases.
-	
 	--qdel
 		Delete all jobs running in a particular Cluster Flow pipeline. Follow
 		with a pipeline ID, printed when running --qstat

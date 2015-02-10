@@ -60,7 +60,6 @@ my $cl_list_genomes;
 my $cl_dryrun;
 my $cl_qstat;
 my $cl_qstatall;
-my $cl_qstatcolours;
 my $cl_qdel;
 my $cl_make_config;
 my $cl_add_genome;
@@ -93,7 +92,6 @@ my $config_result = GetOptions(
 	"dry_run" => \$cl_dryrun,
 	"qstat" => \$cl_qstat,
 	"qstatall" => \$cl_qstatall,
-	"qstatcols" => \$cl_qstatcolours,
 	"qdel=s" => \$cl_qdel,
 	"make_config" => \$cl_make_config,
 	"add_genome" => \$cl_add_genome,
@@ -221,20 +219,15 @@ if($cl_dryrun){
 	print "\n### Cluster Flow is running in Dry Run mode. No cluster jobs will be set off, only printed. Run files will be created. ###\n\n";
 	sleep(1);
 }
-# Are we using colours?
-my $cl_cols = 0;
-if($cl_qstatcolours or $CL_COLOURS){
-	$cl_cols = 1;
-}
 if($cl_qstat){
 	if($CLUSTER_ENVIRONMENT eq 'GRIDEngine'){
-		if($cl_cols){
+		if($CL_COLOURS){
 			print CF::Headnodehelpers::parse_qstat(0, 1);
 		} else {
 			print CF::Headnodehelpers::parse_qstat(0, 0);
 		}
 	} elsif($CLUSTER_ENVIRONMENT eq 'SLURM'){
-		if($cl_cols){
+		if($CL_COLOURS){
                         print CF::Headnodehelpers::parse_squeue(0, 1);
                 } else {
                         print CF::Headnodehelpers::parse_squeue(0, 0);
@@ -249,7 +242,7 @@ if($cl_qstatall){
 		print "Apologies, this function is not yet supported for systems other than GRIDEngine.\n";
 		exit;
 	}
-	if($cl_cols){
+	if($CL_COLOURS){
 		print CF::Headnodehelpers::parse_qstat(1, 1);
 	} else {
 		print CF::Headnodehelpers::parse_qstat(1, 0);
