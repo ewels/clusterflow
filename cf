@@ -1039,6 +1039,8 @@ sub make_submit_cmd {
 	
 }
 
+# FINAL STEP - DO SOMETHING WITH THESE COMMANDS
+my $datestamp = strftime "%Y-%m-%d_%H-%M", localtime;
 # Print qsub jobs to the terminal or submit to cluster
 if($cl_dryrun or $cl_verbose){
 	print "\n\n".('-' x 46)."\n Jobs that would be submitted to the cluster:\n".('-' x 46)."\n\n" if $cl_dryrun;
@@ -1052,7 +1054,6 @@ if($cl_dryrun or $cl_verbose){
 }
 if (!$cl_dryrun and ($CLUSTER_ENVIRONMENT =~ /local/i)){
 	# Write commands to a bash file
-	my $datestamp = strftime "%Y-%m-%d_%H-%M", localtime;
 	my $bash_fn = "cf_local_commands_".$cl_runfile_prefix.$datestamp.'_'.$pipeline;
 	open (BASHOUT,'>',$bash_fn.".sh") or die "Can't write to $bash_fn.sh: $!";
 	foreach(@qsubs){
@@ -1065,7 +1066,12 @@ if (!$cl_dryrun and ($CLUSTER_ENVIRONMENT =~ /local/i)){
 	warn "\nRunning in Local mode..\nWritten commands to ${bash_fn}.sh and submitted a background nohup job.\n\n";
 
 } elsif (!$cl_dryrun and ($CLUSTER_ENVIRONMENT !~ /SLURM/i)){ # SLURM jobs already kicked off to get depencies
+	# Save the STDOUT from the job submissions
+	my $submit_log = "cf_queuesubmission_".$cl_runfile_prefix.$datestamp.'_'.$pipeline.'.txt';
+	open (SUBMIT,'>>',$submit_log) or die "Can't write to $submit_log: $!";
 	foreach(@qsubs){
-		system $_;
+		my $submit_text = `$_`;
+		print SUBMIT $submit_text;
 	}
+	close (SUBMIT);
 }
