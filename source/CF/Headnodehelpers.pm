@@ -39,48 +39,128 @@ sub parse_localjobs {
 	my ($all_users, $cols) = @_;
     
     # Get job list
-    my $jobs = `ps -o cmd`;
+    my $osx = 0;
+    my $jobs = `ps -o pid -o cmd 2>&1`;
     chomp($jobs);
     
     # Mac, not linux
     if($jobs =~ /cmd: keyword not found/){
-        $jobs = `ps -o comm`;
+        $osx = 1;
+        $jobs = `ps -o pid -o command`;
         chomp($jobs);
     }
 	
 	my $output = "";
 	foreach my $job (split(/\n/, $jobs)){
         # Look for root cluster flow bash jobs
-        if($job =~ /cf_(.+)_(\d{10})_(.+)_\d{1,3}$/){
-    		
+        if($job =~ /^(\d+) bash cf_local_cf_(.+)_(\d{10})_commands.sh$/){
             # Get parts
-            my $pipeline = $1;
-            my $pipelinekey = "$1_$2";
-            my $started = $2;
-            my $module = $3;
-		
+            my $pid = $1;
+            my $pipeline = $2;
+            my $pipelinekey = "$2_$3";
+            my $started = $3;            
+            
     		# Figure out the cwd for this pipeline
     		my $pipeline_wd;
+            if($osx){
+                $pipeline_wd = `lsof -a -p $pid -d cwd -Fn | tail -1 | sed 's/.//'`;
+                $pipeline_wd =~ s/\n//;
+            } else {
+                $pipeline_wd = `pwdx $pid`;
+            }
 		
     		$output .= "\n".('=' x 70)."\n";
     		$output .= sprintf("%-24s%-44s\n", " Cluster Flow Pipeline:", $pipeline);
-            $output .= sprintf("%-24s%-44s\n", " Parent Process ID:", $pipeline);
+            $output .= sprintf("%-24s%-44s\n", " Top-Level Process ID:", $pid);
     		$output .= sprintf("%-24s%-44s\n", " Submitted:", CF::Helpers::parse_seconds(time - $started)." ago");
     		$output .= sprintf("%-24s%-44s\n", " Working Directory:", $pipeline_wd) if $pipeline_wd;
     		$output .= sprintf("%-24s%-44s\n", " Cluster Flow ID:", $pipelinekey);
     		$output .= "".('=' x 70)."\n";
             
-            # Work out what module is currently running
             # Look at child processes using pgrep
+            # Should only be one module running
+            my $curr_cmd = '?';
+            my $curr_mod = '?';
+            foreach my $child_pid (split(/\n/, `pgrep -P $pid`)){
+                my $child_cmd = '';
+                if($osx){
+                    $child_cmd = `ps -o command $child_pid`;
+                } else {
+                    $child_cmd = `ps -o cmd $child_pid`;
+                }
+                $child_cmd =~ s/[\n\r]//;
+                $child_cmd =~ s/COMMAND//;
+                $child_cmd =~ s/perl //;
+                if($child_cmd =~ /\/modules\/(.+)\.cfmod/){
+                    $curr_cmd = $child_cmd;
+                    $curr_mod = $1;
+                }
+            }
             
             # Look into the bash script to see how many steps there are
-            # Count how far through we are. Maybe output each module name?
+            # Count how far through we are.
+            if($pipeline_wd){
+                my $script_fn = "$pipeline_wd/cf_local_cf_${pipelinekey}_commands.sh";
+                my $num_commands = 0;
+                my $pos = 0;
+                my @mod_names;
+                if(-e $script_fn){
+                    print "Found $script_fn\n";
+                	open (BASH, $script_fn) or die "Can't read $script_fn: $!";
+                	while (<BASH>) {
+                		chomp;
+                		s/[\n\r]//;
+                        s/ 2>&1 \| sed .+$//;
+                        if(/\/modules\/(.+)\.cfmod/){
+                            next if(/cf_run_finished/);
+                            next if(/cf_runs_all_finished/);
+                            $num_commands++;
+                            push (@mod_names, $1);
+                            
+                            my $this = $_;
+                            my $match = $curr_cmd;
+                            $this =~ s/\s//g;
+                            $match =~ s/\s//g;
+                            if($this eq $match){
+                                $pos = $num_commands;
+                            }
+                        }
+                    }
+                    close(BASH);
+                    $output .= "\nCurrently running job $pos out of $num_commands:\n";
+                    my $i = 0;
+                    foreach my $mod (@mod_names){
+                        $i++;
+                        if ($i < $pos){
+                            if($cols){
+                                $output .= color 'green';
+                                $output .= "  $mod ";
+                                $output .= color 'reset';
+                                $output .= "\n"
+                            } else {
+                                $output .= "  $mod (done)\n";
+                            }
+                        }
+                        elsif($i == $pos){
+                            if($cols){
+                                $output .= color 'yellow';
+                                $output .= "  $mod ";
+                                $output .= color 'reset';
+                                $output .= "\n"
+                            } else {
+                                $output .= "> $mod\n";
+                            }
+                        } elsif ($i > $pos){
+                            $output .= "  $mod\n";
+                        }
+                    }
+                    $output .= "\n\n";
+                }
+            }
+            
         }
 	}
-    
-
 	return ($output);
-	
 }
 
 # Function to parse squeue results on a SLURM system
@@ -519,6 +599,47 @@ sub print_jobs_pipeline_output {
 
 }
 
+
+# local Function to delete all jobs with a pipeline ID
+sub cf_pipeline_localkill {
+    
+	my ($cf_id) = @_;
+	my $kill_output;
+    my $jobcount = 0;
+    
+    # Get job list
+    my $osx = 0;
+    my $jobs = `ps -o pid -o cmd 2>&1`;
+    chomp($jobs);
+    
+    # Mac, not linux
+    if($jobs =~ /cmd: keyword not found/){
+        $osx = 1;
+        $jobs = `ps -o pid -o command`;
+        chomp($jobs);
+    }
+	
+	my $output = "";
+	foreach my $job (split(/\n/, $jobs)){
+        # Look for top level jobs matching the id
+        if($job =~ /^(\d+) bash cf_local_cf_(.+)_(\d{10})_commands.sh$/){
+            my $process_id = $1;
+            my $pipelinekey = "$2_$3";
+            if($pipelinekey eq $cf_id){
+                my $k_cmd = "kill -9 -\$(ps -o pgid= $process_id | grep -o '[0-9]*')";
+                $kill_output .= `$k_cmd`;
+                $jobcount++;
+            }
+        }
+    }
+	if($jobcount > 0){
+		return "$jobcount cluster flow pipleline deleted.\n$kill_output\n";
+	} else {
+		return "Error - no jobs found for pipeline $cf_id\n";
+	}
+    
+}
+
 # SLURM Function to delete all jobs with a pipeline ID
 sub cf_pipeline_scancel {
 	
@@ -667,8 +788,12 @@ You can download the latest version of Cluster Flow from\nhttps://github.com/ewe
 # Function to properly split up version numbers
 # Returns true if second supplied vn is newer than first
 sub cf_compare_version_numbers {
-	
+    
 	my ($vn1_string, $vn2_string) = @_;
+    
+    if(!defined($vn2_string)){
+        return 0;
+    }
 	
 	my @vn1_parts = split(/\.|\s+/, $vn1_string);
 	my @vn2_parts = split(/\.|\s+/, $vn2_string);

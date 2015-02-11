@@ -255,6 +255,25 @@ if($cl_qstatall){
 	}
 	exit;
 }
+if($cl_qdel){
+	if($CLUSTER_ENVIRONMENT =~ /GRIDEngine/i){
+		print "\nDeleting jobs from Pipeline id $cl_qdel\n\n";
+		print CF::Headnodehelpers::cf_pipeline_qdel($cl_qdel);
+		exit;
+	} elsif($CLUSTER_ENVIRONMENT =~ /SLURM/i){
+		print "\nDeleting jobs from Pipeline id $cl_qdel\n\n";
+		print CF::Headnodehelpers::cf_pipeline_scancel($cl_qdel);
+		exit;
+	} elsif($CLUSTER_ENVIRONMENT =~ /local/i){
+		print "\nDeleting jobs from Pipeline id $cl_qdel\n\n";
+		print CF::Headnodehelpers::cf_pipeline_localkill($cl_qdel);
+		exit;
+	} else {
+		print "Apologies, this function is not yet supported for systems other than GRIDEngine, SLURM and local.\n";
+		exit;
+	}
+}
+
 if($cl_make_config){
 	CF::Constants::clusterflow_make_config();
 	exit;
@@ -271,20 +290,6 @@ To create one, run cf --make_config\n\n\n";
 if($cl_add_genome){
 	CF::Constants::clusterflow_add_genome();
 	exit;
-}
-if($cl_qdel){
-	if($CLUSTER_ENVIRONMENT eq 'GRIDEngine'){
-		print "\nDeleting jobs from Pipeline id $cl_qdel\n\n";
-		print CF::Headnodehelpers::cf_pipeline_qdel($cl_qdel);
-		exit;
-	} elsif($CLUSTER_ENVIRONMENT eq 'SLURM'){
-		print "\nDeleting jobs from Pipeline id $cl_qdel\n\n";
-		print CF::Headnodehelpers::cf_pipeline_scancel($cl_qdel);
-		exit;
-	} else {
-		print "Apologies, this function is not yet supported for systems other than GRIDEngine and SLURM.\n";
-		exit;
-	}
 }
 
 if($cl_version){
@@ -1086,7 +1091,7 @@ if (!$cl_dryrun){
     	# Execute the bash file in a single background job
     	system "nohup bash $bash_fn > /dev/null &";
     	# Tell the user.
-    	warn "\nRunning in Local mode..\nWritten commands to ${bash_fn}.sh and submitted a background nohup job.\n\n";
+    	warn "\nRunning in Local mode..\nWritten commands to ${bash_fn} and submitted a background nohup job.\n\n";
     }
     # Kick off everything else
     else {
