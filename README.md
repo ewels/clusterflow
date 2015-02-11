@@ -31,6 +31,9 @@ Change Log
 	* Apologies for any inconvenience that this change incurs. Feel free to [get in touch](https://github.com/ewels)
       if you have any problems.
 * New Stuff
+	* You can now run Cluster Flow locally (new `@cluster_environment` `local` )
+        * Tested on Mac OSX and Linux. Includes `--qstat` and `--qdel` functionality
+        * Allows easy testing and use of pipelines for those without access to a HPC cluster.
 	* Support for STAR RNA-seq aligner (thanks to [@stu2](https://github.com/stu2))
 	* Modules are given more information via the run file to help
        decide the amount of memory and cores they bid for (eg. number of files, reference)
