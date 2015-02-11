@@ -61,19 +61,14 @@ sub parse_localjobs {
             my $started = $3;            
             
     		# Figure out the cwd for this pipeline
-    		my $pipeline_wd;
-            if($osx){
-                $pipeline_wd = `lsof -a -p $pid -d cwd -Fn | tail -1 | sed 's/.//'`;
-                $pipeline_wd =~ s/\n//;
-            } else {
-                $pipeline_wd = `pwdx $pid`;
-            }
+            my $pipeline_wd = `lsof -a -p $pid -d cwd -Fn | tail -1 | sed 's/.//'`;
+            $pipeline_wd =~ s/\n//;
 		
     		$output .= "\n".('=' x 70)."\n";
     		$output .= sprintf("%-24s%-44s\n", " Cluster Flow Pipeline:", $pipeline);
             $output .= sprintf("%-24s%-44s\n", " Top-Level Process ID:", $pid);
     		$output .= sprintf("%-24s%-44s\n", " Submitted:", CF::Helpers::parse_seconds(time - $started)." ago");
-    		$output .= sprintf("%-24s%-44s\n", " Working Directory:", $pipeline_wd) if $pipeline_wd;
+    		$output .= sprintf("%-24s%-44s\n", " Working Directory:", $pipeline_wd) if length($pipeline_wd) > 0;
     		$output .= sprintf("%-24s%-44s\n", " Cluster Flow ID:", $pipelinekey);
     		$output .= "".('=' x 70)."\n";
             
@@ -90,6 +85,7 @@ sub parse_localjobs {
                 }
                 $child_cmd =~ s/[\n\r]//;
                 $child_cmd =~ s/COMMAND//;
+                $child_cmd =~ s/CMD//;
                 $child_cmd =~ s/perl //;
                 if($child_cmd =~ /\/modules\/(.+)\.cfmod/){
                     $curr_cmd = $child_cmd;
@@ -105,7 +101,6 @@ sub parse_localjobs {
                 my $pos = 0;
                 my @mod_names;
                 if(-e $script_fn){
-                    print "Found $script_fn\n";
                 	open (BASH, $script_fn) or die "Can't read $script_fn: $!";
                 	while (<BASH>) {
                 		chomp;
@@ -157,7 +152,6 @@ sub parse_localjobs {
                     $output .= "\n\n";
                 }
             }
-            
         }
 	}
 	return ($output);
