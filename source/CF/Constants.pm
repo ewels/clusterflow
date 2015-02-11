@@ -69,91 +69,91 @@ if(length($CLUSTER_ENVIRONMENT) == 0){
 }
 
 sub parse_conf_file {
-	# Read global config variables in. Do in order so that local prefs overwrite.
-	# Look in current directory and parent, as this module can be called
-	# by /cf and by /modules/module.cfmod
-	
+    # Read global config variables in. Do in order so that local prefs overwrite.
+    # Look in current directory and parent, as this module can be called
+    # by /cf and by /modules/module.cfmod
+    
     my $num_configs = 0;
-	my @config_files = ("$FindBin::Bin/clusterflow.config", "$FindBin::Bin/../clusterflow.config", "$homedir/clusterflow/clusterflow.config", './clusterflow.config');
-	foreach my $config_file (@config_files){
-		if(-e $config_file){
+    my @config_files = ("$FindBin::Bin/clusterflow.config", "$FindBin::Bin/../clusterflow.config", "$homedir/clusterflow/clusterflow.config", './clusterflow.config');
+    foreach my $config_file (@config_files){
+        if(-e $config_file){
             $num_configs++;
-			open (CONFIG, $config_file) or die "Can't read $config_file: $!";
-			my $comment_block = 0;
-			while (<CONFIG>) {
-				chomp;
-				s/\n//;
-				s/\r//;
-				
-				if($_ =~ /^\/\*.*\*\/$/){	# one line comments
-					$comment_block = 0;
-					next;
-				} elsif($_ =~ /^\/\*/){		# multiline comments start
-					$comment_block = 1;
-					next;
-				} elsif($_ =~ /\*\//){		# multiline comments end
-					$comment_block = 0;
-					next;
-				}
-				
-				if($_ =~ /^\@/ && !$comment_block){
-					my @sections = split(/\s+/, $_, 2);
-					$config{substr($sections[0], 1)} = $sections[1];
-					my $name = substr($sections[0], 1);
-					my $val = $sections[1];
-					
-					if($name eq 'email'){
-						$EMAIL = $val;
-					} elsif($name eq 'colourful' or $name eq 'colorful'){
-						$CL_COLOURS = $val;
-					} elsif($name eq 'check_updates'){
-						$CHECK_UPDATES = $val;
-					} elsif($name eq 'available_version'){
-						$AVAILABLE_VERSION = $val;
-					} elsif($name eq 'updates_last_checked'){
-						$UPDATES_LAST_CHECKED = $val;
-					} elsif($name eq 'notification'){
-						push @NOTIFICATIONS, $val;
-					} elsif($name eq 'split_files'){
-						$SPLIT_FILES = $val;
-					} elsif($name eq 'priority'){
-						$PRIORITY = $val;
-					} elsif($name eq 'max_runs'){
-						$MAX_RUNS = $val;
-					} elsif($name eq 'total_cores'){
-						$TOTAL_CORES = $val;
-					} elsif($name eq 'total_mem'){
-						$TOTAL_MEM = $val;
-					} elsif($name eq 'cluster_environment'){
-						$CLUSTER_ENVIRONMENT = $val;
-					} elsif($name eq 'custom_job_submit_command'){
-						$CUSTOM_JOB_SUBMIT_COMMAND = $val;
-					} elsif($name eq 'ignore_modules'){
-						$CF_MODULES = 0;
-					} elsif($name eq 'environment_module_alias'){
-						my ($search, $replace) = split(/\s+/, $val, 2);
-						$ENV_MODULE_ALIASES{$search} = $replace;
-					} elsif($name eq 'log_highlight_string'){
-						push @LOG_HIGHLIGHT_STRINGS, $val;
-					} elsif($name eq 'log_warning_string'){
-						push @LOG_WARNING_STRINGS, $val;
-					}
-				}
-			}
-			close(CONFIG);
-		}
-	}
-	
-	# Remove duplicate Notifications
-	my @unique_notifications;
-	my %seen_notification;
-	foreach my $value (@NOTIFICATIONS) {
-		if (!$seen_notification{$value}) {
-			push @unique_notifications, $value;
-			$seen_notification{$value} = 1;
-		}
-	}
-	@NOTIFICATIONS = @unique_notifications;
+            open (CONFIG, $config_file) or die "Can't read $config_file: $!";
+            my $comment_block = 0;
+            while (<CONFIG>) {
+                chomp;
+                s/\n//;
+                s/\r//;
+                
+                if($_ =~ /^\/\*.*\*\/$/){    # one line comments
+                    $comment_block = 0;
+                    next;
+                } elsif($_ =~ /^\/\*/){        # multiline comments start
+                    $comment_block = 1;
+                    next;
+                } elsif($_ =~ /\*\//){        # multiline comments end
+                    $comment_block = 0;
+                    next;
+                }
+                
+                if($_ =~ /^\@/ && !$comment_block){
+                    my @sections = split(/\s+/, $_, 2);
+                    $config{substr($sections[0], 1)} = $sections[1];
+                    my $name = substr($sections[0], 1);
+                    my $val = $sections[1];
+                    
+                    if($name eq 'email'){
+                        $EMAIL = $val;
+                    } elsif($name eq 'colourful' or $name eq 'colorful'){
+                        $CL_COLOURS = $val;
+                    } elsif($name eq 'check_updates'){
+                        $CHECK_UPDATES = $val;
+                    } elsif($name eq 'available_version'){
+                        $AVAILABLE_VERSION = $val;
+                    } elsif($name eq 'updates_last_checked'){
+                        $UPDATES_LAST_CHECKED = $val;
+                    } elsif($name eq 'notification'){
+                        push @NOTIFICATIONS, $val;
+                    } elsif($name eq 'split_files'){
+                        $SPLIT_FILES = $val;
+                    } elsif($name eq 'priority'){
+                        $PRIORITY = $val;
+                    } elsif($name eq 'max_runs'){
+                        $MAX_RUNS = $val;
+                    } elsif($name eq 'total_cores'){
+                        $TOTAL_CORES = $val;
+                    } elsif($name eq 'total_mem'){
+                        $TOTAL_MEM = $val;
+                    } elsif($name eq 'cluster_environment'){
+                        $CLUSTER_ENVIRONMENT = $val;
+                    } elsif($name eq 'custom_job_submit_command'){
+                        $CUSTOM_JOB_SUBMIT_COMMAND = $val;
+                    } elsif($name eq 'ignore_modules'){
+                        $CF_MODULES = 0;
+                    } elsif($name eq 'environment_module_alias'){
+                        my ($search, $replace) = split(/\s+/, $val, 2);
+                        $ENV_MODULE_ALIASES{$search} = $replace;
+                    } elsif($name eq 'log_highlight_string'){
+                        push @LOG_HIGHLIGHT_STRINGS, $val;
+                    } elsif($name eq 'log_warning_string'){
+                        push @LOG_WARNING_STRINGS, $val;
+                    }
+                }
+            }
+            close(CONFIG);
+        }
+    }
+    
+    # Remove duplicate Notifications
+    my @unique_notifications;
+    my %seen_notification;
+    foreach my $value (@NOTIFICATIONS) {
+        if (!$seen_notification{$value}) {
+            push @unique_notifications, $value;
+            $seen_notification{$value} = 1;
+        }
+    }
+    @NOTIFICATIONS = @unique_notifications;
     
     if($num_configs == 0){
         print ("Cluster Flow Error - no config files found. See clusterflow.config.example for an example.\n\n");
@@ -162,55 +162,55 @@ sub parse_conf_file {
 }
 
 sub parse_genomes_file {
-	
-	# Read genomes config variables in. Do in order so that local prefs overwrite.
-	
-	my @genome_files = ("$FindBin::Bin/genomes.config", "$homedir/clusterflow/genomes.config", './genomes.config');
-	foreach my $genome_file (@genome_files){
-		if(-e $genome_file){
-			open (GCONFIG, $genome_file) or die "Can't read $genome_file: $!";
-			my $comment_block = 0;
-			while (<GCONFIG>) {
-				chomp;
-				s/\n//;
-				s/\r//;
-				
-				if($_ =~ /^\/\*.*\*\/$/){	# one line comments
-					$comment_block = 0;
-					next;
-				} elsif($_ =~ /^\/\*/){		# multiline comments start
-					$comment_block = 1;
-					next;
-				} elsif($_ =~ /^\*\//){		# multiline comments start
-					$comment_block = 0;
-					next;
-				}
-				if($_ =~ /^\@reference/ && !$comment_block){
-					my @sections = split(/\s+/, $_);
-					my $ref_type = $sections[1];
-					my $key = $sections[2];
-					$REFERENCES{$ref_type}{$key}{path} = $sections[3];
-					$REFERENCES{$ref_type}{$key}{species} = $sections[4] if defined $sections[4];
-					$REFERENCES{$ref_type}{$key}{assembly} = $sections[5] if defined $sections[5];
-					$REFERENCES{$ref_type}{$key}{config_file} = $genome_file
-				}
-			}
-			close(GCONFIG);
-		}
-	}
+    
+    # Read genomes config variables in. Do in order so that local prefs overwrite.
+    
+    my @genome_files = ("$FindBin::Bin/genomes.config", "$homedir/clusterflow/genomes.config", './genomes.config');
+    foreach my $genome_file (@genome_files){
+        if(-e $genome_file){
+            open (GCONFIG, $genome_file) or die "Can't read $genome_file: $!";
+            my $comment_block = 0;
+            while (<GCONFIG>) {
+                chomp;
+                s/\n//;
+                s/\r//;
+                
+                if($_ =~ /^\/\*.*\*\/$/){    # one line comments
+                    $comment_block = 0;
+                    next;
+                } elsif($_ =~ /^\/\*/){        # multiline comments start
+                    $comment_block = 1;
+                    next;
+                } elsif($_ =~ /^\*\//){        # multiline comments start
+                    $comment_block = 0;
+                    next;
+                }
+                if($_ =~ /^\@reference/ && !$comment_block){
+                    my @sections = split(/\s+/, $_);
+                    my $ref_type = $sections[1];
+                    my $key = $sections[2];
+                    $REFERENCES{$ref_type}{$key}{path} = $sections[3];
+                    $REFERENCES{$ref_type}{$key}{species} = $sections[4] if defined $sections[4];
+                    $REFERENCES{$ref_type}{$key}{assembly} = $sections[5] if defined $sections[5];
+                    $REFERENCES{$ref_type}{$key}{config_file} = $genome_file
+                }
+            }
+            close(GCONFIG);
+        }
+    }
 }
 
 
 sub parse_updates_file {
-	my $updates_file = $ENV{"HOME"}."/clusterflow/.cfupdates";
-	if(-e $updates_file){
-		open (UPDATES, $updates_file) or die "Can't read $updates_file: $!";
-		$AVAILABLE_VERSION = <UPDATES>;
-		$AVAILABLE_VERSION =~ s/[\n\r]//;
-		$UPDATES_LAST_CHECKED = <UPDATES>;
-		$UPDATES_LAST_CHECKED =~ s/[\n\r]//;
-		close (UPDATES);
-	}
+    my $updates_file = $ENV{"HOME"}."/clusterflow/.cfupdates";
+    if(-e $updates_file){
+        open (UPDATES, $updates_file) or die "Can't read $updates_file: $!";
+        $AVAILABLE_VERSION = <UPDATES>;
+        $AVAILABLE_VERSION =~ s/[\n\r]//;
+        $UPDATES_LAST_CHECKED = <UPDATES>;
+        $UPDATES_LAST_CHECKED =~ s/[\n\r]//;
+        close (UPDATES);
+    }
 }
 
 
@@ -221,12 +221,12 @@ sub parse_updates_file {
 # Lists available genomes
 ####################################
 sub list_clusterflow_genomes {
-	
-	my $returnstring = "";
-	
-	my @config_files = ("$FindBin::Bin/genomes.config", "$homedir/clusterflow/genomes.config", './genomes.config');
-	
-	foreach my $config_file (@config_files){
+    
+    my $returnstring = "";
+    
+    my @config_files = ("$FindBin::Bin/genomes.config", "$homedir/clusterflow/genomes.config", './genomes.config');
+    
+    foreach my $config_file (@config_files){
         
         my $conf_count = 0;
         my $conf_file_string .= "\n".('-' x 50)."\n $config_file\n".('-' x 50)."\n";
@@ -257,10 +257,10 @@ sub list_clusterflow_genomes {
         if($conf_count > 0){
             $returnstring .= $conf_file_string;
         }
-	}
-	$returnstring .= "\n";
-	
-	return $returnstring;
+    }
+    $returnstring .= "\n";
+    
+    return $returnstring;
 }
 
 
@@ -272,50 +272,49 @@ sub list_clusterflow_genomes {
 # Prints help for a specific module or pipeline
 ####################################
 sub clusterflow_pipeline_help {
-	
-	my ($pipeline) = @_;
-	
-	my $help = "";
-	
-	my @pipelines = ("./$pipeline.config", "$homedir/clusterflow/pipelines/$pipeline.config", "$FindBin::Bin/pipelines/$pipeline.config");
-	my @modules = ("./$pipeline.cfmod", "$homedir/clusterflow/modules/$pipeline.cfmod", "$FindBin::Bin/modules/$pipeline.cfmod");
-	foreach my $pipeline (@pipelines){
-		if(-e $pipeline){
-			open (PIPELINE, $pipeline) or die "Can't read $pipeline: $!";
-			my $comment_block = 0;
-			while (<PIPELINE>) {
-				chomp;
-				s/\n//;
-				s/\r//;
-				next if($_ =~ /^\/\*/); # multiline comments start
-				if($_ =~ /^\*\//){		# multiline comments end
-					$help .= "\n".("-" x 20)."\n Pipeline:\n".("-" x 20)."\n";
-					next;
-				}
-				$help .= $_."\n";
-			}
-			close(PIPELINE);
-		}
-		if($help){
-			return ($help);
-		}
-	}
-	
-	foreach my $module (@modules){
-		if(-e $module){
-			$help = `$module --help`;
-			return ($help);
-		}
-	}
-	
-	if($help eq ""){
-		$help = "\nSorry, no help found for this pipeline.\n\n";
-	}
-	
-	return ($help);
-	
+    
+    my ($pipeline) = @_;
+    
+    my $help = "";
+    
+    my @pipelines = ("./$pipeline.config", "$homedir/clusterflow/pipelines/$pipeline.config", "$FindBin::Bin/pipelines/$pipeline.config");
+    my @modules = ("./$pipeline.cfmod", "$homedir/clusterflow/modules/$pipeline.cfmod", "$FindBin::Bin/modules/$pipeline.cfmod");
+    foreach my $pipeline (@pipelines){
+        if(-e $pipeline){
+            open (PIPELINE, $pipeline) or die "Can't read $pipeline: $!";
+            my $comment_block = 0;
+            while (<PIPELINE>) {
+                chomp;
+                s/\n//;
+                s/\r//;
+                next if($_ =~ /^\/\*/); # multiline comments start
+                if($_ =~ /^\*\//){        # multiline comments end
+                    $help .= "\n".("-" x 20)."\n Pipeline:\n".("-" x 20)."\n";
+                    next;
+                }
+                $help .= $_."\n";
+            }
+            close(PIPELINE);
+        }
+        if($help){
+            return ($help);
+        }
+    }
+    
+    foreach my $module (@modules){
+        if(-e $module){
+            $help = `$module --help`;
+            return ($help);
+        }
+    }
+    
+    if($help eq ""){
+        $help = "\nSorry, no help found for this pipeline.\n\n";
+    }
+    
+    return ($help);
+    
 }
-
 
 
 
@@ -325,149 +324,156 @@ sub clusterflow_pipeline_help {
 ####################################
 sub clusterflow_help {
 
-	my $help;
-	
-	$help = <<"EOT";
+    my $help;
+    
+    $help = <<"EOT";
 
 Cluster Flow Help
 =================
 Running Cluster Flow version $CF_VERSION
 
 SYNTAX
-	cf [flags] pipeline_name file_1 file_2..
-	
-	Note that the name of a single module can be used instead of a
-	pipeline name.
+    cf [flags] pipeline_name file_1 file_2..
+    
+    Note that the name of a single module can be used instead of a
+    pipeline name.
 
 EXAMPLE
-	cf --genome NCBIM37 sra_bismark *.sra
+    cf --genome NCBIM37 sra_bismark *.sra
 
 SPECIFIC PIPELINE / MODULE HELP
-	To see specific help about a pipeline or module, use
-	cf --help followed by a pipeline or module name.
+    To see specific help about a pipeline or module, use
+    cf --help followed by a pipeline or module name.
 
 INTRODUCTION
-	Cluster Flow is simple package to run pipelines in a cluster environment.
-	
-	Cluster Flow will set off multiple queued jobs on the cluster with queue 
-	dependencies as defined in the pipeline.
+    Cluster Flow is simple package to run pipelines in a cluster environment.
+    
+    Cluster Flow will set off multiple queued jobs on the cluster with queue 
+    dependencies as defined in the pipeline.
 
-AVAILABLE FLAGS
-	For a full description of the avilable flags and how to use them, see
-	the Cluster Flow documentation.
+COMMON FLAGS
+    These are flags that are commonly used in day to day Cluster Flow use.
+    For a full description of the avilable flags and how to use them, see
+    the Cluster Flow documentation.
 
-	--genome <ID>
-		ID of a genome referred to in clusterflow.config
-		This genome ID is used to specify genome paths, bowtie
-		index basenames and GTF file paths.
-		
-	--ref <type>=<path>
-		Path to a reference to be used for alignment. Overrides --genome
-		Possible values for type: fasta / bowtie / bowtie2 / star / gtf
-		eg: --ref fasta=/path/to/fasta/files
-		
-	--paired
-		Force paired-end mode
-		
-	--single
-		Force single-end mode
-	
-	--no_fn_check
-		Disable input file type checking
-	
-	--file_list
-		Text file containing input files or download URLs
+    --genome <ID>
+        ID of a genome referred to in clusterflow.config
+        This genome ID is used to specify genome paths, bowtie
+        index basenames and GTF file paths.
+        Use --list_genomes to show available IDs
     
-	--runfile_prefix
-		Prefix for run file filename. Avoids potential clashes if
-		running multiple instances of Cluster Flow with the same
-		input file.
-		
-	--params
-		Specify extra module parameters. These will be applied to every
-		module if a pipeline name is specified.
-		
-	--split_files <num>
-		Create one run per <num> files
-	
-	--max_runs <num>
-		Divide input files into <num> runs. Overrides --split_files
-		Setting this will override the default value set in
-		clusterflow.config. Set to 0 to disable max_runs.
-		
-	--email <email>
-		Set the e-mail address for notifications
-		
-	--priority <num>
-		Set the queue priority for cluster jobs
-		
-	--cores <num>
-		Set the maximum number of cores to use for all runs
-		
-	--mem <string>
-		Set the maximum memory to use for all runs
-    
-	--notifications <cresa>
-		Specify desired notifications
-		c = pipeline complete, r = run complete, e = qsub job ends
-		s = qsub job suspended, a = qsub job aborted
-		
-	--list_pipelines
-		Print available pipelines
-		
-	--list_modules
-		Print available modules
-		
-	--list_genomes
-		Print available genomes
-		
-	--dry_run
-		Prints jobs to terminal instead of submitting them to the cluster
-	
-	--qstat
-		Parses the output from qstat in a visually attractive and intuitive manner
-		
-	--qstatall
-		Same as --qstat, but for all jobs submitted by all users
-	
-	--qdel
-		Delete all jobs running in a particular Cluster Flow pipeline. Follow
-		with a pipeline ID, printed when running --qstat
-		
-	--make_config
-		Interactive prompt to generate a personalised CF config file
-		
-	--add_genome
-		Interactive wizard to add new genomes to your genomes.config files
-	
-	--version
-		Print version of Cluster Flow installed
-    
-	--verbose
-		Print submitted commands and software version numbers to STDOUT
+    --file_list
+        Text file containing input files or download URLs
         
-	--print_versions
-		Print software versions to STDOUT and log files
-	
-	--check_updates
-		Look for available Cluster Flow updates
-		
-	--help
-		Print this help message.
-		If specified with a pipeline or module name afterwards, the help for that
-		pipeline or module will be displayed. eg. cf --help sra_bismark
+    --params
+        Specify extra module parameters. These will be applied to every
+        module if a pipeline name is specified.
+        
+    --list_pipelines
+        Print available pipelines
+        
+    --list_modules
+        Print available modules
+        
+    --list_genomes
+        Print available genomes
+    
+    --qstat
+        Parses the output from qstat in a visually attractive and intuitive manner
+        
+    --qstatall
+        Same as --qstat, but for all jobs submitted by all users
+    
+    --qdel
+        Delete all jobs running in a particular Cluster Flow pipeline. Follow
+        with a pipeline ID, printed when running --qstat
+        
+    --make_config
+        Interactive prompt to generate a personalised CF config file
+        
+    --add_genome
+        Interactive wizard to add new genomes to your genomes.config files
+        
+    --dry_run
+        Prints jobs to terminal instead of submitting them to the cluster
+        
+    --verbose
+        Print submitted commands and software version numbers to STDOUT
+        
+    --print_versions
+        Print software versions to STDOUT and log files
+        
+    --version
+        Print version of Cluster Flow installed
+        
+    --check_updates
+        Look for available Cluster Flow updates
+        
+    --help
+        Print this help message.
+        If specified with a pipeline or module name afterwards, the help for that
+        pipeline or module will be displayed. eg. cf --help sra_bismark
 
+RARE FLAGS
+    These flags are used to override Cluster Flow defaults for a single run.
+    For a full description of the avilable flags and how to use them, see
+    the Cluster Flow documentation.
+
+    --cores <num>
+        Set the maximum number of cores to use for all runs
+    
+    --email <email>
+        Set the e-mail address for notifications
+    
+    --max_runs <num>
+        Divide input files into <num> runs. Overrides --split_files
+        Setting this will override the default value set in
+        clusterflow.config. Set to 0 to disable max_runs.
+       
+    --mem <string>
+        Set the maximum memory to use for all runs
+
+    --notifications <cresa>
+        Specify desired notifications
+        c = pipeline complete, r = run complete, e = qsub job ends
+        s = qsub job suspended, a = qsub job aborted
+   
+    --no_fn_check
+        Disable input file type checking
+        
+    --ref <type>=<path>
+        Path to a reference to be used for alignment. Overrides --genome
+        Possible values for type: fasta / bowtie / bowtie2 / star / gtf
+        eg: --ref fasta=/path/to/fasta/files
+    
+    --single
+        Force single-end mode
+        
+    --split_files <num>
+        Create one run per <num> files
+
+    --paired
+        Force paired-end mode
+    
+    --priority <num>
+        Set the queue priority for cluster jobs
+    
+    --runfile_prefix
+        Prefix for run file filename. Avoids potential clashes if
+        running multiple instances of Cluster Flow with the same
+        input file.
 
 AUTHOR
-	Written by Phil Ewels, Babraham Institute.
-	
+    Written by Phil Ewels (GitHub: \@ewels). Initial work done at the
+    Babraham Institute, Cambridge. Continued at SciLifeLab, Stockholm.
+    
 SEE ALSO
-	There is a full Cluster Flow manual available at
+    There is a full Cluster Flow manual available at
     http://ewels.github.io/clusterflow/
 
 EOT
-	
-	return ($help);
+    
+    return ($help);
 
 }
 
@@ -727,7 +733,7 @@ sub clusterflow_add_genome {
     foreach my $type (keys %new_refs){
         foreach my $genomeID (keys %{$new_refs{$type}}){
             my $path = $new_refs{$type}{$genomeID}{path};
-            print OUT "\@reference\t$type\t$genomeID\t$path\t$species\t$assembly\n";
+            print OUT "\@reference    $type    $genomeID    $path    $species    $assembly\n";
             print "Added a $type reference: $genomeID = $path\n";
         }
     }
@@ -754,29 +760,29 @@ sub clusterflow_add_genome {
 # to generate a config file for first run
 ####################################
 sub clusterflow_make_config {
-	
-	my $fn = $homedir."/clusterflow/clusterflow.config";
-	
-	print "\n\nCluster Flow Config Generator\n==============================\nRunning Cluster Flow version $CF_VERSION\n";
-	print "This mode will generate a personalised Cluster Flow config file for you \nin your home directory: ~/clusterflow/clusterflow.config\n\n";
-	
-	if(-e $fn){
-		print "### WARNING ###\n$fn already exists!\nThis script will overwrite that file. Do you want to continue? (y/n)\n\n";
-		while (my $continue = <STDIN>){
-			chomp ($continue);
-			if ($continue =~ /^n(o)?/i){
-				print "\nProbably wise.. See the manual for more information about how the config file works.\n\n";
-				exit;
-			} elsif($continue =~ /^y(es)?/i){
-				print "\nOk, no problem.. I'll wipe it when we get to the end.\n\n";
-				last;
-			} else {
-				print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
-			}
-		}
-	}
-	
-	my $config = "/*
+    
+    my $fn = $homedir."/clusterflow/clusterflow.config";
+    
+    print "\n\nCluster Flow Config Generator\n==============================\nRunning Cluster Flow version $CF_VERSION\n";
+    print "This mode will generate a personalised Cluster Flow config file for you \nin your home directory: ~/clusterflow/clusterflow.config\n\n";
+    
+    if(-e $fn){
+        print "### WARNING ###\n$fn already exists!\nThis script will overwrite that file. Do you want to continue? (y/n)\n\n";
+        while (my $continue = <STDIN>){
+            chomp ($continue);
+            if ($continue =~ /^n(o)?/i){
+                print "\nProbably wise.. See the manual for more information about how the config file works.\n\n";
+                exit;
+            } elsif($continue =~ /^y(es)?/i){
+                print "\nOk, no problem.. I'll wipe it when we get to the end.\n\n";
+                last;
+            } else {
+                print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+            }
+        }
+    }
+    
+    my $config = "/*
 Clusterflow Config
 -------------------
 Default static variables for clusterflow.
@@ -784,187 +790,187 @@ Syntax - \@key:value
 These will overwrite any with the same name in the centralised config file
 -------------------
 */\n\n";
-	
-	my $cl_cols;
-	print "Right, let's get started!\nFirst off - Cluster Flow can make nice coloured status messages for you.\n";
+    
+    my $cl_cols;
+    print "Right, let's get started!\nFirst off - Cluster Flow can make nice coloured status messages for you.\n";
     print "They help to scan quickly, but can look a bit nasty with some colour schemes.\n";
-	print "Would you like to have coloured status messages? (y/n)\n\n";
-	while ($cl_cols = <STDIN>){
-		chomp ($cl_cols);
-		if($cl_cols =~ /^y(es)?/i){
-			print "\nYeah! Top tip: they look great with the dark solarized colour scheme.\n\n";
-			$cl_cols = 1;
-			sleep(2);
-			last;
-		} elsif ($cl_cols =~ /^n(o)?/i){
-			print "\nFair enough. You can change you mind later if you fancy a little colour in your life ;)\n\n";
-			$cl_cols = 0;
-			last;
-		} else {
-			print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
-		}
-	}
-	$config .= "\@colourful	$cl_cols\n";
+    print "Would you like to have coloured status messages? (y/n)\n\n";
+    while ($cl_cols = <STDIN>){
+        chomp ($cl_cols);
+        if($cl_cols =~ /^y(es)?/i){
+            print "\nYeah! Top tip: they look great with the dark solarized colour scheme.\n\n";
+            $cl_cols = 1;
+            sleep(2);
+            last;
+        } elsif ($cl_cols =~ /^n(o)?/i){
+            print "\nFair enough. You can change you mind later if you fancy a little colour in your life ;)\n\n";
+            $cl_cols = 0;
+            last;
+        } else {
+            print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+        }
+    }
+    $config .= "\@colourful    $cl_cols\n";
 
 
-	my $email;
-	print "Next up - what is your e-mail address?\nThis will be used for sending notifications.\n\n";
-	while ($email = <STDIN>){
-		chomp ($email);
-		if($email =~ /^\w[\w\.\-]*\w\@\w[\w\.\-]*\w(\.\w{2,4})$/){
-			print "\nGreat! That looks good..\n\n";
-			last;
-		} else {
-			print "\nHmm, that e-mail address looked a little odd.\nAre you sure you typed it in correctly? (y/n)\n\n";
-			my $invalidemail = <STDIN>;
-			chomp($invalidemail);
-			if($invalidemail =~ /^y(es)?/i){
-				print "\nFair enough!\n\n";
-				last;
-			} else {
-				print "\nNo problem.. Please try it again..\n\n";
-			}
-		}
-	}
-	$config .= "\@email	$email\n";
-	
-	my $use_defaults;
-	my $use_defaults_stdin;
-	print "Ok, the rest of this wizard is about which notification e-mails that
+    my $email;
+    print "Next up - what is your e-mail address?\nThis will be used for sending notifications.\n\n";
+    while ($email = <STDIN>){
+        chomp ($email);
+        if($email =~ /^\w[\w\.\-]*\w\@\w[\w\.\-]*\w(\.\w{2,4})$/){
+            print "\nGreat! That looks good..\n\n";
+            last;
+        } else {
+            print "\nHmm, that e-mail address looked a little odd.\nAre you sure you typed it in correctly? (y/n)\n\n";
+            my $invalidemail = <STDIN>;
+            chomp($invalidemail);
+            if($invalidemail =~ /^y(es)?/i){
+                print "\nFair enough!\n\n";
+                last;
+            } else {
+                print "\nNo problem.. Please try it again..\n\n";
+            }
+        }
+    }
+    $config .= "\@email    $email\n";
+    
+    my $use_defaults;
+    my $use_defaults_stdin;
+    print "Ok, the rest of this wizard is about which notification e-mails that
 you'd like to receive. We can skip this and use default settings if you
 prefer. Use defaults? (y/n)\n\n";
-	while ($use_defaults_stdin = <STDIN>){
-		chomp ($use_defaults_stdin);
-		if($use_defaults_stdin =~ /^y(es)?/i){
-			print "\nGood choice. You can always edit these later anyway, just see the manual..\n\n";
-			$use_defaults = 1;
-			sleep(2);
-			last;
-		} elsif ($use_defaults_stdin =~ /^n(o)?/i){
-			print "\nOk, let's delve a little deeper..\n\n";
-			last;
-		} else {
-			print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
-		}
-	}
-	if($use_defaults){
-		$config .= "\@notification	complete\n";
-		$config .= "\@notification	suspend\n";
-		$config .= "\@notification	abort\n";
-	} else {
-		
-		my ($notify_complete, $notify_run, $notify_success, $notify_error, $notify_abort);
-		
-		print "Would you like to receive a notification when a pipeline is completed?
+    while ($use_defaults_stdin = <STDIN>){
+        chomp ($use_defaults_stdin);
+        if($use_defaults_stdin =~ /^y(es)?/i){
+            print "\nGood choice. You can always edit these later anyway, just see the manual..\n\n";
+            $use_defaults = 1;
+            sleep(2);
+            last;
+        } elsif ($use_defaults_stdin =~ /^n(o)?/i){
+            print "\nOk, let's delve a little deeper..\n\n";
+            last;
+        } else {
+            print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+        }
+    }
+    if($use_defaults){
+        $config .= "\@notification    complete\n";
+        $config .= "\@notification    suspend\n";
+        $config .= "\@notification    abort\n";
+    } else {
+        
+        my ($notify_complete, $notify_run, $notify_success, $notify_error, $notify_abort);
+        
+        print "Would you like to receive a notification when a pipeline is completed?
 The e-mail tells you the pipeline that has finished, the working directory
 for that pipeline, a list of Cluster Flow highlight notifications (typically
 whether each step in the pipeline ran successfully for each file) and then the
 log file output for each file. These notifications are recommended (y/n)\n\n";
-		while ($notify_complete = <STDIN>){
-			chomp ($notify_complete);
-			if($notify_complete =~ /^y(es)?/i){
-				print "\nGreat!\n\n";
-				$config .= "\@notification	complete\n";
-				last;
-			} elsif ($notify_complete =~ /^n(o)?/i){
-				print "\nOk, fair enough..\n\n";
-				last;
-			} else {
-				print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
-			}
-		}
-		
-		print "Would you like to receive a notification when each run is completed?
+        while ($notify_complete = <STDIN>){
+            chomp ($notify_complete);
+            if($notify_complete =~ /^y(es)?/i){
+                print "\nGreat!\n\n";
+                $config .= "\@notification    complete\n";
+                last;
+            } elsif ($notify_complete =~ /^n(o)?/i){
+                print "\nOk, fair enough..\n\n";
+                last;
+            } else {
+                print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+            }
+        }
+        
+        print "Would you like to receive a notification when each run is completed?
 Usually a run is the processing of one input file. The e-mail tells you the
 name of the run that has finished, its pipeline and the working directory.
 It includes a list of Cluster Flow highlight notifications (typically
 whether each step in the pipeline ran successfully) and then the log file output.
 These notifications are recommended for those who like to keep a close eye on
 their processing (y/n)\n\n";
-		while ($notify_run = <STDIN>){
-			chomp ($notify_run);
-			if($notify_run =~ /^y(es)?/i){
-				print "\nGreat!\n\n";
-				$config .= "\@notification	run\n";
-				last;
-			} elsif ($notify_run =~ /^n(o)?/i){
-				print "\nOk, sounds good..\n\n";
-				last;
-			} else {
-				print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
-			}
-		}
-		
-		print "Would you like to receive a notification when step of each run ends?
+        while ($notify_run = <STDIN>){
+            chomp ($notify_run);
+            if($notify_run =~ /^y(es)?/i){
+                print "\nGreat!\n\n";
+                $config .= "\@notification    run\n";
+                last;
+            } elsif ($notify_run =~ /^n(o)?/i){
+                print "\nOk, sounds good..\n\n";
+                last;
+            } else {
+                print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+            }
+        }
+        
+        print "Would you like to receive a notification when step of each run ends?
 This will be a GRID Engine notice for every qsub job. These notifications
 are not recommended as a typicaly Cluster Flow run can flood your inbox with hundreds
 of such e-mails. Would you like to receive them? (y/n)\n\n";
-		while ($notify_success = <STDIN>){
-			chomp ($notify_success);
-			if($notify_success =~ /^y(es)?/i){
-				print "\nFair enough, you were warned!\n\n";
-				$config .= "\@notification	end\n";
-				last;
-			} elsif ($notify_success =~ /^n(o)?/i){
-				print "\nProbably sensible..\n\n";
-				last;
-			} else {
-				print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
-			}
-		}
-		
-		print "Would you like to receive a notification when a GRID Engine
+        while ($notify_success = <STDIN>){
+            chomp ($notify_success);
+            if($notify_success =~ /^y(es)?/i){
+                print "\nFair enough, you were warned!\n\n";
+                $config .= "\@notification    end\n";
+                last;
+            } elsif ($notify_success =~ /^n(o)?/i){
+                print "\nProbably sensible..\n\n";
+                last;
+            } else {
+                print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+            }
+        }
+        
+        print "Would you like to receive a notification when a GRID Engine
 job is suspended? You're unlikely to get many if any, so they're recommended.
 Would you like to receive these notifications? (y/n)\n\n";
-		while ($notify_error = <STDIN>){
-			chomp ($notify_error);
-			if($notify_error =~ /^y(es)?/i){
-				print "\nSounds good!\n\n";
-				$config .= "\@notification	suspend\n";
-				last;
-			} elsif ($notify_error =~ /^n(o)?/i){
-				print "\nFair enough..\n\n";
-				last;
-			} else {
-				print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
-			}
-		}
-		
-		print "Ok, last one. Would you like to receive a notification 
+        while ($notify_error = <STDIN>){
+            chomp ($notify_error);
+            if($notify_error =~ /^y(es)?/i){
+                print "\nSounds good!\n\n";
+                $config .= "\@notification    suspend\n";
+                last;
+            } elsif ($notify_error =~ /^n(o)?/i){
+                print "\nFair enough..\n\n";
+                last;
+            } else {
+                print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+            }
+        }
+        
+        print "Ok, last one. Would you like to receive a notification 
 when a GRID Engine job exits in an abort state? This typically only
 happens when you or an administrator kills your cluster jobs using
 qdel. You're unlikely to get many of these, so they're recommended.
 Would you like to receive these notifications? (y/n)\n\n";
-		while ($notify_abort = <STDIN>){
-			chomp ($notify_abort);
-			if($notify_abort =~ /^y(es)?/i){
-				print "\nSounds good!\n\n";
-				$config .= "\@notification	abort\n";
-				last;
-			} elsif ($notify_abort =~ /^n(o)?/i){
-				print "\nFair enough..\n\n";
-				last;
-			} else {
-				print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
-			}
-		}
-		$config .= "\n\n\n";
-	
-	} # end of defaults check
-	
-	print "\n\nGreat, that's it! The following config file will be created:\n\n$config\n";
-	
-	print "\nRemember that you can add further settings to your
+        while ($notify_abort = <STDIN>){
+            chomp ($notify_abort);
+            if($notify_abort =~ /^y(es)?/i){
+                print "\nSounds good!\n\n";
+                $config .= "\@notification    abort\n";
+                last;
+            } elsif ($notify_abort =~ /^n(o)?/i){
+                print "\nFair enough..\n\n";
+                last;
+            } else {
+                print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+            }
+        }
+        $config .= "\n\n\n";
+    
+    } # end of defaults check
+    
+    print "\n\nGreat, that's it! The following config file will be created:\n\n$config\n";
+    
+    print "\nRemember that you can add further settings to your
 personalised config file - see the Cluster Flow manual
 for further information.\n\n\n";
-	
-	unless(-e $homedir."/clusterflow/" && -d $homedir."/clusterflow/"){
-		mkdir ($homedir."/clusterflow/") or die "Can't create clusterflow directory: $!";
-	}
-	open (OUT, '>', $fn) or die "Can't write to $fn: $!";
-	print OUT $config;
-	close OUT;
-	
+    
+    unless(-e $homedir."/clusterflow/" && -d $homedir."/clusterflow/"){
+        mkdir ($homedir."/clusterflow/") or die "Can't create clusterflow directory: $!";
+    }
+    open (OUT, '>', $fn) or die "Can't write to $fn: $!";
+    print OUT $config;
+    close OUT;
+    
 
 }
 
