@@ -30,18 +30,18 @@ Change Log
       for examples on how to update custom modules.
 	* Apologies for any inconvenience that this change incurs. Feel free to [get in touch](https://github.com/ewels)
       if you have any problems.
-* New Stuff - many thanks to [@stu2](https://github.com/stu2) for much of this
-	* Support for STAR RNA-seq aligner
-	* Modules are fed more information (eg. number of input files and reference genome) to help
-       decide the amount of memory and cores they bid for
+* New Stuff
+	* Support for STAR RNA-seq aligner (thanks to [@stu2](https://github.com/stu2))
+	* Modules are given more information via the run file to help
+       decide the amount of memory and cores they bid for (eg. number of files, reference)
 	* All perl scripts now have `env perl` in shebang to increase portability
 	* Now using GRIDEngine `h_vmem` memory option instead of `vf`
         * Gives a hard memory limit instead of a request limit at job submission time
         * Thanks to  [@stu2](https://github.com/stu2) and [@s-andrews](https://github.com/s-andrews)
 	* Support for explicit GRIDEngine queue nomination on the command line
-	* New `--verbose` and `print_versions` flags
-        * Prints version information for bowtie 1 & 2, STAR, samtools_sort, trim_galore, tophat and 
-            htseq-count to the report file.
+	* New `--verbose` and `--print_versions` flags
+        * Prints version information where possible. Supported by bowtie 1 & 2, STAR, samtools_sort, trim_galore, tophat and 
+            htseq-count modules. This information is sent to the report file.
         * Prints the commands submitted to the cluster to `STDOUT` when launched.
     * New `--runfile_prefix` option to help avoid potential filename clashes.
     * Added compatability with GRIDEngine `~/.sge_request files` (by ignoring them). 
