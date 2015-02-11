@@ -54,7 +54,7 @@ if($required_modules){
 # --version. Returns version information about the module.
 if($version){
     print "---------- BWA version information ----------\n";
-    print `which bwa`; # Best I could figure out, sorry!
+    print `bwa`;
     print "\n------- End of BWA version information ------\n";	
 }
 # --help. Print help.
@@ -86,7 +86,7 @@ if(!defined($config{references}{bwa})){
 # Print the version if it's in the run file config
 if(defined($config{verbose})){
     print "---------- BWA version information ----------\n";
-    print `which bwa`; # Best I could figure out, sorry!
+    print `bwa`;
     print "\n------- End of BWA version information ------\n";	
 }
 

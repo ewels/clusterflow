@@ -59,13 +59,11 @@ if($version){
 }
 # --help. Print help.
 if($help){
-	print "".("-"x17)."\n Samtools_sort Module\n".("-"x17)."\n
-Sorts a bam file if extension is .bam - if extension is anything else, \n
-will assume it is a sam file and attempt to convert to bam first. \n
-Module tested with Samtools v0.1.19, this module may not \n
-work with v1.0 or greater to to file naming changes\n
-Output is basename_srtd.bam.\n
-Arg \'byname\' or \'-n\' in pipeline forces sorting by read name\n";
+	print "".("-"x23)."\n Samtools_sort Module\n".("-"x23)."\n
+Sorts a bam file if extension is .bam - if extension is anything else,
+will assume it is a sam file and attempt to convert to bam first.\n
+Output is basename_srtd.bam
+Using parameter 'byname' or '-n' in pipeline forces sorting by read name.\n";
 	exit;
 }
 
@@ -96,47 +94,49 @@ $namesort = '-n' if (grep(/^byname$/, @$parameters) > 0);
 open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 
 
-# we want e.g. samtools view -bS ./test2_trimmedAligned.out.sam | samtools sort - outfile
-foreach my $file (@$files){
-	my $command = '';
-	# Figure out the file type
-	my $prefix = $file;
-	my $filetype = "";
-	if ($prefix =~ s/\.([sb]am$)//){
-		$filetype = $1;
-		warn "\nGuessing file $file is a $filetype file\n";
-	} else {
-		warn "\n Can't determine file-type for $file. Assuming sam... \n";
-		$filetype = "sam";
-	}
+# we want e.g. samtools view -bS ./input.sam | samtools sort - outfile
+if($files && scalar(@$files) > 0){
+	foreach my $file (@$files){
 
-	my $sortfile;
-	if ($filetype eq "sam"){
-		$command .= "samtools view -bS -u $file | ";
-		$sortfile = "-";
-	} else {
-		warn "\nGuessing file $file is bam file. \n";
-		$sortfile = $file;
-	}
-	my $output_fn = $prefix."_srtd";
-	$output_fn .= 'n' if ($namesort eq '-n');
-	
-	$command .= "samtools sort -m $mem_per_thread $namesort $sortfile  $output_fn";
-	warn "\n###CFCMD $command\n\n";
-	
-	$output_fn .= '.bam';  # with samtools < v1.0 only prefix is specified, have to add .bam after calling command
-	
-	if(!system ($command)){
-		# samtools worked - print out resulting filenames
-		my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-		warn "###CF samtools successfully exited, took $duration..\n";
-		if(-e $output_fn){
-			print RUN "$job_id\t$output_fn\n"; 
+		# Figure out the file type
+		my $filetype = "";
+		if ($file =~ /\.([sb]am$)/){
+			$filetype = $1;
+			warn "\nGuessing file $file is a $filetype file\n";
 		} else {
-			warn "\n###CF Error! samtools output file $output_fn not found..\n";
+			warn "\n Can't determine file-type for $file. Assuming sam... \n";
+			$filetype = "sam";
 		}
-	} else {
-		warn "\n###CF Error! samtools failed, exited in an error state: $? $!\n\n";
+		
+		# Output file name
+		my $output_fn = $file."_srtd";
+		$output_fn .= 'n' if ($namesort eq '-n');
+		
+		# Pipe BAM stream if we need it
+		my $command = '';
+		my $sortfile = $file;
+		if ($filetype eq "sam"){
+			$command .= "samtools view -bS -u $file | ";
+			$sortfile = "-";
+		}
+			
+		$command .= "samtools sort -m $mem_per_thread $namesort $sortfile $output_fn";
+		warn "\n###CFCMD $command\n\n";
+	
+		if(!system ($command)){
+			# samtools worked - print out resulting filenames
+			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+			warn "###CF samtools sort successfully exited, took $duration..\n";
+			if(-e $output_fn){
+				print RUN "$job_id\t$output_fn\n";
+			} elsif (-e "$output_fn.bam"){
+				print RUN "$job_id\t$output_fn.bam\n";
+			} else {
+				warn "\n###CF Error! samtools sort output file $output_fn(.bam) not found..\n";
+			}
+		} else {
+			warn "\n###CF Error! samtools sort failed, exited in an error state: $? $!\n\n";
+		}
 	}
 }
 
