@@ -35,7 +35,9 @@ Change Log
 	* Modules are fed more information (eg. number of input files and reference genome) to help
        decide the amount of memory and cores they bid for
 	* All perl scripts now have `env perl` in shebang to increase portability
-	* Support for GRIDEngine `h_vmem` memory option, if requested in pipeline file or in command line
+	* Now using GRIDEngine `h_vmem` memory option instead of `vf`
+        * Gives a hard memory limit instead of a request limit at job submission time
+        * Thanks to  [@stu2](https://github.com/stu2) and [@s-andrews](https://github.com/s-andrews)
 	* Support for explicit GRIDEngine queue nomination on the command line
 	* New `--verbose` and `print_versions` flags
         * Prints version information for bowtie 1 & 2, STAR, samtools_sort, trim_galore, tophat and 
@@ -48,10 +50,15 @@ Change Log
         reporting by tophat whilst keeping unique alignments. Thanks to [@FelixKrueger](https://github.com/FelixKrueger).
         * The previous tophat module is still available if you're not interested in MAPQ scores and 
             would like slightly faster processing. This is now called `tophat_broken_MAPQ.cfmod`.
+    * Pipeline completion e-mails are now written to disk as well (HTML and plain text)
+    * New log file containing the job submission commands as well as the output received from the cluster at submission (usually numeric job identifiers)
+    * Removed the `--qstatcols` command line option and added the `@colourful` config option to replace it
+        * The config wizard is also updated to add this to your personal config
 * Bugs Squashed
 	* Fixed output filename problem in tophat with output cleaning
 	* Fixed bugs causing minimum memory allocation regardless of availability
 	* Fixed bug causing Bowtie2 to fail if Bowtie1 index absent
+    * Cleaned up some unrecognised output that always made it into the log file
 
 #### [v0.3](https://github.com/ewels/clusterflow/releases/tag/v0.3) - 2014-07-11
 * New Stuff
