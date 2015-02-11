@@ -733,7 +733,7 @@ sub clusterflow_add_genome {
     foreach my $type (keys %new_refs){
         foreach my $genomeID (keys %{$new_refs{$type}}){
             my $path = $new_refs{$type}{$genomeID}{path};
-            print OUT "\@reference    $type    $genomeID    $path    $species    $assembly\n";
+            print OUT "\@reference\t$type\t$genomeID\t$path\t$species\t$assembly\n";
             print "Added a $type reference: $genomeID = $path\n";
         }
     }
