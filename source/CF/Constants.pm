@@ -45,7 +45,7 @@ our $PRIORITY;
 our $TOTAL_CORES = 64;
 our $TOTAL_MEM = '4G';
 our $MAX_RUNS = 12;
-our $CLUSTER_ENVIRONMENT = 'GRIDEngine';
+our $CLUSTER_ENVIRONMENT = '';
 our $CUSTOM_JOB_SUBMIT_COMMAND;
 our $CF_MODULES = 1;
 our %ENV_MODULE_ALIASES;
@@ -63,14 +63,21 @@ parse_conf_file ();
 parse_genomes_file();
 parse_updates_file();
 
+if(length($CLUSTER_ENVIRONMENT) == 0){
+    print ("Error - Cluster Environment not set. Please configure \@cluster_environment in your config files.\n\n");
+    exit;
+}
+
 sub parse_conf_file {
 	# Read global config variables in. Do in order so that local prefs overwrite.
 	# Look in current directory and parent, as this module can be called
 	# by /cf and by /modules/module.cfmod
 	
+    my $num_configs = 0;
 	my @config_files = ("$FindBin::Bin/clusterflow.config", "$FindBin::Bin/../clusterflow.config", "$homedir/clusterflow/clusterflow.config", './clusterflow.config');
 	foreach my $config_file (@config_files){
 		if(-e $config_file){
+            $num_configs++;
 			open (CONFIG, $config_file) or die "Can't read $config_file: $!";
 			my $comment_block = 0;
 			while (<CONFIG>) {
@@ -147,6 +154,11 @@ sub parse_conf_file {
 		}
 	}
 	@NOTIFICATIONS = @unique_notifications;
+    
+    if($num_configs == 0){
+        print ("Cluster Flow Error - no config files found. See clusterflow.config.example for an example.\n\n");
+        exit;
+    }
 }
 
 sub parse_genomes_file {

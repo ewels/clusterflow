@@ -54,6 +54,7 @@ Change Log
     * New log file containing the job submission commands as well as the output received from the cluster at submission (usually numeric job identifiers)
     * Removed the `--qstatcols` command line option and added the `@colourful` config option to replace it
         * The config wizard is also updated to add this to your personal config
+    * Added checks to make sure that we have at least one config file, and that the cluster environment is set
 * Bugs Squashed
 	* Fixed output filename problem in tophat with output cleaning
 	* Fixed bugs causing minimum memory allocation regardless of availability
