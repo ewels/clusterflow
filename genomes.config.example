@@ -2,6 +2,10 @@
 Clusterflow Genomes
 -------------------
 Genome paths for clusterflow.
+
+You can use a command-line wizard to automatically search for genome
+indices and add them to this file. Just run cf --add_genome
+
 Syntax - @reference ref_type genome_key  path  species  assembly
 Reference type can be fasta / bowtie / bowtie2 / star / gtf
 Species and assembly are optional and only serve as additional information
@@ -53,3 +57,9 @@ when running cf --list_genomes
 @reference gtf	GRCh37	/path/to/genomes/Human/GRCh37/Homo_sapiens.GRCh37.61.gtf	Human	GRCh37
 @reference gtf	GRCm38	/path/to/genomes/Mouse/GRCm38/Mus_musculus.GRCm38.70.gtf	Mouse	GRCm38
 @reference gtf	NCBIM37	/path/to/genomes/Mouse/NCBIM37/Mus_musculus.NCBIM37.cleaned.gtf	Mouse	NCBIM37
+
+/*************/
+/* BWA Paths */
+/*************/
+/* These should be the full path including the filename stub */
+@reference bwa	GRCh37	/path/to/genomes/Human/GRCh37/GRCh37.fa	Human	GRCh37

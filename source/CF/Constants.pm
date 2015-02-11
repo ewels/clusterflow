@@ -526,7 +526,7 @@ sub clusterflow_add_genome {
     # Get Species and assembly
     print "To help identify genomes when using cf --list_genomes, you can specify\n".
           "a species and an assembly.This are both optional - just\n".
-          "leave blank and press enter to ignore.\n\n";
+          "leave blank and press enter to ignore.\n";
 
     print "Please enter the species name (eg. Human):\n";
     my $species = <STDIN>;
@@ -579,7 +579,7 @@ sub clusterflow_add_genome {
     
     # Search for references
     print "The wizard will now search a set of directories for known reference files\n".
-          "(eg. GTF files).\n\n".
+          "(eg. GTF files).\n".
           "What path would you like to search (recursively)?\n".
           "Leave blank to skip this step and add paths manually..\n\n";
     
@@ -617,11 +617,13 @@ sub clusterflow_add_genome {
             $search_files{bowtie2} = ();
             $search_files{star} = ();
             $search_files{gtf} = ();
+            $search_files{bwa} = ();
             &File::Find::find(sub {push(@{$search_files{fasta}}, $File::Find::name) if /\.fa(sta)?$/i}, $search_path);
             &File::Find::find(sub {push(@{$search_files{bowtie}}, $File::Find::name) if /\.ebwt$/i}, $search_path);
             &File::Find::find(sub {push(@{$search_files{bowtie2}}, $File::Find::name) if /\.bt2$/i}, $search_path);
             &File::Find::find(sub {push(@{$search_files{star}}, $File::Find::name) if /\^SA$/i}, $search_path);
             &File::Find::find(sub {push(@{$search_files{gtf}}, $File::Find::name) if /\.gtf$/i}, $search_path);
+            &File::Find::find(sub {push(@{$search_files{bwa}}, $File::Find::name) if /\.bwt$/i}, $search_path);
             
             foreach my $type (keys %search_files){
                 SFILES_FOREACH: foreach my $fn (@{$search_files{$type}}){
@@ -632,6 +634,7 @@ sub clusterflow_add_genome {
                     if($type eq 'bowtie2'){ $ref = substr($fn, 0, -6); }
                     if($type eq 'star'){ $ref = &File::Basename::dirname($fn); }
                     if($type eq 'gtf'){ $ref = $fn; }
+                    if($type eq 'bwa'){ $ref = substr($fn, 0, -4); }
                     print "Found a $type file: $fn\nDo you want to add the following reference?\n   $ref\n\n".
                           "Enter y(es) / n(o) / a(ll) ('all' to ignore all $type files)\n";
                     while (my $continue = <STDIN>){
@@ -659,7 +662,7 @@ sub clusterflow_add_genome {
                 if($found_files == 0){
                     print "\nOh dear, I couldn't find any files matching my search extensions\n".
                           "under that path.\n".
-                          "I'm looking for *.fa, *.fasta, *.ebwt, *.bt2, SA and *.gtf files.\n\n";
+                          "I'm looking for *.fa, *.fasta, *.ebwt, *.bt2, SA, *.gtf and *.bwt files.\n\n";
                 } else {
                     print "\nOops, we didn't add any new references.\n\n";
                 }
