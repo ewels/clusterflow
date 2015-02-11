@@ -1084,6 +1084,8 @@ if (!$cl_dryrun){
     	# Write commands to a bash file
     	my $bash_fn = "cf_local_".$jid_base."commands.sh";
     	open (BASHOUT,'>',$bash_fn) or die "Can't write to $bash_fn: $!";
+    	my $date = strftime "%H:%M, %d-%m-%Y", localtime;
+        print BASHOUT "#!/bin/bash\n\n# Cluster Flow local script\n# Pipeline: $pipeline\n# Created at $date\n\n";
     	foreach(@qsubs){
     		print BASHOUT $_;
     	}
@@ -1096,7 +1098,7 @@ if (!$cl_dryrun){
     # Kick off everything else
     else {
     	foreach(@qsubs){
-    		my $submit_text = `$_`;
+          my $submit_text = `$_`;
           chomp($submit_text);
           print SUBMIT "$submit_text\n";
     	}
