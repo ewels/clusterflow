@@ -155,7 +155,7 @@ if($se_files && scalar(@$se_files) > 0){
 				warn "\n###CF Error! Bowtie output file $output_fn not found..\n";
 			}
 		} else {
-			warn "\n###CF Error! Bowtie (SE mode) exited in an error state for inpiut file '$file': $? $!\n\n";
+			warn "\n###CF Error! Bowtie (SE mode) exited in an error state for input file '$file': $? $!\n\n";
 		}
 	}
 }
