@@ -27,7 +27,7 @@ These will be overwritten by any with the same name in ~/clusterflow/clusterflow
 /* Cluster Environment */
 /***********************/
 /* Options: local, GRIDEngine, SLURM or LSF */
-@cluster_environment	GRIDEngine
+/* @cluster_environment	GRIDEngine */
 
 /* Custom Job Submit Command - uncomment to customise parameters for job submission */
 /* Accepted variable placeholders: {{command}} {{job_id}} {{outfn}} {{cores}} {{mem}} {{priority}} {{email}} */

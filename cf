@@ -384,7 +384,8 @@ if(!$config_found){
 }
 # No pipeline or module found - die with error
 if(!$config_found){
-	die "Can't find pipeline or module called $pipeline";
+	print "Error! Can't find pipeline or module called $pipeline\n";
+	exit;
 }
 
 

@@ -761,6 +761,95 @@ sub clusterflow_add_genome {
 ####################################
 sub clusterflow_make_config {
     
+    # First of all - check we have a global config file
+    my $global_fn = "$FindBin::Bin/clusterflow.config";
+    unless(-e $global_fn){
+        print "\n\nCluster Flow Config Generator\n==============================\nRunning Cluster Flow version $CF_VERSION\n";
+        print "There is no global config file for Cluster Flow:\n$global_fn\n\n";
+        print "This wizard can create one based on $global_fn.example\nbefore configuring a personal config file.\n";
+        print "Would you like to create a global config file?\n\n";
+        my $do_global = 0;
+        while (my $continue = <STDIN>){
+            chomp ($continue);
+            if ($continue =~ /^n(o)?/i){
+                print "\nOk. Bear in mind that certain configuration variables must be set for *all* users.\n\n";
+                exit;
+            } elsif($continue =~ /^y(es)?/i){
+                print "\nBrilliant - we'll take $global_fn.example and customise a couple of key variables.\n\n";
+                $do_global = 1;
+                last;
+            } else {
+                print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+            }
+        }
+        if($do_global){
+            # Load the example config file
+            open(GLOBAL_CONFIG_EXAMPLE, "<", $global_fn.".example") or die "Can't open global config example file: $!\n\n";
+        	my @config_file = <GLOBAL_CONFIG_EXAMPLE>;
+        	close(GLOBAL_CONFIG_EXAMPLE);
+            
+            # Get environment
+            print "First - Cluster Flow is compatible with several HPC cluster managers,\nbut it needs to know which one you're using..\n\n";
+            print "Are you using local, GRIDEngine, SLURM or LSF?\n(if you're just using this on your laptop, use local)\n\n";
+            my $env;
+            while ($env = <STDIN>){
+                chomp ($env);
+                if ($env =~ /(local|GRIDEngine|SLURM|LSF)/i){
+                    print "\nGreat, going with $env\n\n";
+                    my $inserted = 0;
+                    for my $i (0 .. $#config_file) {
+                        if($config_file[$i] =~ /\@cluster_environment/){
+                            if(!$inserted){
+                                $config_file[$i] = "\@cluster_environment\t$env\n";
+                                $inserted = 1;
+                            } else {
+                                $config_file[$i] = '';
+                            }
+                        }
+                    }
+                } else {
+                    print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+                }
+            }
+            
+            # Environment modules?
+            print "Next, do you use environment modules?\nThese use commands such as 'module load bowtie' to\n";
+            print "load tools into your namespace. If you don't\nunderstand what this means, the answer is probably no.\n\n";
+            print "Do you want to use environment modules? (y/n)\n\n";
+            my $ignore_envmods = '';
+            while (my $envmods = <STDIN>){
+                chomp ($envmods);
+                if ($envmods =~ /^n(o)?/i){
+                    print "\nOk great..\n\n";
+                    exit;
+                } elsif($envmods =~ /^y(es)?/i){
+                    print "\nOk, I'll add \@ignore_modules to the config file..\n\n";
+                    $ignore_envmods = "\@ignore_modules	true\n";
+                    last;
+                } else {
+                    print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+                }
+            }
+            my $inserted = 0;
+            for my $i (0 .. $#config_file) {
+                if($config_file[$i] =~ /\@ignore_modules/){
+                    if(!$inserted){
+                        $config_file[$i] = "\@ignore_modules\ttrue\n";
+                        $inserted = 1;
+                    } else {
+                        $config_file[$i] = '';
+                    }
+                }
+            }
+            
+            print "Ok, all done - writing to $global_fn and moving on to personal configs..\n\n";
+            open(GLOBAL_CONFIG, ">", $global_fn) or die "Can't open global config file for writing: $!\n\n";
+        	print GLOBAL_CONFIG @config_file;
+        	close(GLOBAL_CONFIG);
+        }
+    }
+    
+    # Ok, go on to personal config files
     my $fn = $homedir."/clusterflow/clusterflow.config";
     
     print "\n\nCluster Flow Config Generator\n==============================\nRunning Cluster Flow version $CF_VERSION\n";
