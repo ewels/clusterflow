@@ -34,6 +34,8 @@ Change Log
 	* You can now run Cluster Flow locally (new `@cluster_environment` `local` )
         * Tested on Mac OSX and Linux. Includes `--qstat` and `--qdel` functionality
         * Allows easy testing and use of pipelines for those without access to a HPC cluster.
+	* The `--make_config` wizard has been renamed to `--setup` and does a lot more stuff
+        * Should make first-run of Cluster Flow much easier - just download and run `cf --setup`
 	* Support for STAR RNA-seq aligner (thanks to [@stu2](https://github.com/stu2))
 	* Modules are given more information via the run file to help
        decide the amount of memory and cores they bid for (eg. number of files, reference)
