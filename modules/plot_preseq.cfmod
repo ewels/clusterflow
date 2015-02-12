@@ -48,12 +48,12 @@ def make_preseq_plots(parameters, required_cores=False, required_mem=False, requ
     # QSUB SETUP
     # --cores i = offered cores. Return number of required cores.
     if required_cores:
-        print ('1')
+        print ('1', file=sys.stdout)
         sys.exit(0)
 
     # --mem. Return the required memory allocation.
     if required_mem:
-        print ('3G')
+        print ('3G', file=sys.stdout)
         sys.exit(0)
 
     # --modules. Return csv names of any modules which should be loaded.
@@ -62,30 +62,20 @@ def make_preseq_plots(parameters, required_cores=False, required_mem=False, requ
 
     # --help. Print help.
     if print_help:
-        print make_preseq_plots.__doc__
+        print (make_preseq_plots.__doc__, file=sys.stdout)
         sys.exit(0)
     
     # Running the module properly now. Parse everything that we're given
     # This includes reading the run file to get input filenames
-    inputdict = Helpers.load_runfile_params(parameters)
-    files = inputdict['files']
-    runfile = inputdict['runfile']
-    job_id = inputdict['job_id']
-    prev_job_id = inputdict['prev_job_id']
-    cores = inputdict['cores']
-    mem = inputdict['mem']
-    parameters = inputdict['parameters']
-    config = inputdict['config']
-    
-    try:
-        cores += 0
-    except:
-        cores = 1
-
-    date = datetime.datetime.now().total_seconds()
+    p = Helpers.load_runfile_params(parameters)
+    timestart = datetime.datetime.now().total_seconds()
     
     # Make the plots!
-    plot_complexity_curves(files)
+    plot_complexity_curves(p['files'], output_name = p['runfile'])
+    
+    # Print success message if we got this far
+    duration = str(datetime.datetime.now().total_seconds() - timestart)
+    print("###CF Preseq plots successfully exited, took {}..\n".format(duration), file=sys.stderr)
     
     
     
