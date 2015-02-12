@@ -15,7 +15,7 @@ use Data::Dumper;
 use LWP::Simple;
 
 ##########################################################################
-# Copyright 2014, Philip Ewels (phil.ewels@babraham.ac.uk)               #
+# Copyright 2014, Philip Ewels (phil.ewels@scilifelab.se)                #
 #                                                                        #
 # This file is part of Cluster Flow.                                     #
 #                                                                        #
