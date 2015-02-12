@@ -61,7 +61,7 @@ my $cl_dryrun;
 my $cl_qstat;
 my $cl_qstatall;
 my $cl_qdel;
-my $cl_make_config;
+my $cl_setuo;
 my $cl_add_genome;
 my $cl_version;
 my $cl_check_updates;
@@ -93,7 +93,7 @@ my $config_result = GetOptions(
 	"qstat" => \$cl_qstat,
 	"qstatall" => \$cl_qstatall,
 	"qdel=s" => \$cl_qdel,
-	"make_config" => \$cl_make_config,
+	"setup" => \$cl_setuo,
 	"add_genome" => \$cl_add_genome,
 	"version" => \$cl_version,
 	"check_updates" => \$cl_check_updates,
@@ -239,7 +239,7 @@ if($cl_qstat){
                 print CF::Headnodehelpers::parse_localjobs(0, 0);
         }
 	} else {
-		print "Apologies, this function is not yet supported for systems other than GRIDEngine, SLURM and local.\n";
+		print "Apologies, this function only works for GRIDEngine, SLURM and loca systems.\n";
 	}
 	exit;
 }
@@ -269,13 +269,13 @@ if($cl_qdel){
 		print CF::Headnodehelpers::cf_pipeline_localkill($cl_qdel);
 		exit;
 	} else {
-		print "Apologies, this function is not yet supported for systems other than GRIDEngine, SLURM and local.\n";
+		print "Apologies, this function only works for GRIDEngine, SLURM and loca systems.\n";
 		exit;
 	}
 }
 
-if($cl_make_config){
-	CF::Constants::clusterflow_make_config();
+if($cl_setuo){
+	CF::Constants::clusterflow_setup();
 	exit;
 } else {
 	# Warn user if we don't have a home directory config file
@@ -284,7 +284,7 @@ if($cl_make_config){
 		warn "\nYou don't seem to have a config file set up in your
 home directory! It's a good idea to set one up, so that
 you can get e-mailed notifications from Cluster Flow.
-To create one, run cf --make_config\n\n\n";
+To create one, run cf --setup\n\n\n";
 	}
 }
 if($cl_add_genome){
@@ -338,12 +338,21 @@ if($cl_help){
 	}
 	exit;
 }
+
+
+# Check that we have everything we need
+if(length($CLUSTER_ENVIRONMENT) == 0){
+    print ("Error - Cluster Environment not set. Please configure \@cluster_environment in your config files.\n\n");
+    exit;
+}
 if(!$pipeline){
-	die("Error - no pipeline specified. Use --help for instructions.\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n");
+	print ("Error - no pipeline specified. Use --help for instructions.\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n");
+	exit;
 }
 
 if(!$file_list && scalar(@files) == 0){
-	die("Error - no input files specified. Use --help for instructions.\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n");
+	print ("Error - no input files specified. Use --help for instructions.\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n");
+	exit;
 }
 
 # If we're using environment modules, check we can find modulecmd (system returns 1 on error)

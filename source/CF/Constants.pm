@@ -63,11 +63,6 @@ parse_conf_file ();
 parse_genomes_file();
 parse_updates_file();
 
-if(length($CLUSTER_ENVIRONMENT) == 0){
-    print ("Error - Cluster Environment not set. Please configure \@cluster_environment in your config files.\n\n");
-    exit;
-}
-
 sub parse_conf_file {
     # Read global config variables in. Do in order so that local prefs overwrite.
     # Look in current directory and parent, as this module can be called
@@ -355,7 +350,10 @@ COMMON FLAGS
     These are flags that are commonly used in day to day Cluster Flow use.
     For a full description of the avilable flags and how to use them, see
     the Cluster Flow documentation.
-
+	
+    --setup
+        Interactive prompt to generate required CF config files
+	
     --genome <ID>
         ID of a genome referred to in clusterflow.config
         This genome ID is used to specify genome paths, bowtie
@@ -387,9 +385,6 @@ COMMON FLAGS
     --qdel
         Delete all jobs running in a particular Cluster Flow pipeline. Follow
         with a pipeline ID, printed when running --qstat
-        
-    --make_config
-        Interactive prompt to generate a personalised CF config file
         
     --add_genome
         Interactive wizard to add new genomes to your genomes.config files
@@ -759,23 +754,24 @@ sub clusterflow_add_genome {
 # Function to run interactive shell prompt
 # to generate a config file for first run
 ####################################
-sub clusterflow_make_config {
+sub clusterflow_setup {
     
     # First of all - check we have a global config file
     my $global_fn = "$FindBin::Bin/clusterflow.config";
     unless(-e $global_fn){
-        print "\n\nCluster Flow Config Generator\n==============================\nRunning Cluster Flow version $CF_VERSION\n";
+        print "\n\nCluster Flow Global Config Generator\n".('='x37)."\nRunning Cluster Flow version $CF_VERSION\n\n";
         print "There is no global config file for Cluster Flow:\n$global_fn\n\n";
-        print "This wizard can create one based on $global_fn.example\nbefore configuring a personal config file.\n";
+        print "This wizard can create one based on \n$global_fn.example\nbefore configuring a personal config file.\n\n";
         print "Would you like to create a global config file?\n\n";
         my $do_global = 0;
         while (my $continue = <STDIN>){
             chomp ($continue);
             if ($continue =~ /^n(o)?/i){
-                print "\nOk. Bear in mind that certain configuration variables must be set for *all* users.\n\n";
-                exit;
+                print "\nOk. Bear in mind that certain configuration variables\nsuch as \@cluster_environment) must be set\nfor *all* Cluster Flow users.\n\n";
+				sleep(1);
+				last;
             } elsif($continue =~ /^y(es)?/i){
-                print "\nBrilliant - we'll take $global_fn.example and customise a couple of key variables.\n\n";
+                print "\nBrilliant - we'll make a copy of\n$global_fn.example\nand customise a couple of key variables.\n\n";
                 $do_global = 1;
                 last;
             } else {
@@ -794,7 +790,14 @@ sub clusterflow_make_config {
             my $env;
             while ($env = <STDIN>){
                 chomp ($env);
-                if ($env =~ /(local|GRIDEngine|SLURM|LSF)/i){
+                if ($env =~ /(local|GRID( )?Engine|SGE|SLURM|LSF)/i){
+					# I'm pedantic when it comes to capitalisation, sorry.
+					$env = 'local' if $env =~ /local/i;
+					$env = 'GRIDEngine' if $env =~ /GRID( )?Engine/i;
+					$env = 'GRIDEngine' if $env =~ /SGE/i;
+					$env = 'SLURM' if $env =~ /SLURM/i;
+					$env = 'LSF' if $env =~ /LSF/i;
+					$CLUSTER_ENVIRONMENT = $env;
                     print "\nGreat, going with $env\n\n";
                     my $inserted = 0;
                     for my $i (0 .. $#config_file) {
@@ -807,8 +810,9 @@ sub clusterflow_make_config {
                             }
                         }
                     }
+					last;
                 } else {
-                    print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+                    print "\nSorry, I didn't understand that.\nCould you try again please?\n\n";
                 }
             }
             
@@ -816,52 +820,65 @@ sub clusterflow_make_config {
             print "Next, do you use environment modules?\nThese use commands such as 'module load bowtie' to\n";
             print "load tools into your namespace. If you don't\nunderstand what this means, the answer is probably no.\n\n";
             print "Do you want to use environment modules? (y/n)\n\n";
-            my $ignore_envmods = '';
             while (my $envmods = <STDIN>){
                 chomp ($envmods);
-                if ($envmods =~ /^n(o)?/i){
-                    print "\nOk great..\n\n";
-                    exit;
-                } elsif($envmods =~ /^y(es)?/i){
+                if ($envmods =~ /^y(es)?/i){
+		            my $inserted = 0;
+		            for my $i (0 .. $#config_file) {
+		                if($config_file[$i] =~ /\@ignore_modules/){
+		                    if(!$inserted){
+		                        $config_file[$i] = "/* \@ignore_modules\ttrue */\n";
+		                        $inserted = 1;
+		                    } else {
+		                        $config_file[$i] = '';
+		                    }
+		                }
+		            }
+                    last;
+                } elsif($envmods =~ /^n(o)?/i){
                     print "\nOk, I'll add \@ignore_modules to the config file..\n\n";
-                    $ignore_envmods = "\@ignore_modules	true\n";
+		            my $inserted = 0;
+		            for my $i (0 .. $#config_file) {
+		                if($config_file[$i] =~ /\@ignore_modules/){
+		                    if(!$inserted){
+		                        $config_file[$i] = "\@ignore_modules\ttrue\n";
+		                        $inserted = 1;
+								$CF_MODULES = 0;
+		                    } else {
+		                        $config_file[$i] = '';
+		                    }
+		                }
+		            }
                     last;
                 } else {
                     print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
                 }
             }
-            my $inserted = 0;
-            for my $i (0 .. $#config_file) {
-                if($config_file[$i] =~ /\@ignore_modules/){
-                    if(!$inserted){
-                        $config_file[$i] = "\@ignore_modules\ttrue\n";
-                        $inserted = 1;
-                    } else {
-                        $config_file[$i] = '';
-                    }
-                }
-            }
+
             
-            print "Ok, all done - writing to $global_fn and moving on to personal configs..\n\n";
+            print "Ok, all done - writing to $global_fn\n\nMoving on to personal configs..\n\n";
             open(GLOBAL_CONFIG, ">", $global_fn) or die "Can't open global config file for writing: $!\n\n";
         	print GLOBAL_CONFIG @config_file;
         	close(GLOBAL_CONFIG);
+			sleep(1);
         }
     }
     
     # Ok, go on to personal config files
     my $fn = $homedir."/clusterflow/clusterflow.config";
     
-    print "\n\nCluster Flow Config Generator\n==============================\nRunning Cluster Flow version $CF_VERSION\n";
+    print "\n\nCluster Flow User Config Generator\n".('='x34)."\nRunning Cluster Flow version $CF_VERSION\n\n";
     print "This mode will generate a personalised Cluster Flow config file for you \nin your home directory: ~/clusterflow/clusterflow.config\n\n";
     
+	my $make_personal_config = 1;
     if(-e $fn){
         print "### WARNING ###\n$fn already exists!\nThis script will overwrite that file. Do you want to continue? (y/n)\n\n";
         while (my $continue = <STDIN>){
             chomp ($continue);
             if ($continue =~ /^n(o)?/i){
+				$make_personal_config = 0;
                 print "\nProbably wise.. See the manual for more information about how the config file works.\n\n";
-                exit;
+				last;
             } elsif($continue =~ /^y(es)?/i){
                 print "\nOk, no problem.. I'll wipe it when we get to the end.\n\n";
                 last;
@@ -871,6 +888,7 @@ sub clusterflow_make_config {
         }
     }
     
+if($make_personal_config){
     my $config = "/*
 Clusterflow Config
 -------------------
@@ -1059,8 +1077,76 @@ for further information.\n\n\n";
     open (OUT, '>', $fn) or die "Can't write to $fn: $!";
     print OUT $config;
     close OUT;
-    
+	
+} # if($make_personal_config){
 
+	# Final section - bash aliases
+	my $alias = "\n\n# Aliases added by Cluster Flow setup wizard\n";
+	my $bashrc = '';
+	$bashrc = "$homedir/.bashrc" if(-e "$homedir/.bashrc");
+	$bashrc = "$homedir/.bash_profile" if(-e "$homedir/.bash_profile");
+	if(length($bashrc) > 0){
+		my $has_qs = 0;
+		my $has_qsa = 0;
+		open (BASHRC, '<', $bashrc) or die "Couldn't open $bashrc for appending: $!";
+		while(<BASHRC>){
+			$has_qs = 1 if(/alias qs='cf --qstat'/);
+			$has_qsa = 1 if(/alias qsa='cf --qstatall'/);
+		}
+		close(BASHRC);
+		
+		if(!$has_qs && system("type qs > /dev/null 2>&1")){
+		    print "\n\nCluster Flow Bash Alias Generator\n".('='x34)."\nRunning Cluster Flow version $CF_VERSION\n\n";
+			print "A common command when using Cluster Flow is 'cf --qstat'\n".
+				  "This shows currently running jobs. This is a bit of a mouthful to type,\n".
+				  "so most users set up a bash alias so that you can type 'qs' instead.\n\n".
+				  "It doesn't look like 'qs' does anything for you at the moment, would\n".
+				  "you like the wizard to add this alias to $bashrc ?\n\n";
+			while (my $add_qs = <STDIN>){
+			    chomp ($add_qs);
+			    if($add_qs =~ /^y(es)?/i){
+					$alias .= "alias qs='cf --qstat'\n";
+			        print "\nOk, added..\n\n";
+			        last;
+			    } elsif ($add_qs =~ /^n(o)?/i){
+			        print "\nNo problem..\n\n";
+			        last;
+			    } else {
+			        print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+			    }
+			}
+		}
+		if(!$has_qsa && $CLUSTER_ENVIRONMENT eq 'GRIDEngine' && system("type qsa > /dev/null 2>&1")){
+			print "The same goes for 'cf --qstatall', would you like to bind this to 'qsa'?\n\n";
+			while (my $add_qsa = <STDIN>){
+			    chomp ($add_qsa);
+			    if($add_qsa =~ /^y(es)?/i){
+					$alias .= "alias qsa='cf --qstatall'\n";
+			        print "\nOk, added..\n\n";
+			        last;
+			    } elsif ($add_qsa =~ /^n(o)?/i){
+			        print "\nNo problem..\n\n";
+			        last;
+			    } else {
+			        print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+			    }
+			}
+		}
+		if(length($alias) > 47){
+			open (BASHRC, '>>', $bashrc) or die "Couldn't open $bashrc for appending: $!";
+			print BASHRC $alias."\n\n";
+			close(BASHRC);
+		}
+		
+		print "\n\nNote about the cf command\n".('='x25)."\n";
+		print "As a small final note, be aware that Cluster flow is only really useful\n".
+			  "if the main cf executable is available as a command in the terminal.\n".
+			  "How you do this depends heavily on your setup, so this wizard doesn't\n".
+			  "attempt to do it for you. Bear in mind that you may want to add one\n".
+			  "of the following lines to $bashrc :\n\n".
+			  "module load cf\n".
+			  'export PATH="'.$FindBin::Bin.'":$PATH"'."\n\n";
+	}
 }
 
 
