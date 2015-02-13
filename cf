@@ -830,7 +830,8 @@ sub make_qsubs {
 		
 		# Get options for module. 2 - negotiate cores
 		my $cores = `$module_fn --cores $TOTAL_CORES --runfn $runfn`;
-		if(!$cores || length($cores) == 0 || $cores =~ /\D/){
+		$cores =~ s/\D//g;
+		if(!$cores || length($cores) == 0){
 			warn "\nWarning: no cores allocation or error parsing cores allocation for $module: setting to 1Gb\n";
 			$cores = 1;
 		}

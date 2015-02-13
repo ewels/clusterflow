@@ -31,6 +31,7 @@ from CF import Helpers
 from ngi_visualizations.preseq_complexity_curves import plot_complexity_curves
 
 import argparse
+import datetime
 import os
 import sys
 
@@ -68,13 +69,14 @@ def make_preseq_plots(parameters, required_cores=False, required_mem=False, requ
     # Running the module properly now. Parse everything that we're given
     # This includes reading the run file to get input filenames
     p = Helpers.load_runfile_params(parameters)
-    timestart = datetime.datetime.now().total_seconds()
+    timestart = datetime.datetime.now()
     
     # Make the plots!
-    plot_complexity_curves(p['files'], output_name = p['runfile'])
+    plot_complexity_curves.plot_complexity_curves(p['files'], output_name = p['runfile'])
+    print("\n###CFCMD Ran plot_complexity_curves() from ngi_visualizations.plot_complexity_curves\n\n", file=sys.stderr)
     
     # Print success message if we got this far
-    duration = str(datetime.datetime.now().total_seconds() - timestart)
+    duration = str(datetime.datetime.now() - timestart)
     print("###CF Preseq plots successfully exited, took {}..\n".format(duration), file=sys.stderr)
     
     

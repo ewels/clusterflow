@@ -49,14 +49,14 @@ def parse_runfile (runfile_fn, prev_job_id=False):
     # Read the file
     try:
         with open(runfile_fn) as runfile:
-            for line in fh:
+            for line in runfile:
                 line = line.strip()
-                
+
                 # Ignore comment blocks
                 if line[:2] == '/*':
                     comment_block = True
                     continue
-                if line[:2] == '*\\':
+                if line[:2] == '*/':
                     comment_block = False
                     continue
                 
@@ -75,9 +75,12 @@ def parse_runfile (runfile_fn, prev_job_id=False):
                 # Get files
                 elif comment_block is False:
                     sections = line.split(None, 2)
-                    if sections[0] == prev_job_id:
-                        sections[1] = sections[1].strip()
-                        files.append(sections[1])
+                    try:
+                        if sections[0] == prev_job_id:
+                            sections[1] = sections[1].strip()
+                            files.append(sections[1])
+                    except IndexError:
+                        pass
     
     except IOError as e:
         print("Can't read run file: {}".format(runfile_fn))
@@ -117,10 +120,10 @@ def load_runfile_params (params):
         paramterstring = ', '.join(params)
         date = datetime.datetime.now().strftime("%H:%M, %d-%m-%Y")
         dashes = '-' * 80
-        print ("\n{dashes}\n{modname}Run File:\t\t{runfile}\nJob ID:\t\t\t{job_id}\nPrevious Job ID:\t{prev_job_id}\nParameters:\t\t{paramterstring}\nDate & Time:\t\t{date}\n{dashes}\n\n".format(dashes, modname, runfile, job_id, prev_job_id, paramterstring, date), file=sys.stderr);
+        print ("\n{dashes}\n{modname}Run File:\t\t{runfile}\nJob ID:\t\t\t{job_id}\nPrevious Job ID:\t{prev_job_id}\nParameters:\t\t{paramterstring}\nDate & Time:\t\t{date}\n{dashes}\n\n".format(**locals()), file=sys.stderr);
     
     files, config = parse_runfile(runfile, prev_job_id)
-    
+
     # If we don't have any input files, bail now
     if len(files) == 0 and prev_job_id != 'null':
         print("\n###CF Error! No file names found from job {}. Exiting...\n\n".format(prev_job_id, file=sys.stderr))
@@ -133,7 +136,12 @@ def load_runfile_params (params):
         'prev_job_id': prev_job_id,
         'cores': cores,
         'mem': mem,
-        'parameters': parameters,
+        'parameters': params,
         'config': config
     }
+    
     return returndict
+
+
+
+
