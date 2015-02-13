@@ -81,10 +81,6 @@ warn "---------- Preseq version information ----------\n";
 warn `preseq 2>&1 | head -n 4`;
 warn "\n------- End of Preseq version information ------\n";	
 
-# Separate file names into single end and paired end
-my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%config, @$files);
-
-
 # Go through each file and run Preseq
 if($files && scalar(@$files) > 0){
 	foreach my $file (@$files){
