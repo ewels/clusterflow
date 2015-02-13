@@ -27,8 +27,8 @@ https://github.com/ewels/ngi_visualizations
 ##########################################################################
 
 from __future__ import print_function
-from ..source.CF import Helpers
-from ngi_visualizations.plot_complexity_curves import plot_complexity_curves
+from CF import Helpers
+from ngi_visualizations.preseq_complexity_curves import plot_complexity_curves
 
 import argparse
 import os
@@ -91,8 +91,6 @@ if __name__ == "__main__":
                         help="Request the names of environment modules needed by the module.")
     parser.add_argument('--runfn', dest='runfn', type=str, default=None,
                         help="Path to the Cluster Flow run file for this pipeline")
-    parser.add_argument('--help', dest='print_help', action='store_true',
-                        help="Show module help")
     parser.add_argument('parameters', nargs='*', help="List of parameters.")
     kwargs = vars(parser.parse_args())
     

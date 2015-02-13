@@ -52,7 +52,7 @@ def parse_runfile (runfile_fn, prev_job_id=False):
             for line in fh:
                 line = line.strip()
                 
-        		# Ignore comment blocks
+                # Ignore comment blocks
                 if line[:2] == '/*':
                     comment_block = True
                     continue
@@ -66,7 +66,7 @@ def parse_runfile (runfile_fn, prev_job_id=False):
                     cname = sections[0][1:]
                     if cname == 'notification':
                         config['notifications'][sections[1]] = 1
-                    elif $cname == 'reference':
+                    elif cname == 'reference':
                         ref_sections = sections[1].split(None, 2)
                         config['references'][ref_sections[0]] = ref_sections[1]
                     else:
@@ -74,17 +74,17 @@ def parse_runfile (runfile_fn, prev_job_id=False):
                 
                 # Get files
                 elif comment_block is False:
-        			sections = line.split(None, 2)
-        			if sections[0] == prev_job_id:
+                    sections = line.split(None, 2)
+                    if sections[0] == prev_job_id:
                         sections[1] = sections[1].strip()
-        				files.append(sections[1])
+                        files.append(sections[1])
     
     except IOError as e:
         print("Can't read run file: {}".format(runfile_fn))
         raise IOError(e)
 
     return (files, config)
-}
+
 
 
 
@@ -103,32 +103,29 @@ def load_runfile_params (params):
         cores = params.pop(0)
         mem = params.pop(0)
         # params should now contain any remaining paramters
-    except KeyError as e:
-        print ("Error: Required parameters not supplied to load_runfile_params", file=sys.stderr)
-        raise KeyError(e)
+    except IndexError as e:
+        raise KeyError("Error: Required parameters not supplied to load_runfile_params() in Helpers.py")
     
     # Print the module header
     if 'hide_log_header' not in params:
         modname = __file__
         if modname[-6:] == '.cfmod':
             modname = modname[:-6]
-        if(len(modname) > 0){
+        if len(modname) > 0:
             modname = "Module:\t\t\t{}\n".format(modname);
-        }
+
         paramterstring = ', '.join(params)
         date = datetime.datetime.now().strftime("%H:%M, %d-%m-%Y")
         dashes = '-' * 80
-    	print ("\n{dashes}\n{modname}Run File:\t\t{runfile}\nJob ID:\t\t\t{job_id}\nPrevious Job ID:\t{prev_job_id}\nParameters:\t\t{paramterstring}\nDate & Time:\t\t{date}\n{dashes}\n\n".format(dashes, modname, runfile, job_id, prev_job_id, paramterstring, date), file=sys.stderr);
-    }
+        print ("\n{dashes}\n{modname}Run File:\t\t{runfile}\nJob ID:\t\t\t{job_id}\nPrevious Job ID:\t{prev_job_id}\nParameters:\t\t{paramterstring}\nDate & Time:\t\t{date}\n{dashes}\n\n".format(dashes, modname, runfile, job_id, prev_job_id, paramterstring, date), file=sys.stderr);
     
     files, config = parse_runfile(runfile, prev_job_id)
-	
-	# If we don't have any input files, bail now
-	if(len(files) == 0 && prev_job_id != 'null'){
-		print("\n###CF Error! No file names found from job {}. Exiting...\n\n".format(prev_job_id, file=sys.stderr)
-		raise IOError
-	}
-	
+    
+    # If we don't have any input files, bail now
+    if len(files) == 0 and prev_job_id != 'null':
+        print("\n###CF Error! No file names found from job {}. Exiting...\n\n".format(prev_job_id, file=sys.stderr))
+        raise IOError
+    
     returndict = {
         'files': files,
         'runfile': runfile,
@@ -139,4 +136,4 @@ def load_runfile_params (params):
         'parameters': parameters,
         'config': config
     }
-	return returndict
+    return returndict
