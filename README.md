@@ -40,6 +40,11 @@ Change Log
 	* Modules are given more information via the run file to help
        decide the amount of memory and cores they bid for (eg. number of files, reference)
 	* All perl scripts now have `env perl` in shebang to increase portability
+	* Modules can now have file extensions, as long as they have `.cfmod` at the end of the basename
+        * This helps editing tools with syntax highlighting, amongst other things
+	* Python comes to Cluster Flow! The first Python module is up and running, along with a `Helpers.py` module file
+        * See the `example_module.py` file for help in writing your own modules in Python
+        * The basic Perl module helpers are now available in the Python packages as well, more translation to follow
 	* Now using GRIDEngine `h_vmem` memory option instead of `vf`
         * Gives a hard memory limit instead of a request limit at job submission time
         * Thanks to  [@stu2](https://github.com/stu2) and [@s-andrews](https://github.com/s-andrews)
