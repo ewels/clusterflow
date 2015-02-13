@@ -31,13 +31,13 @@ use File::Copy qw(move);
 # NOTE - this is an example module for Cluster Flow.
 #        It does not have any real functionality and should not be used in
 #        production. To avoid its accidental use in Cluster Flow, the 
-#        filename does not have the file extension .cfmod
+#        file name does not end in .cfmod
 #        If developing a new module from this example, remember to change
-#        the filename to MODULENAME.cfmod
+#        the filename to MODULENAME.cfmod(.pl)
 #
 
 #
-# CF SETUP
+# Cluster Flow Job Initialisation
 #
 
 # Get options
@@ -76,18 +76,18 @@ if($avail_mem){
 	my ($starting_files, $config) = CF::Helpers::parse_runfile_prerun($runfn);
 	
 	# examples of how to extract extra information to make memory decision
-	#warn "cores: $cores";
-	#warn "param: $_" foreach(@parameters);  # display params for this line of pipeline
-	#warn "config key: $_  value: $$config{$_}" foreach(keys(%$config));
-	#warn "starting file: $_" foreach(@$starting_files);
-	#warn "available mem: $avail_mem\n";
+	# warn "cores: $cores";
+	# warn "param: $_" foreach(@parameters);  # display params for this line of pipeline
+	# warn "config key: $_  value: $$config{$_}" foreach(keys(%$config));
+	# warn "starting file: $_" foreach(@$starting_files);
+	# warn "available mem: $avail_mem\n";
 	
 	# return memory request
 	print CF::Helpers::allocate_memory($avail_mem, '3G', '4G');	
 	exit;
 }
 
-# --modules. Return a comma seperated names of any environment modules which should be loaded.
+# --modules. Return comma seperated names of any environment modules which should be loaded.
 if($required_modules){
 	print 'example_module,sratoolkit';
 	exit;
@@ -95,7 +95,7 @@ if($required_modules){
 
 # --help. Print the help.
 if($help){
-	print "".("-"x15)."\n Example Module\n".("-"x15)."\n
+	print "".("-"x15)."\n Example Perl Module\n".("-"x15)."\n
 This is a dummy module which provides example code to be used
 by anyone interested in writing their own Cluster Flow module.
 It doesn't do anything, but its source code is nicely commented..\n\n";
@@ -211,8 +211,8 @@ if($se_files && scalar(@$se_files) > 0){
 				# This is so that subsequent modules can use this output
 				print RUN "$job_id\t$output_fn\n"; 
 			} else {
-				# Oops - can't find the output file! Err...
-				warn "\nExample module output file $output_fn not found..\n";
+				# Oops - can't find the output file!
+				warn "\n###CF Error! Example module output file $output_fn not found..\n";
 			}
 		} else {
 			# Command returned a non-zero result, probably went wrong...

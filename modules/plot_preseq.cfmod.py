@@ -32,7 +32,6 @@ from ngi_visualizations.preseq_complexity_curves import plot_complexity_curves
 
 import argparse
 import datetime
-import os
 import sys
 
 def make_preseq_plots(parameters, required_cores=False, required_mem=False, required_modules=False, runfn=None, print_help=False):
@@ -96,5 +95,7 @@ if __name__ == "__main__":
     parser.add_argument('parameters', nargs='*', help="List of parameters.")
     kwargs = vars(parser.parse_args())
     
-    # Call plot_observed_genes()
+    # Call make_preseq_plots()
     make_preseq_plots(**kwargs)
+
+
