@@ -45,14 +45,12 @@ my $avail_cores;
 my $avail_mem;
 my $required_modules;
 my $run_fn;
-my $version;
 my $help;
 my $result = GetOptions (
 	"cores=i" => \$avail_cores,
 	"mem=s" => \$avail_mem,
 	"modules" => \$required_modules,
     "runfn" => \$run_fn,
-    "version" => \$version,
 	"help" => \$help
 );
 
@@ -93,14 +91,6 @@ if($avail_mem){
 if($required_modules){
 	print 'example_module,sratoolkit';
 	exit;
-}
-
-# --version. Return version information about the program to be executed.
-# This bit goes to STDERR when the jobs are launched.
-if($version){
-    print "---------- < module > version information ----------\n";
-    print `MY_COMMAND --version`;
-    print "\n------- End of < module > version information ------\n";	
 }
 
 # --help. Print the help.
@@ -149,6 +139,11 @@ if(!defined($cores) || $cores < 1){
 if(CF::Helpers::human_readable_to_bytes($mem) < CF::Helpers::human_readable_to_bytes('3G')){
 	$mem = '3G';
 }
+
+# Print version information about the program to be executed.
+warn "---------- < module > version information ----------\n";
+warn `MY_COMMAND --version`;
+warn "\n------- End of < module > version information ------\n";	
 
 # Initiate the FastQ encoding type variable.
 # Once we've found the encoding for one file, we'll assume all others are the same

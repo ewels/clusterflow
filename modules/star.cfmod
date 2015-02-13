@@ -33,9 +33,8 @@ my $required_cores;
 my $required_mem;
 my $required_modules;
 my $run_fn;
-my $version;
 my $help;
-my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "runfn" => \$run_fn, "version" => \$version, "help" => \$help);
+my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "runfn" => \$run_fn, "help" => \$help);
 
 # QSUB SETUP
 # --cores i = offered cores. Return number of required cores.
@@ -70,12 +69,6 @@ if($required_modules){
 	print 'STAR'; # may need zcat too
 	exit;
 }
-# --version. Returns version information about the module.
-if($version){
-    print "---------- STAR version information ----------\n";
-    print `STAR --version`;
-    print "\n------- End of STAR version information ------\n";	
-}
 # --help. Print help.
 if($help){
 	print "".("-"x17)."\n STAR Module\n".("-"x17)."\n
@@ -104,6 +97,13 @@ if(!defined($cores) || $cores < 1){
 }
 
 open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
+
+# Print version information about the module.
+warn "---------- STAR version information ----------\n";
+warn `STAR --version`;
+warn "\n------- End of STAR version information ------\n";	
+
+# Load parameters
 my $genomeLoad = 'NoSharedMemory';
 foreach my $parameter (@$parameters){
 	if($parameter =~ /LoadAndRemove/){

@@ -32,9 +32,8 @@ my $required_cores;
 my $required_mem;
 my $required_modules;
 my $run_fn;
-my $version;
 my $help;
-my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "runfn" => \$run_fn, "version" => \$version, "help" => \$help);
+my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "runfn" => \$run_fn, "help" => \$help);
 
 # QSUB SETUP
 # --cores i = offered cores. Return number of required cores.
@@ -50,12 +49,6 @@ if($required_mem){
 if($required_modules){
 	print 'samtools';
 	exit;
-}
-# --version. Returns version information about the module.
-if($version){
-    print "---------- Samtools version information ----------\n";
-    print `samtools`;
-    print "\n------- End of Samtools version information ------\n";	
 }
 # --help. Print help.
 if($help){
@@ -82,6 +75,10 @@ if(!defined($cores) or $cores < 1){
 
 open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 
+# Print version information about the module.
+ warn "---------- Samtools version information ----------\n";
+ warn `samtools 2>&1 | head -n 4`;
+ warn "\n------- End of Samtools version information ------\n";	
 
 # we want e.g. samtools view -bS ./input.sam | samtools sort - outfile
 if($files && scalar(@$files) > 0){

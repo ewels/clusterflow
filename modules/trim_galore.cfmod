@@ -31,9 +31,8 @@ my $required_cores;
 my $required_mem;
 my $required_modules;
 my $run_fn;
-my $version;
 my $help;
-my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "runfn" => \$run_fn, "version" => \$version, "help" => \$help);
+my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "runfn" => \$run_fn, "help" => \$help);
 
 # QSUB SETUP
 # --cores i = offered cores. Return number of required cores.
@@ -50,15 +49,6 @@ if($required_mem){
 if($required_modules){
 	print 'fastqc,cutadapt,trim_galore';
 	exit;
-}
-# --version. Returns version information about the module.
-if($version){
-    print "---------- Cutadapt version information ----------\n";
-    print `cutadapt --version`;
-    print "\n------- End of Cutadapt version information ------\n";
-    print "---------- Trim Galore! version information ----------\n";
-    print `trim_galore --version`;
-    print "\n------- End of Trim Galore! version information ------\n";
 }
 # --help. Print help.
 if($help){
@@ -84,6 +74,14 @@ my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_
 my %config = %$config_ref;
 
 open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
+
+# Print version information about the module.
+warn "---------- Cutadapt version information ----------\n";
+warn `cutadapt --version`;
+warn "\n------- End of Cutadapt version information ------\n";
+warn "---------- Trim Galore! version information ----------\n";
+warn `trim_galore --version`;
+warn "\n------- End of Trim Galore! version information ------\n";
 
 # Read any options from the pipeline parameters
 my $min_readlength = 50;

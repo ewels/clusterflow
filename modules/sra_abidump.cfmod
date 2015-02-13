@@ -31,9 +31,8 @@ my $required_cores;
 my $required_mem;
 my $required_modules;
 my $run_fn;
-my $version;
 my $help;
-my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "runfn" => \$run_fn, "version" => \$version, "help" => \$help);
+my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "runfn" => \$run_fn, "help" => \$help);
 
 # QSUB SETUP
 # --cores i = offered cores. Return number of required cores.
@@ -51,12 +50,6 @@ if($required_modules){
 	print 'sratoolkit';
 	exit;
 }
-# --version. Returns version information about the module.
-if($version){
-    print "---------- ABI Dump version information ----------\n";
-    print `abi-dump --version`;
-    print "\n------- End of ABI Dump version information ------\n";	
-}
 # --help. Print help.
 if($help){
 	print "".("-"x23)."\n SRA SOLiD Dump Module\n".("-"x23)."\n
@@ -71,6 +64,11 @@ my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_
 my %config = %$config_ref;
 
 open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
+
+# Print version information about the module.
+warn "---------- ABI Dump version information ----------\n";
+warn `abi-dump --version`;
+warn "\n------- End of ABI Dump version information ------\n";	
 
 # Go through each supplied file and run abi-dump.
 foreach my $file (@$files){

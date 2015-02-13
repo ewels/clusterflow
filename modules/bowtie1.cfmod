@@ -31,9 +31,8 @@ my $required_cores;
 my $required_mem;
 my $required_modules;
 my $run_fn;
-my $version;
 my $help;
-my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "runfn" => \$run_fn, "version" => \$version, "help" => \$help);
+my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "runfn" => \$run_fn, "help" => \$help);
 
 # QSUB SETUP
 # --cores i = offered cores. Return number of required cores.
@@ -50,12 +49,6 @@ if($required_mem){
 if($required_modules){
     print 'bowtie,samtools';
     exit;
-}
-# --version. Returns version information about the module.
-if($version){
-    print "---------- Bowtie 1 version information ----------\n";
-    print `bowtie --version`;
-    print "\n------- End of Bowtie 1 version information ------\n";	
 }
 # --help. Print help.
 if($help){
@@ -93,6 +86,13 @@ if(!defined($cores) || $cores <= 0){
     $cores = 1;
 }
 
+open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
+
+# Print version information about the module.
+warn "---------- Bowtie 1 version information ----------\n";
+warn `bowtie --version`;
+warn "\n------- End of Bowtie 1 version information ------\n";
+
 # See if we need to parse any parameters
 my $mirna;
 foreach my $parameter (@$parameters) {
@@ -100,8 +100,6 @@ foreach my $parameter (@$parameters) {
 		$mirna = 1;
 	}
 }
-
-open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 
 # Separate file names into single end and paired end
 my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%config, @$files);
