@@ -74,13 +74,6 @@ my $timestart = time;
 my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
 my %config = %$config_ref;
 
-# Print the version if it's in the run file config
-if(defined($config{verbose})){
-    print "---------- deduplicate_bismark version information ----------\n";
-    print `deduplicate_bismark -h`;
-    print "\n------- End of deduplicate_bismark version information ------\n";	
-}
-
 open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 
 

@@ -70,13 +70,6 @@ to extract  csqual and csfasta files from .sra input.\n\n";
 my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
 my %config = %$config_ref;
 
-# Print the version if it's in the run file config
-if(defined($config{verbose})){
-    print "---------- ABI Dump version information ----------\n";
-    print `abi-dump --version`;
-    print "\n------- End of ABI Dump version information ------\n";	
-}
-
 open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 
 # Go through each supplied file and run abi-dump.

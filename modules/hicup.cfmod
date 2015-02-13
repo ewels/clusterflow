@@ -101,13 +101,6 @@ if(!defined($config{references}{bowtie})){
 }
 warn "\nUsing the following references:\n  $config{references}{fasta}\n  $config{references}{bowtie}\n\n";
 
-# Print the version if it's in the run file config
-if(defined($config{verbose})){
-    print "---------- HiCUP version information ----------\n";
-    print `hicup --version`;
-    print "\n------- End of HiCUP version information ------\n";	
-}
-
 open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 
 # FastQ encoding type. Once found on one file will assume all others are the same

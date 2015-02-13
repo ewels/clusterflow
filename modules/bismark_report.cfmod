@@ -74,13 +74,6 @@ For further information, please run bismark2report --help\n\n";
 my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
 my %config = %$config_ref;
 
-# Print the version if it's in the run file config
-if(defined($config{verbose})){
-    print "---------- bismark2report version information ----------\n";
-    print `bismark2report --version`;
-    print "\n------- End of bismark2report version information ------\n";	
-}
-
 if(!system ("bismark2report")){
 	warn "###CF Bismark report successfully created\n";
 } else {

@@ -87,13 +87,6 @@ if(!defined($config{references}{fasta})){
     warn "\nAligning against ".$config{references}{fasta}."\n\n";
 }
 
-# Print the version if it's in the run file config
-if(defined($config{verbose})){
-    print "---------- Bismark version information ----------\n";
-    print `bismark --version`;
-    print "\n------- End of Bismark version information ------\n";	
-}
-
 open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 
 # Separate file names into single end and paired end

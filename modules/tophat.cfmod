@@ -102,13 +102,6 @@ if(defined($config{references}{gtf})){
 	$gtf = " -G ".$config{references}{gtf};
 }
 
-# Print the version if it's in the run file config
-if(defined($config{verbose})){
-    print "---------- Tophat version information ----------\n";
-    print `tophat --version`;
-    print "\n------- End of Tophat version information ------\n";	
-}
-
 if(!defined($cores) || $cores < 1){
 	$cores = 1;
 }

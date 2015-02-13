@@ -392,9 +392,6 @@ COMMON FLAGS
     --dry_run
         Prints jobs to terminal instead of submitting them to the cluster
         
-    --verbose
-        Print submitted commands and software version numbers to STDOUT
-        
     --print_versions
         Print software versions to STDOUT and log files
         

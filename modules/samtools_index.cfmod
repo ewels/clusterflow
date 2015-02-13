@@ -80,13 +80,6 @@ if(!defined($cores) or $cores < 1){
 	$cores = 1;
 }
 
-# Print the version if it's in the run file config
-if(defined($config{verbose})){
-    print "---------- Samtools version information ----------\n";
-    print `samtools`;
-    print "\n------- End of Samtools version information ------\n";	
-}
-
 open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 
 

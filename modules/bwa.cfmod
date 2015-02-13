@@ -83,13 +83,6 @@ if(!defined($config{references}{bwa})){
     warn "\nAligning against ".$config{references}{bwa}."\n\n";
 }
 
-# Print the version if it's in the run file config
-if(defined($config{verbose})){
-    print "---------- BWA version information ----------\n";
-    print `bwa`;
-    print "\n------- End of BWA version information ------\n";	
-}
-
 if(!defined($cores) || $cores <= 0){
     $cores = 1;
 }

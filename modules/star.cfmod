@@ -99,13 +99,6 @@ if(!defined($config{references}{star})){
 	warn "\nAligning against ".$config{references}{star}."\n\n";
 }
 
-# Print the version if it's in the run file config
-if(defined($config{verbose})){
-    print "---------- STAR version information ----------\n";
-    print `STAR --version`;
-    print "\n------- End of STAR version information ------\n";	
-}
-
 if(!defined($cores) || $cores < 1){
 	$cores = 1;
 }

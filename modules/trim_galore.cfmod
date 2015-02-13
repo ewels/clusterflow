@@ -83,16 +83,6 @@ my $timestart = time;
 my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
 my %config = %$config_ref;
 
-# Print the version if it's in the run file config
-if(defined($config{verbose})){
-    print "---------- Cutadapt version information ----------\n";
-    print `cutadapt --version`;
-    print "\n------- End of Cutadapt version information ------\n";
-    print "---------- Trim Galore! version information ----------\n";
-    print `trim_galore --version`;
-    print "\n------- End of Trim Galore! version information ------\n";
-}
-
 open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 
 # Read any options from the pipeline parameters

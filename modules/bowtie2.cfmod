@@ -85,13 +85,6 @@ if(!defined($config{references}{bowtie2})){
     warn "\nAligning against ".$config{references}{bowtie2}."\n\n";
 }
 
-# Print the version if it's in the run file config
-if(defined($config{verbose})){
-    print "---------- Bowtie 2 version information ----------\n";
-    print `bowtie2 --version`;
-    print "\n------- End of Bowtie 2 version information ------\n";	
-}
-
 if(!defined($cores) || $cores < 1){
 	$cores = 1;
 }

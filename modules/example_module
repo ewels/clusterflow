@@ -142,14 +142,6 @@ if(!defined($config{references}{fasta})){
     warn "\nUsing the genome path: ".$config{references}{fasta}."\n\n";
 }
 
-# Print the version if it's in the run file config.
-# This time it goes to the pipeline log file
-if(defined($config{verbose})){
-    print "---------- < module > version information ----------\n";
-    print `MY_COMMAND --version`;
-    print "\n------- End of < module > version information ------\n";	
-}
-
 # Sanity check for cores and memory, shouldn't be required but can't hurt
 if(!defined($cores) || $cores < 1){
 	$cores = 1;

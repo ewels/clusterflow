@@ -82,13 +82,6 @@ if(!defined($config{references}{gtf})){
     warn "\nUsing GTF file ".$config{references}{gtf}."\n\n";
 }
 
-# Print the version if it's in the run file config
-if(defined($config{verbose})){
-    print "---------- HTSeq version information ----------\n";
-    print `htseq-count --help`;
-    print "\n------- End of HTSeq version information ------\n";
-}
-
 open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 
 # Read any options from the pipeline parameters
