@@ -66,7 +66,6 @@ my $cl_add_genome;
 my $cl_version;
 my $cl_check_updates;
 my $cl_qname;
-my $cl_print_versions;
 my $cl_help;
 
 my $config_result = GetOptions(
@@ -97,7 +96,6 @@ my $config_result = GetOptions(
 	"version" => \$cl_version,
 	"check_updates" => \$cl_check_updates,
 	"qname=s" => \$cl_qname,
-    "print_versions" => \$cl_print_versions,
 	"help" => \$cl_help
 );
 
@@ -752,11 +750,6 @@ for (my $i = 0; $i <= $#files; $i++){
 	
 	# Make up qsub jobs
 	make_qsubs (\%module_tree, $job_id, $runfn, $outfn);
-    
-    # Only print the versions once
-    if($cl_print_versions){
-        $cl_print_versions = 0;
-    }
 	
 	# Qsub job to execute on completion of this run
 	my $run_finish_id = $jid_base."email_run_complete_".sprintf("%03d", rand(999));
@@ -839,16 +832,6 @@ sub make_qsubs {
 			warn "\nWarning: no memory allocation or error parsing memory allocation for $module: setting from $mem to 1Gb\n";
 			$mem = '1G';
 		}
-        
-        # Get options for module. 4 - software version
-        if ($cl_print_versions) {
-            # It would be really nice if we could get each module to return just
-            # a version number, but parsing each one differently is quite a
-            # bit of work (and susceptible to variations between software
-            # versions). Instead, just execute and the module can print
-            # to STDOUT
-    		system("$module_fn --version");
-        }
 		
 		# formulate qsub command
 		my $cmd = "$module_fn $runfn $job_id $prev_job $cores $mem $parameters";
