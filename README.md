@@ -44,10 +44,7 @@ Change Log
         * Gives a hard memory limit instead of a request limit at job submission time
         * Thanks to  [@stu2](https://github.com/stu2) and [@s-andrews](https://github.com/s-andrews)
 	* Support for explicit GRIDEngine queue nomination on the command line
-	* New `--verbose` and `--print_versions` flags
-        * Prints version information where possible. Supported by bowtie 1 & 2, STAR, samtools_sort, trim_galore, tophat and 
-            htseq-count modules. This information is sent to the report file.
-        * Prints the commands submitted to the cluster to `STDOUT` when launched.
+	* Modules now print their software versions to the log where possible.
     * New `--runfile_prefix` option to help avoid potential filename clashes.
     * Added compatability with GRIDEngine `~/.sge_request files` (by ignoring them). 
       Thanks to [@s-andrews](https://github.com/s-andrews)

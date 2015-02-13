@@ -392,9 +392,6 @@ COMMON FLAGS
     --dry_run
         Prints jobs to terminal instead of submitting them to the cluster
         
-    --print_versions
-        Print software versions to STDOUT and log files
-        
     --version
         Print version of Cluster Flow installed
         
