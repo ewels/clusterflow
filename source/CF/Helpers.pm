@@ -229,6 +229,7 @@ sub is_paired_end {
 
 
 # Function to look into BAM/SAM header to see whether it's paired end or not
+# Reads through the first 1000 reads and decides on how many 0x1 flags it finds
 sub is_bam_paired_end {
 
 	# Load samtools
@@ -243,28 +244,28 @@ sub is_bam_paired_end {
 		die;
 	}
 	
-	my $headers = `samtools view -H $file`;
-	
-	my $paired_end;
-	my $header_found;
-	foreach (split("\n", $headers)){
-		if(/^\@PG/){
-			if(/-1/ && /-2/){
-				$paired_end = 1;
-				$header_found = 1;
-			} else {
-				$paired_end = 0;
-				$header_found = 1;
-			}
-		}
-	}
-	
-	if(!$header_found){
-		warn "\nCould not find BAM \@PG header, so could not determine read type.\nExiting...\n\n";
-		die;
-	}
-	
-	return $paired_end;
+    # Read the first 1000 lines withx samtools
+    my $se_reads = 0;
+    my $pe_reads = 0;
+    my $readcount = 0;
+    open(my $fh, '-|', "samtools view $file") or die "Could not run samtools to check BAM pe/se: $!";
+    while (<$fh>) {
+        last if ($readcount >= 1000);
+        my ($flag) = (split (/\t/))[1];
+        if ($flag & 0x1){
+            $pe_reads++;
+        } else {
+            $se_reads++;
+        }
+    }
+    close($fh);
+    
+    # Look at our counts
+    if($pe_reads >= 800){
+        return 1;
+    } else {
+        return 0;
+    }
 	
 }
 
