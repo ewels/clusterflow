@@ -257,6 +257,7 @@ sub is_bam_paired_end {
         } else {
             $se_reads++;
         }
+        $readcount++;
     }
     close($fh);
     
