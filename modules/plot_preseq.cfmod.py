@@ -28,7 +28,12 @@ https://github.com/ewels/ngi_visualizations
 
 from __future__ import print_function
 from CF import Helpers
-from ngi_visualizations.preseq_complexity_curves import plot_complexity_curves
+
+try:
+    from ngi_visualizations.preseq_complexity_curves import plot_complexity_curves
+except ImportError(e):
+    print("###CF Error: ngi_visualizations Python Package not installed.\n", file=sys.stderr)
+    raise ImportError(e)
 
 import argparse
 import datetime
