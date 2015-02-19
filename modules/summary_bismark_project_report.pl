@@ -118,6 +118,11 @@ for my $bam (@bam_files){
     
     $summary_csv .= "$bam\t$total_reads\t$dup_reads\t$unique_reads\t$total_c\t$meth_cpg\t$unmeth_cpg\t$meth_cph\t$unmeth_cph\t$meth_chh\t$unmeth_chh\n";
     
+    my $name = $bam;
+    $name =~ s/_bismark.bam$//;
+    $name =~ s/\.fq\.gz$//;
+    $name =~ s/_trimmed$//;
+    $name =~ s/_[12]$//;
     my $unaligned = $total_reads - $dup_reads - $unique_reads;
     $unaligned = 0 if $unaligned < 0;
     $unaligned = 0 if $unaligned == '';
@@ -130,7 +135,7 @@ for my $bam (@bam_files){
     $meth_chh = 0 if $meth_chh == '';
     $unmeth_chh = 0 if $unmeth_chh == '';
     
-    $categories .= "'$bam', ";
+    $categories .= "'$name', ";
     $not_aligned .= $unaligned.', ';
     $dup_alignments .= $dup_reads.', ';
     $unique_alignments .= $unique_reads.', ';
