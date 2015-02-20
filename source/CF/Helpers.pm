@@ -133,8 +133,11 @@ sub load_runfile_params {
 	
 	# If we don't have any input files, bail now
 	if(scalar(@files) == 0 && $prev_job_id ne 'null'){
-		print "\n###CF Error! No file names found from job $prev_job_id. Exiting...\n\n";
-		exit;
+        # Don't bail if we're a summary module
+        unless ( grep $_ eq 'summary_module', @parameters ){
+		    print "\n###CF Error! No file names found from job $prev_job_id. Exiting...\n\n";
+		    exit;
+        }
 	}
 	
 	return (\@files, $runfile, $job_id, $prev_job_id, $cores, $mem, \@parameters, \%config);

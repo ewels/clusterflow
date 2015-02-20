@@ -133,8 +133,10 @@ def load_runfile_params (params):
 
     # If we don't have any input files, bail now
     if len(files) == 0 and prev_job_id != 'null':
-        print("\n###CF Error! No file names found from job {}. Exiting...\n\n".format(prev_job_id, file=sys.stderr))
-        raise IOError
+        # Allow this for summary modules
+        if 'summary_module' not in params:
+            print("\n###CF Error! No file names found from job {}. Exiting...\n\n".format(prev_job_id, file=sys.stderr))
+            raise IOError
     
     returndict = {
         'files': files,
