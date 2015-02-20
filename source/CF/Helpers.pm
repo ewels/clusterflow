@@ -111,20 +111,28 @@ sub load_runfile_params {
 		@parameters = ();
 	}
 	
+    # Is this a summary module?
+    my $summary_module = 0;
+    $summary_module = 1 if ( grep $_ eq 'summary_module', @parameters );
+    
     # Should we print the module header?
     if ( grep $_ eq 'hide_log_header', @parameters ){
         # Don't print. Remove this from parameters.
         @parameters = grep { $_ ne 'hide_log_header' } @parameters;
     } else {
         my ($package, $modname, $line) = caller;
-        $modname =~ s/\.cfmod$//i;
+        $modname =~ s/\.cfmod.*$//i;
         $modname =~ s/^.*\///i;
         if(length($modname) > 0){
             $modname = "Module:\t\t\t$modname\n";
         }
+        my $summ = '';
+        if($summary_module){
+            $summ = "Summary Module:\t\tYes\n";
+        }
     	my $date = strftime "%H:%M, %d-%m-%Y", localtime;
     	my $dashes = "-" x 80;
-    	warn "\n$dashes\n".$modname."Run File:\t\t$runfile\nJob ID:\t\t\t$job_id\nPrevious Job ID:\t$prev_job_id\nParameters:\t\t".join(", ", @parameters)."\nDate & Time:\t\t$date\n$dashes\n\n";
+    	warn "\n$dashes\n".$modname.$summ."Run File:\t\t$runfile\nJob ID:\t\t\t$job_id\nPrevious Job ID:\t$prev_job_id\nParameters:\t\t".join(", ", @parameters)."\nDate & Time:\t\t$date\n$dashes\n\n";
     }
 
     my ($files_ref, $config_ref) = parse_runfile($runfile, $prev_job_id);
@@ -132,12 +140,9 @@ sub load_runfile_params {
     my %config = %$config_ref;
 	
 	# If we don't have any input files, bail now
-	if(scalar(@files) == 0 && $prev_job_id ne 'null'){
-        # Don't bail if we're a summary module
-        unless ( grep $_ eq 'summary_module', @parameters ){
-		    print "\n###CF Error! No file names found from job $prev_job_id. Exiting...\n\n";
-		    exit;
-        }
+	if(scalar(@files) == 0 && $prev_job_id ne 'null' && !$summary_module){
+	    print "\n###CF Error! No file names found from job $prev_job_id. Exiting...\n\n";
+	    exit;
 	}
 	
 	return (\@files, $runfile, $job_id, $prev_job_id, $cores, $mem, \@parameters, \%config);

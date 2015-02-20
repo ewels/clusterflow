@@ -813,7 +813,7 @@ for (my $i = 0; $i <= $#files; $i++){
         
         # Cluster Flow module to send pipeline completion e-mail
 		my $all_runs_finish_id = $jid_base."email_pipeline_complete_".sprintf("%03d", rand(999));
-		my $all_runs_finish_cmd = "$Bin/modules/cf_runs_all_finished.cfmod.pl $runfn $all_runs_finish_id $run_finish_id 1 1G hide_log_header $pipeline ".join(" ", @outfns);
+		my $all_runs_finish_cmd = "$Bin/modules/cf_runs_all_finished.cfmod.pl $runfn $all_runs_finish_id $run_finish_id 1 1G summary_module hide_log_header $pipeline ".join(" ", @outfns);
 		# my $all_runs_finish_holdjid = join(",", @finished_run_ids);
 		my $all_runs_finish_qsub = make_submit_cmd($all_runs_finish_cmd, $all_runs_finish_id, \@finished_run_ids, 0, '1', '1G', $outfn, 1);
 		

@@ -66,9 +66,9 @@ my $timestart = time;
 # Read in the input files from the run file
 my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
 my %config = %$config_ref;
+@$parameters = grep { $_ ne 'summary_module' } @$parameters;
 my $pipeline = shift(@$parameters);
 my @runfiles = @$parameters;
-@runfiles = grep { $_ ne 'summary_module' } @runfiles;
 
 my @bam_files;
 my %stats;
@@ -77,11 +77,18 @@ for my $fn (@runfiles){
     open(RUN, "<", $fn) or die("Couldn't open run file $fn: $!\n");
     while(<RUN>){
         chomp;
-        if(m/^cf_fastq_bismark_1421930420_bismark_align_\d+\s+(.+)/){
+        if(m/^cf_.+_bismark_align_\d+\s+(.+)/){
             push(@bam_files, $1);
         }
     }
     close(RUN);
+}
+
+my $num_bam = scalar @bam_files;
+if($num_bam == 0){
+    die("###CF Error: No bismark BAM files found for bismark project summary.");
+} else {
+    warn("Found $num_bam bismark BAM files..\n");
 }
 
 my $categories = '';
