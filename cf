@@ -804,7 +804,7 @@ for (my $i = 0; $i <= $#files; $i++){
                 my ($s_cores, $s_mem) = get_mod_requirements($s_module_fn, $runfn);
             
         		# formulate qsub command
-        		my $s_cmd = "$s_module_fn $runfn $s_job_id $run_finish_id $s_cores $s_mem $parameters $pipeline ".join(" ", @outfns);
+        		my $s_cmd = "$s_module_fn $runfn $s_job_id $run_finish_id $s_cores $s_mem $parameters summary_module $pipeline ".join(" ", @outfns);
         		my $s_qsub = make_submit_cmd($s_cmd, $s_job_id, \@finished_run_ids, $run_finish_id, $s_cores, $s_mem, $outfn, 1);
                 push @qsubs, $s_qsub;
                 push @finished_run_ids, $s_job_id;

@@ -68,6 +68,7 @@ my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_
 my %config = %$config_ref;
 my $pipeline = shift(@$parameters);
 my @runfiles = @$parameters;
+@runfiles = grep { $_ ne 'summary_module' } @runfiles;
 
 my @bam_files;
 my %stats;
