@@ -47,6 +47,7 @@ if($help){
 # Read in the input files from the run file
 my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
 my %config = %$config_ref;
+@$parameters = grep { $_ ne 'summary_module' } @$parameters;
 my $pipeline = shift(@$parameters);
 my @outfns = @$parameters;
 
@@ -79,6 +80,7 @@ my %cf_highlights;
 my %commands;
 my %warninglines;
 my %highlightlines;
+my @summarylines;
 my $errors = 0;
 my $warnings = 0;
 my $highlights = 0;
@@ -88,6 +90,7 @@ foreach my $outfile (@outfns){
 	my @these_commands;
 	my @these_highlightlines;
 	my @these_warninglines;
+    my @these_summarylines;
 	
 	open (IN,'<',$outfile);
 	while(<IN>){
@@ -102,9 +105,15 @@ foreach my $outfile (@outfns){
 		# Commands run
 		if(/^###CFCMD/){
 			push (@these_commands, substr($_, 9));
-			
+		}
+        
+        # Summary statuses
+        elsif(/^###CFSUMMARY/){
+    	    push (@summarylines, substr($_, 13));
+        }
+        
 		# Highlight statuses
-		} elsif(/^###CF/){
+		elsif(/^###CF/){
 			push (@these_cf_highlights, substr($_, 6));
 		} else {
 			# Count any custom string highlights
@@ -123,6 +132,7 @@ foreach my $outfile (@outfns){
 				}
 			}
 		}
+        
 		
 		# Count out any CF errors
 		if(/error/i){
@@ -197,7 +207,10 @@ foreach my $file (sort keys %cf_highlights) {
 	$plain_content .= "\n".("=" x 30)."\n- Output file $file\n".("=" x 30)."\n";
 	$plain_content .= join("\n - ", @{$cf_highlights{$file}});
 }
-
+if(scalar @summarylines > 0){
+	$plain_content .= "\n".("=" x 30)."\n- Summary Modules\n".("=" x 30)."\n";
+	$plain_content .= join("\n - ", @summarylines);
+}
 $plain_content .= "\n\n\n\n\n
 ==================
 == Commands Run ==
@@ -329,6 +342,16 @@ foreach my $file (sort keys %cf_highlights) {
 		$html_content .= '</ul>';
 	}
 	$html_content .= '</li>';
+}
+
+if(scalar @summarylines > 0){
+	$html_content .= '<li style="margin-bottom: 20px;">
+	<span class="run-name" style="font-weight: bold; margin-bottom: 10px;">
+	Summary Modules</span><ul style="padding-left:20px;">';
+    foreach my $ln (@summarylines){
+        $html_content .= '<li style="margin-top: 5px;">'.$ln.'</li>';
+    }
+    $html_content .= '</ul></li>';
 }
 
 $html_content .= '

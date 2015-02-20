@@ -69,6 +69,11 @@ my %config = %$config_ref;
 @$parameters = grep { $_ ne 'summary_module' } @$parameters;
 my $pipeline = shift(@$parameters);
 my @runfiles = @$parameters;
+my $pipeline_id = $job_id;
+if($pipeline_id =~ m/^(cf_\w+_\d+)/){
+    $pipeline_id = $1;
+}
+my $report_basename = $pipeline_id."_bismark_summary";
 
 my @bam_files;
 my %stats;
@@ -86,7 +91,7 @@ for my $fn (@runfiles){
 
 my $num_bam = scalar @bam_files;
 if($num_bam == 0){
-    die("###CF Error: No bismark BAM files found for bismark project summary.");
+    die("###CFSUMMARY Error: No bismark BAM files found for bismark project summary.");
 } else {
     warn("Found $num_bam bismark BAM files..\n");
 }
@@ -200,15 +205,15 @@ for my $bam (@bam_files){
     $name =~ s/_[12]$//;
     my $unaligned = $total_reads - $dup_reads - $unique_reads;
     $unaligned = 0 if $unaligned < 0;
-    $unaligned = 0 if $unaligned == '';
-    $dup_reads = 0 if $dup_reads == '';
-    $unique_reads = 0 if $unique_reads == '';
-    $meth_cpg = 0 if $meth_cpg == '';
-    $unmeth_cpg = 0 if $unmeth_cpg == '';
-    $meth_cph = 0 if $meth_cph == '';
-    $unmeth_cph = 0 if $unmeth_cph == '';
-    $meth_chh = 0 if $meth_chh == '';
-    $unmeth_chh = 0 if $unmeth_chh == '';
+    $unaligned = 0 if $unaligned eq '';
+    $dup_reads = 0 if $dup_reads eq '';
+    $unique_reads = 0 if $unique_reads eq '';
+    $meth_cpg = 0 if $meth_cpg eq '';
+    $unmeth_cpg = 0 if $unmeth_cpg eq '';
+    $meth_cph = 0 if $meth_cph eq '';
+    $unmeth_cph = 0 if $unmeth_cph eq '';
+    $meth_chh = 0 if $meth_chh eq '';
+    $unmeth_chh = 0 if $unmeth_chh eq '';
     
     $categories .= "'$name', ";
     $not_aligned .= $unaligned.', ';
@@ -224,7 +229,7 @@ for my $bam (@bam_files){
 }
 
 # Write the numeric data to a summary file
-my $summary_fn = "bismark_project_summary.txt";
+my $summary_fn = $report_basename.".txt";
 open(SUMMARY_CSV, ">", $summary_fn) or die("Can't open $summary_fn: $!");
 print SUMMARY_CSV $summary_csv;
 close(SUMMARY_CSV);
@@ -579,7 +584,7 @@ $html_report =~ s/{{not_aligned}}/$not_aligned/g;
 $html_report =~ s/{{dup_alignments}}/$dup_alignments/g;
 $html_report =~ s/{{unique_alignments}}/$unique_alignments/g;
 $html_report =~ s/{{report_timestamp}}/$report_timestamp/g;
-$html_report =~ s/{{pipeline_id}}/$pipeline/g;
+$html_report =~ s/{{pipeline_id}}/$pipeline_id/g;
 $html_report =~ s/{{meth_cpg_string}}/$meth_cpg_string/g;
 $html_report =~ s/{{unmeth_cpg_string}}/$unmeth_cpg_string/g;
 $html_report =~ s/{{meth_cph_string}}/$meth_cph_string/g;
@@ -589,10 +594,12 @@ $html_report =~ s/{{unmeth_chh_string}}/$unmeth_chh_string/g;
 
 
 # Write the HTML report to disk
-my $html_fn = "bismark_project_summary.html";
+my $html_fn = $report_basename.".html";
 open(SUMMARY_HTML, ">", $html_fn) or die("Can't open $html_fn: $!");
 print SUMMARY_HTML $html_report;
 close(SUMMARY_HTML);
+
+warn("\n###CFSUMMARY Wrote bismark project summary to $html_fn\n\n");
 
 
 
