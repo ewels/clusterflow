@@ -150,9 +150,9 @@ for my $bam (@bam_files){
     }
     
     # Methylation Extraction report
-    my $dedup = $base.".deduplicated.bam_splitting_report.txt";
+    my $meth_extract = $base.".deduplicated.bam_splitting_report.txt";
     if(-e $dedup){
-        if(open(METHEXTR, "<", $dedup)){
+        if(open(METHEXTR, "<", $meth_extract)){
             while(<METHEXTR>){
                 chomp;
                 if(/^Total number of C's analysed:\s+(\d+)$/){
@@ -179,7 +179,7 @@ for my $bam (@bam_files){
             }
             close(METHEXTR);
         } else {
-            warn "Warning! Couldn't open methylation extractor report $dedup: $!";
+            warn "Warning! Couldn't open methylation extractor report $meth_extract: $!";
         }
     }
     
