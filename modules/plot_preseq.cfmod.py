@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-plot_preseq.cfmod
+plot_preseq.cfmod.py
 Takes results from preseq and plots nice colourful complexity curves
 using the plot_complexity_curves() function in the ngi_visualizations
 Python package. This package is available here:
@@ -48,6 +48,11 @@ def make_preseq_plots(parameters, required_cores=False, required_mem=False, requ
     using the plot_complexity_curves() function in the ngi_visualizations
     Python package. This package is available here:
     https://github.com/ewels/ngi_visualizations
+    
+    This module can be run either as a regular module: #plot_preseq
+    or as a pipeline summary module: >plot_preseq
+    If run as a summary module, all preseq curves will be plotted
+    in a single graph.    
     """
     
     # QSUB SETUP
@@ -75,9 +80,30 @@ def make_preseq_plots(parameters, required_cores=False, required_mem=False, requ
     p = Helpers.load_runfile_params(parameters)
     timestart = datetime.datetime.now()
     
-    # Make the plots!
-    plot_complexity_curves.plot_complexity_curves(p['files'], output_name = p['runfile'])
-    print("\n###CFCMD Ran plot_complexity_curves() from ngi_visualizations.plot_complexity_curves\n\n", file=sys.stderr)
+    # Are we running as a summary module?
+    if 'summary_module' in p['parameters']:
+        runfiles = p['parameters']
+        while 'summary_module' in runfiles:
+            runfiles.remove('summary_module')
+        pipeline = runfiles.pop[0]
+        
+        # scrape the last file names from each run file
+        preseq_files = []
+        for runfile in runfiles:
+            files, config = Helpers.parse_runfile(runfile, False, True)
+            preseq_files.extend(files)
+        
+        # Make one single plot with all files
+        plot_complexity_curves.plot_complexity_curves(preseq_files, output_name = "{}_preseq".format(pipeline))
+        print("\n###CFCMD Ran summary ngi_visualizations.plot_complexity_curves.plot_complexity_curves()\n\n", file=sys.stderr)
+        
+        
+    
+    # Make one plot per file
+    else:
+        for fn in p['files']:
+            plot_complexity_curves.plot_complexity_curves(fn)
+            print("\n###CFCMD Ran ngi_visualizations.plot_complexity_curves.plot_complexity_curves({})\n\n".format(fn), file=sys.stderr)
     
     # Print success message if we got this far
     duration = str(datetime.datetime.now() - timestart)

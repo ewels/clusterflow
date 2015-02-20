@@ -37,7 +37,7 @@ import sys
 # Returns a tuple containing:
 #  - A list of file names
 #  - A dictionary with config variables.
-def parse_runfile (runfile_fn, prev_job_id=False):
+def parse_runfile (runfile_fn, prev_job_id=False, last_job=False):
     
     # Set up variables
     files = []
@@ -45,6 +45,7 @@ def parse_runfile (runfile_fn, prev_job_id=False):
     config['notifications'] = {}
     config['references'] = {}
     comment_block = False
+    last_jid = False
     
     # Read the file
     try:
@@ -76,6 +77,12 @@ def parse_runfile (runfile_fn, prev_job_id=False):
                 elif comment_block is False:
                     sections = line.split(None, 2)
                     try:
+                        if last_job:
+                            if sections[0] != last_jid:
+                                prev_job_id = sections[0]
+                                files = []
+                            last_jid = sections[0]
+                            
                         if sections[0] == prev_job_id:
                             sections[1] = sections[1].strip()
                             files.append(sections[1])
