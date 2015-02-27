@@ -105,12 +105,16 @@ warn "\n------- End of STAR version information ------\n";
 
 # Load parameters
 my $genomeLoad = 'NoSharedMemory';
+my $sam_attributes = '--outSAMattributes Standard';
 foreach my $parameter (@$parameters){
 	if($parameter =~ /LoadAndRemove/){
 		$genomeLoad='LoadAndRemove';
 	}
 	if ($parameter =~ /LoadAndKeep/) {
 		$genomeLoad='LoadAndKeep';
+	}
+	if ($parameter =~ /outSAMattributes=All/) {
+		$sam_attributes = '--outSAMattributes All';
 	}
 	
 }
@@ -143,7 +147,7 @@ if($se_files && scalar(@$se_files) > 0){
 	
 		my $output_fn = $prefix."Aligned.out.sam";
 		
-		my $command = "STAR --runThreadN $cores $enc --outSAMattributes All --genomeLoad $genomeLoad";  
+		my $command = "STAR --runThreadN $cores $enc $sam_attributes --genomeLoad $genomeLoad";  
 		if ($file =~ /\.gz$/) {
 			$command .= " --readFilesCommand zcat";	#code
 		}
