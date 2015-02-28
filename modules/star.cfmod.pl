@@ -45,21 +45,22 @@ if($required_cores){
 # --mem. Return the required memory allocation.
 if($required_mem){
     if(!$run_fn){
-        print '10G';
+        print '32000000000';
         exit;
     } else {
         # Parse the run file
         my ($starting_files, $config) = CF::Helpers::parse_runfile($run_fn);
     	# estimate memory based on genome size
-        my $minmem = 32000111000;
+        my $minmem = 32000000000;
     	if (exists($$config{references}{star})) {
-    		my $star_path = $$config{references}{star}."SA";
+    		my $star_path = $$config{references}{star}."/SA";
     		if (-e $star_path){
-    			$minmem = int(1.5 * -s $star_path);
-    			$minmem = 16000111000 if $minmem < 16000111000;
+    			$minmem = int(1.2 * -s $star_path);
+    			$minmem =    8000000000 if $minmem <    8000000000; #Minmem floor: 8Gb
+			$minmem = 1024000000000 if $minmem > 1024000000000; #Minmem ceiling: 1Tb
     		}	
     	}
-    	my $maxmem = int($minmem * 1.8);	
+    	my $maxmem = int($minmem * 1.8);	#Maxmem ceiling: 1.8Tb
     	print CF::Helpers::allocate_memory($required_mem, $minmem, $maxmem);
     	exit;
     }
