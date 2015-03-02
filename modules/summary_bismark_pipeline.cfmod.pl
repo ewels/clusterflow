@@ -414,7 +414,6 @@ my $html_report = <<'HTMLTEMPLATESTRING';
 				},
 				plotOptions: {
 					column: {
-						groupPadding: 0.05,
 						stacking: 'normal',
 						dataLabels: {
 							enabled: false
