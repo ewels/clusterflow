@@ -616,7 +616,7 @@ sub clusterflow_add_genome {
             &File::Find::find(sub {push(@{$search_files{fasta}}, $File::Find::name) if /\.fa(sta)?$/i}, $search_path);
             &File::Find::find(sub {push(@{$search_files{bowtie}}, $File::Find::name) if /\.ebwt$/i}, $search_path);
             &File::Find::find(sub {push(@{$search_files{bowtie2}}, $File::Find::name) if /\.bt2$/i}, $search_path);
-            &File::Find::find(sub {push(@{$search_files{star}}, $File::Find::name) if /\^SA$/i}, $search_path);
+            &File::Find::find(sub {push(@{$search_files{star}}, $File::Find::name) if /SAindex$/i}, $search_path);
             &File::Find::find(sub {push(@{$search_files{gtf}}, $File::Find::name) if /\.gtf$/i}, $search_path);
             &File::Find::find(sub {push(@{$search_files{bwa}}, $File::Find::name) if /\.bwt$/i}, $search_path);
             
