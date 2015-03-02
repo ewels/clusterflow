@@ -35,7 +35,7 @@ my $required_mem;
 my $required_modules;
 my $run_fn;
 my $help;
-my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "runfn" => \$run_fn, "help" => \$help);
+my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "runfn=s" => \$run_fn, "help" => \$help);
 if($required_cores || $required_mem || $required_modules){
 	exit;
 }

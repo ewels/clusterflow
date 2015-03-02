@@ -50,7 +50,7 @@ my $result = GetOptions (
 	"cores=i" => \$avail_cores,
 	"mem=s" => \$avail_mem,
 	"modules" => \$required_modules,
-    "runfn" => \$run_fn,
+	"runfn=s" => \$run_fn,
 	"help" => \$help
 );
 
