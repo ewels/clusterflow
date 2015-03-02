@@ -34,7 +34,7 @@ my $required_mem;
 my $required_modules;
 my $run_fn;
 my $help;
-my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "runfn" => \$run_fn, "help" => \$help);
+my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "runfn=s" => \$run_fn, "help" => \$help);
 
 # QSUB SETUP
 # --cores i = offered cores. Return number of required cores.
@@ -45,21 +45,22 @@ if($required_cores){
 # --mem. Return the required memory allocation.
 if($required_mem){
     if(!$run_fn){
-        print '10G';
+        print '32000000000';
         exit;
     } else {
         # Parse the run file
         my ($starting_files, $config) = CF::Helpers::parse_runfile($run_fn);
     	# estimate memory based on genome size
-        my $minmem = 32000111000;
+        my $minmem = 32000000000;
     	if (exists($$config{references}{star})) {
-    		my $star_path = $$config{references}{star}."SA";
+    		my $star_path = $$config{references}{star}."/SA";
     		if (-e $star_path){
-    			$minmem = int(1.5 * -s $star_path);
-    			$minmem = 16000111000 if $minmem < 16000111000;
+    			$minmem = int(1.2 * -s $star_path);
+    			$minmem =    8000000000 if $minmem <    8000000000; #Minmem floor: 8Gb
+			$minmem = 1024000000000 if $minmem > 1024000000000; #Minmem ceiling: 1Tb
     		}	
     	}
-    	my $maxmem = int($minmem * 1.8);	
+    	my $maxmem = int($minmem * 1.8);	#Maxmem ceiling: 1.8Tb
     	print CF::Helpers::allocate_memory($required_mem, $minmem, $maxmem);
     	exit;
     }
@@ -105,12 +106,16 @@ warn "\n------- End of STAR version information ------\n";
 
 # Load parameters
 my $genomeLoad = 'NoSharedMemory';
+my $sam_attributes = '--outSAMattributes Standard';
 foreach my $parameter (@$parameters){
 	if($parameter =~ /LoadAndRemove/){
 		$genomeLoad='LoadAndRemove';
 	}
 	if ($parameter =~ /LoadAndKeep/) {
 		$genomeLoad='LoadAndKeep';
+	}
+	if ($parameter =~ /outSAMattributes=All/) {
+		$sam_attributes = '--outSAMattributes All';
 	}
 	
 }
@@ -143,7 +148,7 @@ if($se_files && scalar(@$se_files) > 0){
 	
 		my $output_fn = $prefix."Aligned.out.sam";
 		
-		my $command = "STAR --runThreadN $cores $enc --outSAMattributes All --genomeLoad $genomeLoad";  
+		my $command = "STAR --runThreadN $cores $enc $sam_attributes --genomeLoad $genomeLoad";  
 		if ($file =~ /\.gz$/) {
 			$command .= " --readFilesCommand zcat";	#code
 		}
@@ -190,7 +195,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 		
 			my $output_fn = $prefix."Aligned.out.sam";
 			
-			my $command = "STAR --runThreadN $cores $enc --outSAMattributes All --genomeLoad $genomeLoad";
+			my $command = "STAR --runThreadN $cores $enc $sam_attributes --genomeLoad $genomeLoad";
 			if ($files[0] =~ /\.gz$/) {
 				$command .= " --readFilesCommand zcat";	#code
 			}
