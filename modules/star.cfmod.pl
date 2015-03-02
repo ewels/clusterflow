@@ -195,7 +195,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 		
 			my $output_fn = $prefix."Aligned.out.sam";
 			
-			my $command = "STAR --runThreadN $cores $enc --outSAMattributes All --genomeLoad $genomeLoad";
+			my $command = "STAR --runThreadN $cores $enc $sam_attributes --genomeLoad $genomeLoad";
 			if ($files[0] =~ /\.gz$/) {
 				$command .= " --readFilesCommand zcat";	#code
 			}
