@@ -44,6 +44,20 @@ These will be overwritten by any with the same name in ~/clusterflow/clusterflow
 /* You can also use aliases to specify particular module versions */
 /* @environment_module_alias <requested> <replacement> */
 
+
+/****************/
+/* File Merging */
+/****************/
+/* Many sequencing centres split samples across lanes, meaning starting FastQ files should */
+/* be concatenated before processing. You can uncomment the following line and set a regex */
+/* below to automatically do this at the start of every Cluster Flow run.                  */
+/* If input files don't match the regex, the pipeline continues without any merging. Use   */
+/* one set of brackets to define the resulting merged file names.                          */
+
+/* @merge_regex	[1-6]_[0-9]{6}_[a-zA-Z0-9]+_(P\d+_\d+_1).fastq.gz */
+
+
+
 /**********************/
 /* Pipeline Reporting */
 /**********************/
