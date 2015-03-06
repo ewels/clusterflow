@@ -1,4 +1,5 @@
 
+
 #!/usr/bin/env perl
 use warnings;
 use strict;
@@ -277,7 +278,7 @@ sub clusterflow_pipeline_help {
     my $help = "";
 
     my @pipelines = ("./$pipeline.config", "$homedir/clusterflow/pipelines/$pipeline.config", "$FindBin::Bin/pipelines/$pipeline.config");
-    my @modules = ("./$pipeline.cfmod", "$homedir/clusterflow/modules/$pipeline.cfmod", "$FindBin::Bin/modules/$pipeline.cfmod");
+    my @module_folders = ("./", "$homedir/clusterflow/modules/", "$FindBin::Bin/modules/");
     foreach my $pipeline (@pipelines){
         if(-e $pipeline){
             open (PIPELINE, $pipeline) or die "Can't read $pipeline: $!";
@@ -300,15 +301,19 @@ sub clusterflow_pipeline_help {
         }
     }
 
-    foreach my $module (@modules){
-        if(-e $module){
+    foreach my $dir (@module_folders){
+        my @matching_mods = glob($dir."$pipeline.cfmod*");
+        if(scalar(@matching_mods) == 1){
+            my $module = $matching_mods[0];
             $help = `$module --help`;
             return ($help);
+        } elsif(scalar(@matching_mods) > 1){
+            return ("Error: Multiple modules found matching help request: ".join(', ', @matching_mods));
         }
     }
 
     if($help eq ""){
-        $help = "\nSorry, no help found for this pipeline.\n\n";
+        $help = "\nSorry, no help found for this pipeline or module.\n\n";
     }
 
     return ($help);
