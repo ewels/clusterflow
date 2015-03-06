@@ -1,5 +1,3 @@
-
-
 #!/usr/bin/env perl
 use warnings;
 use strict;
@@ -55,7 +53,10 @@ if($required_modules){
 }
 # --help. Print help.
 if($help){
-	print "".("-"x22)."\n CF Merge Files Module\n".("-"x22)."\n
+	print <<'HELP_TEXT';
+-----------------------
+ CF Merge Files Module
+-----------------------
 This core Cluster Flow module merges files. It can be used in two ways:
 
 1. Setting --merge on the command line or @merge_regex in the configuration
@@ -65,7 +66,7 @@ This core Cluster Flow module merges files. It can be used in two ways:
    split samples across lanes, for example.
 
 2. Using the module in the middle of a pipeline, with a parameter set as
-   the merge regex. For example: #cf_merge_files regex=\"[a-z]_(P\d+)_[12]\"
+   the merge regex. For example: #cf_merge_files regex="[a-z]_(P\d+)_[12]"
    This is useful when a pipeline generates multiple files from a step
    and you would like to merge them. Note that input file lists will be
    split into parallel runs by Cluster Flow, and the module will not be
@@ -80,23 +81,14 @@ For example, consider the following regex:
 
 If used with the following files:
 1_120119_QOS3SBTASX_P8294_101_1.fastq.gz
-1_120119_QOS3SBTASX_P8294_101_2.fastq.gz
-1_120119_QOS3SBTASX_P8294_102_1.fastq.gz
-1_120119_QOS3SBTASX_P8294_102_2.fastq.gz
 2_120119_QOS3SBTASX_P8294_101_1.fastq.gz
-2_120119_QOS3SBTASX_P8294_101_2.fastq.gz
-2_120119_QOS3SBTASX_P8294_102_1.fastq.gz
-2_120119_QOS3SBTASX_P8294_102_2.fastq.gz
 
-Would result in the following files:
-P8294_101_1.fastq.gz
-P8294_101_2.fastq.gz
-P8294_102_1.fastq.gz
-P8294_102_2.fastq.gz
+Would result in the following merged file: P8294_101_1.fastq.gz
 
 As such, this module can also be used to clean up file names without
 actually merging anything.
-\n\n";
+HELP_TEXT
+
 	exit;
 }
 
@@ -125,8 +117,8 @@ foreach my $parameter (@$parameters){
 if(!$regex || length($regex) > 0){
 	die "\n\n###CF Error: No merging regex found in $runfile for job $job_id. Exiting.. ###";
 }
-my $opening_p = () = $regex =~ /(/g;
-my $closing_p = () = $regex =~ /)/g;
+my $opening_p = () = $regex =~ /\(/g;
+my $closing_p = () = $regex =~ /\)/g;
 my $slashes = () = $regex =~ /[^\\]\//g;
 unless($opening_p == 1 && $closing_p){
 	die "\n\n###CF Error: Merging regex didn't have one set of parentheses for job $job_id: $regex Exiting.. ###";
@@ -172,18 +164,19 @@ for my $group (keys(%file_sets)) {
 		($ext) = $file_sets{$group}[0] =~ /(\.[^.]+\.gz)$/;
 	}
 	my $mergedfn = $group.$ext;
+	my $command;
 
 	# Single files (simple renaming)
 	if(scalar(@{$file_sets{$group}}) == 1){
-		my $command = "mv ".$file_sets{$group}[0]." $mergedfn";
+		$command = "mv ".$file_sets{$group}[0]." $mergedfn";
 	}
 	# BAM files
 	elsif($ext =~ /bam/i){
-		my $command = "samtools merge $mergedfn ".join(' ', $file_sets{$group});
+		$command = "samtools merge $mergedfn ".join(' ', $file_sets{$group});
 	}
 	# Everything else: just cat. Note that catting gzipped files together works.
 	else {
-		my $command = "cat ".join(' ', $file_sets{$group})." > $mergedfn";
+		$command = "cat ".join(' ', $file_sets{$group})." > $mergedfn";
 	}
 
 	warn "\n###CFCMD $command\n\n";
