@@ -50,12 +50,13 @@ Change Log
         * Thanks to  [@stu2](https://github.com/stu2) and [@s-andrews](https://github.com/s-andrews)
 	* Support for explicit GRIDEngine queue nomination on the command line
 	* Modules now print their software versions to the log where possible.
+	* New `--merge` (command line) and `@merge_regex` (config file) options to automatically merge input files.
     * New `--runfile_prefix` option to help avoid potential filename clashes.
     * Added compatability with GRIDEngine `~/.sge_request files` (by ignoring them). 
       Thanks to [@s-andrews](https://github.com/s-andrews)
-    * New tophat module called `tophat` which introduces a workaround for buggy MAPQ 
+    * New tophat module called `tophat` which introduces a workaround for buggy MAPQ
         reporting by tophat whilst keeping unique alignments. Thanks to [@FelixKrueger](https://github.com/FelixKrueger).
-        * The previous tophat module is still available if you're not interested in MAPQ scores and 
+        * The previous tophat module is still available if you're not interested in MAPQ scores and
             would like slightly faster processing. This is now called `tophat_broken_MAPQ.cfmod`.
     * Pipeline completion e-mails are now written to disk as well (HTML and plain text)
     * New log file containing the job submission commands as well as the output received from the cluster at submission (usually numeric job identifiers)
@@ -93,7 +94,7 @@ Change Log
 	* Fixed issue where modules using the CF::Constants Perl Module couldn't load the central config file
 	* Fixed typo in environment module loading in `bismark_align` module
 	* Reordered loading of the environment modules in `trim_galore` so that FastQC is loaded first, fixing dependency issues
-	
+
 #### [v0.2](https://github.com/ewels/clusterflow/releases/tag/v0.2) - 2014-05-29
 * New Stuff
 	* Now compatable with SLURM
@@ -104,7 +105,7 @@ Change Log
 	* Wrote new readme for github
 * Bugs Squashed
 	* Custom modules in `~/clusterflow/modules/` weren't being found
-	* General code clean-ups all over the place 
+	* General code clean-ups all over the place
 
 #### [v0.1](https://github.com/ewels/clusterflow/releases/tag/v0.1) - 2014-04-25
 * The first public release of Cluster Flow, although it's been in use at the Babraham Institute for around 6 months. It's been in heavy development throughout that time and is now approaching a state of being relatively stable.

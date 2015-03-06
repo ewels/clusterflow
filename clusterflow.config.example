@@ -1,3 +1,4 @@
+
 /*
 Clusterflow Config
 -------------------
@@ -54,7 +55,7 @@ These will be overwritten by any with the same name in ~/clusterflow/clusterflow
 /* If input files don't match the regex, the pipeline continues without any merging. Use   */
 /* one set of brackets to define the resulting merged file names.                          */
 
-/* @merge_regex	[1-6]_[0-9]{6}_[a-zA-Z0-9]+_(P\d+_\d+_1).fastq.gz */
+/* @merge_regex	[1-6]_[0-9]{6}_[a-zA-Z0-9]+_(P\d+_\d+_[12]).fastq.gz */
 
 
 

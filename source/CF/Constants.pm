@@ -1,3 +1,4 @@
+
 #!/usr/bin/env perl
 use warnings;
 use strict;
@@ -41,6 +42,7 @@ our $CL_COLOURS = 0;
 our $CHECK_UPDATES;
 our @NOTIFICATIONS;
 our $SPLIT_FILES = 1;
+our $MERGE_REGEX;
 our $PRIORITY;
 our $TOTAL_CORES = 64;
 our $TOTAL_MEM = '4G';
@@ -67,7 +69,7 @@ sub parse_conf_file {
     # Read global config variables in. Do in order so that local prefs overwrite.
     # Look in current directory and parent, as this module can be called
     # by /cf and by /modules/module.cfmod
-    
+
     my $num_configs = 0;
     my @config_files = ("$FindBin::Bin/clusterflow.config", "$FindBin::Bin/../clusterflow.config", "$homedir/clusterflow/clusterflow.config", './clusterflow.config');
     foreach my $config_file (@config_files){
@@ -79,7 +81,7 @@ sub parse_conf_file {
                 chomp;
                 s/\n//;
                 s/\r//;
-                
+
                 if($_ =~ /^\/\*.*\*\/$/){    # one line comments
                     $comment_block = 0;
                     next;
@@ -90,13 +92,13 @@ sub parse_conf_file {
                     $comment_block = 0;
                     next;
                 }
-                
+
                 if($_ =~ /^\@/ && !$comment_block){
                     my @sections = split(/\s+/, $_, 2);
                     $config{substr($sections[0], 1)} = $sections[1];
                     my $name = substr($sections[0], 1);
                     my $val = $sections[1];
-                    
+
                     if($name eq 'email'){
                         $EMAIL = $val;
                     } elsif($name eq 'colourful' or $name eq 'colorful'){
@@ -111,6 +113,8 @@ sub parse_conf_file {
                         push @NOTIFICATIONS, $val;
                     } elsif($name eq 'split_files'){
                         $SPLIT_FILES = $val;
+                    } elsif($name eq 'merge_regex'){
+                        $MERGE_REGEX = $val;
                     } elsif($name eq 'priority'){
                         $PRIORITY = $val;
                     } elsif($name eq 'max_runs'){
@@ -138,7 +142,7 @@ sub parse_conf_file {
             close(CONFIG);
         }
     }
-    
+
     # Remove duplicate Notifications
     my @unique_notifications;
     my %seen_notification;
@@ -149,7 +153,7 @@ sub parse_conf_file {
         }
     }
     @NOTIFICATIONS = @unique_notifications;
-    
+
     if($num_configs == 0){
         print ("Cluster Flow Error - no config files found. See clusterflow.config.example for an example.\n\n");
         exit;
@@ -157,9 +161,9 @@ sub parse_conf_file {
 }
 
 sub parse_genomes_file {
-    
+
     # Read genomes config variables in. Do in order so that local prefs overwrite.
-    
+
     my @genome_files = ("$FindBin::Bin/genomes.config", "$homedir/clusterflow/genomes.config", './genomes.config');
     foreach my $genome_file (@genome_files){
         if(-e $genome_file){
@@ -169,7 +173,7 @@ sub parse_genomes_file {
                 chomp;
                 s/\n//;
                 s/\r//;
-                
+
                 if($_ =~ /^\/\*.*\*\/$/){    # one line comments
                     $comment_block = 0;
                     next;
@@ -216,13 +220,13 @@ sub parse_updates_file {
 # Lists available genomes
 ####################################
 sub list_clusterflow_genomes {
-    
+
     my $returnstring = "";
-    
+
     my @config_files = ("$FindBin::Bin/genomes.config", "$homedir/clusterflow/genomes.config", './genomes.config');
-    
+
     foreach my $config_file (@config_files){
-        
+
         my $conf_count = 0;
         my $conf_file_string .= "\n".('-' x 50)."\n $config_file\n".('-' x 50)."\n";
         foreach my $ref_type ( keys %REFERENCES){
@@ -254,7 +258,7 @@ sub list_clusterflow_genomes {
         }
     }
     $returnstring .= "\n";
-    
+
     return $returnstring;
 }
 
@@ -267,11 +271,11 @@ sub list_clusterflow_genomes {
 # Prints help for a specific module or pipeline
 ####################################
 sub clusterflow_pipeline_help {
-    
+
     my ($pipeline) = @_;
-    
+
     my $help = "";
-    
+
     my @pipelines = ("./$pipeline.config", "$homedir/clusterflow/pipelines/$pipeline.config", "$FindBin::Bin/pipelines/$pipeline.config");
     my @modules = ("./$pipeline.cfmod", "$homedir/clusterflow/modules/$pipeline.cfmod", "$FindBin::Bin/modules/$pipeline.cfmod");
     foreach my $pipeline (@pipelines){
@@ -295,20 +299,20 @@ sub clusterflow_pipeline_help {
             return ($help);
         }
     }
-    
+
     foreach my $module (@modules){
         if(-e $module){
             $help = `$module --help`;
             return ($help);
         }
     }
-    
+
     if($help eq ""){
         $help = "\nSorry, no help found for this pipeline.\n\n";
     }
-    
+
     return ($help);
-    
+
 }
 
 
@@ -320,7 +324,7 @@ sub clusterflow_pipeline_help {
 sub clusterflow_help {
 
     my $help;
-    
+
     $help = <<"EOT";
 
 Cluster Flow Help
@@ -329,7 +333,7 @@ Running Cluster Flow version $CF_VERSION
 
 SYNTAX
     cf [flags] pipeline_name file_1 file_2..
-    
+
     Note that the name of a single module can be used instead of a
     pipeline name.
 
@@ -342,62 +346,62 @@ SPECIFIC PIPELINE / MODULE HELP
 
 INTRODUCTION
     Cluster Flow is simple package to run pipelines in a cluster environment.
-    
-    Cluster Flow will set off multiple queued jobs on the cluster with queue 
+
+    Cluster Flow will set off multiple queued jobs on the cluster with queue
     dependencies as defined in the pipeline.
 
 COMMON FLAGS
     These are flags that are commonly used in day to day Cluster Flow use.
     For a full description of the avilable flags and how to use them, see
     the Cluster Flow documentation.
-	
+
     --setup
         Interactive prompt to generate required CF config files
-	
+
     --genome <ID>
         ID of a genome referred to in clusterflow.config
         This genome ID is used to specify genome paths, bowtie
         index basenames and GTF file paths.
         Use --list_genomes to show available IDs
-    
+
     --file_list
         Text file containing input files or download URLs
-        
+
     --params
         Specify extra module parameters. These will be applied to every
         module if a pipeline name is specified.
-        
+
     --list_pipelines
         Print available pipelines
-        
+
     --list_modules
         Print available modules
-        
+
     --list_genomes
         Print available genomes
-    
+
     --qstat
         Parses the output from qstat in a visually attractive and intuitive manner
-        
+
     --qstatall
         Same as --qstat, but for all jobs submitted by all users
-    
+
     --qdel
         Delete all jobs running in a particular Cluster Flow pipeline. Follow
         with a pipeline ID, printed when running --qstat
-        
+
     --add_genome
         Interactive wizard to add new genomes to your genomes.config files
-        
+
     --dry_run
         Prints jobs to terminal instead of submitting them to the cluster
-        
+
     --version
         Print version of Cluster Flow installed
-        
+
     --check_updates
         Look for available Cluster Flow updates
-        
+
     --help
         Print this help message.
         If specified with a pipeline or module name afterwards, the help for that
@@ -410,43 +414,47 @@ RARE FLAGS
 
     --cores <num>
         Set the maximum number of cores to use for all runs
-    
+
     --email <email>
         Set the e-mail address for notifications
-    
+
     --max_runs <num>
         Divide input files into <num> runs. Overrides --split_files
         Setting this will override the default value set in
         clusterflow.config. Set to 0 to disable max_runs.
-       
+
     --mem <string>
         Set the maximum memory to use for all runs
+
+    --merge <string>
+        Set a regex string to match file name patterns for merging
+        input files.
 
     --notifications <cresa>
         Specify desired notifications
         c = pipeline complete, r = run complete, e = qsub job ends
         s = qsub job suspended, a = qsub job aborted
-   
+
     --no_fn_check
         Disable input file type checking
-        
+
     --ref <type>=<path>
         Path to a reference to be used for alignment. Overrides --genome
         Possible values for type: fasta / bowtie / bowtie2 / star / gtf
         eg: --ref fasta=/path/to/fasta/files
-    
+
     --single
         Force single-end mode
-        
+
     --split_files <num>
         Create one run per <num> files
 
     --paired
         Force paired-end mode
-    
+
     --priority <num>
         Set the queue priority for cluster jobs
-    
+
     --runfile_prefix
         Prefix for run file filename. Avoids potential clashes if
         running multiple instances of Cluster Flow with the same
@@ -455,13 +463,13 @@ RARE FLAGS
 AUTHOR
     Written by Phil Ewels (GitHub: \@ewels). Initial work done at the
     Babraham Institute, Cambridge. Continued at SciLifeLab, Stockholm.
-    
+
 SEE ALSO
     There is a full Cluster Flow manual available at
     http://ewels.github.io/clusterflow/
 
 EOT
-    
+
     return ($help);
 
 }
@@ -480,7 +488,7 @@ sub clusterflow_add_genome {
 
     print "\n\nCluster Flow Genomes Config Generator\n======================================\nRunning Cluster Flow version $CF_VERSION\n";
     print "\nThis wizard will add a new reference paths to your genomes.config files\n\n";
-    
+
     my %new_refs;
 
     # Determine which config file to append to
@@ -514,7 +522,7 @@ sub clusterflow_add_genome {
     unless (-e $fn) {
         print "This file doesn't yet exist, and will be created..\n\n";
     }
-    
+
     # Open straight away - if permission errors will die before any further faff
     open (OUT,'>>',$fn) or die "Can't write to $fn: $!";
 
@@ -571,13 +579,13 @@ sub clusterflow_add_genome {
             last;
         }
     }
-    
+
     # Search for references
     print "The wizard will now search a set of directories for known reference files\n".
           "(eg. GTF files).\n".
           "What path would you like to search (recursively)?\n".
           "Leave blank to skip this step and add paths manually..\n\n";
-    
+
     my $do_search = 1;
     while($do_search){
         $do_search = 0; # Default to doing this loop only once.
@@ -619,7 +627,7 @@ sub clusterflow_add_genome {
             &File::Find::find(sub {push(@{$search_files{star}}, $File::Find::name) if /SAindex$/i}, $search_path);
             &File::Find::find(sub {push(@{$search_files{gtf}}, $File::Find::name) if /\.gtf$/i}, $search_path);
             &File::Find::find(sub {push(@{$search_files{bwa}}, $File::Find::name) if /\.bwt$/i}, $search_path);
-            
+
             foreach my $type (keys %search_files){
                 SFILES_FOREACH: foreach my $fn (@{$search_files{$type}}){
                     $found_files++;
@@ -652,7 +660,7 @@ sub clusterflow_add_genome {
                 } # foreach found file
             } # foreach ref type
             print "\nReference file search finished..\n\n";
-        
+
             if($added_refs == 0){
                 if($found_files == 0){
                     print "\nOh dear, I couldn't find any files matching my search extensions\n".
@@ -663,7 +671,7 @@ sub clusterflow_add_genome {
                 }
                 print "Do you want to try a different path for the search (y) or continue\n".
                       "on to manually enter reference paths? (n)\n\n";
-                      
+
                 while (my $continue = <STDIN>){
                     chomp ($continue);
                     if ($continue =~ /^n(o)?/i){
@@ -680,7 +688,7 @@ sub clusterflow_add_genome {
         } # if search path > 0
     } # while $do_search
 
-    
+
     # Manually add paths
     print "Now we can add any reference paths manually if you'd like.\n\n".
           "First, enter the type of reference that this is - Cluster Flow\n".
@@ -689,7 +697,7 @@ sub clusterflow_add_genome {
           "and hyphens only.\n\n".
           "If you don't want to add any manual reference paths, just leave\n".
           "this blank and press enter...\n\n";
-    
+
     my $man_ref_type;
     MANREF: while($man_ref_type = <STDIN>){
         chomp($man_ref_type);
@@ -717,7 +725,7 @@ sub clusterflow_add_genome {
         print "If you want to add another path for this genome ($genomeID) just\n".
               "add another reference type. Leave blank to continue..\n\n";
     }
-    
+
     # Write the new paths to the file
     foreach my $type (keys %new_refs){
         foreach my $genomeID (keys %{$new_refs{$type}}){
@@ -727,12 +735,12 @@ sub clusterflow_add_genome {
         }
     }
     close (OUT);
-    
+
     print "\nThese new references were appended to the end of $fn\n".
           "If a genome key has more than one of the same reference\n".
           "type, only the last will be used by Cluster Flow.\n\n".
           "To check that this wizard has worked, you can run cf --list_genomes\n\n";
-          
+
     print "All done! Exiting..\n\n";
 }
 
@@ -749,7 +757,7 @@ sub clusterflow_add_genome {
 # to generate a config file for first run
 ####################################
 sub clusterflow_setup {
-    
+
     # First of all - check we have a global config file
     my $global_fn = "$FindBin::Bin/clusterflow.config";
     unless(-e $global_fn){
@@ -777,7 +785,7 @@ sub clusterflow_setup {
             open(GLOBAL_CONFIG_EXAMPLE, "<", $global_fn.".example") or die "Can't open global config example file: $!\n\n";
         	my @config_file = <GLOBAL_CONFIG_EXAMPLE>;
         	close(GLOBAL_CONFIG_EXAMPLE);
-            
+
             # Get environment
             print "First - Cluster Flow is compatible with several HPC cluster managers,\nbut it needs to know which one you're using..\n\n";
             print "Are you using local, GRIDEngine, SLURM or LSF?\n(if you're just using this on your laptop, use local)\n\n";
@@ -809,7 +817,7 @@ sub clusterflow_setup {
                     print "\nSorry, I didn't understand that.\nCould you try again please?\n\n";
                 }
             }
-            
+
             # Environment modules?
             print "Next, do you use environment modules?\nThese use commands such as 'module load bowtie' to\n";
             print "load tools into your namespace. If you don't\nunderstand what this means, the answer is probably no.\n\n";
@@ -849,7 +857,7 @@ sub clusterflow_setup {
                 }
             }
 
-            
+
             print "Ok, all done - writing to $global_fn\n\nMoving on to personal configs..\n\n";
             open(GLOBAL_CONFIG, ">", $global_fn) or die "Can't open global config file for writing: $!\n\n";
         	print GLOBAL_CONFIG @config_file;
@@ -857,13 +865,13 @@ sub clusterflow_setup {
 			sleep(1);
         }
     }
-    
+
     # Ok, go on to personal config files
     my $fn = $homedir."/clusterflow/clusterflow.config";
-    
+
     print "\n\nCluster Flow User Config Generator\n".('='x34)."\nRunning Cluster Flow version $CF_VERSION\n\n";
     print "This mode will generate a personalised Cluster Flow config file for you \nin your home directory: ~/clusterflow/clusterflow.config\n\n";
-    
+
 	my $make_personal_config = 1;
     if(-e $fn){
         print "### WARNING ###\n$fn already exists!\nThis script will overwrite that file. Do you want to continue? (y/n)\n\n";
@@ -881,7 +889,7 @@ sub clusterflow_setup {
             }
         }
     }
-    
+
 if($make_personal_config){
     my $config = "/*
 Clusterflow Config
@@ -891,7 +899,7 @@ Syntax - \@key:value
 These will overwrite any with the same name in the centralised config file
 -------------------
 */\n\n";
-    
+
     my $cl_cols;
     print "Right, let's get started!\nFirst off - Cluster Flow can make nice coloured status messages for you.\n";
     print "They help to scan quickly, but can look a bit nasty with some colour schemes.\n";
@@ -934,7 +942,7 @@ These will overwrite any with the same name in the centralised config file
         }
     }
     $config .= "\@email    $email\n";
-    
+
     my $use_defaults;
     my $use_defaults_stdin;
     print "Ok, the rest of this wizard is about which notification e-mails that
@@ -959,9 +967,9 @@ prefer. Use defaults? (y/n)\n\n";
         $config .= "\@notification    suspend\n";
         $config .= "\@notification    abort\n";
     } else {
-        
+
         my ($notify_complete, $notify_run, $notify_success, $notify_error, $notify_abort);
-        
+
         print "Would you like to receive a notification when a pipeline is completed?
 The e-mail tells you the pipeline that has finished, the working directory
 for that pipeline, a list of Cluster Flow highlight notifications (typically
@@ -980,7 +988,7 @@ log file output for each file. These notifications are recommended (y/n)\n\n";
                 print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
             }
         }
-        
+
         print "Would you like to receive a notification when each run is completed?
 Usually a run is the processing of one input file. The e-mail tells you the
 name of the run that has finished, its pipeline and the working directory.
@@ -1001,7 +1009,7 @@ their processing (y/n)\n\n";
                 print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
             }
         }
-        
+
         print "Would you like to receive a notification when step of each run ends?
 This will be a GRID Engine notice for every qsub job. These notifications
 are not recommended as a typicaly Cluster Flow run can flood your inbox with hundreds
@@ -1019,7 +1027,7 @@ of such e-mails. Would you like to receive them? (y/n)\n\n";
                 print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
             }
         }
-        
+
         print "Would you like to receive a notification when a GRID Engine
 job is suspended? You're unlikely to get many if any, so they're recommended.
 Would you like to receive these notifications? (y/n)\n\n";
@@ -1036,8 +1044,8 @@ Would you like to receive these notifications? (y/n)\n\n";
                 print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
             }
         }
-        
-        print "Ok, last one. Would you like to receive a notification 
+
+        print "Ok, last one. Would you like to receive a notification
 when a GRID Engine job exits in an abort state? This typically only
 happens when you or an administrator kills your cluster jobs using
 qdel. You're unlikely to get many of these, so they're recommended.
@@ -1056,22 +1064,22 @@ Would you like to receive these notifications? (y/n)\n\n";
             }
         }
         $config .= "\n\n\n";
-    
+
     } # end of defaults check
-    
+
     print "\n\nGreat, that's it! The following config file will be created:\n\n$config\n";
-    
+
     print "\nRemember that you can add further settings to your
 personalised config file - see the Cluster Flow manual
 for further information.\n\n\n";
-    
+
     unless(-e $homedir."/clusterflow/" && -d $homedir."/clusterflow/"){
         mkdir ($homedir."/clusterflow/") or die "Can't create clusterflow directory: $!";
     }
     open (OUT, '>', $fn) or die "Can't write to $fn: $!";
     print OUT $config;
     close OUT;
-	
+
 } # if($make_personal_config){
 
 	# Final section - bash aliases
@@ -1088,7 +1096,7 @@ for further information.\n\n\n";
 			$has_qsa = 1 if(/alias qsa='cf --qstatall'/);
 		}
 		close(BASHRC);
-		
+
 		if(!$has_qs && system("type qs > /dev/null 2>&1")){
 		    print "\n\nCluster Flow Bash Alias Generator\n".('='x34)."\nRunning Cluster Flow version $CF_VERSION\n\n";
 			print "A common command when using Cluster Flow is 'cf --qstat'\n".
@@ -1131,7 +1139,7 @@ for further information.\n\n\n";
 			print BASHRC $alias."\n\n";
 			close(BASHRC);
 		}
-		
+
 		print "\n\nNote about the cf command\n".('='x25)."\n";
 		print "As a small final note, be aware that Cluster flow is only really useful\n".
 			  "if the main cf executable is available as a command in the terminal.\n".
