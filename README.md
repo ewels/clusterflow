@@ -51,8 +51,10 @@ Change Log
 	* Support for explicit GRIDEngine queue nomination on the command line
 	* Modules now print their software versions to the log where possible.
 	* New `--merge` (command line) and `@merge_regex` (config file) options to automatically merge input files.
+		* This is implemented using a new module, `cf_merge_files`, which can also be used in pipelines
+		* If the supplied regexes only match single files, the module can be used to simply rename files
     * New `--runfile_prefix` option to help avoid potential filename clashes.
-    * Added compatability with GRIDEngine `~/.sge_request files` (by ignoring them). 
+    * Added compatability with GRIDEngine `~/.sge_request files` (by ignoring them).
       Thanks to [@s-andrews](https://github.com/s-andrews)
     * New tophat module called `tophat` which introduces a workaround for buggy MAPQ
         reporting by tophat whilst keeping unique alignments. Thanks to [@FelixKrueger](https://github.com/FelixKrueger).
