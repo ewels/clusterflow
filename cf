@@ -469,6 +469,21 @@ if(!$cl_paired_end && !$cl_single_end && $fastq_count > 1){
 	}
 }
 
+# Check that the merge_regex looks ok if we have it
+if($MERGE_REGEX){
+
+	# Check the regex looks ok
+	my $opening_p = () = $MERGE_REGEX =~ /\(/g;
+	my $closing_p = () = $MERGE_REGEX =~ /\)/g;
+	my $slashes = () = $MERGE_REGEX =~ /[^\\]\//g;
+	unless($opening_p == 1 && $closing_p == 1){
+		die "\n\n### Error: Found a merging regex, but it didn't have a single set\nof parentheses: $MERGE_REGEX";
+	}
+	unless($slashes == 0){
+		die "\n\n### Error: Found a merging regex, but it had unescaped backslashes: $MERGE_REGEX";
+	}
+}
+
 
 #
 # MAX RUNS and SPLIT FILES
@@ -544,6 +559,9 @@ if ($MERGE_REGEX){
 
 # Parse pipeline config file
 my $pipeline_string = "";
+if($MERGE_REGEX){
+	$pipeline_string .= "cf_merge_files\n";
+}
 my $added_summary_mod = 0;
 while (<CONFIG>){
 	chomp;
@@ -592,11 +610,15 @@ while (<CONFIG>){
 		if($cl_params){
 			$_ .= " $cl_params";
 		}
+
+		$pipeline_string .= "\t" if($MERGE_REGEX); # Add a tab if we prepended merge
 		$pipeline_string .= "$_\n";
 		$runfile .= "$_\n";
 
-		$_ =~ s/^(\t*)#//; # Remove hash and count tabs
-		splice @indents, length($1)+1;
+		$_ =~ s/^(\t*)#//; # Remove hash symbol and tabs
+		my $num_tabs = length($1)+1; # count tabs
+		$num_tabs++ if($MERGE_REGEX); # Add one if we've prepended the merge module
+		splice @indents, $num_tabs;
 		push @indents, $indents[$#indents]->{$_} = {};
 	}
 
@@ -607,6 +629,7 @@ while (<CONFIG>){
 		if($cl_params){
 			$_ .= " $cl_params";
 		}
+		$pipeline_string .= "\t" if($MERGE_REGEX); # Add a tab if we prepended merge
 		$pipeline_string .= "$_\n";
 		$runfile .= "$_\n";
 
@@ -684,19 +707,7 @@ unless($cl_dryrun){
 
 # Make an array of file groups for each parallel run
 my %file_sets_hash;
-if($MERGE_REGEX && length($MERGE_REGEX) > 0){
-
-	# Check the regex looks ok
-	my $opening_p = () = $MERGE_REGEX =~ /\(/g;
-	my $closing_p = () = $MERGE_REGEX =~ /\)/g;
-	my $slashes = () = $MERGE_REGEX =~ /[^\\]\//g;
-	unless($opening_p == 1 && $closing_p == 1){
-		die "\n\n### Error: Found a merging regex, but it didn't have a single set\nof parentheses: $MERGE_REGEX";
-	}
-	unless($slashes == 0){
-		die "\n\n### Error: Found a merging regex, but it had unescaped backslashes: $MERGE_REGEX";
-	}
-
+if($MERGE_REGEX){
 	# Loop through each file and add to hash
 	for (my $i = 0; $i <= $#files; $i++){
 		my $group = 'unmatched_'.sprintf("%03d", rand(999));
