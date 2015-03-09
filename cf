@@ -470,7 +470,6 @@ if(!$cl_paired_end && !$cl_single_end && $fastq_count > 1){
 }
 
 
-
 #
 # MAX RUNS and SPLIT FILES
 #
@@ -538,6 +537,9 @@ if ($cl_paired_end){
 	$runfile .= "\@force_paired_end\n";
 } elsif ($cl_single_end){
 	$runfile .= "\@force_single_end\n";
+}
+if ($MERGE_REGEX){
+	$runfile .= "\@merge_regex\t$MERGE_REGEX\n";
 }
 
 # Parse pipeline config file
@@ -679,7 +681,50 @@ unless($cl_dryrun){
     print SUBMIT "Output from $CLUSTER_ENVIRONMENT when submitting Cluster Flow jobs:\n".("="x52)."\n\n";
 }
 
-# Go through the supplied starting files
+
+# Make an array of file groups for each parallel run
+my %file_sets_hash;
+if($MERGE_REGEX && length($MERGE_REGEX) > 0){
+
+	# Check the regex looks ok
+	my $opening_p = () = $MERGE_REGEX =~ /\(/g;
+	my $closing_p = () = $MERGE_REGEX =~ /\)/g;
+	my $slashes = () = $MERGE_REGEX =~ /[^\\]\//g;
+	unless($opening_p == 1 && $closing_p == 1){
+		die "\n\n### Error: Found a merging regex, but it didn't have a single set\nof parentheses: $MERGE_REGEX";
+	}
+	unless($slashes == 0){
+		die "\n\n### Error: Found a merging regex, but it had unescaped backslashes: $MERGE_REGEX";
+	}
+
+	# Loop through each file and add to hash
+	for (my $i = 0; $i <= $#files; $i++){
+		my $group = 'unmatched_'.sprintf("%03d", rand(999));
+		if($files[$i] =~ m/$config{merge_regex}/){
+			if(defined($1)){
+				$group = $1;
+			}
+		}
+		# Match - add to hash
+		if(!defined($file_sets_hash{$group})){
+			$file_sets_hash{$group} = ();
+		}
+		push(@{$file_sets_hash{$group}}, $files[$i]);
+	}
+}
+# No regex - just create a hash with pseudo groups
+else {
+	for (my $i = 0; $i <= $#files; $i++){
+		my $group = 'unmatched_'.sprintf("%03d", rand(999));
+		$file_sets_hash{$group} = ($files[$i]);
+	}
+}
+my @file_sets = values %file_sets_hash;
+
+
+#
+# START THE PIPELINE
+#
 my @qsubs;
 my @job_ids;
 my %run_job_ids;
@@ -688,77 +733,83 @@ my $prev_dl_id = "";
 my @runfns;
 my @outfns;
 my @finished_run_ids;
-for (my $i = 0; $i <= $#files; $i++){
-	my $fn = $files[$i];
+# Define these here as we need to remember them after the loop finishes
+my $runfn;
+my $run_finish_id;
+my $outfn;
+for (my $i = 0; $i <= $#file_sets; $i++){
+	my $fn = $file_sets[$i][0];
 	my $first_fn = $fn;
-	my $outfn = $fn."_".$pipeline."_clusterFlow.txt";
+	$outfn = $fn."_".$pipeline."_clusterFlow.txt";
 
 	# Make the run file
-	my $runfn = $cl_runfile_prefix.$fn."_$pipeline.run";
+	$runfn = $cl_runfile_prefix.$fn."_$pipeline.run";
 	my $date = strftime "%H:%M, %d-%m-%Y", localtime;
 	my $this_runfile = "/*\nCluster Flow Run File\nPipeline: $pipeline\nCreated at $date\n*/\n\n".$runfile."\n\n";
 
-	# Add files to run file
+	# Loop through SPLIT_FILES number of file groups
 	my $max_i = $i + $SPLIT_FILES;
 	my $counter = 0;
 	for (; $i < $max_i; $i++){
-		$counter++;
-		if($i > $#files) {
-			last;
-		}
 
-		$fn = $files[$i];
-
-		# Write status update
-		if($CLUSTER_ENVIRONMENT =~ /SLURM/i){ warn "\n"; }
-		warn "Processing file ".($i+1)." - $fn\n";
-
-		# Is this filename a URL?
-		if ($fn =~ /^(((ht|f)tp(s?))\:\/\/)/){
-
-			# Find download filename if it exists
-			my $dl_fn;
-			if($download_fns[$i]){
-				$dl_fn = $download_fns[$i];
-			} else {
-				my @parts = split("/", $fn);
-				$dl_fn = pop(@parts);
+		# Loop through each file in file group
+		my $j;
+		for $j (0..$SPLIT_FILES){
+			if(!defined($file_sets[$i][$j])) {
+				last;
 			}
+			$fn = $file_sets[$i][$j];
 
-			# Only do this the first time, else we create a new file for each download when using --split_files
-			if ($runfn =~ /^(((ht|f)tp(s?))\:\/\/)/){
-				$runfn = $dl_fn."_$pipeline.run";
-				$outfn = $dl_fn."_".$pipeline."_clusterFlow.txt";
+			# Write status update
+			warn "Processing $fn\n";
+
+			# Is this filename a URL?
+			if ($fn =~ /^(((ht|f)tp(s?))\:\/\/)/){
+
+				# Find download filename if it exists
+				my $dl_fn;
+				if($download_fns[$i]){
+					$dl_fn = $download_fns[$i];
+				} else {
+					my @parts = split("/", $fn);
+					$dl_fn = pop(@parts);
+				}
+
+				# Only do this the first time, else we create a new file for each download when using --split_files
+				if ($runfn =~ /^(((ht|f)tp(s?))\:\/\/)/){
+					$runfn = $dl_fn."_$pipeline.run";
+					$outfn = $dl_fn."_".$pipeline."_clusterFlow.txt";
+				}
+
+				push @outfns, $outfn;
+
+				# URL - set up download module qsub job, dependent on previous download job
+				$job_id = $jid_base.'download_'.sprintf("%03d", rand(999));
+				my $dlcmd = "$Bin/modules/cf_download.cfmod.pl $runfn $job_id $fn $dl_fn";
+				my @dlhjid = ();
+				if(length($prev_dl_id) > 0){
+					@dlhjid = ($prev_dl_id);
+				}
+				my $qsub = make_submit_cmd($dlcmd, $job_id, \@dlhjid, $prev_dl_id, '1', '1G', $outfn);
+				push @qsubs, $qsub;
+				push @job_ids, $job_id;
+				$prev_dl_id = $job_id;
+
+				# Done with the download URL. Set $fn for later stuff
+				$fn = $dl_fn;
+				if($counter == 1){
+					$first_fn = $dl_fn;
+				}
+
+			} elsif(-e $fn) { # Not a URL. Does this file exist?
+				# Add the starting filename to the run file
+				$job_id = 'start_000';
+				$this_runfile .= "$job_id\t$fn\n";
+				push @outfns, $outfn;
+
+			} else { # Not a URL, file doesn't exist. Something is wrong!
+				die "\nFile $fn doesn't exist.. Something is wrong! Exiting...\n\n";
 			}
-
-			push @outfns, $outfn;
-
-			# URL - set up download module qsub job, dependent on previous download job
-			$job_id = $jid_base.'download_'.sprintf("%03d", rand(999));
-			my $dlcmd = "$Bin/modules/cf_download.cfmod.pl $runfn $job_id $fn $dl_fn";
-			my @dlhjid = ();
-			if(length($prev_dl_id) > 0){
-				@dlhjid = ($prev_dl_id);
-			}
-			my $qsub = make_submit_cmd($dlcmd, $job_id, \@dlhjid, $prev_dl_id, '1', '1G', $outfn);
-			push @qsubs, $qsub;
-			push @job_ids, $job_id;
-			$prev_dl_id = $job_id;
-
-			# Done with the download URL. Set $fn for later stuff
-			$fn = $dl_fn;
-			if($counter == 1){
-				$first_fn = $dl_fn;
-			}
-
-		} elsif(-e $fn) { # Not a URL. Does this file exist?
-			# Add the starting filename to the run file
-			$job_id = 'start_000';
-			$this_runfile .= "$job_id\t$fn\n";
-			push @outfns, $outfn;
-
-		} else { # Not a URL, file doesn't exist. Something is wrong!
-			die "\nFile $fn doesn't exist.. Something is wrong! Exiting...\n\n";
 		}
 
 	}
@@ -778,46 +829,52 @@ for (my $i = 0; $i <= $#files; $i++){
 	make_qsubs (\%module_tree, $job_id, $runfn, $outfn);
 
 	# Qsub job to execute on completion of this run
-	my $run_finish_id = $jid_base."email_run_complete_".sprintf("%03d", rand(999));
+	$run_finish_id = $jid_base."email_run_complete_".sprintf("%03d", rand(999));
 	my $run_finish_cmd = "$Bin/modules/cf_run_finished.cfmod.pl $runfn $run_finish_id null 1 1G hide_log_header $pipeline $outfn";
 	my $run_finish_qsub = make_submit_cmd($run_finish_cmd, $run_finish_id, \@{$run_job_ids{$runfn}}, 0, '1', '1G', $outfn, 1);
 
 	push @qsubs, $run_finish_qsub;
 	push @finished_run_ids, $run_finish_id;
 
-	# Final jobs to execute on completion of ALL JOBS (entire pipeline)
-	if($i == $#files){
-
-        # Summary Modules
-        for my $s_mod (@summary_modules){
-
-    		# Set up parameters for these leaves
-    		my ($s_module, $parameters) = split(/\s/, $s_mod, 2);
-    		my $s_job_id = $jid_base.$s_module.'_'.sprintf("%03d", rand(999));
-		    $parameters = '' if(!$parameters);
-
-    		if(length($s_module) > 0){
-                # Get module filename and requirements
-                my $s_module_fn = get_mod_fn($s_module);
-                my ($s_cores, $s_mem) = get_mod_requirements($s_module_fn, $runfn);
-
-        		# formulate qsub command
-        		my $s_cmd = "$s_module_fn $runfn $s_job_id $run_finish_id $s_cores $s_mem $parameters summary_module $pipeline ".join(" ", @runfns);
-        		my $s_qsub = make_submit_cmd($s_cmd, $s_job_id, \@finished_run_ids, $run_finish_id, $s_cores, $s_mem, $outfn, 1);
-                push (@qsubs, $s_qsub);
-                push (@finished_run_ids, $s_job_id);
-            }
-        }
-
-        # Cluster Flow module to send pipeline completion e-mail
-		my $all_runs_finish_id = $jid_base."email_pipeline_complete_".sprintf("%03d", rand(999));
-		my $all_runs_finish_cmd = "$Bin/modules/cf_runs_all_finished.cfmod.pl $runfn $all_runs_finish_id $run_finish_id 1 1G summary_module hide_log_header $pipeline ".join(" ", @outfns);
-		# my $all_runs_finish_holdjid = join(",", @finished_run_ids);
-		my $all_runs_finish_qsub = make_submit_cmd($all_runs_finish_cmd, $all_runs_finish_id, \@finished_run_ids, 0, '1', '1G', $outfn, 1);
-
-		push @qsubs, $all_runs_finish_qsub;
-	}
 }
+
+#
+# FINAL JOBS to execute on completion of ALL JOBS (entire pipeline)
+#
+
+# Summary Modules
+for my $s_mod (@summary_modules){
+
+	# Set up parameters for these leaves
+	my ($s_module, $parameters) = split(/\s/, $s_mod, 2);
+	my $s_job_id = $jid_base.$s_module.'_'.sprintf("%03d", rand(999));
+    $parameters = '' if(!$parameters);
+
+	if(length($s_module) > 0){
+        # Get module filename and requirements
+        my $s_module_fn = get_mod_fn($s_module);
+        my ($s_cores, $s_mem) = get_mod_requirements($s_module_fn, $runfn);
+
+		# formulate qsub command
+		my $s_cmd = "$s_module_fn $runfn $s_job_id $run_finish_id $s_cores $s_mem $parameters summary_module $pipeline ".join(" ", @runfns);
+		my $s_qsub = make_submit_cmd($s_cmd, $s_job_id, \@finished_run_ids, $run_finish_id, $s_cores, $s_mem, $outfn, 1);
+        push (@qsubs, $s_qsub);
+        push (@finished_run_ids, $s_job_id);
+    }
+}
+
+# Cluster Flow module to send pipeline completion e-mail
+my $all_runs_finish_id = $jid_base."email_pipeline_complete_".sprintf("%03d", rand(999));
+my $all_runs_finish_cmd = "$Bin/modules/cf_runs_all_finished.cfmod.pl $runfn $all_runs_finish_id $run_finish_id 1 1G summary_module hide_log_header $pipeline ".join(" ", @outfns);
+# my $all_runs_finish_holdjid = join(",", @finished_run_ids);
+my $all_runs_finish_qsub = make_submit_cmd($all_runs_finish_cmd, $all_runs_finish_id, \@finished_run_ids, 0, '1', '1G', $outfn, 1);
+
+push @qsubs, $all_runs_finish_qsub;
+
+
+
+
+
 
 ########################################################
 # Recursive function to create and submit cluster jobs

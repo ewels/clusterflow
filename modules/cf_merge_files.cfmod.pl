@@ -120,7 +120,7 @@ if(!$regex || length($regex) > 0){
 my $opening_p = () = $regex =~ /\(/g;
 my $closing_p = () = $regex =~ /\)/g;
 my $slashes = () = $regex =~ /[^\\]\//g;
-unless($opening_p == 1 && $closing_p){
+unless($opening_p == 1 && $closing_p == 1){
 	die "\n\n###CF Error: Merging regex didn't have one set of parentheses for job $job_id: $regex Exiting.. ###";
 }
 unless($slashes == 0){
