@@ -752,6 +752,14 @@ for (my $i = 0; $i <= $#file_sets; $i++){
 	my $counter = 0;
 	for (; $i < $max_i; $i++){
 
+		# Loop counter for this run file
+		$counter++;
+
+		# SPLIT FILES has pushed us past our last file group
+		if($i > $#file_sets) {
+			last;
+		}
+
 		# Loop through each file in file group
 		my $j;
 		for $j (0..$SPLIT_FILES){
