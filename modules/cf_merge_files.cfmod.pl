@@ -169,7 +169,6 @@ for my $group (keys(%file_sets)) {
 	# get the previous extension if it's gz
 	if($ext eq '.gz'){
 		($ext) = $file_sets{$group}[0] =~ /(\.[^.]+\.gz)$/;
-		print "Found gz file - resetting ext to $ext\n";
 	}
 	my $mergedfn = $group.$ext;
 	my $command;
