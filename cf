@@ -398,7 +398,7 @@ if(!$config_found){
 
 
 # If we have a file list input file, take input from there
-my @download_fns;
+my %download_fns;
 if($file_list){
 	unless(-e $file_list){
 		print "Error - file list not found: $file_list\nExiting...\n\n";
@@ -413,9 +413,7 @@ if($file_list){
 		my @sections = split(/\s+/);
 		push @files, $sections[0];
 		if(defined($sections[1])){
-			push @download_fns, $sections[1];
-		} else {
-			push @download_fns, 0;
+			$download_fns{$sections[0]} = $sections[1];
 		}
 	}
 	close(FILES);
@@ -469,7 +467,12 @@ if(!$cl_paired_end && !$cl_single_end && $fastq_count > 1){
 	}
 }
 
-# Check that the merge_regex looks ok if we have it
+#
+# MERGE REGEX
+#
+
+# Make an array of file groups for each parallel run
+my %file_sets_hash;
 if($MERGE_REGEX){
 
 	# Check the regex looks ok
@@ -482,8 +485,32 @@ if($MERGE_REGEX){
 	unless($slashes == 0){
 		die "\n\n### Error: Found a merging regex, but it had unescaped backslashes: $MERGE_REGEX";
 	}
-}
 
+	# Loop through each file and add to hash
+	for (my $i = 0; $i <= $#files; $i++){
+		my $group = $files[$i];
+		if($files[$i] =~ m/$config{merge_regex}/){
+			if(defined($1)){
+				$group = $1;
+			}
+		}
+		# Match - add to hash
+		if(!defined($file_sets_hash{$group})){
+			$file_sets_hash{$group} = ();
+		}
+		push(@{$file_sets_hash{$group}}, $files[$i]);
+	}
+
+	# Print notification
+	warn "Found ".scalar(keys %file_sets_hash)." groups of files from ".scalar(@files)." using merge regex:\n".$config{merge_regex}."\n\n";
+}
+# No regex - make the hash with keys as the filenames
+else {
+	for (my $i = 0; $i <= $#files; $i++){
+		$file_sets_hash{$files[$i]} = ($files[$i]);
+	}
+}
+my $num_file_groups = scalar keys %file_sets_hash;
 
 #
 # MAX RUNS and SPLIT FILES
@@ -500,13 +527,44 @@ if ($cl_paired_end){
 }
 # Set split_files now that we know how many files we have
 if($MAX_RUNS > 0){
-	$SPLIT_FILES = int(($num_files / $MAX_RUNS) + 0.99); # + 0.99 is to do a ceiling round
+	$SPLIT_FILES = int(($num_file_groups / $MAX_RUNS) + 0.99); # + 0.99 is to do a ceiling round
 	if ($cl_paired_end && ($SPLIT_FILES % 2 == 1)){
 		$SPLIT_FILES++;
 	}
-	warn "Processing $num_files files in $MAX_RUNS runs. Submitting $SPLIT_FILES files per run.\n\n";
 }
-my $num_runs = int(($num_files / $SPLIT_FILES) + 0.99); # + 0.99 is to do a ceiling round
+
+# Convert the file sets hash into an array, bundling if we need to
+my @file_sets;
+if($SPLIT_FILES > 1){
+	my @thisgroup;
+	my $thisgroupcounter = 0;
+	foreach my $group (sort keys %file_sets_hash) {
+		if($thisgroupcounter < $SPLIT_FILES){
+			# Loop through pushing, so that we don't get an array of arrays
+			for my $i (0..$#{$file_sets_hash{$group}}){
+				push @thisgroup, $file_sets_hash{$group}[$i];
+			}
+			$thisgroupcounter++;
+		} else {
+			push @file_sets, [@thisgroup];
+			@thisgroup = ();
+			for my $i (0..$#{$file_sets_hash{$group}}){
+				push @thisgroup, $file_sets_hash{$group}[$i];
+			}
+			$thisgroupcounter = 1;
+		}
+	}
+	if(scalar @thisgroup > 0){
+		push @file_sets, [@thisgroup];
+	}
+}
+# One file group per run - just convert the hash to an array
+else {
+	@file_sets = values %file_sets_hash;
+}
+
+my $num_runs = scalar @file_sets;
+warn "Processing $num_files files in $num_runs runs.\n\n";
 
 
 ## Write the run file, parse the pipeline
@@ -560,7 +618,9 @@ if ($MERGE_REGEX){
 # Parse pipeline config file
 my $pipeline_string = "";
 if($MERGE_REGEX){
-	$pipeline_string .= "cf_merge_files\n";
+	$pipeline_string .= "#cf_merge_files\n";
+	splice @indents, 1;
+	push @indents, $indents[$#indents]->{'cf_merge_files'} = {};
 }
 my $added_summary_mod = 0;
 while (<CONFIG>){
@@ -611,14 +671,12 @@ while (<CONFIG>){
 			$_ .= " $cl_params";
 		}
 
-		$pipeline_string .= "\t" if($MERGE_REGEX); # Add a tab if we prepended merge
+		$_ = "\t".$_ if($MERGE_REGEX); # Add a tab if we prepended merge
 		$pipeline_string .= "$_\n";
 		$runfile .= "$_\n";
 
-		$_ =~ s/^(\t*)#//; # Remove hash symbol and tabs
-		my $num_tabs = length($1)+1; # count tabs
-		$num_tabs++ if($MERGE_REGEX); # Add one if we've prepended the merge module
-		splice @indents, $num_tabs;
+		$_ =~ s/^(\t*)#//; # Remove hash symbol and count tabs
+		splice @indents, length($1)+1;
 		push @indents, $indents[$#indents]->{$_} = {};
 	}
 
@@ -705,34 +763,6 @@ unless($cl_dryrun){
 }
 
 
-# Make an array of file groups for each parallel run
-my %file_sets_hash;
-if($MERGE_REGEX){
-	# Loop through each file and add to hash
-	for (my $i = 0; $i <= $#files; $i++){
-		my $group = 'unmatched_'.sprintf("%03d", rand(999));
-		if($files[$i] =~ m/$config{merge_regex}/){
-			if(defined($1)){
-				$group = $1;
-			}
-		}
-		# Match - add to hash
-		if(!defined($file_sets_hash{$group})){
-			$file_sets_hash{$group} = ();
-		}
-		push(@{$file_sets_hash{$group}}, $files[$i]);
-	}
-}
-# No regex - just create a hash with pseudo groups
-else {
-	for (my $i = 0; $i <= $#files; $i++){
-		my $group = 'unmatched_'.sprintf("%03d", rand(999));
-		$file_sets_hash{$group} = ($files[$i]);
-	}
-}
-my @file_sets = values %file_sets_hash;
-
-
 #
 # START THE PIPELINE
 #
@@ -748,92 +778,64 @@ my @finished_run_ids;
 my $runfn;
 my $run_finish_id;
 my $outfn;
-for (my $i = 0; $i <= $#file_sets; $i++){
-	my $fn = $file_sets[$i][0];
-	my $first_fn = $fn;
-	$outfn = $fn."_".$pipeline."_clusterFlow.txt";
+foreach my $file_set (@file_sets){
+
+	# Log file name
+	$outfn = ${$file_set}[0]."_".$pipeline."_clusterFlow.txt";
 
 	# Make the run file
-	$runfn = $cl_runfile_prefix.$fn."_$pipeline.run";
+	$runfn = $cl_runfile_prefix.${$file_set}[0]."_$pipeline.run";
 	my $date = strftime "%H:%M, %d-%m-%Y", localtime;
 	my $this_runfile = "/*\nCluster Flow Run File\nPipeline: $pipeline\nCreated at $date\n*/\n\n".$runfile."\n\n";
 
-	# Loop through SPLIT_FILES number of file groups
-	my $max_i = $i + $SPLIT_FILES;
-	my $counter = 0;
-	for (; $i < $max_i; $i++){
+	# Loop through each file in file group
+	foreach my $fn (@{$file_set}){
 
-		# Loop counter for this run file
-		$counter++;
+		# Write status update
+		warn "Processing $fn\n";
 
-		# SPLIT FILES has pushed us past our last file group
-		if($i > $#file_sets) {
-			last;
-		}
+		# Is this filename a URL?
+		if ($fn =~ /^(((ht|f)tp(s?))\:\/\/)/){
 
-		# Loop through each file in file group
-		my $j;
-		for $j (0..$SPLIT_FILES){
-			if(!defined($file_sets[$i][$j])) {
-				last;
+			# Find download filename if it exists
+			my $dl_fn;
+			if($download_fns{$fn}){
+				$dl_fn = $download_fns{$fn};
+			} else {
+				my @parts = split("/", $fn);
+				$dl_fn = pop(@parts);
 			}
-			$fn = $file_sets[$i][$j];
 
-			# Write status update
-			warn "Processing $fn\n";
-
-			# Is this filename a URL?
-			if ($fn =~ /^(((ht|f)tp(s?))\:\/\/)/){
-
-				# Find download filename if it exists
-				my $dl_fn;
-				if($download_fns[$i]){
-					$dl_fn = $download_fns[$i];
-				} else {
-					my @parts = split("/", $fn);
-					$dl_fn = pop(@parts);
-				}
-
-				# Only do this the first time, else we create a new file for each download when using --split_files
-				if ($runfn =~ /^(((ht|f)tp(s?))\:\/\/)/){
-					$runfn = $dl_fn."_$pipeline.run";
-					$outfn = $dl_fn."_".$pipeline."_clusterFlow.txt";
-				}
-
-				push @outfns, $outfn;
-
-				# URL - set up download module qsub job, dependent on previous download job
-				$job_id = $jid_base.'download_'.sprintf("%03d", rand(999));
-				my $dlcmd = "$Bin/modules/cf_download.cfmod.pl $runfn $job_id $fn $dl_fn";
-				my @dlhjid = ();
-				if(length($prev_dl_id) > 0){
-					@dlhjid = ($prev_dl_id);
-				}
-				my $qsub = make_submit_cmd($dlcmd, $job_id, \@dlhjid, $prev_dl_id, '1', '1G', $outfn);
-				push @qsubs, $qsub;
-				push @job_ids, $job_id;
-				$prev_dl_id = $job_id;
-
-				# Done with the download URL. Set $fn for later stuff
-				$fn = $dl_fn;
-				if($counter == 1){
-					$first_fn = $dl_fn;
-				}
-
-			} elsif(-e $fn) { # Not a URL. Does this file exist?
-				# Add the starting filename to the run file
-				$job_id = 'start_000';
-				$this_runfile .= "$job_id\t$fn\n";
-				push @outfns, $outfn;
-
-			} else { # Not a URL, file doesn't exist. Something is wrong!
-				die "\nFile $fn doesn't exist.. Something is wrong! Exiting...\n\n";
+			# Only do this the first time, else we create a new file for each download when using --split_files
+			if ($runfn =~ /^(((ht|f)tp(s?))\:\/\/)/){
+				$runfn = $dl_fn."_$pipeline.run";
+				$outfn = $dl_fn."_".$pipeline."_clusterFlow.txt";
 			}
-		}
 
+			push @outfns, $outfn;
+
+			# URL - set up download module qsub job, dependent on previous download job
+			$job_id = $jid_base.'download_'.sprintf("%03d", rand(999));
+			my $dlcmd = "$Bin/modules/cf_download.cfmod.pl $runfn $job_id $fn $dl_fn";
+			my @dlhjid = ();
+			if(length($prev_dl_id) > 0){
+				@dlhjid = ($prev_dl_id);
+			}
+			my $qsub = make_submit_cmd($dlcmd, $job_id, \@dlhjid, $prev_dl_id, '1', '1G', $outfn);
+			push @qsubs, $qsub;
+			push @job_ids, $job_id;
+			$prev_dl_id = $job_id;
+
+		} elsif(-e $fn) { # Not a URL. Does this file exist?
+			# Add the starting filename to the run file
+			$job_id = 'start_000';
+			$this_runfile .= "$job_id\t$fn\n";
+			push @outfns, $outfn;
+
+		} else { # Not a URL, file doesn't exist. Something is wrong!
+			die "\nFile $fn doesn't exist.. Something is wrong! Exiting...\n\n";
+		}
 	}
-	$i--; # Loop increments $i when it finishes. Revert this increment before next loop
-	$fn = $first_fn;
 
 	# Deduplicate output fn array
 	@outfns = do { my %h; @h{@outfns} = @outfns; values %h };
