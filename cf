@@ -86,9 +86,9 @@ my $config_result = GetOptions(
 	"cores=i" => \$cl_total_cores,
 	"mem=s" => \$cl_total_mem,
 	"notifications=s"  => \$cl_notifications,
-	"list_pipelines" => \$cl_list_pipelines,
-	"list_modules" => \$cl_list_modules,
-	"list_genomes" => \$cl_list_genomes,
+	"pipelines" => \$cl_list_pipelines,
+	"modules" => \$cl_list_modules,
+	"genomes" => \$cl_list_genomes,
 	"dry_run" => \$cl_dryrun,
 	"qstat" => \$cl_qstat,
 	"qstatall" => \$cl_qstatall,
@@ -602,7 +602,7 @@ if(defined($GENOME)){
     }
     if($refs_count == 0){
         die("### Error ###\n\nNo genome references found for genome key \"$GENOME\"..\n\n".
-            "Use cf --list_genomes to see available references and keys.\n\n".
+            "Use cf --genomes to see available references and keys.\n\n".
             "Exiting...\n\n");
     }
 }

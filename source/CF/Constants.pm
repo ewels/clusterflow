@@ -367,7 +367,7 @@ COMMON FLAGS
         ID of a genome referred to in clusterflow.config
         This genome ID is used to specify genome paths, bowtie
         index basenames and GTF file paths.
-        Use --list_genomes to show available IDs
+        Use --genomes to show available IDs
 
     --file_list
         Text file containing input files or download URLs
@@ -376,13 +376,13 @@ COMMON FLAGS
         Specify extra module parameters. These will be applied to every
         module if a pipeline name is specified.
 
-    --list_pipelines
+    --pipelines
         Print available pipelines
 
-    --list_modules
+    --modules
         Print available modules
 
-    --list_genomes
+    --genomes
         Print available genomes
 
     --qstat
@@ -532,7 +532,7 @@ sub clusterflow_add_genome {
     open (OUT,'>>',$fn) or die "Can't write to $fn: $!";
 
     # Get Species and assembly
-    print "To help identify genomes when using cf --list_genomes, you can specify\n".
+    print "To help identify genomes when using cf --genomes, you can specify\n".
           "a species and an assembly.This are both optional - just\n".
           "leave blank and press enter to ignore.\n";
 
@@ -744,7 +744,7 @@ sub clusterflow_add_genome {
     print "\nThese new references were appended to the end of $fn\n".
           "If a genome key has more than one of the same reference\n".
           "type, only the last will be used by Cluster Flow.\n\n".
-          "To check that this wizard has worked, you can run cf --list_genomes\n\n";
+          "To check that this wizard has worked, you can run cf --genomes\n\n";
 
     print "All done! Exiting..\n\n";
 }
