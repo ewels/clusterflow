@@ -110,29 +110,33 @@ if(defined($config{merge_regex}) && length($config{merge_regex}) > 0){
 foreach my $parameter (@$parameters){
 	if(substr($parameter, 0, 5) eq 'regex'){
 		$regex = substr($parameter, 6, -1);
+		warn "\n\nUsing regex from pipeline parameters: $regex\n\n";
 	}
 }
 
 # Check that we have a regex and that it looks ok
-if(!$regex || length($regex) > 0){
-	die "\n\n###CF Error: No merging regex found in $runfile for job $job_id. Exiting.. ###";
+if(length($regex) == 0){
+	die "\n\n###CF Error: No merging regex found in $runfile for job $job_id\n\n";
 }
 my $opening_p = () = $regex =~ /\(/g;
 my $closing_p = () = $regex =~ /\)/g;
 my $slashes = () = $regex =~ /[^\\]\//g;
 unless($opening_p == 1 && $closing_p == 1){
-	die "\n\n###CF Error: Merging regex didn't have one set of parentheses for job $job_id: $regex Exiting.. ###";
+	die "\n\n###CF Error: Merging regex didn't have one set of parentheses for job $job_id: $regex\n\n";
 }
 unless($slashes == 0){
-	die "\n\n###CF Error: Merging regex shouldn't have any unescaped backslashes for job $job_id: $regex Exiting.. ###";
+	die "\n\n###CF Error: Merging regex shouldn't have any unescaped backslashes for job $job_id: $regex\n\n";
 }
 
 # We got this far - looking good!
 warn "\n\nMerging files based on regex: $regex\n\n";
 
 
+
+#
 # Group the files by their regex match
-my $starting_files = scalar(@{$files});
+#
+my $num_starting_files = scalar(@{$files});
 my %file_sets;
 my @newfiles;
 for my $file (@{$files}){
@@ -154,14 +158,18 @@ for my $file (@{$files}){
 	push(@{$file_sets{$group}}, $file);
 }
 
+
+#
 # Merge each set of files
+#
 for my $group (keys(%file_sets)) {
 
 	# Take the new file extension from the first file
 	my ($ext) = $file_sets{$group}[0] =~ /(\.[^.]+)$/;
 	# get the previous extension if it's gz
-	if($ext eq 'gz'){
+	if($ext eq '.gz'){
 		($ext) = $file_sets{$group}[0] =~ /(\.[^.]+\.gz)$/;
+		print "Found gz file - resetting ext to $ext\n";
 	}
 	my $mergedfn = $group.$ext;
 	my $command;
@@ -176,7 +184,7 @@ for my $group (keys(%file_sets)) {
 	}
 	# Everything else: just cat. Note that catting gzipped files together works.
 	else {
-		$command = "cat ".join(' ', $file_sets{$group})." > $mergedfn";
+		$command = "cat ".join(' ', @{$file_sets{$group}})." > $mergedfn";
 	}
 
 	warn "\n###CFCMD $command\n\n";
@@ -188,7 +196,10 @@ for my $group (keys(%file_sets)) {
 	}
 }
 
+
+#
 # Write new filenames to run file
+#
 my $merged_files = scalar(@newfiles);
 
 open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
@@ -201,6 +212,9 @@ for my $output_fn (@newfiles){
 }
 close (RUN);
 
+
+#
 # Finish up
+#
 my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-warn "\n###CF File merging successfully merged $starting_files input files into $merged_files merged files, took $duration..\n";
+warn "\n###CF File merging successfully merged $num_starting_files input files into $merged_files merged files, took $duration..\n";
