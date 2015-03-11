@@ -924,18 +924,19 @@ sub get_mod_fn {
     }
     return $module_fn;
 }
+
 sub get_mod_requirements {
     my ($module_fn, $runfn) = @_;
 
 	# Get options for module. 1 - Load environment modules
-	my $required_modules = `$module_fn --modules --runfn $runfn`;
+	my $required_modules = `$module_fn --modules --runfn $runfn 2> /dev/null`;
 	if($required_modules && length($required_modules) > 0){
 		my @req_modules = split(/[\s,]+/, $required_modules);
 		&CF::Helpers::load_environment_modules(\@req_modules, \%LOADED_MODULES)
 	}
 
 	# Get options for module. 2 - negotiate cores
-	my $cores = `$module_fn --cores $TOTAL_CORES --runfn $runfn`;
+	my $cores = `$module_fn --cores $TOTAL_CORES --runfn $runfn 2> /dev/null`;
 	$cores =~ s/\D//g;
 	if(!$cores || length($cores) == 0){
 		print "\nWarning: no cores allocation or error parsing cores allocation for $module_fn: setting to 1Gb\n";
@@ -943,7 +944,7 @@ sub get_mod_requirements {
 	}
 
 	# Get options for module. 3 - negotiate memory
-	my $mem = `$module_fn --mem $TOTAL_MEM --runfn $runfn`;
+	my $mem = `$module_fn --mem $TOTAL_MEM --runfn $runfn 2> /dev/null`;
 	if(!$mem || length($mem) == 0 || length($mem) > 20){
 		print "\nWarning: no memory allocation or error parsing memory allocation for $module_fn: setting from $mem to 1Gb\n";
 		$mem = '1G';

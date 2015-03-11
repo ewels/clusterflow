@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-package CF::Helpers; 
+package CF::Helpers;
 
 use warnings;
 use strict;
@@ -7,7 +7,7 @@ use FindBin qw($Bin);
 use Exporter;
 use POSIX qw(strftime);
 use Time::Local;
-use CF::Constants; 
+use CF::Constants;
 
 ##########################################################################
 # Copyright 2014, Philip Ewels (phil.ewels@scilifelab.se)                #
@@ -37,10 +37,10 @@ use CF::Constants;
 #  - An array of file names
 #  - A hash with config variables.
 sub parse_runfile {
-    
+
     my $runfile = $_[0];
 	open (RUN,$runfile) or die "Can't read $runfile: $!";
-    
+
     my $prev_job_id = '';
     $prev_job_id = $_[1] if(defined($_[1]));
 
@@ -50,12 +50,12 @@ sub parse_runfile {
 	$config{references} = {};
 	my $comment_block = 0;
 	while(<RUN>){
-	
+
 		# clean up line
 		chomp;
 		s/\n//;
 		s/\r//;
-		
+
 		# Ignore comment blocks
 		if($_ =~ /^\/\*/){
 			$comment_block = 1;
@@ -65,7 +65,7 @@ sub parse_runfile {
 			$comment_block = 0;
 			next;
 		}
-		
+
 		# Get config variables
 		if($_ =~ /^\@/ && !$comment_block){
 			my @sections = split(/\t/, $_, 2);
@@ -79,7 +79,7 @@ sub parse_runfile {
 				$config{$cname} = $sections[1];
 			}
 		}
-		
+
 		# Get files
 		if($_ =~ /^[^@#]/ && !$comment_block){
 			my @sections = split(/\t/, $_, 2);
@@ -92,9 +92,9 @@ sub parse_runfile {
 			}
 		}
 	}
-	
+
 	close(RUN);
-    
+
     return (\@files, \%config);
 }
 
@@ -110,11 +110,11 @@ sub load_runfile_params {
 	unless (@parameters) {
 		@parameters = ();
 	}
-	
+
     # Is this a summary module?
     my $summary_module = 0;
     $summary_module = 1 if ( grep $_ eq 'summary_module', @parameters );
-    
+
     # Should we print the module header?
     if ( grep $_ eq 'hide_log_header', @parameters ){
         # Don't print. Remove this from parameters.
@@ -138,13 +138,13 @@ sub load_runfile_params {
     my ($files_ref, $config_ref) = parse_runfile($runfile, $prev_job_id);
     my @files = @$files_ref;
     my %config = %$config_ref;
-	
+
 	# If we don't have any input files, bail now
 	if(scalar(@files) == 0 && $prev_job_id ne 'null' && !$summary_module){
 	    print "\n###CF Error! No file names found from job $prev_job_id. Exiting...\n\n";
 	    exit;
 	}
-	
+
 	return (\@files, $runfile, $job_id, $prev_job_id, $cores, $mem, \@parameters, \%config);
 }
 
@@ -164,7 +164,7 @@ sub load_environment_modules {
 			# Skip modules that have already been loaded
 			next if defined($loaded_modules->{$mod});
 			# Get perl code needed to load module
-			my $mod_cmd = `modulecmd perl load $mod`;
+			my $mod_cmd = `modulecmd perl load $mod 2> /dev/null`;
 			if($mod_cmd && length($mod_cmd) > 0){
 				eval($mod_cmd);
 				if ($@){
@@ -186,13 +186,13 @@ sub load_environment_modules {
 
 # Function to look at supplied file names and work out whether they're paired end or not
 sub is_paired_end {
-	
+
 	my $config = shift;
-	
+
 	my @files = sort(@_);
 	my @se_files;
 	my @pe_files;
-	
+
 	# Force Paired End or Single End if specified in the config
 	if(exists($config->{force_paired_end})){
 		for (my $i = 0; $i <= $#files; $i++){
@@ -212,7 +212,7 @@ sub is_paired_end {
 		}
 		return (\@se_files, \@pe_files);
 	}
-	
+
 	# Haven't returned yet, so let's figure it out for ourselves
 	for (my $i = 0; $i <= $#files; $i++){
 		if($i < $#files){
@@ -231,7 +231,7 @@ sub is_paired_end {
 			push (@se_files, $files[$i]);
 		}
 	}
-	
+
 	return (\@se_files, \@pe_files);
 }
 
@@ -246,12 +246,12 @@ sub is_bam_paired_end {
 	&CF::Helpers::load_environment_modules(\@modules,\%loaded_mods);
 
 	my ($file) = @_;
-	
+
 	unless($file =~ /.bam$/ || $file =~ /.sam$/){
 		warn "\n$file is not a .bam or .sam file - can't figure out PE / SE mode..\nExiting..\n\n";
 		die;
 	}
-	
+
     # Read the first 1000 lines withx samtools
     my $se_reads = 0;
     my $pe_reads = 0;
@@ -268,14 +268,14 @@ sub is_bam_paired_end {
         $readcount++;
     }
     close($fh);
-    
+
     # Look at our counts
     if($pe_reads >= 800){
         return 1;
     } else {
         return 0;
     }
-	
+
 }
 
 # Function to determine the encoding of a FastQ file (nicked from HiCUP)
@@ -290,39 +290,39 @@ sub fastq_encoding_type {
 	my $score_min = 999;    #Initialise at off-the-scale values
 	my $score_max = -999;
 	my $read_count = 0;
-	
+
 	if($file =~ /\.gz$/){
 		open (IN, "zcat $file |") or die "Could not read file '$file' : $!";
 	} else {
 		open (IN, $file) or die "Could not read file '$file' : $!";
 	}
-	
+
 	while(<IN>){
-	
+
 		unless(/^@/){
 			# Line must start with an @ symbol - read identifiers
 			die "Error trying to work out the FastQ quality scores!\nRead doesn't start with an \@ symbol..\n\n\n";
 		}
-			
+
 		# push file counter on two lines to the quality score
 		scalar <IN>;
-		scalar <IN>; 
-		
+		scalar <IN>;
+
 		my $quality_line = scalar <IN>;
-		chomp $quality_line;    
+		chomp $quality_line;
 		my @scores = split(//, $quality_line);
-		
+
 		foreach(@scores){
 			my $score = ord $_;    #Determine the value of the ASCII character
-			
+
 			if($score < $score_min){
 				$score_min = $score;
 			}
 			if($score > $score_max){
 				$score_max = $score;
-			}	
+			}
 		}
-		
+
 		# Do not need to process 100,000 lines if these parameters are met
 		if($score_min == 32){    # Contains the space charcter
 			close IN;
@@ -334,12 +334,12 @@ sub fastq_encoding_type {
 			close IN;
 			return 'solexa'
 		}
-		
+
 		$read_count++;
-		
+
 	}
 	close IN;
-	
+
 	if($read_count < 100000){
 		return 0;    #File did not contain enough lines to make a decision on quality
 	} else {
@@ -354,43 +354,43 @@ sub fastq_min_length {
 
 	my ($file, $minlength) = @_;
 	my $read_count = 0;
-	
+
 	if($file =~ /\.gz$/){
 		open (IN, "zcat $file |") or die "Could not read file '$file' : $!";
 	} else {
 		open (IN, $file) or die "Could not read file '$file' : $!";
 	}
-	
+
 	while(<IN>){
-		
+
 		unless(/^@/){
 			# Line must start with an @ symbol - read identifiers
 			die "Error trying to work out the FastQ read lengths!\nRead doesn't start with an \@ symbol..\n\n\n";
 		}
-		
+
 		# push file counter on two lines to the quality score
 		scalar <IN>;
 		scalar <IN>;
-		
+
 		my $quality_line = scalar <IN>;
 		chomp $quality_line;
-		
+
 		if(length($quality_line) >= $minlength){
 			close IN;
 			return 1;
 		}
-		
+
 		$read_count++;
-		
+
 		if($read_count > 100000){
 			last;
 		}
-		
+
 	}
 	close IN;
-	
+
 	return 0;
-	
+
 }
 
 
@@ -401,10 +401,10 @@ sub parse_seconds {
 	unless(defined($long)){
 		$long = 1;
 	}
-	
-	
+
+
 	my @chunks;
-	
+
 	my $w_secs = 's';
 	my $w_mins = 'm';
 	my $w_hours = 'h';
@@ -415,36 +415,36 @@ sub parse_seconds {
 		$w_hours = ' hours';
 		$w_days = ' days';
 	}
-	
+
 	my $days = int($raw/(24*60*60));
 	if($days > 0){
 		push (@chunks, "$days$w_days");
 		$raw -= $days * (24*60*60);
 	}
-	
+
 	my $hours = ($raw/(60*60))%24;
 	if($hours > 0){
 		push (@chunks, "$hours$w_hours");
 		$raw -= $hours * (60*60);
 	}
-	
+
 	my $mins = ($raw/60)%60;
 	if($mins > 0){
 		push (@chunks, "$mins$w_mins");
 		$raw -= $mins * 60;
 	}
-	
+
 	my $secs = $raw%60;
 	if($secs > 0){
 		push (@chunks, "$secs$w_secs");
 	}
-	
+
 	my $output = join(" ", @chunks);
 	if($long){
 		$output = join(", ", @chunks);
 	}
-	
-	
+
+
 	return ($output);
 }
 
@@ -455,10 +455,10 @@ sub human_readable_to_bytes {
 
 	my ($memory_string) = @_;
 	(my $memory = $memory_string) =~ s/\D//g;
-	
+
 	# Cut off 'b' from Gb etc if accidentally present
 	$memory_string =~ s/b$//i;
-	
+
 	if(substr(lc($memory_string), -1) eq 'g'){
 		$memory = $memory * 1073741824;
 	} elsif(substr(lc($memory_string), -1) eq 'm'){
@@ -466,7 +466,7 @@ sub human_readable_to_bytes {
 	} elsif(substr(lc($memory_string), -1) eq 'k'){
 		$memory = $memory * 1024;
 	}
-	
+
 	return $memory;
 }
 
@@ -475,7 +475,7 @@ sub bytes_to_human_readable {
 
 	my ($bytes) = @_;
 	$bytes =~ s/\D//g;
-	
+
 	if(int($bytes/1073741824) > 0){
 		return sprintf("%.1f", $bytes/1073741824)."G";
 	} elsif(int($bytes/1048576) > 0){
@@ -485,7 +485,7 @@ sub bytes_to_human_readable {
 	} else {
 		return $bytes."B";
 	}
-	
+
 }
 
 # Simple function to take bytes and return a human readable memory string
@@ -494,14 +494,14 @@ sub mem_return_mbs {
 	my ($mem) = @_;
 	$mem = human_readable_to_bytes($mem);
 	return sprintf("%.0f", $mem/1048576);
-	
+
 }
 
 # Take allocated cores, minimum, maximum and return best value
 sub allocate_cores {
-	
+
 	my ($allocated, $min, $max) = @_;
-	
+
 	if($allocated > $max){
 		return $max;
 	} elsif($allocated < $min){
@@ -513,12 +513,12 @@ sub allocate_cores {
 
 # Take allocated memory, minimum, maximum and return best value
 sub allocate_memory {
-	
+
 	my ($allocated, $min, $max) = @_;
-	
+
 	$max = CF::Helpers::human_readable_to_bytes($max);
 	$min = CF::Helpers::human_readable_to_bytes($min);
-	
+
 	if($allocated > $max){
 		return $max;
 	} elsif($allocated < $min){
@@ -533,15 +533,15 @@ sub allocate_memory {
 # Function to properly split up version numbers
 # Returns true if second supplied vn is newer than first
 sub cf_compare_version_numbers {
-	
+
 	my ($vn1_string, $vn2_string) = @_;
-	
+
 	my @vn1_parts = split(/\.|\s+/, $vn1_string);
 	my @vn2_parts = split(/\.|\s+/, $vn2_string);
-	
+
 	for my $i (0 .. $#vn2_parts){
 		if(defined($vn1_parts[$i])){
-			
+
 			# Numeric checks
 			if($vn1_parts[$i] =~ /^\d+$/ && $vn2_parts[$i] =~ /^\d+$/){
 				if($vn2_parts[$i] > $vn1_parts[$i]){
@@ -555,49 +555,49 @@ sub cf_compare_version_numbers {
 			return 1;
 		}
 	}
-	
+
 	return 0;
-	
+
 }
 
 
 ### E-MAIL FUNCTIONS
 sub build_emails {
-  
+
   my ($title, $html_content, $plain_content) = @_;
-  
+
 	# Get the e-mail templates
 	# Assume that we're running from the installation directory/modules
 	my $html_email;
 	{ local $/ = undef; local *FILE; open FILE, "<$Bin/../source/CF/html_email_template.html"; $html_email = <FILE>; close FILE }
 	my $text_email;
 	{ local $/ = undef; local *FILE; open FILE, "<$Bin/../source/CF/plaintext_email_template.txt"; $text_email = <FILE>; close FILE }
-	
+
 	my $cf_version = $CF::Constants::CF_VERSION;
-  
+
 	# Put in our content
 	$html_email =~ s/{{ PAGE_TITLE }}/$title/g;
 	$html_email =~ s/{{ CONTENT }}/$html_content/g;
 	$html_email =~ s/{{ CF_VERSION }}/$cf_version/g;
-	
+
 	$text_email =~ s/{{ PAGE_TITLE }}/$title/g;
 	$text_email =~ s/{{ CONTENT }}/$plain_content/g;
 	$text_email =~ s/{{ CF_VERSION }}/$cf_version/g;
-  
+
   return($html_email, $text_email);
-  
+
 }
 
 sub send_email {
-	
+
 	my ($subject, $to, $title, $html_content, $plain_content) = @_;
-	
+
   my ($html_email, $text_email) = build_emails($title, $html_content, $plain_content);
-	
+
 	# Do we have the Perl modules that we need?
 	my $mail;
 	my $mail_packages = eval "use Email::MIME::CreateHTML; use Email::Sender::Simple qw(sendmail); 1;";
-	
+
 	# Send a fancy HTML e-mail using perl packages
 	if($mail_packages){
 		warn "Sending e-mail using Perl packages..\n";
@@ -611,7 +611,7 @@ sub send_email {
 			text_body => $text_email
 		);
 		Email::Sender::Simple->send($email);
-	
+
 	# We don't have them, try with sendmail
 	} elsif (!system('which sendmail > /dev/null 2>&1')) {
 		warn "Sending HTML e-mail with sendmail..\n";
@@ -619,14 +619,14 @@ sub send_email {
 		open (PIPE , "| sendmail -t") or die "can't open pipe to sendmail: $!\n";
 		print PIPE $html_email;
 		close PIPE;
-	
+
 	# We don't have them, try HTML with mailx
 	} elsif (!system('which mailx > /dev/null 2>&1')) {
 		warn "Sending HTML e-mail with mailx..\n";
 		open (PIPE , "| mail  -s '$(echo -e \"[CF] $subject\nContent-type: text/html;\")' $to") or die "can't open pipe to mailx: $!\n";
 		print PIPE $html_email;
 		close PIPE;
-	
+
 	# Fallback - use the basic mail with plaintext
 	} else {
 		warn "Sending e-mail using basic plain text mail..\n";
@@ -634,12 +634,12 @@ sub send_email {
 		print PIPE $text_email;
 		close PIPE;
 	}
-	
+
 	# Give the program time to send the e-mail before qsub shuts us down
-	sleep(5); 
-	
+	sleep(5);
+
 	return 1;
-	
+
 }
 
 
