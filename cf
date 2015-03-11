@@ -433,7 +433,7 @@ for (my $i = 0; $i <= $#files; $i++){
 	if(!$cl_no_fn_check){
 		if ($files[$i] =~ /\.(\w+)(\.gz)?$/i){
 			if($file_ext && $file_ext ne $1){
-				die "\nERROR - found a mixture of input file types! (.$file_ext and .$1) Exiting..\nUse --no_fn_check to disable this.\n\n";
+				die "ERROR - found a mixture of input file types! (.$file_ext and .$1) Exiting..\nUse --no_fn_check to disable this.\n\n";
 			}
 			$file_ext = $1;
 		}
@@ -460,14 +460,14 @@ if(!$cl_paired_end && !$cl_single_end && $fastq_count > 1){
 
 	if($paired_count > 0 && $single_count == 0 && $num_files % 2 == 0){
 		$cl_paired_end = 1;
-		print "\nFilenames look like paired-end input. Setting --paired\n";
+		print "Filenames look like paired-end input. Setting --paired\n";
 		print "Specify --single to prevent this behaviour.\n\n";
 	} elsif($paired_count == 0 && $single_count > 0){
 		$cl_single_end = 1;
-		print "\nFilenames look like single-end input. Setting --single\n";
+		print "Filenames look like single-end input. Setting --single\n";
 		print "Specify --paired to prevent this behaviour.\n\n";
 	} else {
-		die "\n\nERROR - found a mixture of single end and paired end files! Exiting..\nSpecify --single or --paired to override.\n\n";
+		die "ERROR - found a mixture of single end and paired end files! Exiting..\nSpecify --single or --paired to override.\n\n";
 	}
 }
 
