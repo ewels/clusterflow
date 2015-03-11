@@ -456,12 +456,12 @@ if(!$cl_paired_end && !$cl_single_end && $fastq_count > 1){
 
 	if($paired_count > 0 && $single_count == 0 && $num_files % 2 == 0){
 		$cl_paired_end = 1;
-		warn "\nFilenames look like paired-end input. Setting --paired\n";
-		warn "Specify --single to prevent this behaviour.\n\n";
+		print "\nFilenames look like paired-end input. Setting --paired\n";
+		print "Specify --single to prevent this behaviour.\n\n";
 	} elsif($paired_count == 0 && $single_count > 0){
 		$cl_single_end = 1;
-		warn "\nFilenames look like single-end input. Setting --single\n";
-		warn "Specify --paired to prevent this behaviour.\n\n";
+		print "\nFilenames look like single-end input. Setting --single\n";
+		print "Specify --paired to prevent this behaviour.\n\n";
 	} else {
 		die "\n\nERROR - found a mixture of single end and paired end files! Exiting..\nSpecify --single or --paired to override.\n\n";
 	}
@@ -502,7 +502,7 @@ if($MERGE_REGEX){
 	}
 
 	# Print notification
-	warn "Found ".scalar(keys %file_sets_hash)." groups of files from ".scalar(@files)." using merge regex:\n".$config{merge_regex}."\n\n";
+	print "Found ".scalar(keys %file_sets_hash)." groups of files from ".scalar(@files)." using merge regex:\n".$config{merge_regex}."\n\n";
 }
 # No regex - make the hash with keys as the filenames
 else {
@@ -564,7 +564,7 @@ else {
 }
 
 my $num_runs = scalar @file_sets;
-warn "Processing $num_files files in $num_runs runs.\n\n";
+print "Processing $num_files files in $num_runs runs.\n\n";
 
 
 ## Write the run file, parse the pipeline
@@ -644,16 +644,16 @@ while (<CONFIG>){
 	if($_ =~ /^\@require_reference/ && !$comment_block){
         my $ref_type = (split(/\s+/, $_, 2))[1];
 		if(!defined $GENOME){
-			warn "\n### Error - The pipeline $pipeline requires a genome to be set with --genome or --ref. Exiting... ### \n\n";
+			print "\n### Error - The pipeline $pipeline requires a genome to be set with --genome or --ref. Exiting... ### \n\n";
 			exit;
 		} elsif(!defined $REFERENCES{$ref_type}{$GENOME}{path}){
-			warn "\n### Error ###\nNo $ref_type path found for genome key \"$GENOME\".\n\nAvailable $ref_type paths:\n";
+			print "\n### Error ###\nNo $ref_type path found for genome key \"$GENOME\".\n\nAvailable $ref_type paths:\n";
             foreach my $genome_key ( keys %{$REFERENCES{$ref_type}}){
                 if(defined($REFERENCES{$ref_type}{$genome_key}{path})){
-                    warn "\tGenome: $genome_key, Path: $REFERENCES{$ref_type}{$genome_key}{path}\n";
+                    print "\tGenome: $genome_key, Path: $REFERENCES{$ref_type}{$genome_key}{path}\n";
                 }
             }
-			warn "\n\nExiting...\n\n";
+			print "\n\nExiting...\n\n";
 			exit;
 		}
 	}
@@ -705,7 +705,7 @@ while (<CONFIG>){
 
 close(CONFIG);
 
-warn "Pipeline to be used:\n\n$pipeline_string\n\n";
+print "Pipeline to be used:\n\n$pipeline_string\n\n";
 
 
 # Work out quota of cores and memory allowed per job
@@ -778,6 +778,7 @@ my @finished_run_ids;
 my $runfn;
 my $run_finish_id;
 my $outfn;
+print "Processing files (one dot per file):\n";
 foreach my $file_set (@file_sets){
 
 	# Log file name
@@ -792,7 +793,7 @@ foreach my $file_set (@file_sets){
 	foreach my $fn (@{$file_set}){
 
 		# Write status update
-		warn "Processing $fn\n";
+		print ".";
 
 		# Is this filename a URL?
 		if ($fn =~ /^(((ht|f)tp(s?))\:\/\/)/){
@@ -892,6 +893,8 @@ my $all_runs_finish_qsub = make_submit_cmd($all_runs_finish_cmd, $all_runs_finis
 
 push @qsubs, $all_runs_finish_qsub;
 
+# Write status update
+print "\nFinished processing files.\n";
 
 
 
@@ -935,14 +938,14 @@ sub get_mod_requirements {
 	my $cores = `$module_fn --cores $TOTAL_CORES --runfn $runfn`;
 	$cores =~ s/\D//g;
 	if(!$cores || length($cores) == 0){
-		warn "\nWarning: no cores allocation or error parsing cores allocation for $module_fn: setting to 1Gb\n";
+		print "\nWarning: no cores allocation or error parsing cores allocation for $module_fn: setting to 1Gb\n";
 		$cores = 1;
 	}
 
 	# Get options for module. 3 - negotiate memory
 	my $mem = `$module_fn --mem $TOTAL_MEM --runfn $runfn`;
 	if(!$mem || length($mem) == 0 || length($mem) > 20){
-		warn "\nWarning: no memory allocation or error parsing memory allocation for $module_fn: setting from $mem to 1Gb\n";
+		print "\nWarning: no memory allocation or error parsing memory allocation for $module_fn: setting from $mem to 1Gb\n";
 		$mem = '1G';
 	}
 
@@ -1086,7 +1089,7 @@ sub make_submit_cmd {
 				if(exists $JOB_NUM_IDS{$jname}){
 					push(@jidarray, $JOB_NUM_IDS{$jname});
 				} elsif(!$cl_dryrun) {
-					warn "\nCouldn't find numeric job ID for $jname\n";
+					print "\nCouldn't find numeric job ID for $jname\n";
 				}
 			}
 			if(scalar @jidarray > 0){
@@ -1102,7 +1105,7 @@ sub make_submit_cmd {
 			if($job_submit =~ /Submitted batch job (\d+)/){
 				$JOB_NUM_IDS{$job_id} = $1;
 			} else {
-				warn "\nERROR! Couldn't find job id for $job_id: $job_submit\n\n";
+				print "\nERROR! Couldn't find job id for $job_id: $job_submit\n\n";
 			}
 		}
 
@@ -1199,7 +1202,7 @@ if($cl_dryrun){
 else {
     # SLURM jobs are already sent, during command building
     if($CLUSTER_ENVIRONMENT =~ /SLURM/i){
-        warn "\nJobs submitted.\n\n";
+        print "\nJobs submitted.\n\n";
         # Print actual commands to the log file too
         print SUBMIT "\n\n\n\n\nCluster Flow job submission commands:\n".("="x52)."\n\n";
       	foreach(@qsubs){
@@ -1220,7 +1223,7 @@ else {
     	# Execute the bash file in a single background job
     	system "nohup bash $bash_fn > /dev/null &";
     	# Tell the user.
-    	warn "\nRunning in Local mode..\nWritten commands to ${bash_fn} and submitted a background nohup job.\n\n";
+    	print "\nRunning in Local mode..\nWritten commands to ${bash_fn} and submitted a background nohup job.\n\n";
     }
     # Kick off everything else
     else {
