@@ -62,7 +62,7 @@ my $cl_dryrun;
 my $cl_qstat;
 my $cl_qstatall;
 my $cl_qdel;
-my $cl_setuo;
+my $cl_setup;
 my $cl_add_genome;
 my $cl_version;
 my $cl_check_updates;
@@ -93,7 +93,7 @@ my $config_result = GetOptions(
 	"qstat" => \$cl_qstat,
 	"qstatall" => \$cl_qstatall,
 	"qdel=s" => \$cl_qdel,
-	"setup" => \$cl_setuo,
+	"setup" => \$cl_setup,
 	"add_genome" => \$cl_add_genome,
 	"version" => \$cl_version,
 	"check_updates" => \$cl_check_updates,
@@ -275,7 +275,7 @@ if($cl_qdel){
 	}
 }
 
-if($cl_setuo){
+if($cl_setup){
 	CF::Constants::clusterflow_setup();
 	exit;
 } else {
@@ -336,7 +336,6 @@ if($cl_help){
 	exit;
 }
 
-
 # Check that we have everything we need
 if(length($CLUSTER_ENVIRONMENT) == 0){
     print ("Error - Cluster Environment not set. Please configure \@cluster_environment in your config files.\n\n");
@@ -395,6 +394,11 @@ if(!$config_found){
 	print "Error! Can't find pipeline or module called $pipeline\n";
 	exit;
 }
+
+
+# Print welcome message
+my $cfid = $pipeline.'_'.time;
+print "="x50, "\n Cluster Flow v".$CF_VERSION."\n Launching pipeline $cfid\n", "="x50, "\n\n";
 
 
 # If we have a file list input file, take input from there
@@ -752,7 +756,7 @@ sub count_leaves {
 }
 
 # Get ready to save the STDOUT from the job submissions
-my $jid_base = 'cf_'.$pipeline.'_'.time.'_';
+my $jid_base = 'cf_'.$cfid.'_';
 my $submit_log = $jid_base.'submissionlog.txt';
 if($CLUSTER_ENVIRONMENT =~ /local/i){
     $submit_log = '/dev/null';
