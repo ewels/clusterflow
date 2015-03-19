@@ -258,15 +258,15 @@ if($cl_qstatall){
 }
 if($cl_qdel){
 	if($CLUSTER_ENVIRONMENT =~ /GRIDEngine/i){
-		print "\nDeleting jobs from Pipeline id $cl_qdel\n\n";
+		print "\nDeleting jobs from pipeline: $cl_qdel\n\n";
 		print CF::Headnodehelpers::cf_pipeline_qdel($cl_qdel);
 		exit;
 	} elsif($CLUSTER_ENVIRONMENT =~ /SLURM/i){
-		print "\nDeleting jobs from Pipeline id $cl_qdel\n\n";
+		print "\nDeleting jobs from pipeline: $cl_qdel\n\n";
 		print CF::Headnodehelpers::cf_pipeline_scancel($cl_qdel);
 		exit;
 	} elsif($CLUSTER_ENVIRONMENT =~ /local/i){
-		print "\nDeleting jobs from Pipeline id $cl_qdel\n\n";
+		print "\nDeleting jobs from pipeline: $cl_qdel\n\n";
 		print CF::Headnodehelpers::cf_pipeline_localkill($cl_qdel);
 		exit;
 	} else {
@@ -504,9 +504,6 @@ if($MERGE_REGEX){
 		}
 		push(@{$file_sets_hash{$group}}, $files[$i]);
 	}
-
-	# Print notification
-	print "Found ".scalar(keys %file_sets_hash)." groups of files from ".scalar(@files)." using merge regex:\n".$config{merge_regex}."\n\n";
 }
 # No regex - make the hash with keys as the filenames
 else {
@@ -515,6 +512,15 @@ else {
 	}
 }
 my $num_file_groups = scalar keys %file_sets_hash;
+
+# Did we find any files to merge?
+if($num_file_groups < $num_files){
+	print "Found $num_file_groups groups of files from $num_files using merge regex:\n".$config{merge_regex}."\n\n";
+} elsif($MERGE_REGEX){
+	print "No file groups found with merge regex.\n\n";
+	$MERGE_REGEX = 0;
+}
+
 
 #
 # MAX RUNS and SPLIT FILES

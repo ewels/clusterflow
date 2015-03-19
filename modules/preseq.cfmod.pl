@@ -42,7 +42,7 @@ if($required_cores){
 }
 # --mem. Return the required memory allocation.
 if($required_mem){
-    print CF::Helpers::allocate_memory($required_mem, '3G', '4G');
+    print CF::Helpers::allocate_memory($required_mem, '3G', '80G');
     exit;
 }
 # --modules. Return csv names of any modules which should be loaded.
@@ -79,34 +79,36 @@ open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 # --version. Returns version information about the module.
 warn "---------- Preseq version information ----------\n";
 warn `preseq 2>&1 | head -n 4`;
-warn "\n------- End of Preseq version information ------\n";	
+warn "\n------- End of Preseq version information ------\n";
 
 # Go through each file and run Preseq
 if($files && scalar(@$files) > 0){
 	foreach my $file (@$files){
-		
+
 		# Find if PE or SE from input BAM file
         my $paired = '';
+        my $mode = 'SE';
 		if(CF::Helpers::is_bam_paired_end($file)){
-            $paired = '-P';
+            $paired = '-P -l 999999999999';
+            $mode = 'PE';
         }
-        
+
         my $output_fn = $file.".preseq";
-        
-		my $command = "preseq lc_extrap -B $paired $file -o $output_fn";
+
+		my $command = "preseq lc_extrap -Q -B $paired $file -o $output_fn";
 		warn "\n###CFCMD $command\n\n";
-		
+
 		if(!system ($command)){
 			# Preseq worked - print out resulting filename
 			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-			warn "###CF Preseq (SE mode) successfully exited, took $duration..\n";
+			warn "###CF Preseq ($mode mode) successfully exited, took $duration..\n";
 			if(-e $output_fn){
-				print RUN "$job_id\t$output_fn\n"; 
+				print RUN "$job_id\t$output_fn\n";
 			} else {
 				warn "\n###CF Error! Preseq output file $output_fn not found..\n";
 			}
 		} else {
-			warn "\n###CF Error! Preseq (SE mode) exited in an error state for input file '$file': $? $!\n\n";
+			warn "\n###CF Error! Preseq ($mode mode) exited in an error state for input file '$file': $? $!\n\n";
 		}
 	}
 }
