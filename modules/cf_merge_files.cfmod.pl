@@ -178,10 +178,14 @@ for my $group (keys(%file_sets)) {
 		$command = "mv ".$file_sets{$group}[0]." $mergedfn";
 	}
 	# BAM files
-	elsif($ext =~ /bam/i){
+	elsif($ext =~ /\.bam/i){
 		$command = "samtools merge $mergedfn ".join(' ', $file_sets{$group});
 	}
-	# Everything else: just cat. Note that catting gzipped files together works.
+	# gzip files - should be able to cat these, but some software has trouble with such files
+	elsif($ext =~ /\.gz/i){
+		$command = "zcat ".join(' ', $file_sets{$group})." | gzip -c > $mergedfn";
+	}
+	# Everything else: just cat.
 	else {
 		$command = "cat ".join(' ', @{$file_sets{$group}})." > $mergedfn";
 	}
