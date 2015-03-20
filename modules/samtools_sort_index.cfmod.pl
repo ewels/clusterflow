@@ -166,8 +166,8 @@ warn "###CF samtools sort / index successfully exited, took $duration..\n";
 
 
 # we want e.g. samtools view -bS ./input.sam | samtools sort - outfile
-sub samtools_index($file){
-	my $command = "samtools index $file";
+sub samtools_index {
+	my $command = "samtools index $_";
 	warn "\n###CFCMD $command\n\n";
 
 	return system ($command);
