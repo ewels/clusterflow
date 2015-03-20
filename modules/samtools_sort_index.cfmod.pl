@@ -43,7 +43,7 @@ if($required_cores){
 }
 # --mem. Return the required memory allocation.
 if($required_mem){
-    print CF::Helpers::allocate_memory($required_mem, '8G', '30G');	
+    print CF::Helpers::allocate_memory($required_mem, '8G', '30G');
 }
 # --modules. Return csv names of any modules which should be loaded.
 if($required_modules){
@@ -52,10 +52,13 @@ if($required_modules){
 }
 # --help. Print help.
 if($help){
-	print "".("-"x25)."\n Samtools Index Module\n".("-"x25)."\n
-Indexes a BAM file. Index <input>.bai files are written to disk, but
-input file names are written to the Cluster Flow run file for
-downstream modules.\n";
+	print "".("-"x23)."\n Samtools Sort & Index Module\n".("-"x23)."\n
+Tries to index BAM / SAM files. If fails, assumes that file is not sorted
+and runs samtools sort, then attempts to index again.
+Will assume anything not ending in .bam is a SAM file and will convert to
+BAM. Output is basename_srtd.bam if sorted.
+Index files are written to disk but not written to CF run files.
+Using parameter 'byname' or '-n' in pipeline forces sorting by read name.\n";
 	exit;
 }
 
@@ -73,33 +76,101 @@ if(!defined($cores) or $cores < 1){
 	$cores = 1;
 }
 
+my $namesort = '';
+$namesort = '-n' if (grep(/^byname$/, @$parameters) > 0);
+
 open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 
 # Print version information about the module.
- warn "---------- Samtools version information ----------\n";
- warn `samtools 2>&1 | head -n 4`;
- warn "\n------- End of Samtools version information ------\n";	
+warn "---------- Samtools version information ----------\n";
+warn `samtools 2>&1 | head -n 4`;
+warn "\n------- End of Samtools version information ------\n";
 
 # we want e.g. samtools view -bS ./input.sam | samtools sort - outfile
 if($files && scalar(@$files) > 0){
 	foreach my $file (@$files){
-	
-		my $command = "samtools index $file";
+
+		# Figure out the file type
+		my $filetype = "";
+		if (lc($file) =~ /\.([sb]am$)/){
+			$filetype = $1;
+			warn "\nGuessing file $file is a $filetype file\n";
+		} else {
+			warn "\n Can't determine file-type for $file. Assuming sam... \n";
+			$filetype = "sam";
+		}
+
+		# Try to index if we have a BAM file
+		if($filetype eq "bam"){
+			if(samtools_index($file)){
+				# samtools worked - print out resulting filenames
+				print RUN "$job_id\t$file\n";
+				unless (-e "$file.bai"){
+					warn "\n###CF Error! samtools index output file $file.bai not found..\n";
+				}
+				# If we could index, file must already be sorted.
+				next;
+			}
+		}
+
+		# Output file name
+		my $output_fn = $file."_srtd";
+		$output_fn .= 'n' if ($namesort eq '-n');
+
+		# Pipe BAM stream if we need it
+		my $command = '';
+		my $sortfile = $file;
+		if ($filetype eq "sam"){
+			$command .= "samtools view -bS -u $file | ";
+			$sortfile = "-";
+		}
+
+		$command .= "samtools sort -m $mem_per_thread $namesort $sortfile $output_fn";
 		warn "\n###CFCMD $command\n\n";
-	
+
 		if(!system ($command)){
 			# samtools worked - print out resulting filenames
 			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-			warn "###CF samtools index successfully exited, took $duration..\n";
-			print RUN "$job_id\t$file\n";
-			unless (-e "$file.bai"){
-				warn "\n###CF Error! samtools index output file $file.bai not found..\n";
+			warn "###CF samtools sort successfully exited, took $duration..\n";
+
+			# Did we add .bam to the filename?
+			if (-e "$output_fn.bam"){
+				$output_fn = "$output_fn.bam";
 			}
-			
+
+			if(-e $output_fn){
+				print RUN "$job_id\t$output_fn\n";
+
+				# Index the sorted file
+				if(samtools_index($file)){
+					unless (-e "$file.bai"){
+						warn "\n###CF Error! samtools index output file $file.bai not found..\n";
+					}
+				} else {
+					warn "\n###CF Error! samtools index failed for $file, exited in an error state: $? $!\n\n";
+				}
+
+			} else {
+				warn "\n###CF Error! samtools sort output file $output_fn(.bam) not found..\n";
+			}
+
 		} else {
-			warn "\n###CF Error! samtools index failed, exited in an error state: $? $!\n\n";
+			warn "\n###CF Error! samtools sort failed, exited in an error state: $? $!\n\n";
 		}
 	}
+}
+
+
+my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+warn "###CF samtools sort / index successfully exited, took $duration..\n";
+
+
+# we want e.g. samtools view -bS ./input.sam | samtools sort - outfile
+sub samtools_index($file){
+	my $command = "samtools index $file";
+	warn "\n###CFCMD $command\n\n";
+
+	return system ($command);
 }
 
 
