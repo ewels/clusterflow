@@ -170,7 +170,12 @@ sub samtools_index {
 	my $command = "samtools index $_";
 	warn "\n###CFCMD $command\n\n";
 
-	return system ($command);
+	# Return the opposite of the result so that the function returns true if it works
+	if(!system ($command)){
+		return 1;
+	} else {
+		return 0;
+	}
 }
 
 
