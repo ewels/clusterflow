@@ -55,7 +55,7 @@ if($help){
 	print "".("-"x38)."\n Bismark Methylation Extractor Module\n".("-"x38)."\n
 The bismark_methXtract module runs the bismark_methylation_extractor script.
 This reads in a bisulfite read alignment results file produced by the Bismark bisulfite
-mapper and extracts the methylation information for individual cytosines in CpG, CHG 
+mapper and extracts the methylation information for individual cytosines in CpG, CHG
 and CHH context.\n".
 "Use bismark_methylation_extractor --help for more information.\n\n";
 	exit;
@@ -73,7 +73,7 @@ open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 # Print version information about the module.
 warn "---------- bismark_methylation_extractor version information ----------\n";
 warn `bismark_methylation_extractor --version`;
-warn "\n------- End of bismark_methylation_extractor version information ------\n";	
+warn "\n------- End of bismark_methylation_extractor version information ------\n";
 
 # Set buffer size
 my $buffer = "";
@@ -101,18 +101,18 @@ foreach my $parameter (@$parameters){
 		$capture_regions = substr($parameter, 16);
 	}
 }
- 
+
 
 
 # Go through each file and deduplicate
 if($files && scalar(@$files) > 0){
 	foreach my $file (@$files){
-		
+
 		# Find if PE or SE from input BAM file
 		if(CF::Helpers::is_bam_paired_end($file)){
 			my $command = "bismark_methylation_extractor --multi $cores $ignore_r1 $ignore_r2 --bedGraph --counts $buffer --gzip -p --no_overlap --report $gw_cov $file";
 			warn "\n###CFCMD $command\n\n";
-			
+
 			# Paired End BAM file
 			if(!system ($command)){
 				# Bismark worked - print out resulting filenames
@@ -126,7 +126,7 @@ if($files && scalar(@$files) > 0){
 				my @output_fns = find_Xtracted_fns($file);
 				if(scalar(@output_fns) > 0){
 					foreach(@output_fns){
-						print RUN "$job_id\t$_\n"; 
+						print RUN "$job_id\t$_\n";
 					}
 				} else {
 					warn "\n###CF Error! No bismark meth extrator output files found for input file '$file'..\n";
@@ -134,12 +134,12 @@ if($files && scalar(@$files) > 0){
 			} else {
 				die "\n###CF Error! Bismark MethXtractor (PE mode) exited with an error state for file '$file': $? $!\n\n";
 			}
-			
+
 		} else {
-			
+
 			my $command = "bismark_methylation_extractor --multi $cores $ignore_r1 --bedGraph --counts $buffer --gzip -s --report $gw_cov $file";
 			warn "\n###CFCMD $command\n\n";
-			
+
 			# Single End BAM file
 			if(!system ($command)){
 				# Bismark worked - print out resulting filenames
@@ -148,7 +148,7 @@ if($files && scalar(@$files) > 0){
 				my @output_fns = find_Xtracted_fns($file);
 				if(scalar(@output_fns) > 0){
 					foreach(@output_fns){
-						print RUN "$job_id\t$_\n"; 
+						print RUN "$job_id\t$_\n";
 					}
 				} else {
 					warn "\n###CF Error! No bismark meth extrator output files found for input file '$file'..\n";
@@ -156,7 +156,7 @@ if($files && scalar(@$files) > 0){
 			} else {
 				die "\n###CF Error! Bismark MethXtractor (SE mode) exited with an error state for input file '$file': $? $!\n\n";
 			}
-			
+
 		}
 	}
 }
@@ -164,12 +164,12 @@ if($files && scalar(@$files) > 0){
 sub find_Xtracted_fns {
 
 	my ($file) = @_;
-	
+
 	# strip BAM / SAM file extension
-	$file =~ s/.[bs]am$//; 
-	
+	$file =~ s/.[bs]am$//;
+
 	my @files;
-	
+
 	# loop through all files in directory looking for matching filenames
 	foreach (glob('*.txt *.gz')) {
 		# \Q .. \E provides $file as a literal
@@ -177,31 +177,31 @@ sub find_Xtracted_fns {
 			push @files, $_;
 		}
 	}
-	
+
 	return @files;
-	
+
 }
 
 
 sub plot_visualizations {
-	
+
 	my ($file) = @_;
-	
+
 	# perl script paths
-	my $coverage_script = "/home/phil/scripts/visualizations/bismark/bismark_coverage_curves.pl";
-	my $windows_script = "/home/phil/scripts/visualizations/bismark/bismark_window_sizes.pl";
-	
+	my $coverage_script = "/home/phil/scripts/ngi_visualizations/stand_alone/bismark/bismark_coverage_curves.pl";
+	my $windows_script = "/home/phil/scripts/ngi_visualizations/stand_alone/bismark/bismark_window_sizes.pl";
+
 	# work out the filename that we're looking for
 	$file =~ s/.[bs]am$//;
 	$file .= '.CpG_report.txt';
-	
+
 	my $regions = '';
 	if(length($capture_regions) > 0 and -e $capture_regions){
 		$regions = "--regions $capture_regions";
 	} elsif(!-e $capture_regions){
 		warn "###CF Error! Can't find capture regions BED file $capture_regions - running without capture information.\n";
 	}
-	
+
 	# Check that the coverage report exists
 	unless(-e $file){
 		warn "###CF Error! Can't find Bismark coverage report: $file\nSkipping visualisations..\n\n";
