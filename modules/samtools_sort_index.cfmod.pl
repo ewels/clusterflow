@@ -69,8 +69,8 @@ my $timestart = time;
 my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
 my %config = %$config_ref;
 $mem = CF::Helpers::human_readable_to_bytes($mem);
-my $mem_per_thread = int($mem/$cores);
-warn "\n\n Samtools: mem per thread: $mem_per_thread ; cores: $cores\n\n\n";
+my $mem_per_thread = CF::Helpers::bytes_to_human_readable(int($mem/$cores));
+warn "\n\nSamtools memory per thread: $mem_per_thread. Cores: $cores\n\n\n";
 
 if(!defined($cores) or $cores < 1){
 	$cores = 1;
@@ -84,7 +84,7 @@ open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 # Print version information about the module.
 warn "---------- Samtools version information ----------\n";
 warn `samtools 2>&1 | head -n 4`;
-warn "\n------- End of Samtools version information ------\n";
+warn "------- End of Samtools version information ------\n";
 
 # we want e.g. samtools view -bS ./input.sam | samtools sort - outfile
 if($files && scalar(@$files) > 0){
@@ -94,7 +94,7 @@ if($files && scalar(@$files) > 0){
 		my $filetype = "";
 		if (lc($file) =~ /\.([sb]am$)/){
 			$filetype = $1;
-			warn "\nGuessing file $file is a $filetype file\n";
+			warn "\n$file looks like a $filetype file\n";
 		} else {
 			warn "\n Can't determine file-type for $file. Assuming sam... \n";
 			$filetype = "sam";
@@ -162,12 +162,13 @@ if($files && scalar(@$files) > 0){
 
 
 my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-warn "###CF samtools sort / index successfully exited, took $duration..\n";
+warn "###CF samtools sort / index finished, took $duration..\n";
 
 
 # we want e.g. samtools view -bS ./input.sam | samtools sort - outfile
 sub samtools_index {
-	my $command = "samtools index $_";
+	my $fn = $_[0];
+	my $command = "samtools index $fn";
 	warn "\n###CFCMD $command\n\n";
 
 	# Return the opposite of the result so that the function returns true if it works
