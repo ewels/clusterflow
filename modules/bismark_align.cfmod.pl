@@ -37,12 +37,12 @@ my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_me
 # QSUB SETUP
 # --cores i = offered cores. Return number of required cores.
 if($required_cores){
-	print CF::Helpers::allocate_cores($required_cores, 4, 8);
+	print CF::Helpers::allocate_cores($required_cores, 4, 64);
 	exit;
 }
 # --mem. Return the required memory allocation.
 if($required_mem){
-	print CF::Helpers::allocate_memory($required_mem, '13G', '20G');
+	print CF::Helpers::allocate_memory($required_mem, '13G', '160G');
 	exit;
 }
 # --modules. Return csv names of any modules which should be loaded.
@@ -56,7 +56,7 @@ if($help){
 The bismark_align module runs the main bismark script.
 Bismark is a program to map bisulfite treated sequencing reads
 to a genome of interest and perform methylation calls.\n
-PBAT, single cell and Bowtie 1/2 modes can be specified in 
+PBAT, single cell and Bowtie 1/2 modes can be specified in
 pipelines with the pbat, single_cell bt1 and bt2 parameters. For example:
   #bismark_align	pbat2
   #bismark_align	bt1\n
@@ -85,7 +85,22 @@ open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
 # Print version information about the module.
 warn "---------- Bismark version information ----------\n";
 warn `bismark --version`;
-warn "\n------- End of Bismark version information ------\n";	
+warn "\n------- End of Bismark version information ------\n";
+
+# Work out how to parallelise bismark
+warn "Allocated $cores cores and $mem memory.\n";
+my $multi_cores = $cores / 8;
+my $multi_mem = CF::Helpers::human_readable_to_bytes($mem) / CF::Helpers::human_readable_to_bytes('20G');
+my $multi;
+$multi = int($multi_cores) if ($multi_cores > $multi_mem); # Really Perl, no min()?
+$multi = int($multi_mem) if ($multi_mem > $multi_cores);
+my $multicore;
+if($multi > 1){
+	$multicore = "--multicore $multi";
+	warn "Multi-threading alignment with $multicore\n";
+} else {
+	warn "Running in regular non multi-threaded mode.\n";
+}
 
 # Separate file names into single end and paired end
 my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%config, @$files);
@@ -131,7 +146,7 @@ if(!$bt1 && !$bt2){
 # Go through each single end files and run Bismark
 if($se_files && scalar(@$se_files) > 0){
 	foreach my $file (@$se_files){
-		
+
 		# Figure out the encoding if we don't already know
 		if(!$encoding){
 			($encoding) = CF::Helpers::fastq_encoding_type($file);
@@ -140,23 +155,23 @@ if($se_files && scalar(@$se_files) > 0){
 		if($encoding eq 'phred33' || $encoding eq 'phred64' || $encoding eq 'solexa'){
 			$enc = '--'.$encoding.'-quals';
 		}
-		
+
 		my $output_fn;
 		if($bt2){
 			$output_fn = $file."_bismark_bt2.bam";
 		} else {
 			$output_fn = $file."_bismark.bam";
 		}
-		
-		my $command = "bismark --bam $bt2 $pbat $non_directional $enc ".$config{references}{fasta}." ".$file;
+
+		my $command = "bismark $multicore --bam $bt2 $pbat $non_directional $enc ".$config{references}{fasta}." ".$file;
 		warn "\n###CFCMD $command\n\n";
-		
+
 		if(!system ($command)){
 			# Bismark worked - print out resulting filenames
 			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 			warn "\n###CF Bismark (SE mode) successfully exited, took $duration..\n";
 			if(-e $output_fn){
-				print RUN "$job_id\t$output_fn\n"; 
+				print RUN "$job_id\t$output_fn\n";
 			} else {
 				warn "\n###CF Error! Bismark output file $output_fn not found..\n";
 			}
@@ -171,7 +186,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 	foreach my $files_ref (@$pe_files){
 		my @files = @$files_ref;
 		if(scalar(@files) == 2){
-			
+
 			# Figure out the encoding if we don't already know
 			if(!$encoding){
 				($encoding) = CF::Helpers::fastq_encoding_type($files[0]);
@@ -180,17 +195,17 @@ if($pe_files && scalar(@$pe_files) > 0){
 			if($encoding eq 'phred33' || $encoding eq 'phred64' || $encoding eq 'solexa'){
 				$enc = '--'.$encoding.'-quals';
 			}
-			
+
 			my $output_fn;
 			if(length($bt2) > 0){
 				$output_fn = $files[0]."_bismark_bt2_pe.bam";
 			} else {
 				$output_fn = $files[0]."_bismark_pe.bam";
 			}
-			
-			my $command = "bismark --bam $bt2 $pbat $non_directional $enc ".$config{references}{fasta}." -1 ".$files[0]." -2 ".$files[1];
+
+			my $command = "bismark $multicore --bam $bt2 $pbat $non_directional $enc ".$config{references}{fasta}." -1 ".$files[0]." -2 ".$files[1];
 			warn "\n###CFCMD $command\n\n";
-			
+
 			if(!system ($command)){
 				# Bismark worked - print out resulting filenames
 				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
