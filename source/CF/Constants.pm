@@ -103,42 +103,60 @@ sub parse_conf_file {
 
                     if($name eq 'email'){
                         $EMAIL = $val;
-                    } elsif($name eq 'cluster_project'){
+                    }
+                    if($name eq 'cluster_project'){
                         $C_PROJECT = $val;
-                    } elsif($name eq 'colourful' or $name eq 'colorful'){
+                    }
+                    if($name eq 'colourful' or $name eq 'colorful'){
                         $CL_COLOURS = $val;
-                    } elsif($name eq 'check_updates'){
+                    }
+                    if($name eq 'check_updates'){
                         $CHECK_UPDATES = $val;
-                    } elsif($name eq 'available_version'){
+                    }
+                    if($name eq 'available_version'){
                         $AVAILABLE_VERSION = $val;
-                    } elsif($name eq 'updates_last_checked'){
+                    }
+                    if($name eq 'updates_last_checked'){
                         $UPDATES_LAST_CHECKED = $val;
-                    } elsif($name eq 'notification'){
+                    }
+                    if($name eq 'notification'){
                         push @NOTIFICATIONS, $val;
-                    } elsif($name eq 'split_files'){
+                    }
+                    if($name eq 'split_files'){
                         $SPLIT_FILES = $val;
-                    } elsif($name eq 'merge_regex'){
+                    }
+                    if($name eq 'merge_regex'){
                         $MERGE_REGEX = $val;
-                    } elsif($name eq 'priority'){
+                    }
+                    if($name eq 'priority'){
                         $PRIORITY = $val;
-                    } elsif($name eq 'max_runs'){
+                    }
+                    if($name eq 'max_runs'){
                         $MAX_RUNS = $val;
-                    } elsif($name eq 'total_cores'){
+                    }
+                    if($name eq 'total_cores'){
                         $TOTAL_CORES = $val;
-                    } elsif($name eq 'total_mem'){
+                    }
+                    if($name eq 'total_mem'){
                         $TOTAL_MEM = $val;
-                    } elsif($name eq 'cluster_environment'){
+                    }
+                    if($name eq 'cluster_environment'){
                         $CLUSTER_ENVIRONMENT = $val;
-                    } elsif($name eq 'custom_job_submit_command'){
+                    }
+                    if($name eq 'custom_job_submit_command'){
                         $CUSTOM_JOB_SUBMIT_COMMAND = $val;
-                    } elsif($name eq 'ignore_modules'){
+                    }
+                    if($name eq 'ignore_modules'){
                         $CF_MODULES = 0;
-                    } elsif($name eq 'environment_module_alias'){
+                    }
+                    if($name eq 'environment_module_alias'){
                         my ($search, $replace) = split(/\s+/, $val, 2);
                         $ENV_MODULE_ALIASES{$search} = $replace;
-                    } elsif($name eq 'log_highlight_string'){
+                    }
+                    if($name eq 'log_highlight_string'){
                         push @LOG_HIGHLIGHT_STRINGS, $val;
-                    } elsif($name eq 'log_warning_string'){
+                    }
+                    if($name eq 'log_warning_string'){
                         push @LOG_WARNING_STRINGS, $val;
                     }
                 }
