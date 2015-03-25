@@ -1099,6 +1099,10 @@ sub make_submit_cmd {
 			}
 			if($time){
 				$qsub .= " -t {{time}}";
+				# Short jobs, under 15 minutes
+				if($time =~ /^([0-9]|1[0-5])$/){
+					$qsub .= " --qos=short";
+				}
 			}
 		}
 
