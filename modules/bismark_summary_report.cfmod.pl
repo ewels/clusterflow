@@ -125,8 +125,10 @@ for my $bam (@bam_files){
     my $unmeth_chh = '';
 
     # Bismark report
-    my $bm_report = $base."_[SP]E_report.txt";
-    if(-e $bm_report){
+    my $bm_report;
+	$bm_report = $base."_PE_report.txt" if(-e $base."_PE_report.txt");
+	$bm_report = $base."_SE_report.txt" if(-e $base."_SE_report.txt");
+    if($bm_report){
         if(open(BISMARK_REPORT, "<", $bm_report)){
             while(<BISMARK_REPORT>){
                 chomp;
@@ -136,9 +138,11 @@ for my $bam (@bam_files){
             }
             close(BISMARK_REPORT);
         } else {
-            warn "Warning! Couldn't open bismark report $bm_report: $!";
+            warn "Warning! Couldn't open bismark report $bm_report: $!\n";
         }
-    }
+    } else {
+		warn "Warning! Couldn't find main bismark report for $base\n";
+	}
 
     # Deduplication report
     my $dedup = $base.".deduplication_report.txt";
