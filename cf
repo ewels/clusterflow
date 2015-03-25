@@ -111,6 +111,7 @@ my @files = @ARGV;
 
 # Set up parameters
 my $EMAIL = $CF::Constants::EMAIL;
+my $C_PROJECT = $CF::Constants::C_PROJECT;
 my $CL_COLOURS = $CF::Constants::CL_COLOURS;
 my $CHECK_UPDATES = $CF::Constants::CHECK_UPDATES;
 my $AVAILABLE_VERSION = $CF::Constants::AVAILABLE_VERSION;
@@ -1048,6 +1049,7 @@ sub make_submit_cmd {
 		$qsub =~ s/{{mem}}/$mem/;
 		$qsub =~ s/{{priority}}/$PRIORITY/;
 		$qsub =~ s/{{email}}/$EMAIL/;
+		$qsub =~ s/{{project}}/$C_PROJECT/;
 
 		# Job dependencies
 		if(scalar @{$holdjid} > 0 && $prev_job ne 'start_000'){
@@ -1067,6 +1069,10 @@ sub make_submit_cmd {
 			# Do we have a priority?
 			if($PRIORITY && $PRIORITY >= 0){
 				$qsub .= " --priority {{priority}}";
+			}
+			# Add cluster project if we have it
+			if($C_PROJECT){
+				$qsub .= " -A {{project}}";
 			}
 		}
 
@@ -1091,6 +1097,7 @@ sub make_submit_cmd {
 		$qsub =~ s/{{priority}}/$PRIORITY/;
 		$qsub =~ s/{{notifications}}/$notification_string/;
 		$qsub =~ s/{{email}}/$EMAIL/;
+		$qsub =~ s/{{project}}/$C_PROJECT/;
 
 		# Job dependencies
 		# This is horrible on SLURM (depends on capturing job submission STDOUT)
@@ -1110,7 +1117,7 @@ sub make_submit_cmd {
 
 		# Submit Job and capture ID
 		unless($cl_dryrun) {
-			my $job_submit = `$qsub`;
+			my $job_submit = `$qsub 2>&1`;
 			chomp($job_submit);
             print SUBMIT $job_submit."\n";
 			if($job_submit =~ /Submitted batch job (\d+)/){
@@ -1169,6 +1176,7 @@ sub make_submit_cmd {
 		$qsub =~ s/{{priority}}/$PRIORITY/;
 		$qsub =~ s/{{notifications}}/$notification_string/;
 		$qsub =~ s/{{email}}/$EMAIL/;
+		$qsub =~ s/{{project}}/$C_PROJECT/;
 
 		# Job dependencies
 		if(scalar @{$holdjid} > 0 && $prev_job ne 'start_000'){
@@ -1246,7 +1254,7 @@ else {
       # Print actual commands to the log file too
       print SUBMIT "\n\n\n\n\nCluster Flow job submission commands:\n".("="x52)."\n\n";
     	foreach(@qsubs){
-    		print SUBMIT "$_\n";
+    		print SUBMIT "$_\n\n";
     	}
     }
 }

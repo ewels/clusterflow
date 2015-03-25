@@ -39,6 +39,7 @@ our %config;
 
 # Empty config vars
 our $EMAIL;
+our $C_PROJECT;
 our $CL_COLOURS = 0;
 our $CHECK_UPDATES;
 our @NOTIFICATIONS;
@@ -102,6 +103,8 @@ sub parse_conf_file {
 
                     if($name eq 'email'){
                         $EMAIL = $val;
+                    } elsif($name eq 'cluster_project'){
+                        $C_PROJECT = $val;
                     } elsif($name eq 'colourful' or $name eq 'colorful'){
                         $CL_COLOURS = $val;
                     } elsif($name eq 'check_updates'){

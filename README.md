@@ -54,6 +54,7 @@ Change Log
 		* This is implemented using a new module, `cf_merge_files`, which can also be used in pipelines
 		* If the supplied regexes only match single files, the module can be used to simply rename files
     * New `--runfile_prefix` option to help avoid potential filename clashes.
+	* New `@cluster_project` config option to specify project for cluster jobs.
     * Added compatability with GRIDEngine `~/.sge_request files` (by ignoring them).
       Thanks to [@s-andrews](https://github.com/s-andrews)
     * New tophat module called `tophat` which introduces a workaround for buggy MAPQ
