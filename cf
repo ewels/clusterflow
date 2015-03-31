@@ -491,24 +491,25 @@ if($MERGE_REGEX){
 	}
 
 	# Loop through each file and add to hash
-	for (my $i = 0; $i <= $#files; $i++){
-		my $group = $files[$i];
-		if($files[$i] =~ m/$config{merge_regex}/){
+	foreach my $fn (@files){
+		my $group = $fn;
+		if($fn =~ m/$config{merge_regex}/){
 			if(defined($1)){
 				$group = $1;
 			}
 		}
-		# Match - add to hash
+		# No match - add new key to hash
 		if(!defined($file_sets_hash{$group})){
 			$file_sets_hash{$group} = ();
 		}
-		push(@{$file_sets_hash{$group}}, $files[$i]);
+		push(@{$file_sets_hash{$group}}, $fn);
 	}
 }
 # No regex - make the hash with keys as the filenames
 else {
-	for (my $i = 0; $i <= $#files; $i++){
-		$file_sets_hash{$files[$i]} = ($files[$i]);
+	foreach my $fn (@files){
+		$file_sets_hash{$fn} = ();
+		push(@{$file_sets_hash{$fn}}, $fn);
 	}
 }
 my $num_file_groups = scalar keys %file_sets_hash;
