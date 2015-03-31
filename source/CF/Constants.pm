@@ -63,6 +63,15 @@ our %REFERENCES;
 our $AVAILABLE_VERSION;
 our $UPDATES_LAST_CHECKED = 0;
 
+# Get the git hash if we're a development version
+if($CF_VERSION =~ /devel/){
+    my $git_hash = `git rev-parse --short=7 HEAD 2> /dev/null`;
+    $git_hash =~ s/\W//;
+    if(length($git_hash) == 7){
+        $CF_VERSION .= ", commit $git_hash";
+    }
+}
+
 parse_conf_file ();
 parse_genomes_file();
 parse_updates_file();
