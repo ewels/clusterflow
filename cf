@@ -38,21 +38,24 @@ my @module_folders = ('./', "$homedir/clusterflow/modules/", "$Bin/modules/");
 my $pipeline;
 
 # Get command line parameters
-my $GENOME;
-my $cl_reference;
+# These are fetched from the config, but can be overwritten on the cl
 my $SPLIT_FILES = $CF::Constants::SPLIT_FILES;
 my $MAX_RUNS = $CF::Constants::MAX_RUNS;
 my $MERGE_REGEX = $CF::Constants::MERGE_REGEX;
+my $CLUSTER_ENVIRONMENT = $CF::Constants::CLUSTER_ENVIRONMENT;
+my $PRIORITY = $CF::Constants::PRIORITY;
+my $TOTAL_CORES = $CF::Constants::TOTAL_CORES;
+my $TOTAL_MEM = $CF::Constants::TOTAL_MEM;
+my $EMAIL = $CF::Constants::EMAIL;
+# These are only set on the cl
+my $GENOME;
+my $cl_reference;
 my $cl_paired_end;
 my $cl_single_end;
 my $cl_no_fn_check;
 my $file_list;
 my $cl_runfile_prefix = "";
 my $cl_params = '';
-my $cl_email;
-my $cl_priority;
-my $cl_total_cores;
-my $cl_total_mem;
 my $cl_notifications;
 my $cl_list_pipelines;
 my $cl_list_modules;
@@ -80,10 +83,10 @@ my $config_result = GetOptions(
 	"file_list=s" => \$file_list,
     "runfile_prefix=s" => \$cl_runfile_prefix,
 	"params=s" => \$cl_params,
-	"email=s" => \$cl_email,
-	"priority=i" => \$cl_priority,
-	"cores=i" => \$cl_total_cores,
-	"mem=s" => \$cl_total_mem,
+	"email=s" => \$EMAIL,
+	"priority=i" => \$PRIORITY,
+	"cores=i" => \$TOTAL_CORES,
+	"mem=s" => \$TOTAL_MEM,
 	"notifications=s"  => \$cl_notifications,
 	"pipelines" => \$cl_list_pipelines,
 	"modules" => \$cl_list_modules,
@@ -109,17 +112,12 @@ $pipeline = shift(@ARGV);
 my @files = @ARGV;
 
 # Set up parameters
-my $EMAIL = $CF::Constants::EMAIL;
 my $C_PROJECT = $CF::Constants::C_PROJECT;
 my $CL_COLOURS = $CF::Constants::CL_COLOURS;
 my $CHECK_UPDATES = $CF::Constants::CHECK_UPDATES;
 my $AVAILABLE_VERSION = $CF::Constants::AVAILABLE_VERSION;
 my $UPDATES_LAST_CHECKED = $CF::Constants::UPDATES_LAST_CHECKED;
 my @NOTIFICATIONS = @CF::Constants::NOTIFICATIONS;
-my $PRIORITY = $CF::Constants::PRIORITY;
-my $TOTAL_CORES = $CF::Constants::TOTAL_CORES;
-my $TOTAL_MEM = $CF::Constants::TOTAL_MEM;
-my $CLUSTER_ENVIRONMENT = $CF::Constants::CLUSTER_ENVIRONMENT;
 my $CUSTOM_JOB_SUBMIT_COMMAND = $CF::Constants::CUSTOM_JOB_SUBMIT_COMMAND;
 my $PROJECT_ID = $CF::Constants::PROJECT_ID;
 my $JOB_TIMELIMIT = $CF::Constants::JOB_TIMELIMIT;
@@ -140,9 +138,6 @@ if($cl_reference){
 my %JOB_NUM_IDS;
 my %LOADED_MODULES;
 
-if($cl_email){
-	$EMAIL = $cl_email;
-}
 if($cl_notifications){
 	my @new_nots = split(//, $cl_notifications);
 	@NOTIFICATIONS = ();
@@ -153,15 +148,6 @@ if($cl_notifications){
 		push (@NOTIFICATIONS, 'error') if($not eq 'e');
 		push (@NOTIFICATIONS, 'abort') if($not eq 'a');
 	}
-}
-if(defined($cl_priority)){
-	$PRIORITY = $cl_priority;
-}
-if($cl_total_cores){
-	$TOTAL_CORES = $cl_total_cores;
-}
-if($cl_total_mem){
-	$TOTAL_MEM = $cl_total_mem;
 }
 
 # Printing command line options
