@@ -551,11 +551,11 @@ if($SPLIT_FILES > 1){
 	my $thisgroupcounter = 0;
 	foreach my $group (sort keys %file_sets_hash) {
 		if($thisgroupcounter < $SPLIT_FILES){
-			push (@thisgroup, values($file_sets_hash{$group}));
+			push (@thisgroup, @{$file_sets_hash{$group}});
 			$thisgroupcounter++;
 		} else {
 			push (@file_sets, [@thisgroup]);
-			@thisgroup = values($file_sets_hash{$group});
+			@thisgroup = @{$file_sets_hash{$group}};
 			$thisgroupcounter = 1;
 		}
 	}
@@ -951,12 +951,20 @@ sub get_mod_requirements {
 		print "\nWarning: no cores allocation or error parsing cores allocation for $module_fn: setting to 1Gb\n";
 		$cores = 1;
 	}
+	if($cores > $TOTAL_CORES){
+		print "\nWarning: Module $module_fn requested more than the maximum cores available. Setting to max.\n";
+		$cores = $TOTAL_CORES;
+	}
 
 	# Get options for module. 3 - negotiate memory
 	my $mem = `$module_fn --mem $TOTAL_MEM --runfn $runfn 2> /dev/null`;
 	if(!$mem || length($mem) == 0 || length($mem) > 20){
 		print "\nWarning: no memory allocation or error parsing memory allocation for $module_fn: setting from $mem to 1Gb\n";
 		$mem = '1G';
+	}
+	if(CF::Helpers::human_readable_to_bytes($mem) > CF::Helpers::human_readable_to_bytes($TOTAL_MEM)){
+		print "\nWarning: Module $module_fn requested more than the maximum memory available. Setting to max.\n";
+		$mem = CF::Helpers::human_readable_to_bytes($TOTAL_MEM);
 	}
 
     return ($cores, $mem);
@@ -1063,7 +1071,7 @@ sub make_submit_cmd {
 		if($CUSTOM_JOB_SUBMIT_COMMAND && length($CUSTOM_JOB_SUBMIT_COMMAND) > 0){
 			$qsub = $CUSTOM_JOB_SUBMIT_COMMAND;
 		} else {
-			$qsub = 'sbatch -p core -n {{cores}} --open-mode=append -o {{outfn}} -J {{job_id}} {{notifications}} --wrap="{{command}}"';
+			$qsub = 'sbatch -p core -n {{cores}} --mem {{mem}} -t 18:00 --open-mode=append -o {{outfn}} -J {{job_id}} {{notifications}} --wrap="{{command}}"';
 			# Do we have a priority?
 			if($PRIORITY && $PRIORITY >= 0){
 				$qsub .= " --priority {{priority}}";
@@ -1085,6 +1093,9 @@ sub make_submit_cmd {
 				$notification_string .= '--mail-type=END ';
 			}
 		}
+
+		# Get memory in MB
+		$mem = int(CF::Helpers::human_readable_to_bytes($mem)/1000000);
 
 		# Swap in real values
 		$qsub =~ s/{{command}}/$cmd/;
@@ -1121,7 +1132,7 @@ sub make_submit_cmd {
 			if($job_submit =~ /Submitted batch job (\d+)/){
 				$JOB_NUM_IDS{$job_id} = $1;
 			} else {
-				print "\nERROR! Couldn't find job id for $job_id: $job_submit\n\n";
+				print "\nERROR! Couldn't find job id for $job_id: $job_submit\n";
 			}
 		}
 
@@ -1223,7 +1234,7 @@ else {
         # Print actual commands to the log file too
         print SUBMIT "\n\n\n\n\nCluster Flow job submission commands:\n".("="x52)."\n\n";
       	foreach(@qsubs){
-      		print SUBMIT "$_\n";
+      		print SUBMIT "$_\n\n";
       	}
     }
     # Run local jobs
@@ -1234,7 +1245,7 @@ else {
     	my $date = strftime "%H:%M, %d-%m-%Y", localtime;
         print BASHOUT "#!/bin/bash\n\n# Cluster Flow local script\n# Pipeline: $pipeline\n# Created at $date\n\n";
     	foreach(@qsubs){
-    		print BASHOUT $_;
+    		print BASHOUT "$_\n\n";
     	}
     	close(BASHOUT);
     	# Execute the bash file in a single background job

@@ -460,11 +460,11 @@ sub human_readable_to_bytes {
 	$memory_string =~ s/b$//i;
 
 	if(substr(lc($memory_string), -1) eq 'g'){
-		$memory = $memory * 1073741824;
+		$memory = $memory * 1000000000;
 	} elsif(substr(lc($memory_string), -1) eq 'm'){
-		$memory = $memory * 1048576;
+		$memory = $memory * 1000000;
 	} elsif(substr(lc($memory_string), -1) eq 'k'){
-		$memory = $memory * 1024;
+		$memory = $memory * 1000;
 	}
 
 	return $memory;
