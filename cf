@@ -8,7 +8,6 @@ use lib "$FindBin::Bin/source";
 use CF::Constants;
 use CF::Helpers;
 use CF::Headnodehelpers;
-# use Data::Dumper;
 
 no warnings qw(once);
 
@@ -527,7 +526,7 @@ if($num_file_groups < $num_files){
 # MAX RUNS and SPLIT FILES
 #
 # Is split_files configured? Disable max_runs if so
-if($SPLIT_FILES > 2){
+if($SPLIT_FILES > 1){
 	$MAX_RUNS = 0;
 }
 # Forcing paired end or single end
@@ -551,31 +550,26 @@ if($SPLIT_FILES > 1){
 	my $thisgroupcounter = 0;
 	foreach my $group (sort keys %file_sets_hash) {
 		if($thisgroupcounter < $SPLIT_FILES){
-			# Loop through pushing, so that we don't get an array of arrays
-			for my $i (0..$#{$file_sets_hash{$group}}){
-				push @thisgroup, $file_sets_hash{$group}[$i];
-			}
+			push (@thisgroup, values($file_sets_hash{$group}));
 			$thisgroupcounter++;
 		} else {
-			push @file_sets, [@thisgroup];
-			@thisgroup = ();
-			for my $i (0..$#{$file_sets_hash{$group}}){
-				push @thisgroup, $file_sets_hash{$group}[$i];
-			}
+			push (@file_sets, [@thisgroup]);
+			@thisgroup = values($file_sets_hash{$group});
 			$thisgroupcounter = 1;
 		}
 	}
 	if(scalar @thisgroup > 0){
-		push @file_sets, [@thisgroup];
+		push (@file_sets, [@thisgroup]);
 	}
 }
 # One file group per run - just convert the hash to an array
 else {
-	@file_sets = values %file_sets_hash;
+	push (@file_sets, values(%file_sets_hash));
 }
 
 my $num_runs = scalar @file_sets;
-print "Processing $num_files files in $num_runs runs.\n\n";
+my $runs = $num_runs == 1 ? 'run' : 'runs';
+print "Processing $num_files files in $num_runs $runs.\n\n";
 
 
 ## Write the run file, parse the pipeline
@@ -792,16 +786,19 @@ my $outfn;
 print "Processing files (one dot per file):\n";
 foreach my $file_set (@file_sets){
 
+	# References give me headaches
+	my @files = @{$file_set};
+
 	# Log file name
-	$outfn = ${$file_set}[0]."_".$pipeline."_clusterFlow.txt";
+	$outfn = $files[0]."_".$pipeline."_clusterFlow.txt";
 
 	# Make the run file
-	$runfn = $cl_runfile_prefix.${$file_set}[0]."_$pipeline.run";
+	$runfn = $cl_runfile_prefix.$files[0]."_$pipeline.run";
 	my $date = strftime "%H:%M, %d-%m-%Y", localtime;
 	my $this_runfile = "/*\nCluster Flow Run File\nPipeline: $pipeline\nCreated at $date\n*/\n\n".$runfile."\n\n";
 
 	# Loop through each file in file group
-	foreach my $fn (@{$file_set}){
+	foreach my $fn (@files){
 
 		# Write status update
 		print ".";
