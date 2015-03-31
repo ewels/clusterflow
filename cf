@@ -87,6 +87,7 @@ my $config_result = GetOptions(
 	"priority=i" => \$PRIORITY,
 	"cores=i" => \$TOTAL_CORES,
 	"mem=s" => \$TOTAL_MEM,
+	"environment=s" => \$CLUSTER_ENVIRONMENT,
 	"notifications=s"  => \$cl_notifications,
 	"pipelines" => \$cl_list_pipelines,
 	"modules" => \$cl_list_modules,
@@ -323,8 +324,13 @@ if($cl_help){
 }
 
 # Check that we have everything we need
+my @valid_environments = ('local', 'GRIDEngine', 'SLURM', 'LSF');
+my $environtments_regex = join('|', @valid_environments);
 if(length($CLUSTER_ENVIRONMENT) == 0){
     print ("Error - Cluster Environment not set. Please configure \@cluster_environment in your config files.\n\n");
+    exit;
+} elsif($CLUSTER_ENVIRONMENT !~ /^($environtments_regex)$/i){
+	print ("Error - Cluster Environment not recognised. Valid values: ".join(', ', @valid_environments)."\n\n");
     exit;
 }
 if(!$pipeline){

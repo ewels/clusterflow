@@ -443,6 +443,9 @@ RARE FLAGS
     --mem <string>
         Set the maximum memory to use for all runs
 
+    --environment <local | GRIDEngine | SLURM | LSF>
+        Over-ride the cluster environment to use (useful for local testing)
+
     --merge <string>
         Set a regex string to match file name patterns for merging
         input files.
