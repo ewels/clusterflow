@@ -1057,7 +1057,7 @@ sub make_submit_cmd {
 		if($CUSTOM_JOB_SUBMIT_COMMAND && length($CUSTOM_JOB_SUBMIT_COMMAND) > 0){
 			$qsub = $CUSTOM_JOB_SUBMIT_COMMAND;
 		} else {
-			$qsub = 'sbatch -p core -n {{cores}} --mem {{mem}} -t 18:00 --open-mode=append -o {{outfn}} -J {{job_id}} {{notifications}} --wrap="{{command}}"';
+			$qsub = 'sbatch -p core -n {{cores}} --mem {{mem}} -t 18:00:00 --open-mode=append -o {{outfn}} -J {{job_id}} {{notifications}} --wrap="{{command}}"';
 			# Do we have a priority?
 			if($PRIORITY && $PRIORITY >= 0){
 				$qsub .= " --priority {{priority}}";
