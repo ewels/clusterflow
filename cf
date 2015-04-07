@@ -8,7 +8,6 @@ use lib "$FindBin::Bin/source";
 use CF::Constants;
 use CF::Helpers;
 use CF::Headnodehelpers;
-# use Data::Dumper;
 
 no warnings qw(once);
 
@@ -39,21 +38,24 @@ my @module_folders = ('./', "$homedir/clusterflow/modules/", "$Bin/modules/");
 my $pipeline;
 
 # Get command line parameters
-my $GENOME;
-my $cl_reference;
+# These are fetched from the config, but can be overwritten on the cl
 my $SPLIT_FILES = $CF::Constants::SPLIT_FILES;
 my $MAX_RUNS = $CF::Constants::MAX_RUNS;
 my $MERGE_REGEX = $CF::Constants::MERGE_REGEX;
+my $CLUSTER_ENVIRONMENT = $CF::Constants::CLUSTER_ENVIRONMENT;
+my $PRIORITY = $CF::Constants::PRIORITY;
+my $TOTAL_CORES = $CF::Constants::TOTAL_CORES;
+my $TOTAL_MEM = $CF::Constants::TOTAL_MEM;
+my $EMAIL = $CF::Constants::EMAIL;
+# These are only set on the cl
+my $GENOME;
+my $cl_reference;
 my $cl_paired_end;
 my $cl_single_end;
 my $cl_no_fn_check;
 my $file_list;
 my $cl_runfile_prefix = "";
 my $cl_params = '';
-my $cl_email;
-my $cl_priority;
-my $cl_total_cores;
-my $cl_total_mem;
 my $cl_notifications;
 my $cl_list_pipelines;
 my $cl_list_modules;
@@ -81,10 +83,11 @@ my $config_result = GetOptions(
 	"file_list=s" => \$file_list,
     "runfile_prefix=s" => \$cl_runfile_prefix,
 	"params=s" => \$cl_params,
-	"email=s" => \$cl_email,
-	"priority=i" => \$cl_priority,
-	"cores=i" => \$cl_total_cores,
-	"mem=s" => \$cl_total_mem,
+	"email=s" => \$EMAIL,
+	"priority=i" => \$PRIORITY,
+	"cores=i" => \$TOTAL_CORES,
+	"mem=s" => \$TOTAL_MEM,
+	"environment=s" => \$CLUSTER_ENVIRONMENT,
 	"notifications=s"  => \$cl_notifications,
 	"pipelines" => \$cl_list_pipelines,
 	"modules" => \$cl_list_modules,
@@ -110,17 +113,12 @@ $pipeline = shift(@ARGV);
 my @files = @ARGV;
 
 # Set up parameters
-my $EMAIL = $CF::Constants::EMAIL;
 my $C_PROJECT = $CF::Constants::C_PROJECT;
 my $CL_COLOURS = $CF::Constants::CL_COLOURS;
 my $CHECK_UPDATES = $CF::Constants::CHECK_UPDATES;
 my $AVAILABLE_VERSION = $CF::Constants::AVAILABLE_VERSION;
 my $UPDATES_LAST_CHECKED = $CF::Constants::UPDATES_LAST_CHECKED;
 my @NOTIFICATIONS = @CF::Constants::NOTIFICATIONS;
-my $PRIORITY = $CF::Constants::PRIORITY;
-my $TOTAL_CORES = $CF::Constants::TOTAL_CORES;
-my $TOTAL_MEM = $CF::Constants::TOTAL_MEM;
-my $CLUSTER_ENVIRONMENT = $CF::Constants::CLUSTER_ENVIRONMENT;
 my $CUSTOM_JOB_SUBMIT_COMMAND = $CF::Constants::CUSTOM_JOB_SUBMIT_COMMAND;
 my $PROJECT_ID = $CF::Constants::PROJECT_ID;
 my $JOB_TIMELIMIT = $CF::Constants::JOB_TIMELIMIT;
@@ -141,9 +139,6 @@ if($cl_reference){
 my %JOB_NUM_IDS;
 my %LOADED_MODULES;
 
-if($cl_email){
-	$EMAIL = $cl_email;
-}
 if($cl_notifications){
 	my @new_nots = split(//, $cl_notifications);
 	@NOTIFICATIONS = ();
@@ -154,15 +149,6 @@ if($cl_notifications){
 		push (@NOTIFICATIONS, 'error') if($not eq 'e');
 		push (@NOTIFICATIONS, 'abort') if($not eq 'a');
 	}
-}
-if(defined($cl_priority)){
-	$PRIORITY = $cl_priority;
-}
-if($cl_total_cores){
-	$TOTAL_CORES = $cl_total_cores;
-}
-if($cl_total_mem){
-	$TOTAL_MEM = $cl_total_mem;
 }
 
 # Printing command line options
@@ -338,8 +324,13 @@ if($cl_help){
 }
 
 # Check that we have everything we need
+my @valid_environments = ('local', 'GRIDEngine', 'SLURM', 'LSF');
+my $environtments_regex = join('|', @valid_environments);
 if(length($CLUSTER_ENVIRONMENT) == 0){
     print ("Error - Cluster Environment not set. Please configure \@cluster_environment in your config files.\n\n");
+    exit;
+} elsif($CLUSTER_ENVIRONMENT !~ /^($environtments_regex)$/i){
+	print ("Error - Cluster Environment not recognised. Valid values: ".join(', ', @valid_environments)."\n\n");
     exit;
 }
 if(!$pipeline){
@@ -492,24 +483,25 @@ if($MERGE_REGEX){
 	}
 
 	# Loop through each file and add to hash
-	for (my $i = 0; $i <= $#files; $i++){
-		my $group = $files[$i];
-		if($files[$i] =~ m/$config{merge_regex}/){
+	foreach my $fn (@files){
+		my $group = $fn;
+		if($fn =~ m/$config{merge_regex}/){
 			if(defined($1)){
 				$group = $1;
 			}
 		}
-		# Match - add to hash
+		# No match - add new key to hash
 		if(!defined($file_sets_hash{$group})){
 			$file_sets_hash{$group} = ();
 		}
-		push(@{$file_sets_hash{$group}}, $files[$i]);
+		push(@{$file_sets_hash{$group}}, $fn);
 	}
 }
 # No regex - make the hash with keys as the filenames
 else {
-	for (my $i = 0; $i <= $#files; $i++){
-		$file_sets_hash{$files[$i]} = ($files[$i]);
+	foreach my $fn (@files){
+		$file_sets_hash{$fn} = ();
+		push(@{$file_sets_hash{$fn}}, $fn);
 	}
 }
 my $num_file_groups = scalar keys %file_sets_hash;
@@ -527,7 +519,7 @@ if($num_file_groups < $num_files){
 # MAX RUNS and SPLIT FILES
 #
 # Is split_files configured? Disable max_runs if so
-if($SPLIT_FILES > 2){
+if($SPLIT_FILES > 1){
 	$MAX_RUNS = 0;
 }
 # Forcing paired end or single end
@@ -551,31 +543,26 @@ if($SPLIT_FILES > 1){
 	my $thisgroupcounter = 0;
 	foreach my $group (sort keys %file_sets_hash) {
 		if($thisgroupcounter < $SPLIT_FILES){
-			# Loop through pushing, so that we don't get an array of arrays
-			for my $i (0..$#{$file_sets_hash{$group}}){
-				push @thisgroup, $file_sets_hash{$group}[$i];
-			}
+			push (@thisgroup, @{$file_sets_hash{$group}});
 			$thisgroupcounter++;
 		} else {
-			push @file_sets, [@thisgroup];
-			@thisgroup = ();
-			for my $i (0..$#{$file_sets_hash{$group}}){
-				push @thisgroup, $file_sets_hash{$group}[$i];
-			}
+			push (@file_sets, [@thisgroup]);
+			@thisgroup = @{$file_sets_hash{$group}};
 			$thisgroupcounter = 1;
 		}
 	}
 	if(scalar @thisgroup > 0){
-		push @file_sets, [@thisgroup];
+		push (@file_sets, [@thisgroup]);
 	}
 }
 # One file group per run - just convert the hash to an array
 else {
-	@file_sets = values %file_sets_hash;
+	push (@file_sets, values(%file_sets_hash));
 }
 
 my $num_runs = scalar @file_sets;
-print "Processing $num_files files in $num_runs runs.\n\n";
+my $runs = $num_runs == 1 ? 'run' : 'runs';
+print "Processing $num_files files in $num_runs $runs.\n\n";
 
 
 ## Write the run file, parse the pipeline
@@ -792,16 +779,19 @@ my $outfn;
 print "Processing files (one dot per file):\n";
 foreach my $file_set (@file_sets){
 
+	# References give me headaches
+	my @files = @{$file_set};
+
 	# Log file name
-	$outfn = ${$file_set}[0]."_".$pipeline."_clusterFlow.txt";
+	$outfn = $files[0]."_".$pipeline."_clusterFlow.txt";
 
 	# Make the run file
-	$runfn = $cl_runfile_prefix.${$file_set}[0]."_$pipeline.run";
+	$runfn = $cl_runfile_prefix.$files[0]."_$pipeline.run";
 	my $date = strftime "%H:%M, %d-%m-%Y", localtime;
 	my $this_runfile = "/*\nCluster Flow Run File\nPipeline: $pipeline\nCreated at $date\n*/\n\n".$runfile."\n\n";
 
 	# Loop through each file in file group
-	foreach my $fn (@{$file_set}){
+	foreach my $fn (@files){
 
 		# Write status update
 		print ".";
@@ -975,9 +965,17 @@ sub get_mod_requirements {
 		print "\nWarning: no cores allocation or error parsing cores allocation for $module_fn ('$cores'): setting to 1Gb\n";
 		$cores = 1;
 	}
+	if($cores > $TOTAL_CORES){
+		print "\nWarning: Module $module_fn requested more than the maximum cores available. Setting to max.\n";
+		$cores = $TOTAL_CORES;
+	}
 	unless($mem =~ /^\D+[gmkb]*$/i){
 		print "\nWarning: no memory allocation or error parsing memory allocation for $module_fn ('$mem'): setting to 1Gb\n";
 		$mem = '1G';
+	}
+	if(CF::Helpers::human_readable_to_bytes($mem) > CF::Helpers::human_readable_to_bytes($TOTAL_MEM)){
+		print "\nWarning: Module $module_fn requested more than the maximum memory available. Setting to max.\n";
+		$mem = CF::Helpers::human_readable_to_bytes($TOTAL_MEM);
 	}
 	unless($time =~ /^[^:](\d+-)?\d+?\:?[0-5]?[0-9]?\:?[0-5]?[0-9]?$/ && $time ne ''){
 		print "\nWarning: no time allocation or error parsing time allocation for $module_fn ('$time'): setting to 2 days\n";
@@ -1089,7 +1087,7 @@ sub make_submit_cmd {
 		if($CUSTOM_JOB_SUBMIT_COMMAND && length($CUSTOM_JOB_SUBMIT_COMMAND) > 0){
 			$qsub = $CUSTOM_JOB_SUBMIT_COMMAND;
 		} else {
-			$qsub = 'sbatch -p core -n {{cores}} --open-mode=append -o {{outfn}} -J {{job_id}} {{notifications}} --wrap="{{command}}"';
+			$qsub = 'sbatch -p core -n {{cores}} --mem {{mem}} --open-mode=append -o {{outfn}} -J {{job_id}} {{notifications}} --wrap="{{command}}"';
 			# Add in flags if we have them
 			if($PRIORITY && $PRIORITY >= 0){
 				$qsub .= " --priority {{priority}}";
@@ -1117,6 +1115,9 @@ sub make_submit_cmd {
 				$notification_string .= '--mail-type=END ';
 			}
 		}
+
+		# Get memory in MB
+		$mem = int(CF::Helpers::human_readable_to_bytes($mem)/1000000);
 
 		# Swap in real values
 		$qsub =~ s/{{command}}/$cmd/;
@@ -1154,7 +1155,7 @@ sub make_submit_cmd {
 			if($job_submit =~ /Submitted batch job (\d+)/){
 				$JOB_NUM_IDS{$job_id} = $1;
 			} else {
-				print "\nERROR! Couldn't find job id for $job_id: $job_submit\n\n";
+				print "\nERROR! Couldn't find job id for $job_id: $job_submit\n";
 			}
 		}
 
@@ -1257,7 +1258,7 @@ else {
         # Print actual commands to the log file too
         print SUBMIT "\n\n\n\n\nCluster Flow job submission commands:\n".("="x52)."\n\n";
       	foreach(@qsubs){
-      		print SUBMIT "$_\n";
+      		print SUBMIT "$_\n\n";
       	}
     }
     # Run local jobs
@@ -1268,7 +1269,7 @@ else {
     	my $date = strftime "%H:%M, %d-%m-%Y", localtime;
         print BASHOUT "#!/bin/bash\n\n# Cluster Flow local script\n# Pipeline: $pipeline\n# Created at $date\n\n";
     	foreach(@qsubs){
-    		print BASHOUT $_;
+    		print BASHOUT "$_\n\n";
     	}
     	close(BASHOUT);
     	# Execute the bash file in a single background job
