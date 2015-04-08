@@ -818,7 +818,7 @@ foreach my $file_set (@file_sets){
 
 			# URL - set up download module qsub job, dependent on previous download job
 			$job_id = $jid_base.'download_'.sprintf("%03d", rand(999));
-			my $dlcmd = "$Bin/modules/cf_download.cfmod.pl $runfn $job_id $fn $dl_fn";
+			my $dlcmd = "$Bin/modules/cf_download.cfmod.pl --run_fn $runfn --job_id $job_id --prev_job_id NA --cores 1 --mem 1G --param fn=$fn --param dl_fn=$dl_fn";
 			my @dlhjid = ();
 			if(length($prev_dl_id) > 0){
 				@dlhjid = ($prev_dl_id);
@@ -853,7 +853,7 @@ foreach my $file_set (@file_sets){
 
 	# Qsub job to execute on completion of this run
 	$run_finish_id = $jid_base."email_run_complete_".sprintf("%03d", rand(999));
-	my $run_finish_cmd = "$Bin/modules/cf_run_finished.cfmod.pl $runfn $run_finish_id null 1 1G hide_log_header $pipeline $outfn";
+	my $run_finish_cmd = "$Bin/modules/cf_run_finished.cfmod.pl --run_fn $runfn --job_id $run_finish_id --prev_job_id null --cores 1 --mem 1G --param hide_log_header --param pipeline=$pipeline --param outfn=$outfn";
 	my $run_finish_qsub = make_submit_cmd($run_finish_cmd, $run_finish_id, \@{$run_job_ids{$runfn}}, 0, '1', '1G', '2:00', $outfn, 1);
 
 	push @qsubs, $run_finish_qsub;
@@ -869,9 +869,13 @@ foreach my $file_set (@file_sets){
 for my $s_mod (@summary_modules){
 
 	# Set up parameters for these leaves
-	my ($s_module, $parameters) = split(/\s/, $s_mod, 2);
+	my ($s_module, $parameter_string) = split(/\s/, $s_mod, 2);
 	my $s_job_id = $jid_base.$s_module.'_'.sprintf("%03d", rand(999));
-    $parameters = '' if(!$parameters);
+	my $parameters = '';
+	if($parameter_string){
+		my @params = split(/\s/, $parameter_string);
+		my $parameters = "--param ".join(' --param ', @params);
+	}
 
 	if(length($s_module) > 0){
         # Get module filename and requirements
@@ -879,7 +883,11 @@ for my $s_mod (@summary_modules){
         my ($s_cores, $s_mem, $s_time) = get_mod_requirements($s_module_fn, $runfn);
 
 		# formulate qsub command
-		my $s_cmd = "$s_module_fn $runfn $s_job_id $run_finish_id $s_cores $s_mem $parameters summary_module $pipeline ".join(" ", @runfns);
+		my $s_cmd = "$s_module_fn --run_fn $runfn --job_id $s_job_id --prev_job_id $run_finish_id --cores $s_cores --mem $s_mem $parameters §--param summary_module --param pipeline=$pipeline";
+		foreach my $rfn (@runfns){
+			$s_cmd .= " --param runfn=$rfn";
+		}
+
 		my $s_qsub = make_submit_cmd($s_cmd, $s_job_id, \@finished_run_ids, $run_finish_id, $s_cores, $s_mem, $s_time, $outfn, 1);
         push (@qsubs, $s_qsub);
         push (@finished_run_ids, $s_job_id);
@@ -888,8 +896,11 @@ for my $s_mod (@summary_modules){
 
 # Cluster Flow module to send pipeline completion e-mail
 my $all_runs_finish_id = $jid_base."email_pipeline_complete_".sprintf("%03d", rand(999));
-my $all_runs_finish_cmd = "$Bin/modules/cf_runs_all_finished.cfmod.pl $runfn $all_runs_finish_id $run_finish_id 1 1G summary_module hide_log_header $pipeline ".join(" ", @outfns);
-# my $all_runs_finish_holdjid = join(",", @finished_run_ids);
+my $all_runs_finish_cmd = "$Bin/modules/cf_runs_all_finished.cfmod.pl --run_fn $runfn --job_id $all_runs_finish_id --prev_job_id $run_finish_id --cores 1 --mem 1G --param summary_module --param hide_log_header --param pipeline=$pipeline ";
+foreach my $ofn (@outfns){
+	$all_runs_finish_cmd .= " --param $ofn";
+}
+
 my $all_runs_finish_qsub = make_submit_cmd($all_runs_finish_cmd, $all_runs_finish_id, \@finished_run_ids, 0, '1', '1G', '2:00', $outfn, 1);
 
 push @qsubs, $all_runs_finish_qsub;
@@ -930,7 +941,7 @@ sub get_mod_requirements {
     my ($module_fn, $runfn) = @_;
 
 	# Send query to module
-	my $response = `$module_fn --mem $TOTAL_MEM --cores $TOTAL_CORES --modules --runfn $runfn 2> /dev/null`;
+	my $response = `$module_fn --requirements --run_fn $runfn 2> /dev/null`;
 
 	# Parse response
 	my $required_modules;
@@ -946,7 +957,8 @@ sub get_mod_requirements {
 			$val =~ s/^\s+|\s+$//g;
 
 			if($key eq 'cores'){
-				$cores = ($val) =~ s/\D//g;
+				$cores = $val;
+				$cores =~ s/\D//g;
 			}
 			if($key eq 'memory'){
 				$mem = $val;
@@ -961,15 +973,15 @@ sub get_mod_requirements {
 	}
 
 	# Check that we have what we need
-	unless($cores =~ /^\D+$/){
-		print "\nWarning: no cores allocation or error parsing cores allocation for $module_fn ('$cores'): setting to 1Gb\n";
+	unless($cores =~ /^\d+$/){
+		print "\nWarning: no cores allocation or error parsing cores allocation for $module_fn ('$cores'): setting to 1\n";
 		$cores = 1;
 	}
 	if($cores > $TOTAL_CORES){
 		print "\nWarning: Module $module_fn requested more than the maximum cores available. Setting to max.\n";
 		$cores = $TOTAL_CORES;
 	}
-	unless($mem =~ /^\D+[gmkb]*$/i){
+	unless($mem =~ /^[\d\.]+[gmkb]*$/i){
 		print "\nWarning: no memory allocation or error parsing memory allocation for $module_fn ('$mem'): setting to 1Gb\n";
 		$mem = '1G';
 	}
@@ -993,14 +1005,14 @@ sub make_qsubs {
 	foreach ( keys %{$mod_tree} ){
 
 		# Set up parameters for these leaves
-		my ($module, $parameters) = split(/\s/, $_, 2);
+		my ($module, $parameter_string) = split(/\s/, $_, 2);
 		my $job_id = $jid_base.$module.'_'.sprintf("%03d", rand(999));
 
-		unless(length($module) > 0){
-			next;
-		}
-		unless($parameters) {
-			$parameters = '';
+		next unless(length($module) > 0);
+		my $parameters = '';
+		if($parameter_string){
+			my @params = split(/\s/, $parameter_string);
+			my $parameters = "--param ".join(' --param ', @params);
 		}
 
         # Get module filename and requirements
@@ -1014,7 +1026,7 @@ sub make_qsubs {
     	$prev_job =~ s/download_[\d]{3}$/download/;
 
 		# formulate qsub command
-		my $cmd = "$module_fn $runfn $job_id $prev_job $cores $mem $parameters";
+		my $cmd = "$module_fn --run_fn $runfn --job_id $job_id --prev_job_id $prev_job --cores $cores --mem $mem $parameters";
 		my @holdids = ($holdjid);
 		my $qsub = make_submit_cmd($cmd, $job_id, \@holdids, $prev_job, $cores, $mem, $time, $outfn);
 

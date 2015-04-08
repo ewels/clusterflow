@@ -141,7 +141,7 @@ my %file_sets;
 my @newfiles;
 for my $file (@{$files}){
 	my $group = 'unmatched';
-	if($file =~ m/$config{merge_regex}/){
+	if($file =~ m/$regex/){
 		if(defined($1)){
 			$group = $1;
 		}
