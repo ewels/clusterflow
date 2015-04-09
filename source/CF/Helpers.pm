@@ -41,7 +41,7 @@ sub module_start {
 
     # Get Command Line Options
     my $get_requirements;
-    my $run_fn;
+    my @run_fns;
     my $job_id;
     my $prev_job_id;
     my $cores;
@@ -50,7 +50,7 @@ sub module_start {
     my $help;
     my $result = GetOptionsFromArray ($clargs,
         "requirements"      => \$get_requirements,
-        "run_fn=s"          => \$run_fn,
+        "run_fn=s"          => \@run_fns,
         "job_id=s"          => \$job_id,
         "prev_job_id=s"     => \$prev_job_id,
         "cores=i"           => \$cores,
@@ -58,6 +58,12 @@ sub module_start {
         "param=s"           => \%params,
         "help"              => \$help
     );
+
+    # For non-summary modules, there will only be one run file
+    my $run_fn;
+    if(scalar(@run_fns) == 1){
+        $run_fn = $run_fns[0];
+    }
 
     # Get caller details
     my ($package, $mod_fn, $line) = caller;
@@ -68,6 +74,7 @@ sub module_start {
     # Initialise the run file hash
     my %runfile = (
         'run_fn'        => $run_fn,
+        'run_fns'       => \@run_fns,
         'modname'       => $modname,
         'mod_fn'        => $mod_fn,
         'job_id'        => $job_id,
@@ -105,7 +112,7 @@ sub module_start {
             # Been given an array
             elsif(defined $reqs->{$key} && ref($reqs->{$key}) eq 'ARRAY'){
                 if($key eq 'cores'){
-                    print "cores :".allocate_cores($cores, $reqs->{$key}[0], $reqs->{$key}[1])."\n";
+                    print "cores: ".allocate_cores($cores, int($reqs->{$key}[0]), int($reqs->{$key}[1]))."\n";
                 } elsif($key eq 'memory'){
                     print "memory: ".bytes_to_human_readable(allocate_memory($mem, $reqs->{$key}[0], $reqs->{$key}[1]))."\n";
                 } else {
@@ -203,6 +210,11 @@ sub parse_runfile {
 			$comment_block = 0;
 			next;
 		}
+
+        # Helper stuff
+        if($_ =~ /^Pipeline: (.+)$/){
+            $runfile->{'pipeline_name'} = $1;
+        }
 
 		# Get config variables
 		if($_ =~ /^\@/ && !$comment_block){
@@ -321,14 +333,14 @@ sub load_environment_modules {
 # Function to look at supplied file names and work out whether they're paired end or not
 sub is_paired_end {
 
-	my $config = shift;
+	my $runfile = shift;
 
 	my @files = sort(@_);
 	my @se_files;
 	my @pe_files;
 
 	# Force Paired End or Single End if specified in the config
-	if(exists($config->{force_paired_end})){
+	if(exists($runfile->{'config'}{'force_paired_end'})){
 		for (my $i = 0; $i <= $#files; $i++){
 			if($i < $#files){
 				my @pe = ($files[$i], $files[$i+1]);
@@ -340,7 +352,7 @@ sub is_paired_end {
 			}
 		}
 		return (\@se_files, \@pe_files);
-	} elsif(exists($config->{force_single_end})){
+	} elsif(exists($runfile->{'config'}{'force_paired_end'})){
 		for (my $i = 0; $i <= $#files; $i++){
 			push (@se_files, $files[$i]);
 		}
@@ -583,28 +595,124 @@ sub parse_seconds {
 }
 
 
+# Function to convert a SLURM style timestamp to minutes
+# minutes
+# minutes:seconds
+# hours:minutes:seconds
+# days-hours
+# days-hours:minutes
+# days-hours:minutes:seconds
+sub timestamp_to_minutes {
+    my $timestamp = $_[0];
+    my $days = 0;
+    my $hours = 0;
+    my $minutes = 0;
+    my $seconds = 0;
+    my $re_hh = "([0-2]?[0-9])";
+    my $re_mm = "([0-5]?[0-9])";
 
-# Simple function to take human readable memory string and return bytes
+    # Make sure that we don't have any illegal characters
+    if($timestamp =~ /[^\d\-\:]/){
+        return 0;
+    }
+
+    # First - days
+    if($timestamp =~ /^(\d+)\-/){
+        $days = $1;
+        $timestamp =~ s/^(\d+)\-//;
+    }
+
+    # Progressively match colons to figure out what the rest is
+    if($timestamp =~ /^$re_hh\:$re_mm\:$re_mm$/){
+        $hours = $1;
+        $minutes = $2;
+        $seconds = $3;
+    } else {
+        if($days > 0){
+            if($timestamp =~ /^$re_hh\:$re_mm$/){
+                $hours = $1;
+                $minutes = $2;
+            } elsif(/^$re_hh$/){
+                $hours = $1;
+            }
+        } else {
+            if($timestamp =~ /^$re_mm\:$re_mm$/){
+                $minutes = $1;
+                $seconds = $2;
+            } elsif($timestamp =~ /^$re_mm$/){
+                $minutes = $1;
+            }
+        }
+    }
+
+    my $total_minutes = 0;
+    $total_minutes += $days * 24 * 60;
+    $total_minutes += $hours * 60;
+    $total_minutes += $minutes;
+    # We ignore seconds. Seriously, who does that?
+
+    return $total_minutes;
+
+}
+
+# Function to convert minutes to a SLURM time stamp. Reverse of above.
+sub minutes_to_timestamp {
+    my $minutes = $_[0];
+
+    # Check for illegal characters
+    if(/[^\d\.]/){
+        return 0;
+    }
+    $minutes = int($minutes);
+
+    my $days = int($minutes / (24 * 60));
+    $minutes -= $days * 24 * 60;
+    $minutes = ($minutes < 0) ? 0 : $minutes;
+
+    my $hours = int($minutes / 60);
+    $minutes -= $hours * 60;
+    $minutes = ($minutes < 0) ? 0 : $minutes;
+
+    $minutes = sprintf("%02d", $minutes);
+
+    my $timestamp = '';
+    if($days > 0){
+        return "$days-$hours:$minutes";
+    } elsif($hours > 0){
+        return "$hours:$minutes:00";
+    } else {
+        return "$minutes";
+    }
+}
+
+
+
+
+
+# Function to take human readable memory string and return bytes
 sub human_readable_to_bytes {
 
-	my $memory_string = $_[0];
-	(my $memory = $memory_string) =~ s/\D//g;
+	my $memory = $_[0];
+    my $suffix = '';
+    if($memory =~ /([tgmk])b?$/i){
+        $suffix = $1;
+    }
+	$memory =~ s/[^\d\.]//g;
 
-	# Cut off 'b' from Gb etc if accidentally present
-	$memory_string =~ s/b$//i;
-
-	if(substr(lc($memory_string), -1) eq 'g'){
+	if(lc($suffix) eq 't'){
+		$memory = $memory * 1000000000000;
+	} elsif(lc($suffix) eq 'g'){
 		$memory = $memory * 1000000000;
-	} elsif(substr(lc($memory_string), -1) eq 'm'){
+	} elsif(lc($suffix) eq 'm'){
 		$memory = $memory * 1000000;
-	} elsif(substr(lc($memory_string), -1) eq 'k'){
+	} elsif(lc($suffix) eq 'k'){
 		$memory = $memory * 1000;
 	}
 
 	return $memory;
 }
 
-# Simple function to take bytes and return a human readable memory string
+# Function to take bytes and return a human readable memory string
 sub bytes_to_human_readable {
 
 	my ($bytes) = @_;
@@ -627,7 +735,7 @@ sub mem_return_mbs {
 
 	my ($mem) = @_;
 	$mem = human_readable_to_bytes($mem);
-	return sprintf("%.0f", $mem/1048576);
+	return sprintf("%.0f", $mem/1000000);
 
 }
 
@@ -650,8 +758,9 @@ sub allocate_memory {
 
 	my ($allocated, $min, $max) = @_;
 
-	$max = CF::Helpers::human_readable_to_bytes($max);
-	$min = CF::Helpers::human_readable_to_bytes($min);
+    $allocated = human_readable_to_bytes($allocated);
+	$max = human_readable_to_bytes($max);
+	$min = human_readable_to_bytes($min);
 
 	if($allocated > $max){
 		return $max;

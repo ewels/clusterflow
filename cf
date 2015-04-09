@@ -883,9 +883,9 @@ for my $s_mod (@summary_modules){
         my ($s_cores, $s_mem, $s_time) = get_mod_requirements($s_module_fn, $runfn);
 
 		# formulate qsub command
-		my $s_cmd = "$s_module_fn --run_fn $runfn --job_id $s_job_id --prev_job_id $run_finish_id --cores $s_cores --mem $s_mem $parameters §--param summary_module --param pipeline=$pipeline";
+		my $s_cmd = "$s_module_fn --run_fn $runfn --job_id $s_job_id --prev_job_id $run_finish_id --cores $s_cores --mem $s_mem $parameters --param summary_module --param pipeline_id=$pipeline";
 		foreach my $rfn (@runfns){
-			$s_cmd .= " --param runfn=$rfn";
+			$s_cmd .= " --run_fn $rfn";
 		}
 
 		my $s_qsub = make_submit_cmd($s_cmd, $s_job_id, \@finished_run_ids, $run_finish_id, $s_cores, $s_mem, $s_time, $outfn, 1);
@@ -941,7 +941,7 @@ sub get_mod_requirements {
     my ($module_fn, $runfn) = @_;
 
 	# Send query to module
-	my $response = `$module_fn --requirements --run_fn $runfn 2> /dev/null`;
+	my $response = `$module_fn --requirements --run_fn $runfn --cores $cores_allocation --mem $memory_allocation 2> /dev/null`;
 
 	# Parse response
 	my $required_modules;
@@ -977,19 +977,25 @@ sub get_mod_requirements {
 		print "Warning: no cores allocation or error parsing cores allocation for $module_fn ('$cores'): setting to 1\n";
 		$cores = 1;
 	}
+	if($cores > $cores_allocation){
+		print "Warning: Module $module_fn requested more cores ($cores) than was allocated ($cores_allocation). Setting to requested anyway.\n";
+	}
 	if($cores > $TOTAL_CORES){
-		print "Warning: Module $module_fn requested more than the maximum cores available. Setting to max ($TOTAL_CORES).\n";
+		print "Warning: Module $module_fn requested more cores ($cores) than the maximum available ($TOTAL_CORES). Setting to max available.\n";
 		$cores = $TOTAL_CORES;
 	}
 	unless($mem =~ /^[\d\.]+[gmkb]*$/i){
 		print "Warning: no memory allocation or error parsing memory allocation for $module_fn ('$mem'): setting to 1Gb\n";
 		$mem = '1G';
 	}
-	if(CF::Helpers::human_readable_to_bytes($mem) > CF::Helpers::human_readable_to_bytes($TOTAL_MEM)){
-		$mem = CF::Helpers::human_readable_to_bytes($TOTAL_MEM);
-		print "Warning: Module $module_fn requested more than the maximum memory available. Setting to max ($TOTAL_MEM).\n";
+	if(CF::Helpers::human_readable_to_bytes($mem) > CF::Helpers::human_readable_to_bytes($memory_allocation)){
+		print "Warning: Module $module_fn requested more memory ($mem) than was allocated ($memory_allocation). Setting to requested anyway.\n";
 	}
-	unless($time =~ /^[^:](\d+-)?\d+?\:?[0-5]?[0-9]?\:?[0-5]?[0-9]?$/ && $time ne ''){
+	if(CF::Helpers::human_readable_to_bytes($mem) > CF::Helpers::human_readable_to_bytes($TOTAL_MEM)){
+		print "Warning: Module $module_fn requested more memory ($mem) than the maximum available ($TOTAL_MEM). Setting to max available.\n";
+		$mem = CF::Helpers::human_readable_to_bytes($TOTAL_MEM);
+	}
+	unless(CF::Helpers::timestamp_to_minutes($time) > 0){
 		print "Warning: no time allocation or error parsing time allocation for $module_fn ('$time'): setting to 2 days\n";
 		$time = '2-00:00:00';
 	}

@@ -29,10 +29,11 @@ use CF::Helpers;
 my %requirements = (
 	'cores' 	=> ['2', '4'],
 	'memory' 	=> ['8G', '30G'],
-	'modules' 	=> ['samtools'],
+	'modules' 	=> 'samtools',
 	'time' 		=> sub {
 		my $runfile = $_[0];
 		my $num_files = $runfile->{'num_starting_merged_aligned_files'};
+		$num_files = ($num_files > 0) ? $num_files : 1;
 		# Sorting + indexing typically takes less than 1 hour per BAM file
 		return $num_files * 60;
 	}
@@ -55,12 +56,12 @@ my $timestart = time;
 
 my $mem = CF::Helpers::human_readable_to_bytes($runfile{'memory'});
 my $mem_per_thread = CF::Helpers::bytes_to_human_readable(int($mem / $runfile{'cores'}));
-warn "\n\nSamtools memory per thread: $mem_per_thread. Cores: ".$runfile{'cores'}."\n\n\n";
+warn "\n\nSamtools memory per thread: $mem_per_thread. Cores: $runfile{cores}\n\n\n";
 
-my $namesort = '';
-$namesort = '-n' if (defined($runfile{'params'}{'byname'}));
+# Set up optional parameters
+my $namesort = (defined($runfile{'params'}{'byname'})) ? '-n' : '';
 
-open (RUN,'>>',$runfile{'run_fn'}) or die "###CF Error: Can't write to ".$runfile{'run_fn'}.": $!";
+open (RUN,'>>',$runfile{'run_fn'}) or die "###CF Error: Can't write to $runfile{run_fn}: $!";
 
 # Print version information about the module.
 warn "---------- Samtools version information ----------\n";
