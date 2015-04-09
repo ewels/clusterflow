@@ -182,9 +182,9 @@ sub parse_runfile {
 	open (RUN, $runfile->{'run_fn'}) or die "Can't read ".$runfile->{'run_fn'}.": $!";
 
     # Set up new hash variables
+    $runfile->{'refs'} = {};
 	$runfile->{'config'} = {};
 	$runfile->{'config'}{'notifications'} = {};
-	$runfile->{'config'}{'references'} = {};
 	$runfile->{'prev_job_files'} = ();
 	$runfile->{'starting_files'} = ();
     $runfile->{'files'} = {};
@@ -225,7 +225,7 @@ sub parse_runfile {
 				$runfile->{'config'}{'notifications'}{$sections[1]} = 1;
 			} elsif($cname eq 'reference'){
                 my @ref_sections = split(/\t/, $sections[1], 2);
-				$runfile->{'config'}{'references'}{$ref_sections[0]} = $ref_sections[1];
+				$runfile->{'refs'}{$ref_sections[0]} = $ref_sections[1];
 			} else {
 				$runfile->{'config'}{$cname} = $sections[1];
 			}

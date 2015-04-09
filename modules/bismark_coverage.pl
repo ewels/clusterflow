@@ -57,10 +57,10 @@ my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
 my $timestart = time;
 
 # Check that we have a genome defined
-if(!defined($runfile{'config'}{'references'}{'fasta'})){
+if(!defined($runfile{'refs'}{'fasta'})){
    die "\n\n###CF Error: No genome fasta path found in run file $runfile{run_fn} for job $runfile{job_id}. Exiting..";
 } else {
-    warn "\nAligning against $runfile{config}{references}{fasta}\n\n";
+    warn "\nAligning against $runfile{refs}{fasta}\n\n";
 }
 
 open (RUN,'>>',$runfile{'run_fn'}) or die "###CF Error: Can't write to $runfile{run_fn}: $!";
@@ -84,7 +84,7 @@ foreach my $file (@{$runfile{'prev_job_files'}}){
 	$file =~ s/.[bs]am$//;
 	$file .= '.bismark.cov';
     my $output_cov_fn = substr($file,0 ,-3)."gwCov.cov";
-    my $cmd = "coverage2cytosine --genome_folder $runfile{config}{references}{fasta} $file -o $output_cov_fn";
+    my $cmd = "coverage2cytosine --genome_folder $runfile{refs}{fasta} $file -o $output_cov_fn";
     warn "\n###CFCMD $cmd\n\n";
 
     if(!system ($cmd)){

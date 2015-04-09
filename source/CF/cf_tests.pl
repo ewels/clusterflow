@@ -190,8 +190,6 @@ foreach my $module_fn (@modules){
         unless(CF::Helpers::timestamp_to_minutes($time) > 0){
             print "$module_fn time not recognised ('$time')\n";
             $failed = 1;
-        } else {
-            print "$module_fn time: $time\n";
         }
     }
 
@@ -201,3 +199,6 @@ foreach my $module_fn (@modules){
         print "".('-'x50)."\n";
     }
 }
+print "".($num_passed - $num_requirements_failed)." modules passed requirements check, $num_requirements_failed failed.\n";
+
+print "\nDone.\n\n";

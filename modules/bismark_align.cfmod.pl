@@ -68,10 +68,10 @@ foreach my $file (@{$runfile{'starting_files'}}){
 my $timestart = time;
 
 # Check that we have a genome defined
-if(!defined($runfile{'config'}{'references'}{'fasta'})){
+if(!defined($runfile{'refs'}{'fasta'})){
    die "\n\n###CF Error: No genome fasta path found in run file $runfile{run_fn} for job $runfile{job_id}. Exiting..";
 } else {
-    warn "\nAligning against $runfile{config}{references}{fasta}\n\n";
+    warn "\nAligning against $runfile{refs}{fasta}\n\n";
 }
 
 open (RUN,'>>',$runfile{'run_fn'}) or die "###CF Error: Can't write to $runfile{run_fn}: $!";
@@ -96,13 +96,8 @@ if($multi > 1){
 	warn "Running in regular non multi-threaded mode.\n";
 }
 
-# Separate file names into single end and paired end
-my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%runfile, @{$runfile{'prev_job_files'}});
 
-# FastQ encoding type. Once found on one file will assume all others are the same
-my $encoding = 0;
-
-# Read any options from the pipeline parameters
+# Read options from the pipeline parameters
 my $bt1 = (defined($runfile{'params'}{'bt1'})) ? 1 : 0;
 my $bt2 = (defined($runfile{'params'}{'bt2'})) ? "--bowtie2" : '';
 my $pbat = (defined($runfile{'params'}{'pbat'})) ? "--pbat" : '';
@@ -120,6 +115,13 @@ if(!$bt1 && !$bt2){
 		$bt2 = "--bowtie2";
 	}
 }
+
+# FastQ encoding type. Once found on one file will assume all others are the same
+my $encoding = 0;
+
+
+# Separate file names into single end and paired end
+my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%runfile, @{$runfile{'prev_job_files'}});
 
 
 # Go through each single end files and run Bismark
@@ -142,7 +144,7 @@ if($se_files && scalar(@$se_files) > 0){
 			$output_fn = $file."_bismark.bam";
 		}
 
-		my $command = "bismark $multicore --bam $bt2 $pbat $non_directional $enc $runfile{config}{references}{fasta} $file";
+		my $command = "bismark $multicore --bam $bt2 $pbat $non_directional $enc $runfile{refs}{fasta} $file";
 		warn "\n###CFCMD $command\n\n";
 
 		if(!system ($command)){
@@ -182,7 +184,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 				$output_fn = $files[0]."_bismark_pe.bam";
 			}
 
-			my $command = "bismark $multicore --bam $bt2 $pbat $non_directional $enc $runfile{config}{references}{fasta} -1 ".$files[0]." -2 ".$files[1];
+			my $command = "bismark $multicore --bam $bt2 $pbat $non_directional $enc $runfile{refs}{fasta} -1 ".$files[0]." -2 ".$files[1];
 			warn "\n###CFCMD $command\n\n";
 
 			if(!system ($command)){

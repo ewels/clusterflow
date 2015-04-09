@@ -26,17 +26,6 @@ use CF::Helpers;
 # along with Cluster Flow.  If not, see <http://www.gnu.org/licenses/>.  #
 ##########################################################################
 
-# Get Options
-my $required_cores;
-my $required_mem;
-my $required_modules;
-my $run_fn;
-my $help;
-my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "runfn=s" => \$run_fn, "help" => \$help);
-
-# QSUB SETUP
-# --cores i = offered cores. Return number of required cores.
-
 ################################################################################
 #
 #	WARNING
@@ -50,57 +39,49 @@ my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_me
 #
 #################################################################################
 
-if($required_cores){
-	# print CF::Helpers::allocate_cores($required_cores, 1, 8);
-	print 8;
-	exit;
-}
-# --mem. Return the required memory allocation.
-if($required_mem){
-	print CF::Helpers::allocate_memory($required_mem, '3G', '4G');
-	exit;
-}
-# --modules. Return csv names of any modules which should be loaded.
-if($required_modules){
-	print 'fastq_screen';
-	exit;
-}
-# --help. Print help.
-if($help){
-	print "".("-"x21)."\n FastQ Screen Module\n".("-"x21)."\n
+# Module requirements
+my %requirements = (
+	'cores' 	=> '8', # (1, 8)
+	'memory' 	=> ('3G', '4G'),
+	'modules' 	=> ['fastq_screen'],
+	'time' 		=> sub {
+		my $runfile = $_[0];
+		my $num_files = $runfile->{'num_starting_merged_files'};
+		$num_files = ($num_files > 0) ? $num_files : 1;
+		# FastQC typically takes less than 30 minutes per file
+		return CF::Helpers::minutes_to_timestamp ($num_files * 60);
+	}
+);
+
+# Help text
+my $helptext = "".("-"x21)."\n FastQ Screen Module\n".("-"x21)."\n
 FastQ Screen is a quality control tool that allows you to
 take a sequence dataset and search it against a set of bowtie databases.\n
 For further information, please run fastq_screen --help\n\n";
-	exit;
-}
+
+# Setup
+my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
+
 
 # MODULE
 my $timestart = time;
 
-# Read in the input files from the run file
-my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
-my %config = %$config_ref;
-
 # Print version information about the module.
 warn "---------- FastQ Screen version information ----------\n";
 warn `fastq_screen --version`;
-warn "\n------- End of FastQ Screen version information ------\n";	
+warn "\n------- End of FastQ Screen version information ------\n";
 
-# How many cores have we been given?
-if(!defined($cores) || $cores <= 0){
-	$cores = 1;
-}
-
-# Separate file names into single end and paired end
-my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%config, @$files);
 
 # FastQ encoding type. Once found on one file will assume all others are the same
 my $encoding = 0;
 
+# Separate file names into single end and paired end
+my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%runfile, @{$runfile{'prev_job_files'}});
+
 # Go through each single end files and run Fastq Screen
 if($se_files && scalar(@$se_files) > 0){
 	foreach my $file (@$se_files){
-		
+
 		# Figure out the encoding if we don't already know
 		if(!$encoding){
 			($encoding) = CF::Helpers::fastq_encoding_type($file);
@@ -109,11 +90,11 @@ if($se_files && scalar(@$se_files) > 0){
 		if($encoding eq 'phred64'){
 			$enc = '--illumina1_3';
 		}
-		
+
 		# Uses --cores $cores when this is written into Fastq Screen
 		my $command = "fastq_screen --subset 100000 $enc --quiet --aligner bowtie2 $file";
 		warn "\n###CFCMD $command\n\n";
-		
+
 		if(!system ($command)){
 			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 			warn "###CF Fastq Screen (SE mode) successfully ran, took $duration\n";
@@ -136,11 +117,11 @@ if($pe_files && scalar(@$pe_files) > 0){
 			if($encoding eq 'phred64'){
 				$enc = '--illumina1_3';
 			}
-			
+
 			# Uses --cores $cores when this is written into Fastq Screen
 			my $command = "fastq_screen --subset 100000 $enc --quiet --aligner bowtie2 --paired ".$files[0]." ".$files[1];
 			warn "\n###CFCMD $command\n\n";
-			
+
 			if(!system ($command)){
 				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 				warn "###CF Fastq Screen (PE mode) successfully ran, took $duration\n";
@@ -152,4 +133,3 @@ if($pe_files && scalar(@$pe_files) > 0){
 		}
 	}
 }
-
