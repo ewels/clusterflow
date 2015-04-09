@@ -974,23 +974,23 @@ sub get_mod_requirements {
 
 	# Check that we have what we need
 	unless($cores =~ /^\d+$/){
-		print "\nWarning: no cores allocation or error parsing cores allocation for $module_fn ('$cores'): setting to 1\n";
+		print "Warning: no cores allocation or error parsing cores allocation for $module_fn ('$cores'): setting to 1\n";
 		$cores = 1;
 	}
 	if($cores > $TOTAL_CORES){
-		print "\nWarning: Module $module_fn requested more than the maximum cores available. Setting to max.\n";
+		print "Warning: Module $module_fn requested more than the maximum cores available. Setting to max ($TOTAL_CORES).\n";
 		$cores = $TOTAL_CORES;
 	}
 	unless($mem =~ /^[\d\.]+[gmkb]*$/i){
-		print "\nWarning: no memory allocation or error parsing memory allocation for $module_fn ('$mem'): setting to 1Gb\n";
+		print "Warning: no memory allocation or error parsing memory allocation for $module_fn ('$mem'): setting to 1Gb\n";
 		$mem = '1G';
 	}
 	if(CF::Helpers::human_readable_to_bytes($mem) > CF::Helpers::human_readable_to_bytes($TOTAL_MEM)){
-		print "\nWarning: Module $module_fn requested more than the maximum memory available. Setting to max.\n";
 		$mem = CF::Helpers::human_readable_to_bytes($TOTAL_MEM);
+		print "Warning: Module $module_fn requested more than the maximum memory available. Setting to max ($TOTAL_MEM).\n";
 	}
 	unless($time =~ /^[^:](\d+-)?\d+?\:?[0-5]?[0-9]?\:?[0-5]?[0-9]?$/ && $time ne ''){
-		print "\nWarning: no time allocation or error parsing time allocation for $module_fn ('$time'): setting to 2 days\n";
+		print "Warning: no time allocation or error parsing time allocation for $module_fn ('$time'): setting to 2 days\n";
 		$time = '2-00:00:00';
 	}
 

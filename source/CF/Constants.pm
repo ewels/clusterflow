@@ -636,7 +636,7 @@ sub clusterflow_add_genome {
             } elsif (-d $search_path) {
                 last;
             } elsif (-e $search_path) {
-                $search_path = dirname($search_path);
+                $search_path = &File::Basename::dirname($search_path);
                 if (-d $search_path) {
                     print "This looks like a file rather than a directory..\n".
                           "I'll trim off the filename and search this directory:\n  $search_path\n\n";
@@ -1185,7 +1185,7 @@ for further information.\n\n\n";
 			  "attempt to do it for you. Bear in mind that you may want to add one\n".
 			  "of the following lines to $bashrc :\n\n".
 			  "module load cf\n".
-			  'export PATH="'.$FindBin::Bin.'":$PATH"'."\n\n";
+			  'export PATH="'.$FindBin::Bin.':$PATH"'."\n\n";
 	}
 }
 
