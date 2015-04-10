@@ -61,7 +61,6 @@ Use hicup --help for further information.\n\n";
 my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
 
 # MODULE
-my $timestart = time;
 
 # Make sure that we have a recent enough version of HiCUP
 my $hicup_version = `hicup -v`;
@@ -90,9 +89,9 @@ warn "\n------- End of HiCUP version information ------\n";
 ##############################
 # Pipeline Parameters
 ##############################
-my $longest = (defined($runfile{'params'}{'longest'})) ? $runfile{'params'}{'longest'} : 800;
-my $shortest = (defined($runfile{'params'}{'shortest'})) ? $runfile{'params'}{'shortest'} : 150;
-my $re1 = (defined($runfile{'params'}{'re1'})) ? $runfile{'params'}{'re1'} : "A^AGCTT,HindIII";
+my $longest = defined($runfile{'params'}{'longest'}) ? $runfile{'params'}{'longest'} : 800;
+my $shortest = defined($runfile{'params'}{'shortest'}) ? $runfile{'params'}{'shortest'} : 150;
+my $re1 = defined($runfile{'params'}{'re1'}) ? $runfile{'params'}{'re1'} : "A^AGCTT,HindIII";
 my @re1_parts = split(",", $re1);
 
 
@@ -131,6 +130,7 @@ foreach my $digest_file (@digest_files){
 }
 # No digest file found - create it
 if(!$digest){
+	my $timestart = time;
 	warn "Couldn't find a digest file..\n";
 
 	# Move into the first directory created for this run
@@ -142,7 +142,8 @@ if(!$digest){
 	warn "\nCreating new digest file.\n\n";
 	warn "\n###CFCMD $command\n\n";
 	if(!system ($command)){
-		warn "\nDigest file successfully created.\n\n";
+		my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+		warn "###CF HiCUP digest file successfully created, took $duration..\n";
 	} else {
 		die "###CF Error! HiCUP could not create new digest file. Exiting... Command: $command\n\n";
 	}
@@ -180,6 +181,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 	foreach my $files_ref (@$pe_files){
 		my @files = @$files_ref;
 		if(scalar(@files) == 2){
+			my $timestart = time;
 
 			# Figure out the encoding if we don't already know
 			if(!$encoding){

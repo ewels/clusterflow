@@ -52,7 +52,6 @@ stranded modes. Defaults to not stranded.\n\n";
 my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
 
 # MODULE
-my $timestart = time;
 
 # Check that we have a GTF file defined
 if(!defined($runfile{'refs'}{'gtf'})){
@@ -69,11 +68,11 @@ warn `htseq-count --help 2>&1 | tail -n 4`;
 warn "\n------- End of HTSeq version information ------\n";
 
 # Read any options from the pipeline parameters
-my $stranded = (defined($runfile{'params'}{'stranded'})) ? "-s yes" : '-s no';
-$stranded =  (defined($runfile{'params'}{'stranded_rev'})) ? "-s reverse" : $stranded;
+my $stranded = defined($runfile{'params'}{'stranded'}) ? "-s yes" : '-s no';
+$stranded =  defined($runfile{'params'}{'stranded_rev'}) ? "-s reverse" : $stranded;
 
 # Get the ID tag from parameters, or try to determine from GTF file
-my $id_tag = (defined($runfile{'params'}{'id_tag'})) ? $runfile{'params'}{'id_tag'} : 0;
+my $id_tag = defined($runfile{'params'}{'id_tag'}) ? $runfile{'params'}{'id_tag'} : 0;
 $id_tag = get_gtf_id($runfile{'refs'}{'gtf'}) if(!$id_tag);
 if(!$id_tag){
 	warn "###CF Warning: Can't determine ID tag to use. Trying default 'ID'\n";
@@ -82,6 +81,7 @@ if(!$id_tag){
 
 # Go through each supplied file and run HTSeq Counts
 foreach my $file (@{$runfile{'prev_job_files'}}){
+	my $timestart = time;
 	my $annotated_file = $file."_annotated.sam";
 	my $counts_file = $file."_counts.txt";
 	my $command = "samtools view -h $file | htseq-count -o $annotated_file -t exon $stranded -q -i '$id_tag' - $runfile{refs}{gtf} | sort -n -k 2 -r > $counts_file";

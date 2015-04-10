@@ -57,8 +57,6 @@ overridden by specifying adapter=[Sequence] in the options.\n\n";
 my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
 
 # MODULE
-my $timestart = time;
-
 open (RUN,'>>',$runfile{'run_fn'}) or die "###CF Error: Can't write to $runfile{run_fn}: $!";
 
 # Print version information about the module.
@@ -70,11 +68,11 @@ warn `trim_galore --version`;
 warn "\n------- End of Trim Galore! version information ------\n";
 
 # Read options from the pipeline parameters
-my $min_readlength = (defined($runfile{'params'}{'min_readlength'})) ? $runfile{'params'}{'min_readlength'} : 50;
-my $q_cutoff = (defined($runfile{'params'}{'q'})) ? "-q ".$runfile{'params'}{'q_cutoff'} : '';
-my $stringency = (defined($runfile{'params'}{'stringency'})) ? "--stringency ".$runfile{'params'}{'stringency'} : '';
-my $adapter = (defined($runfile{'params'}{'adapter'})) ? "--adapter ".uc($runfile{'params'}{'adapter'}) : '';
-my $RRBS = (defined($runfile{'params'}{'RRBS'})) ? "--RRBS" : '';
+my $min_readlength = defined($runfile{'params'}{'min_readlength'}) ? $runfile{'params'}{'min_readlength'} : 50;
+my $q_cutoff = defined($runfile{'params'}{'q'}) ? "-q ".$runfile{'params'}{'q_cutoff'} : '';
+my $stringency = defined($runfile{'params'}{'stringency'}) ? "--stringency ".$runfile{'params'}{'stringency'} : '';
+my $adapter = defined($runfile{'params'}{'adapter'}) ? "--adapter ".uc($runfile{'params'}{'adapter'}) : '';
+my $RRBS = defined($runfile{'params'}{'RRBS'}) ? "--RRBS" : '';
 
 my $clip_r1 = "";
 my $clip_r2 = "";
@@ -109,6 +107,7 @@ my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%runfile, @{$runfile{'pr
 # Go through each single end files and run trim galore
 if($se_files && scalar(@$se_files) > 0){
 	foreach my $file (@$se_files){
+		my $timestart = time;
 
 		# Figure out the encoding if we don't already know
 		if(!$encoding){
@@ -147,6 +146,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 	foreach my $files_ref (@$pe_files){
 		my @files = @$files_ref;
 		if(scalar(@files) == 2){
+			my $timestart = time;
 
 			# Figure out the encoding if we don't already know
 			if(!$encoding){

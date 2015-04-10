@@ -35,10 +35,9 @@ my %requirements = (
 		my $runfile = $_[0];
 		my $num_files = $runfile->{'num_starting_merged_aligned_files'};
 		$num_files = ($num_files > 0) ? $num_files : 1;
-		# Bismark alignment typically takes less than 12 hours per BAM file
-		# This is probably conservative? May need tweaking.
-		# Could also drop the estimate if we're multi-threading?
-		return CF::Helpers::minutes_to_timestamp ($num_files * 14 * 60);
+		# Bismark alignment typically takes around than 3 hours per BAM file
+		# May need tweaking. Could also drop the estimate if we're multi-threading?
+		return CF::Helpers::minutes_to_timestamp ($num_files * 5 * 60);
 	}
 );
 
@@ -65,7 +64,6 @@ foreach my $file (@{$runfile{'starting_files'}}){
 }
 
 # MODULE
-my $timestart = time;
 
 # Check that we have a genome defined
 if(!defined($runfile{'refs'}{'fasta'})){
@@ -98,10 +96,10 @@ if($multi > 1){
 
 
 # Read options from the pipeline parameters
-my $bt1 = (defined($runfile{'params'}{'bt1'})) ? 1 : 0;
-my $bt2 = (defined($runfile{'params'}{'bt2'})) ? "--bowtie2" : '';
-my $pbat = (defined($runfile{'params'}{'pbat'})) ? "--pbat" : '';
-my $non_directional = (defined($runfile{'params'}{'single_cell'})) ? "--non_directional" : '';
+my $bt1 = defined($runfile{'params'}{'bt1'}) ? 1 : 0;
+my $bt2 = defined($runfile{'params'}{'bt2'}) ? "--bowtie2" : '';
+my $pbat = defined($runfile{'params'}{'pbat'}) ? "--pbat" : '';
+my $non_directional = defined($runfile{'params'}{'single_cell'}) ? "--non_directional" : '';
 
 # Work out whether we should use bowtie 1 or 2 by read length
 if(!$bt1 && !$bt2){
@@ -127,6 +125,8 @@ my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%runfile, @{$runfile{'pr
 # Go through each single end files and run Bismark
 if($se_files && scalar(@$se_files) > 0){
 	foreach my $file (@$se_files){
+
+		my $timestart = time;
 
 		# Figure out the encoding if we don't already know
 		if(!$encoding){
@@ -167,6 +167,8 @@ if($pe_files && scalar(@$pe_files) > 0){
 	foreach my $files_ref (@$pe_files){
 		my @files = @$files_ref;
 		if(scalar(@files) == 2){
+
+			my $timestart = time;
 
 			# Figure out the encoding if we don't already know
 			if(!$encoding){

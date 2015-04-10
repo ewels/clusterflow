@@ -52,8 +52,6 @@ and CHH context.\n".
 my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
 
 # MODULE
-my $timestart = time;
-
 open (RUN,'>>',$runfile{'run_fn'}) or die "###CF Error: Can't write to $runfile{run_fn}: $!";
 
 # Print version information about the module.
@@ -63,6 +61,7 @@ warn "\n------- End of bismark_methylation_extractor version information ------\
 
 # Go through each file and deduplicate
 foreach my $file (@{$runfile{'prev_job_files'}}){
+	my $timestart = time;
 
 	# Find if PE or SE from input BAM file
 	if(CF::Helpers::is_bam_paired_end($file)){

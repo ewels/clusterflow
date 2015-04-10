@@ -26,55 +26,33 @@ use CF::Helpers;
 # along with Cluster Flow.  If not, see <http://www.gnu.org/licenses/>.  #
 ##########################################################################
 
-# Get Options
-my $required_cores;
-my $required_mem;
-my $required_modules;
-my $run_fn;
-my $help;
-my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "runfn=s" => \$run_fn, "help" => \$help);
+# Module requirements
+my %requirements = (
+	'cores' 	=> ['1', '8'],
+	'memory' 	=> ['3G', '80G'],
+	'modules' 	=> ['preseq'],
+	'time' 		=> sub {
+		my $runfile = $_[0];
+		my $num_files = $runfile->{'num_starting_merged_aligned_files'};
+		$num_files = ($num_files > 0) ? $num_files : 1;
+		# Preseq typically takes less than 4 hours per BAM file
+		return CF::Helpers::minutes_to_timestamp ($num_files * 6 * 60);
+	}
+);
 
-# QSUB SETUP
-# --cores i = offered cores. Return number of required cores.
-if($required_cores){
-    print CF::Helpers::allocate_cores($required_cores, 1, 8);
-    exit;
-}
-# --mem. Return the required memory allocation.
-if($required_mem){
-    print CF::Helpers::allocate_memory($required_mem, '3G', '80G');
-    exit;
-}
-# --modules. Return csv names of any modules which should be loaded.
-if($required_modules){
-    print 'preseq';
-    exit;
-}
-# --help. Print help.
-if($help){
-    print "".("-"x17)."\n Preseq Module\n".("-"x17)."\n
+# Help text
+my $helptext = "".("-"x17)."\n Preseq Module\n".("-"x17)."\n
 Preseq is a tool to calculate the complexity of a sequencing library.
 The lc_extrap mode is used. See http://smithlabresearch.org/software/preseq/
-for more information.
-
+for more information.\n
 Input is a sorted and indexed BAM file. Only the BAM file should be
-in the run file, the .bai index file will be assumed.
-\n\n";
-    exit;
-}
+in the run file, the .bai index file will be assumed.\n\n";
+
+# Setup
+my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
 
 # MODULE
-my $timestart = time;
-
-# Read in the input files from the run file
-my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
-my %config = %$config_ref;
-
-if(!defined($cores) || $cores <= 0){
-    $cores = 1;
-}
-
-open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
+open (RUN,'>>',$runfile{'run_fn'}) or die "###CF Error: Can't write to $runfile{run_fn}: $!";
 
 # --version. Returns version information about the module.
 warn "---------- Preseq version information ----------\n";
@@ -82,34 +60,33 @@ warn `preseq 2>&1 | head -n 4`;
 warn "\n------- End of Preseq version information ------\n";
 
 # Go through each file and run Preseq
-if($files && scalar(@$files) > 0){
-	foreach my $file (@$files){
+foreach my $file (@{$runfile{'prev_job_files'}}){
+	my $timestart = time;
 
-		# Find if PE or SE from input BAM file
-        my $paired = '';
-        my $mode = 'SE';
-		if(CF::Helpers::is_bam_paired_end($file)){
-            $paired = '-P -l 999999999999';
-            $mode = 'PE';
-        }
+	# Find if PE or SE from input BAM file
+    my $paired = '';
+    my $mode = 'SE';
+	if(CF::Helpers::is_bam_paired_end($file)){
+        $paired = '-P -l 999999999999';
+        $mode = 'PE';
+    }
 
-        my $output_fn = $file.".preseq";
+    my $output_fn = $file.".preseq";
 
-		my $command = "preseq lc_extrap -Q -B $paired $file -o $output_fn";
-		warn "\n###CFCMD $command\n\n";
+	my $command = "preseq lc_extrap -Q -B $paired $file -o $output_fn";
+	warn "\n###CFCMD $command\n\n";
 
-		if(!system ($command)){
-			# Preseq worked - print out resulting filename
-			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-			warn "###CF Preseq ($mode mode) successfully exited, took $duration..\n";
-			if(-e $output_fn){
-				print RUN "$job_id\t$output_fn\n";
-			} else {
-				warn "\n###CF Error! Preseq output file $output_fn not found..\n";
-			}
+	if(!system ($command)){
+		# Preseq worked - print out resulting filename
+		my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+		warn "###CF Preseq ($mode mode) successfully exited, took $duration..\n";
+		if(-e $output_fn){
+			print RUN "$runfile{job_id}\t$output_fn\n";
 		} else {
-			warn "\n###CF Error! Preseq ($mode mode) exited in an error state for input file '$file': $? $!\n\n";
+			warn "\n###CF Error! Preseq output file $output_fn not found..\n";
 		}
+	} else {
+		warn "\n###CF Error! Preseq ($mode mode) exited in an error state for input file '$file': $? $!\n\n";
 	}
 }
 

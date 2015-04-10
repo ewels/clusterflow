@@ -51,8 +51,6 @@ For further information please run deduplicate_bismark --help \n\n";
 my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
 
 # MODULE
-my $timestart = time;
-
 open (RUN,'>>',$runfile{'run_fn'}) or die "###CF Error: Can't write to $runfile{run_fn}: $!";
 
 # Print version information about the module.
@@ -62,6 +60,7 @@ warn "\n------- End of deduplicate_bismark version information ------\n";
 
 # Go through each file and deduplicate
 foreach my $file (@{$runfile{'prev_job_files'}}){
+	my $timestart = time;
 
 	my $output_fn = substr($file,0 ,-3)."deduplicated.bam";
 

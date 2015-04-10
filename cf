@@ -828,6 +828,9 @@ foreach my $file_set (@file_sets){
 			push @job_ids, $job_id;
 			$prev_dl_id = $job_id;
 
+			# The download module ignores this, but good to add so that mods know how many files we're starting with
+			$this_runfile .= "$job_id\t$dl_fn\n";
+
 		} elsif(-e $fn) { # Not a URL. Does this file exist?
 			# Add the starting filename to the run file
 			$job_id = 'start_000';

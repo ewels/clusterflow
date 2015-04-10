@@ -50,8 +50,6 @@ my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
 
 
 # MODULE
-my $timestart = time;
-
 open (RUN,'>>',$runfile{'run_fn'}) or die "###CF Error: Can't write to $runfile{run_fn}: $!";
 
 # Print version information about the module.
@@ -60,11 +58,12 @@ warn `fastqc --version`;
 warn "\n------- End of FastQC version information ------\n";
 
 # Read any options from the pipeline parameters
-my $nogroup = (defined($runfile{'params'}{'nogroup'})) ? "--nogroup" : '';
+my $nogroup = defined($runfile{'params'}{'nogroup'}) ? "--nogroup" : '';
 
 # Go through each supplied file and run FastQC.
 foreach my $file (@{$runfile{'prev_job_files'}}){
-
+	my $timestart = time;
+	
 	my $command = "fastqc -q $nogroup $file";
 	warn "\n###CFCMD $command\n\n";
 

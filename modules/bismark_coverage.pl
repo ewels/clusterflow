@@ -54,8 +54,6 @@ experiment for information about targeted enrichment.\n".
 my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
 
 # MODULE
-my $timestart = time;
-
 # Check that we have a genome defined
 if(!defined($runfile{'refs'}{'fasta'})){
    die "\n\n###CF Error: No genome fasta path found in run file $runfile{run_fn} for job $runfile{job_id}. Exiting..";
@@ -76,10 +74,9 @@ my $capture_regions = (defined($runfile{'params'}{'capture_regions'})) ? $runfil
 
 # Go through each file and deduplicate
 foreach my $file (@{$runfile{'prev_job_files'}}){
+	my $timestart = time;
 
-    #
-    # Make the genome wide coverage report
-    #
+    # Step 1 - Make the genome wide coverage report
 	# Should have been given a deduplicated BAM file
 	$file =~ s/.[bs]am$//;
 	$file .= '.bismark.cov';
@@ -101,7 +98,8 @@ foreach my $file (@{$runfile{'prev_job_files'}}){
         warn "\n###CF Error!Bismark coverage2cytosine exited with an error state for file '$file': $? $!\n\n";
     }
 
-
+	# Step 2 - try to plot the coverage from the report
+	$timestart = time;
 	# perl script paths
 	my $coverage_script = "/home/phil/scripts/ngi_visualizations/stand_alone/bismark/bismark_coverage_curves.pl";
 	my $windows_script = "/home/phil/scripts/ngi_visualizations/stand_alone/bismark/bismark_window_sizes.pl";
@@ -118,7 +116,8 @@ foreach my $file (@{$runfile{'prev_job_files'}}){
 		my $cov_cmd = "perl $coverage_script $regions --stranded $output_cov_fn";
 		warn "###CFCMD $cov_cmd\n\n";
 		if(!system ($cov_cmd)){
-			warn "###CF Coverage curves plot successfully created.\n";
+			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+			warn "###CF Coverage curves plot successfully created, took $duration..\n";
 		} else {
 			warn "###CF Error! Coverage curves plotting exited with an error code for input file '$output_cov_fn'.\n";
 		}
@@ -126,11 +125,13 @@ foreach my $file (@{$runfile{'prev_job_files'}}){
 		warn "###CF Warning: Couldn't find find the coverage script: $coverage_script\nSkipping..\n";
 	}
 	# Plot coverage curves
+	$timestart = time;
 	if(-e $windows_script){
 		my $win_cmd = "perl $windows_script $regions $output_cov_fn";
 		warn "###CFCMD $win_cmd\n\n";
 		if(!system ($win_cmd)){
-			warn "###CF Window sizes plot successfully created.\n";
+			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+			warn "###CF Window sizes plot successfully created, took $duration..\n";
 		} else {
 			warn "###CF Error! Window size plotting exited with an error code for input file '$output_cov_fn'.\n";
 		}

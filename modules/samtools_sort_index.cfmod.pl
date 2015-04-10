@@ -35,7 +35,7 @@ my %requirements = (
 		my $num_files = $runfile->{'num_starting_merged_aligned_files'};
 		$num_files = ($num_files > 0) ? $num_files : 1;
 		# Sorting + indexing typically takes less than 1 hour per BAM file
-		return $num_files * 60;
+		return CF::Helpers::minutes_to_timestamp ($num_files * 60);
 	}
 );
 
@@ -52,8 +52,6 @@ Using parameter 'byname' or '-n' in pipeline forces sorting by read name.\n";
 my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
 
 # MODULE
-my $timestart = time;
-
 my $mem = CF::Helpers::human_readable_to_bytes($runfile{'memory'});
 my $mem_per_thread = CF::Helpers::bytes_to_human_readable(int($mem / $runfile{'cores'}));
 warn "\n\nSamtools memory per thread: $mem_per_thread. Cores: $runfile{cores}\n\n\n";
@@ -70,6 +68,7 @@ warn "------- End of Samtools version information ------\n";
 
 # we want e.g. samtools view -bS ./input.sam | samtools sort - outfile
 foreach my $file (@{$runfile{'prev_job_files'}}){
+	my $timestart = time;
 
 	# Figure out the file type
 	my $filetype = "";
@@ -88,6 +87,9 @@ foreach my $file (@{$runfile{'prev_job_files'}}){
 			print RUN $runfile{'job_id'}."\t$file\n";
 			unless (-e "$file.bai"){
 				warn "\n###CF Error! samtools index output file $file.bai not found..\n";
+			} else {
+				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+				warn "###CF samtools index successfully exited, took $duration. Skipping sort.\n";
 			}
 			# If we could index, file must already be sorted.
 			next;
@@ -123,9 +125,13 @@ foreach my $file (@{$runfile{'prev_job_files'}}){
 			print RUN $runfile{'job_id'}."\t$output_fn\n";
 
 			# Index the sorted file
+			$timestart = time;
 			if(samtools_index($file)){
 				unless (-e "$file.bai"){
 					warn "\n###CF Error! samtools index output file $file.bai not found..\n";
+				} else {
+					my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+					warn "###CF samtools index successfully exited, took $duration. Skipping sort.\n";
 				}
 			} else {
 				warn "\n###CF Error! samtools index failed for $file\n\n";
@@ -139,10 +145,6 @@ foreach my $file (@{$runfile{'prev_job_files'}}){
 		warn "\n###CF Error! samtools sort failed, exited in an error state: $? $!\n\n";
 	}
 }
-
-
-my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-warn "###CF samtools sort / index finished, took $duration..\n";
 
 
 # we want e.g. samtools view -bS ./input.sam | samtools sort - outfile

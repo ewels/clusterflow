@@ -115,10 +115,6 @@ my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
 # MODULE EXECUTION CODE
 #
 
-
-# Start the clock...
-my $timestart = time;
-
 # Check that we have a reference genome defined, die if we don't.
 if(!defined($runfile{'refs'}{'fasta'})){
 	# Any STDERR / STDOUT prefixed with ###CF will be highlighted in the summary e-mails
@@ -160,6 +156,9 @@ my $encoding = 0;
 #
 if($se_files && scalar(@$se_files) > 0){
 	foreach my $file (@$se_files){
+
+		# Start the clock...
+		my $timestart = time;
 
 		# Figure out the encoding if we don't already know
 		if(!$encoding){
@@ -215,6 +214,9 @@ if($pe_files && scalar(@$pe_files) > 0){
 
 		# Check that we do actually have two files here
 		if(scalar(@files) == 2){
+
+			# Start the clock...
+			my $timestart = time;
 
 			# Figure out the encoding if we don't already know
 			if(!$encoding){

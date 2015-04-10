@@ -52,8 +52,6 @@ The module needs a reference of type bwa.\n\n";
 my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
 
 # MODULE
-my $timestart = time;
-
 # Check that we have a genome defined
 if(!defined($runfile{'refs'}{'bwa'})){
     die "\n\n###CF Error: No BWA index path found in run file $runfile{run_fn} for job $runfile{job_id}. Exiting.. ###";
@@ -75,6 +73,7 @@ my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%runfile, @{$runfile{'pr
 # Go through each single end files and run BWA
 if($se_files && scalar(@$se_files) > 0){
 	foreach my $file (@$se_files){
+		my $timestart = time;
 
         my $output_fn = $file."_bwa.bam";
 
@@ -101,6 +100,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 	foreach my $files_ref (@$pe_files){
 		my @files = @$files_ref;
 		if(scalar(@files) == 2){
+			my $timestart = time;
 
             my $output_fn = $files[0]."_bwa.bam";
 

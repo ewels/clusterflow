@@ -64,8 +64,6 @@ my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
 
 
 # MODULE
-my $timestart = time;
-
 # Print version information about the module.
 warn "---------- FastQ Screen version information ----------\n";
 warn `fastq_screen --version`;
@@ -81,6 +79,7 @@ my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%runfile, @{$runfile{'pr
 # Go through each single end files and run Fastq Screen
 if($se_files && scalar(@$se_files) > 0){
 	foreach my $file (@$se_files){
+		my $timestart = time;
 
 		# Figure out the encoding if we don't already know
 		if(!$encoding){
@@ -109,6 +108,8 @@ if($pe_files && scalar(@$pe_files) > 0){
 	foreach my $files_ref (@$pe_files){
 		my @files = @$files_ref;
 		if(scalar(@files) == 2){
+			my $timestart = time;
+			
 			# Figure out the encoding if we don't already know
 			if(!$encoding){
 				($encoding) = CF::Helpers::fastq_encoding_type($files[0]);

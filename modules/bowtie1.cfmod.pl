@@ -57,8 +57,6 @@ or not and runs bowtie. Output is piped through samtools to generate BAM files.\
 my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
 
 # MODULE
-my $timestart = time;
-
 # Check that we have a genome defined
 if(!defined($runfile{'refs'}{'bowtie'})){
     die "\n\n###CF Error: No bowtie path found in run file $runfile{run_fn} for job $runfile{job_id}. Exiting..";
@@ -82,6 +80,7 @@ my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%runfile, @{$runfile{'pr
 # Go through each single end files and run Bowtie
 if($se_files && scalar(@$se_files) > 0){
 	foreach my $file (@$se_files){
+		my $timestart = time;
 
 		# Figure out the encoding if we don't already know
 		if(!$encoding){
@@ -127,6 +126,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 	foreach my $files_ref (@$pe_files){
 		my @files = @$files_ref;
 		if(scalar(@files) == 2){
+			my $timestart = time;
 
 			# Figure out the encoding if we don't already know
 			if(!$encoding){
