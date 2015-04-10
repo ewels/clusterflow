@@ -60,15 +60,12 @@ sub module_start {
     );
 
     # For non-summary modules, there will only be one run file
-    my $run_fn;
-    if(scalar(@run_fns) == 1){
-        $run_fn = $run_fns[0];
-    }
+    my $run_fn = $run_fns[0];
 
     # Get caller details
     my ($package, $mod_fn, $line) = caller;
     my $modname;
-    ($modname = $mod_fn) =~ s/\.cfmod.*$//i;
+    ($modname = $mod_fn) =~ s/\.cfmod.pl$//i; # Always a perl file here
     $modname =~ s/^.*\///i;
 
     # Initialise the run file hash
@@ -90,7 +87,7 @@ sub module_start {
         exit;
     }
 
-    # Check that we have the run file, need it to go any further
+    # Check that we have a run file, need it to go any further
     if(!$run_fn or length($run_fn) == 0){
         die ("Error: No run file filename supplied for module $modname\n");
     }
@@ -100,17 +97,17 @@ sub module_start {
     ###
     if($get_requirements){
 
-        # Parse the run file
+        # Parse the run file(s)
         parse_runfile(\%runfile);
 
         # Run through the supplied requirements and print
         foreach my $key (keys (%{$reqs})){
             # Been given a function
-            if(defined $reqs->{$key} && ref($reqs->{$key}) eq 'CODE'){
+            if(ref($reqs->{$key}) eq 'CODE'){
                 print "$key: ".$reqs->{$key}(\%runfile)."\n";
             }
             # Been given an array
-            elsif(defined $reqs->{$key} && ref($reqs->{$key}) eq 'ARRAY'){
+            elsif(ref($reqs->{$key}) eq 'ARRAY'){
                 if($key eq 'cores'){
                     print "cores: ".allocate_cores($cores, int($reqs->{$key}[0]), int($reqs->{$key}[1]))."\n";
                 } elsif($key eq 'memory'){
@@ -120,7 +117,7 @@ sub module_start {
                 }
             }
             # Probably been given a string
-            elsif(defined $reqs->{$key}){
+            else{
                 print "$key: ".$reqs->{$key}."\n";
             }
         }
@@ -161,9 +158,11 @@ sub module_start {
     }
 
 	# If we don't have any input files, bail now
-	if(scalar(@{$runfile{'prev_job_files'}}) == 0 && $prev_job_id && $prev_job_id ne 'null' && !defined($params{'summary_module'})){
-	    print "\n###CF Error! No file names found from job $prev_job_id. Exiting...\n\n";
-	    exit;
+	if(!defined($runfile{'prev_job_files'}) || scalar(@{$runfile{'prev_job_files'}}) == 0){
+        if($prev_job_id && $prev_job_id ne 'null' && !defined($params{'summary_module'})){
+    	    print "\n###CF Error! No file names found from job $prev_job_id. Exiting...\n\n";
+    	    exit;
+        }
 	}
 
     # Return the hash of dreams
@@ -177,91 +176,93 @@ sub module_start {
 # Returns: Nothing (updates hash reference in place)
 sub parse_runfile {
 
-    # Get incoming hash reference and open run file
+    # Get incoming hash reference
     my $runfile = $_[0];
-	open (RUN, $runfile->{'run_fn'}) or die "Can't read ".$runfile->{'run_fn'}.": $!";
 
-    # Set up new hash variables
-    $runfile->{'refs'} = {};
-	$runfile->{'config'} = {};
-	$runfile->{'config'}{'notifications'} = {};
-	$runfile->{'prev_job_files'} = ();
-	$runfile->{'starting_files'} = ();
-    $runfile->{'files'} = {};
-    $runfile->{'num_starting_files'} = 0;
-    $runfile->{'num_starting_merged_files'} = 0;
-    $runfile->{'num_starting_merged_aligned_files'} = 0;
+    # Set up new hash variables if we need them
+    $runfile->{'refs'} = {}                             if(!defined($runfile->{'refs'}));
+	$runfile->{'config'} = {}                           if(!defined($runfile->{'config'}));
+	$runfile->{'config'}{'notifications'} = {}          if(!defined($runfile->{'config'}{'notifications'}));
+	$runfile->{'prev_job_files'} = ()                   if(!defined($runfile->{'prev_job_files'}));
+	$runfile->{'starting_files'} = ()                   if(!defined($runfile->{'starting_files'}));
+    $runfile->{'files'} = {}                            if(!defined($runfile->{'files'}));
+    $runfile->{'num_starting_files'} = 0                if(!defined($runfile->{'num_starting_files'}));
+    $runfile->{'num_starting_merged_files'} = 0         if(!defined($runfile->{'num_starting_merged_files'}));
+    $runfile->{'num_starting_merged_aligned_files'} = 0 if(!defined($runfile->{'num_starting_merged_aligned_files'}));
 
-    # Go through the run file
-	my $comment_block = 0;
-	while(<RUN>){
+    # Go through each run file
+    foreach my $runfn (@{$runfile->{'run_fns'}}){
+        open (RUN, $runfn) or die "Can't read $runfn: $!";
+    	my $comment_block = 0;
+    	while(<RUN>){
 
-		# clean up line
-		chomp;
-		s/\n//;
-		s/\r//;
+    		# clean up line
+    		chomp;
+    		s/\n//;
+    		s/\r//;
 
-		# Ignore comment blocks
-		if($_ =~ /^\/\*/){
-			$comment_block = 1;
-			next;
-		}
-		if($_ =~ /^\*\//){
-			$comment_block = 0;
-			next;
-		}
+    		# Ignore comment blocks
+    		if($_ =~ /^\/\*/){
+    			$comment_block = 1;
+    			next;
+    		}
+    		if($_ =~ /^\*\//){
+    			$comment_block = 0;
+    			next;
+    		}
 
-        # Helper stuff
-        if($_ =~ /^Pipeline: (.+)$/){
-            $runfile->{'pipeline_name'} = $1;
-        }
-
-		# Get config variables
-		if($_ =~ /^\@/ && !$comment_block){
-			my @sections = split(/\t/, $_, 2);
-			my $cname = substr($sections[0], 1);
-            $sections[1] = 1 if(!defined($sections[1]));
-			if($cname eq 'notification'){
-				$runfile->{'config'}{'notifications'}{$sections[1]} = 1;
-			} elsif($cname eq 'reference'){
-                my @ref_sections = split(/\t/, $sections[1], 2);
-				$runfile->{'refs'}{$ref_sections[0]} = $ref_sections[1];
-			} else {
-				$runfile->{'config'}{$cname} = $sections[1];
-			}
-		}
-
-        # Note - could get the pipeline tree here. Currently no need.
-
-		# Get files
-		if($_ =~ /^[^@#]/ && !$comment_block){
-			my @sections = split(/\t/, $_, 2);
-
-            # Clear out excess whitespace
-            $sections[1] =~ s/^\s+//;
-            $sections[1] =~ s/\s+$//;
-
-            # Files from previous job
-			if(defined($runfile->{'prev_job_id'}) && $sections[0] eq $runfile->{'prev_job_id'}){
-				push(@{$runfile->{'prev_job_files'}}, $sections[1]);
-			}
-
-            # Starting files
-            if($sections[0] eq 'start_000'){
-                push(@{$runfile->{'starting_files'}}, $sections[1]);
-                $runfile->{'num_starting_files'}++;
+            # Helper stuff
+            if($_ =~ /^Pipeline: (.+)$/){
+                $runfile->{'pipeline_name'} = $1;
             }
 
-            # All files, by module
-            if(!defined($runfile->{'files'}{$sections[0]})){
-                $runfile->{'files'}{$sections[0]} = ();
-            }
-            push(@{$runfile->{'files'}{$sections[0]}}, $sections[1]);
+    		# Get config variables
+    		if($_ =~ /^\@/ && !$comment_block){
+    			my @sections = split(/\t/, $_, 2);
+    			my $cname = substr($sections[0], 1);
+                $sections[1] = 1 if(!defined($sections[1]));
+    			if($cname eq 'notification'){
+    				$runfile->{'config'}{'notifications'}{$sections[1]} = 1;
+    			} elsif($cname eq 'reference'){
+                    my @ref_sections = split(/\t/, $sections[1], 2);
+    				$runfile->{'refs'}{$ref_sections[0]} = $ref_sections[1];
+    			} else {
+    				$runfile->{'config'}{$cname} = $sections[1];
+    			}
+    		}
 
-		}
-	}
+            # Note - could get the pipeline tree here. Currently no need.
 
-	close(RUN);
+    		# Get files
+    		if($_ =~ /^[^@#]/ && !$comment_block){
+    			my @sections = split(/\t/, $_, 2);
+
+                # Clear out excess whitespace
+                $sections[1] =~ s/^\s+//;
+                $sections[1] =~ s/\s+$//;
+
+                # Files from previous job
+    			if(defined($runfile->{'prev_job_id'}) && $sections[0] eq $runfile->{'prev_job_id'}){
+    				push(@{$runfile->{'prev_job_files'}}, $sections[1]);
+    			}
+
+                # Starting files
+                if($sections[0] eq 'start_000'){
+                    push(@{$runfile->{'starting_files'}}, $sections[1]);
+                    $runfile->{'num_starting_files'}++;
+                }
+
+                # All files, by module
+                if(!defined($runfile->{'files'}{$sections[0]})){
+                    $runfile->{'files'}{$sections[0]} = ();
+                }
+                push(@{$runfile->{'files'}{$sections[0]}}, $sections[1]);
+
+    		}
+    	}
+
+    	close(RUN);
+    }
 
     # Figure out how many merged files we're likely to have
     my $regex;

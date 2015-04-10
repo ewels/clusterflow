@@ -886,7 +886,7 @@ for my $s_mod (@summary_modules){
         my ($s_cores, $s_mem, $s_time) = get_mod_requirements($s_module_fn, $runfn);
 
 		# formulate qsub command
-		my $s_cmd = "$s_module_fn --run_fn $runfn --job_id $s_job_id --prev_job_id $run_finish_id --cores $s_cores --mem $s_mem $parameters --param summary_module";
+		my $s_cmd = "$s_module_fn --job_id $s_job_id --prev_job_id $run_finish_id --cores $s_cores --mem $s_mem $parameters --param summary_module";
 		foreach my $rfn (@runfns){
 			$s_cmd .= " --run_fn $rfn";
 		}
@@ -925,7 +925,10 @@ sub get_mod_fn {
     my ($module) = @_;
     my $module_fn;
     foreach my $folder (@module_folders){
+
     	my @mod_files = glob $folder.$module.'.cfmod*';
+		@mod_files = grep { $_ !~ /\.pyc$/ } @mod_files; # Remove ignored filetypes
+
     	if(scalar @mod_files == 1){
     		$module_fn = $mod_files[0];
     		last;
