@@ -41,8 +41,8 @@ use CF::Helpers;
 
 # Module requirements
 my %requirements = (
-	'cores' 	=> '8', # (1, 8)
-	'memory' 	=> ('3G', '4G'),
+	'cores' 	=> '8', # [1, 8]
+	'memory' 	=> ['3G', '4G'],
 	'modules' 	=> ['fastq_screen'],
 	'time' 		=> sub {
 		my $runfile = $_[0];

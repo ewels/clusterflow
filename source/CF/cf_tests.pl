@@ -79,7 +79,7 @@ foreach my $folder (@module_folders){
         while ( my $file = shift @dir_files ) {
             my $path = $folder.$file;
             # Check Perl files
-            if($file =~ /\.pl$/){
+            if($file =~ /\.cfmod\.pl$/){
                 # Crude way to hide the output from valid files
                 if(system("perl -c $path > /dev/null 2>&1")){
                     system("perl -c $path");
@@ -90,7 +90,7 @@ foreach my $folder (@module_folders){
                 }
             }
             # Check Python files
-            elsif($file =~ /\.py$/){
+            elsif($file =~ /\.cfmod\.py$/){
                 if(system("python -m py_compile $path > /dev/null 2>&1")){
                     print "Error! $path did not compile\n";
                     $num_failed++;
@@ -120,8 +120,11 @@ foreach my $module_fn (@modules){
     # Stolen and modified from core cf - note, needs to be kept up to date
     my $failed = 0;
 
+	# Testing command
+	my $cmd = "$module_fn --requirements --run_fn $runfn --cores 8 --mem 128G";
+
 	# Send query to module
-	my $response = `$module_fn --requirements --run_fn $runfn --cores 6 --mem 128G 2> /dev/null`;
+	my $response = `$cmd 2> /dev/null`;
 
 	# Parse response
 	my $required_modules;
@@ -161,7 +164,7 @@ foreach my $module_fn (@modules){
             print "$module_fn cores not numeric ('$cores')\n";
             $failed = 1;
         }
-    	if($cores > 6){
+    	if($cores > 8){
             print "$module_fn cores greater than 6 ('$cores') \n";
             $failed = 1;
         }
@@ -195,7 +198,7 @@ foreach my $module_fn (@modules){
 
     if($failed){
         $num_requirements_failed++;
-        print "\nCommand for testing:\n$module_fn --requirements --run_fn $runfn --cores 6 --mem 128G 2> /dev/null\n";
+        print "\nCommand for testing:\n$cmd\n";
         print "".('-'x50)."\n";
     }
 }

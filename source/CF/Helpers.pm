@@ -6,7 +6,7 @@ use strict;
 use Exporter;
 use FindBin qw($Bin);
 use Getopt::Long qw(GetOptionsFromArray);
-use POSIX qw(strftime);
+use POSIX qw(ceil strftime);
 use Time::Local;
 use CF::Constants;
 
@@ -660,7 +660,7 @@ sub minutes_to_timestamp {
     my $minutes = $_[0];
 
     # Check for illegal characters
-    if(/[^\d\.]/){
+    if($minutes =~ /[^\d\.]/){
         return 0;
     }
     $minutes = int($minutes);
@@ -718,12 +718,12 @@ sub bytes_to_human_readable {
 	my ($bytes) = @_;
 	$bytes =~ s/\D//g;
 
-	if(int($bytes/1073741824) > 0){
-		return sprintf("%.1f", $bytes/1000000000)."G";
-	} elsif(int($bytes/1048576) > 0){
-		return sprintf("%.1f", $bytes/1000000)."M";
-	} elsif(int($bytes/1024) > 0){
-		return sprintf("%.1f", $bytes/1000)."K";
+	if(int($bytes/1000000000) > 0){
+		return ceil($bytes/1000000000)."G";
+	} elsif(int($bytes/1000000) > 0){
+		return ceil($bytes/1000000)."M";
+	} elsif(int($bytes/1000) > 0){
+		return ceil($bytes/1000)."K";
 	} else {
 		return $bytes."B";
 	}
@@ -731,11 +731,12 @@ sub bytes_to_human_readable {
 }
 
 # Simple function to take bytes and return a human readable memory string
+# NB: Rounds up with ceil()
 sub mem_return_mbs {
 
 	my ($mem) = @_;
 	$mem = human_readable_to_bytes($mem);
-	return sprintf("%.0f", $mem/1000000);
+	return ceil($mem/1000000);
 
 }
 
