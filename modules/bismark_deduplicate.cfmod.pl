@@ -26,100 +26,83 @@ use CF::Helpers;
 # along with Cluster Flow.  If not, see <http://www.gnu.org/licenses/>.  #
 ##########################################################################
 
-# Get Options
-my $required_cores;
-my $required_mem;
-my $required_modules;
-my $run_fn;
-my $help;
-my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "runfn=s" => \$run_fn, "help" => \$help);
+# Module requirements
+my %requirements = (
+	'cores' 	=> '1',
+	'memory' 	=> ['3G', '30G'],
+	'modules' 	=> 'bismark',
+	'time' 		=> sub {
+		my $cf = $_[0];
+		my $num_files = $cf->{'num_starting_merged_aligned_files'};
+		$num_files = ($num_files > 0) ? $num_files : 1;
+		# Bismark deduplication typically takes less than an hour per BAM file
+		return CF::Helpers::minutes_to_timestamp ($num_files * 2 * 60);
+	}
+);
 
-# QSUB SETUP
-# --cores i = offered cores. Return number of required cores.
-if($required_cores){
-	print 1;
-	exit;
-}
-# --mem. Return the required memory allocation.
-if($required_mem){
-	print CF::Helpers::allocate_memory($required_mem, '3G', '30G');
-	exit;
-}
-# --modules. Return csv names of any modules which should be loaded.
-if($required_modules){
-	print 'bismark';
-	exit;
-}
-# --help. Print help.
-if($help){
-	print "".("-"x28)."\n Bismark Deduplicate Module\n".("-"x28)."\n
+# Help text
+my $helptext = "".("-"x28)."\n Bismark Deduplicate Module\n".("-"x28)."\n
 The bismark_deduplicate module runs the deduplicate_bismark script.
 This removes alignments to the same position in the genome from the
 Bismark mapping output which can arise by e.g. excessive PCR amplification.\n
 For further information please run deduplicate_bismark --help \n\n";
-	exit;
-}
+
+# Setup
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 # MODULE
-my $timestart = time;
-
-# Read in the input files from the run file
-my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
-my %config = %$config_ref;
-
-open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
+open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
 warn "---------- deduplicate_bismark version information ----------\n";
 warn `deduplicate_bismark --version`;
-warn "\n------- End of deduplicate_bismark version information ------\n";	
+warn "\n------- End of deduplicate_bismark version information ------\n";
 
 # Go through each file and deduplicate
-if($files && scalar(@$files) > 0){
-	foreach my $file (@$files){
-		
-		my $output_fn = substr($file,0 ,-3)."deduplicated.bam";
-		
-		# Find if PE or SE from input BAM file
-		if(CF::Helpers::is_bam_paired_end($file)){
-			
-			my $command = "deduplicate_bismark -p --bam $file";
-			warn "\n###CFCMD $command\n\n";
-			
-			# Paired End BAM file
-			if(!system ($command)){
-				# Bismark worked - print out resulting filenames
-				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-				warn "###CF Bismark deduplication (PE mode) successfully exited, took $duration..\n";
-				if(-e $output_fn){
-					print RUN "$job_id\t$output_fn\n"; 
-				} else {
-					warn "\n###CF Error! Bismark output file $output_fn not found..\n";
-				}
+foreach my $file (@{$cf{'prev_job_files'}}){
+	my $timestart = time;
+
+	my $output_fn = substr($file,0 ,-3)."deduplicated.bam";
+
+	# Find if PE or SE from input BAM file
+	if(CF::Helpers::is_bam_paired_end($file)){
+
+		my $command = "deduplicate_bismark -p --bam $file";
+		warn "\n###CFCMD $command\n\n";
+
+		# Paired End BAM file
+		if(!system ($command)){
+			# Bismark worked - print out resulting filenames
+			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+			warn "###CF Bismark deduplication (PE mode) successfully exited, took $duration..\n";
+			if(-e $output_fn){
+				print RUN "$cf{job_id}\t$output_fn\n";
 			} else {
-				warn "\n###CF Error!Bismark deduplication (PE mode) exited with an error state for file '$file': $? $!\n\n";
+				warn "\n###CF Error! Bismark output file $output_fn not found..\n";
 			}
-			
 		} else {
-			
-			my $command = "deduplicate_bismark -s --bam $file";
-			warn "\n###CFCMD $command\n\n";
-			
-			# Single End BAM file
-			if(!system ($command)){
-				# Bismark worked - print out resulting filenames
-				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-				warn "###CF Bismark deduplication (SE mode) successfully exited, took $duration..\n";
-				if(-e $output_fn){
-					print RUN "$job_id\t$output_fn\n"; 
-				} else {
-					warn "\n###CF Error! Bismark output file $output_fn not found..\n";
-				}
-			} else {
-				warn "\n###CF Error! Bismark deduplication (SE mode) exited with an error state for file '$file': $? $!\n\n";
-			}
-			
+			warn "\n###CF Error!Bismark deduplication (PE mode) exited with an error state for file '$file': $? $!\n\n";
 		}
+
+	} else {
+
+		my $command = "deduplicate_bismark -s --bam $file";
+		warn "\n###CFCMD $command\n\n";
+
+		# Single End BAM file
+		if(!system ($command)){
+			# Bismark worked - print out resulting filenames
+			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+			warn "###CF Bismark deduplication (SE mode) successfully exited, took $duration..\n";
+			if(-e $output_fn){
+				print RUN "$cf{job_id}\t$output_fn\n";
+			} else {
+				warn "\n###CF Error! Bismark output file $output_fn not found..\n";
+			}
+		} else {
+			warn "\n###CF Error! Bismark deduplication (SE mode) exited with an error state for file '$file': $? $!\n\n";
+		}
+
 	}
 }
 

@@ -26,64 +26,54 @@ use CF::Helpers;
 # along with Cluster Flow.  If not, see <http://www.gnu.org/licenses/>.  #
 ##########################################################################
 
-# Get Options
-my $required_cores;
-my $required_mem;
-my $required_modules;
-my $run_fn;
-my $help;
-my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "runfn=s" => \$run_fn, "help" => \$help);
+# Module requirements
+my %requirements = (
+	'cores' 	=> '1',
+	'memory' 	=> '500M',
+	'modules' 	=> 'sratoolkit',
+	'time' 		=> sub {
+		my $cf = $_[0];
+		my $num_files = $cf->{'num_starting_files'};
+		$num_files = ($num_files > 0) ? $num_files : 1;
+		# Who knows? If it tries six times per file, could take ages!
+		return CF::Helpers::minutes_to_timestamp ($num_files * 5 * 60);
+	}
+);
 
-# QSUB SETUP
-# --cores i = offered cores. Return number of required cores.
-if($required_cores){
-	print 1;
-	exit;
-}
-# --mem. Return the required memory allocation.
-if($required_mem){
-	print '500M';
-	exit;
-}
-# --modules. Return csv names of any modules which should be loaded.
-if($required_modules){
-	print 'sratoolkit';
-	exit;
-}
-# --help. Print help.
-if($help){
-	print "".("-"x23)."\n SRA FastQ Dump Module\n".("-"x23)."\n
+# Help text
+my $helptext = "".("-"x23)."\n SRA FastQ Dump Module\n".("-"x23)."\n
 This module uses the sra toolkit fastq-dump package
 to extract .fastq files from .sra input. It gzips the fastq
 files once produced.\n\n";
-	exit;
-}
+
+# Setup
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
+
 
 # MODULE
-# Read in the input files from the run file
-my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
-my %config = %$config_ref;
-
-open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
+open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
 warn "---------- FastQ Dump version information ----------\n";
 warn `fastq-dump --version`;
-warn "\n------- End of FastQ Dump version information ------\n";	
+warn "\n------- End of FastQ Dump version information ------\n";
 
 # Go through each supplied file and run fastq-dump.
-foreach my $file (@$files){
+foreach my $file (@{$cf{'prev_job_files'}}){
+
+	my $timestart = time;
 
 	my $fn_base = substr($file, 0, -4);
 	my @outputfiles = ($fn_base."_1.fastq", $fn_base."_2.fastq");
-	
+
 	for (my $attempt = 1; $attempt < 6; $attempt++) {
-		
+
 		my $command = "fastq-dump --split-files ./$file";
 		warn "\n###CFCMD $command\n\n";
-		
+
 		if(!system ($command)){
-			warn "\n###CF FastQ Dump successfully exited on attempt $attempt\n";
+			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+			warn "\n###CF FastQ Dump successfully exited on attempt $attempt, took $duration\n";
 			# FastQ Dump worked - print out resulting filenames
 			foreach my $output_fn (@outputfiles){
 				if(-e $output_fn){
@@ -91,19 +81,19 @@ foreach my $file (@$files){
 					warn "gzipping dumped fastq file $output_fn..\n";
 					if(!system("gzip  $output_fn")){
 						$output_fn .= '.gz';
-						print RUN "$job_id\t$output_fn\n";
+						print RUN "$cf{job_id}\t$output_fn\n";
 					} else {
 						warn "Error - gzipping $output_fn exited with an error state: $? $!\nPrinting ungzipped filename to run file.\n";
-						print RUN "$job_id\t$output_fn\n";
+						print RUN "$cf{job_id}\t$output_fn\n";
 					}
 				} else {
 					warn "\nSRA dump file $output_fn not found.. (Probably single end?)\n\n";
 				}
 			}
 			last;
-			
+
 		} else {
-			
+
 			# FastQ Dump failed - clean up partially dumped files
 			foreach my $output_fn (@outputfiles){
 				if(-e $output_fn){
@@ -111,7 +101,7 @@ foreach my $file (@$files){
 				}
 			}
 			warn "###CF Error! FastQ Dump failed on attempt $attempt for input file '$file': $? $!\n";
-			
+
 		}
 	}
 }

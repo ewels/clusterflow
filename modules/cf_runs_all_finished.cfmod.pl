@@ -28,28 +28,30 @@ use Cwd;
 # along with Cluster Flow.  If not, see <http://www.gnu.org/licenses/>.  #
 ##########################################################################
 
-# Get Options
-my $required_cores;
-my $required_mem;
-my $required_modules;
-my $run_fn;
-my $help;
-my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "runfn=s" => \$run_fn, "help" => \$help);
-if($required_cores || $required_mem || $required_modules){
-	exit;
-}
-if($help){
-	die "\nThis is a core module which is executed when all runs have finished.\n";
-}
+# Module requirements
+my %requirements = (
+	'cores' 	=> '1',
+	'memory' 	=> '1G',
+	'modules' 	=> '',
+	'time' 		=> '10'
+);
 
+# Help text
+my $helptext = "\nThis is a core module which is executed when all runs have finished.\n";
+
+# Setup
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 # MODULE
-# Read in the input files from the run file
-my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
-my %config = %$config_ref;
-@$parameters = grep { $_ ne 'summary_module' } @$parameters;
-my $pipeline = shift(@$parameters);
-my @outfns = @$parameters;
+
+my $pipeline = $cf{'pipeline_name'};
+# Get the output filenames
+my $i = 1;
+my @outfns;
+while(defined($cf{'params'}{'outfn_'.$i})){
+	push(@outfns, $cf{'params'}{'outfn_'.$i});
+	$i++;
+}
 
 # Print run finish status to outfile
 my $date = strftime ("%H:%M %d-%m-%Y", localtime);
@@ -59,9 +61,9 @@ warn "\n###CF Pipeline $pipeline finished at $date\n\n";
 my $startdate = "?";
 my $duration = "?";
 my $pipeline_id = 'unknown_pipeline';
-if($job_id =~ /^cf_(.+)_(\d{10})_(.+)_\d{1,3}$/){
+if($cf{'job_id'} =~ /^cf_(.+)_(\d{10})_(.+)_\d{1,3}$/){
 	my $startdate_epoch = $2;
-  $pipeline_id = "cf_$1_$2";
+	$pipeline_id = "cf_$1_$2";
 	$startdate = strftime ("%H:%M %d-%m-%Y", localtime($startdate_epoch));
 	# Calculate duration
 	my $duration_secs = time() - $startdate_epoch;
@@ -85,33 +87,33 @@ my $errors = 0;
 my $warnings = 0;
 my $highlights = 0;
 foreach my $outfile (@outfns){
-	
+
 	my @these_cf_highlights;
 	my @these_commands;
 	my @these_highlightlines;
 	my @these_warninglines;
     my @these_summarylines;
-	
+
 	open (IN,'<',$outfile);
 	while(<IN>){
-		
+
 		chomp;
-		
+
 		# Ignore crap
 		if(/^Warning: no access to tty/ || /^Thus no job control in this shell/){
 			next;
 		}
-		
+
 		# Commands run
 		if(/^###CFCMD/){
 			push (@these_commands, substr($_, 9));
 		}
-        
+
         # Summary statuses
         elsif(/^###CFSUMMARY/){
     	    push (@summarylines, substr($_, 13));
         }
-        
+
 		# Highlight statuses
 		elsif(/^###CF/){
 			push (@these_cf_highlights, substr($_, 6));
@@ -123,7 +125,7 @@ foreach my $outfile (@outfns){
 					push (@these_highlightlines, $_);
 				}
 			}
-		
+
 			# Count any custom string errors
 			foreach my $warning_string (@LOG_WARNING_STRINGS){
 				if(/$warning_string/i){
@@ -132,15 +134,15 @@ foreach my $outfile (@outfns){
 				}
 			}
 		}
-        
-		
+
+
 		# Count out any CF errors
 		if(/error/i){
 			if (/^###CF/){
 				$errors++;
 			}
 		}
-		
+
 	}
 	close (IN);
 	$cf_highlights{$outfile} = \@these_cf_highlights;
@@ -151,8 +153,8 @@ foreach my $outfile (@outfns){
 
 
 # Send e-mail to submitter, if the config demands it
-if($config{notifications}{complete} && defined($config{email})){
-	
+if($cf{'config'}{'notifications'}{'complete'} && defined($cf{'config'}{'email'})){
+
 	# Write the plain-text e-mail body
 my $plain_content = "The pipeline $pipeline has completed";
 if($errors > 0){
@@ -180,7 +182,7 @@ if($warnings > 0){
 			$plain_content .= "\n".("=" x 30)."\n- Output file $file\n".("=" x 30)."\n";
 			$plain_content .= join("\n - ", @{$warninglines{$file}});
 		}
-	}	
+	}
 }
 
 if($highlights > 0){
@@ -240,7 +242,7 @@ The pipeline <strong>'.$pipeline.'</strong> has completed <strong>with warnings<
 		$html_content .= '<p class="completion-leader" style="color: #0A440B; font-family: \'Helvetica\', \'Arial\', sans-serif; font-weight: normal; text-align: center; line-height: 19px; font-size: 18px; border-radius: 5px; background: #dff0d8; margin: 0 0 15px; padding: 10px; border: 1px solid #d6e9c6;" align="center">
 The pipeline <strong>'.$pipeline.'</strong> has completed</p>';
 	}
-	
+
 
 	$html_content .= '
 
@@ -377,17 +379,17 @@ foreach my $file (sort keys %commands) {
 }
 
 $html_content .= '</ul><hr style="color: #d9d9d9; height: 1px; background: #d9d9d9; border: none;" />';
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
 	#### SEND THE EMAIL
-	my $to = $config{email};
+	my $to = $cf{'config'}{'email'};
 	my $subject = "$pipeline pipeline complete";
 	my $title = "Run Complete";
-	
+
 	if(CF::Helpers::send_email($subject, $to, $title, $html_content, $plain_content)){
 		warn "Sent a pipeline e-mail notification to $to\n";
 	} else {
@@ -403,8 +405,6 @@ $html_content .= '</ul><hr style="color: #d9d9d9; height: 1px; background: #d9d9
 	print PLAIN $text_email;
 	close(PLAIN);
 
-} elsif($config{notifications}{complete} && !defined($config{email})){
+} elsif($cf{'config'}{'notifications'}{'complete'} && !defined($cf{'config'}{'email'})){
 	warn "Error! Tried to send run e-mail notification but no e-mail address found in config\n";
 }
-
-

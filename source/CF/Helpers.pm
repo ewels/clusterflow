@@ -3,9 +3,10 @@ package CF::Helpers;
 
 use warnings;
 use strict;
-use FindBin qw($Bin);
 use Exporter;
-use POSIX qw(strftime);
+use FindBin qw($Bin);
+use Getopt::Long;
+use POSIX qw(ceil strftime);
 use Time::Local;
 use CF::Constants;
 
@@ -29,123 +30,267 @@ use CF::Constants;
 ##########################################################################
 
 
-# Open the run file and parse it's contents.
-# Input arguments:
-#  - Run file path (required)
-#  - Previous job id (optional)
-# Returns a two value array containing:
-#  - An array of file names
-#  - A hash with config variables.
-sub parse_runfile {
+# Used by modules when called. Either prints the help text, the module
+# requirements or returns a hash with information for the run.
+# Takes three variables - the @ARGV reference, a hash with keys for
+# cores, memory, modules and time requirements (can be arrays, strings or
+# subroutines) and the help text string.
+sub module_start {
+    # Incoming..
+    my ($reqs, $helptext) = @_;
 
-    my $runfile = $_[0];
-	open (RUN,$runfile) or die "Can't read $runfile: $!";
+    # Get Command Line Options
+    my $get_requirements;
+    my @run_fns;
+    my $job_id;
+    my $prev_job_id;
+    my $cores;
+    my $mem;
+    my %params;
+    my $help;
+    my $result = GetOptions (
+        "requirements"      => \$get_requirements,
+        "run_fn=s"          => \@run_fns,
+        "job_id=s"          => \$job_id,
+        "prev_job_id=s"     => \$prev_job_id,
+        "cores=i"           => \$cores,
+        "mem=s"             => \$mem,
+        "param=s"           => \%params,
+        "help"              => \$help
+    );
 
-    my $prev_job_id = '';
-    $prev_job_id = $_[1] if(defined($_[1]));
+    # For non-summary modules, there will only be one run file
+    my $run_fn = $run_fns[0];
 
-	my @files;
-	my %config;
-	$config{notifications} = {};
-	$config{references} = {};
-	my $comment_block = 0;
-	while(<RUN>){
+    # Get caller details
+    my ($package, $mod_fn, $line) = caller;
+    my $modname;
+    ($modname = $mod_fn) =~ s/\.cfmod.pl$//i; # Always a perl file here
+    $modname =~ s/^.*\///i;
 
-		# clean up line
-		chomp;
-		s/\n//;
-		s/\r//;
+    # Initialise the cf hash
+    my %cf = (
+        'run_fn'        => $run_fn,
+        'run_fns'       => \@run_fns,
+        'modname'       => $modname,
+        'mod_fn'        => $mod_fn,
+        'job_id'        => $job_id,
+        'prev_job_id'   => $prev_job_id,
+        'cores'         => $cores,
+        'memory'        => $mem,
+        'params'        => \%params,
+    );
 
-		# Ignore comment blocks
-		if($_ =~ /^\/\*/){
-			$comment_block = 1;
-			next;
-		}
-		if($_ =~ /^\*\//){
-			$comment_block = 0;
-			next;
-		}
+    # Print help
+    if($help){
+        print $helptext;
+        exit;
+    }
 
-		# Get config variables
-		if($_ =~ /^\@/ && !$comment_block){
-			my @sections = split(/\t/, $_, 2);
-			my $cname = substr($sections[0], 1);
-			if($cname eq 'notification'){
-				$config{notifications}{$sections[1]} = 1;
-			} elsif($cname eq 'reference'){
-                my @ref_sections = split(/\t/, $sections[1], 2);
-				$config{references}{$ref_sections[0]} = $ref_sections[1];
-			} else {
-				$config{$cname} = $sections[1];
-			}
-		}
+    # Check that we have a run file, need it to go any further
+    if(!$run_fn or length($run_fn) == 0){
+        die ("Error: No run file filename supplied for module $modname\n");
+    }
 
-		# Get files
-		if($_ =~ /^[^@#]/ && !$comment_block){
-			my @sections = split(/\t/, $_, 2);
-			if($sections[0] eq $prev_job_id){
-				# Clear out excess whitespace
-				$sections[1] =~ s/^\s+//;
-				$sections[1] =~ s/\s+$//;
-				# Push to array
-				push(@files, $sections[1]);
-			}
-		}
+    ###
+    # Module requirements
+    ###
+    if($get_requirements){
+
+        # Parse the run file(s)
+        parse_runfile(\%cf);
+
+        # Run through the supplied requirements and print
+        foreach my $key (keys (%{$reqs})){
+            # Been given a function
+            if(ref($reqs->{$key}) eq 'CODE'){
+                print "$key: ".$reqs->{$key}(\%cf)."\n";
+            }
+            # Been given an array
+            elsif(ref($reqs->{$key}) eq 'ARRAY'){
+                if($key eq 'cores'){
+                    print "cores: ".allocate_cores($cores, int($reqs->{$key}[0]), int($reqs->{$key}[1]))."\n";
+                } elsif($key eq 'memory'){
+                    print "memory: ".bytes_to_human_readable(allocate_memory($mem, $reqs->{$key}[0], $reqs->{$key}[1]))."\n";
+                } else {
+                    print "$key: ".join(', ', @{$reqs->{$key}})."\n";
+                }
+            }
+            # Probably been given a string
+            else{
+                print "$key: ".$reqs->{$key}."\n";
+            }
+        }
+        exit;
+    }
+
+    ###
+    # Running for real
+    ###
+    # check that we have extra parameters that we need
+    if(!$job_id or length($job_id) == 0 or !$prev_job_id or length($prev_job_id) == 0){
+        die ("###CF Error: Need job ID and previous job ID! Missing for module $modname\n");
+    }
+    if(!$cores or length($cores) == 0 or !$mem or length($mem) == 0){
+        die ("###CF Error: Need allocated cores and memory! Missing for module $modname\n");
+    }
+
+    # Parse everything we can from the run file
+    parse_runfile(\%cf);
+
+    # Print the module header if needed
+    if(!defined($params{'hide_log_header'})){
+        my $summ = '';
+        $summ = "Summary Module:\t\tYes\n" if(defined($params{'summary_module'}));
+
+        my $params = '';
+        while( my( $key, $value ) = each %params ){
+            $params .= "$key = $value, ";
+        }
+        $params = "Parameters:\t\t".substr($params, 0, -2)."\n" if(length($params) > 0);
+
+    	my $date = strftime "%H:%M, %d-%m-%Y", localtime;
+    	my $dashes = "-" x 80;
+
+    	warn "\n$dashes\nModule:\t\t\t$modname\n".$summ."Run File:\t\t$run_fn\n";
+        warn "Job ID:\t\t\t$job_id\nPrevious Job ID:\t$prev_job_id\n";
+        warn $params."Date & Time:\t\t$date\n$dashes\n\n";
+    }
+
+	# If we don't have any input files, bail now
+	if(!defined($cf{'prev_job_files'}) || scalar(@{$cf{'prev_job_files'}}) == 0){
+        if($prev_job_id && $prev_job_id ne 'null' && !defined($params{'summary_module'})){
+    	    print "\n###CF Error! No file names found from job $prev_job_id. Exiting...\n\n";
+    	    exit;
+        }
 	}
 
-	close(RUN);
+    # Return the hash of dreams
+    return %cf;
 
-    return (\@files, \%config);
 }
 
 
-# Used by modules at run time. Parses the incoming command line
-# arguments and run file. Returns lots of useful information for
-# the module.
-sub load_runfile_params {
-	my ($runfile, $job_id, $prev_job_id, $cores, $mem, @parameters) = @_;
-	unless (defined $prev_job_id && length($prev_job_id) > 0) {
-		die "Previous job ID not specified\n";
-	}
-	unless (@parameters) {
-		@parameters = ();
-	}
+# Open the run file and parse it's contents.
+# Input arguments: Reference to %cf
+# Returns: Nothing (updates hash reference in place)
+sub parse_runfile {
 
-    # Is this a summary module?
-    my $summary_module = 0;
-    $summary_module = 1 if ( grep $_ eq 'summary_module', @parameters );
+    # Get incoming hash reference
+    my $cf = $_[0];
 
-    # Should we print the module header?
-    if ( grep $_ eq 'hide_log_header', @parameters ){
-        # Don't print. Remove this from parameters.
-        @parameters = grep { $_ ne 'hide_log_header' } @parameters;
-    } else {
-        my ($package, $modname, $line) = caller;
-        $modname =~ s/\.cfmod.*$//i;
-        $modname =~ s/^.*\///i;
-        if(length($modname) > 0){
-            $modname = "Module:\t\t\t$modname\n";
-        }
-        my $summ = '';
-        if($summary_module){
-            $summ = "Summary Module:\t\tYes\n";
-        }
-    	my $date = strftime "%H:%M, %d-%m-%Y", localtime;
-    	my $dashes = "-" x 80;
-    	warn "\n$dashes\n".$modname.$summ."Run File:\t\t$runfile\nJob ID:\t\t\t$job_id\nPrevious Job ID:\t$prev_job_id\nParameters:\t\t".join(", ", @parameters)."\nDate & Time:\t\t$date\n$dashes\n\n";
+    # Set up new hash variables if we need them
+    $cf->{'refs'} = {}                             if(!defined($cf->{'refs'}));
+	$cf->{'config'} = {}                           if(!defined($cf->{'config'}));
+	$cf->{'config'}{'notifications'} = {}          if(!defined($cf->{'config'}{'notifications'}));
+	$cf->{'prev_job_files'} = ()                   if(!defined($cf->{'prev_job_files'}));
+	$cf->{'starting_files'} = ()                   if(!defined($cf->{'starting_files'}));
+    $cf->{'files'} = {}                            if(!defined($cf->{'files'}));
+    $cf->{'num_starting_files'} = 0                if(!defined($cf->{'num_starting_files'}));
+    $cf->{'num_starting_merged_files'} = 0         if(!defined($cf->{'num_starting_merged_files'}));
+    $cf->{'num_starting_merged_aligned_files'} = 0 if(!defined($cf->{'num_starting_merged_aligned_files'}));
+
+    # Go through each run file
+    foreach my $runfn (@{$cf->{'run_fns'}}){
+        open (RUN, $runfn) or die "Can't read $runfn: $!";
+    	my $comment_block = 0;
+    	while(<RUN>){
+
+    		# clean up line
+    		chomp;
+    		s/\n//;
+    		s/\r//;
+
+    		# Ignore comment blocks
+    		if($_ =~ /^\/\*/){
+    			$comment_block = 1;
+    			next;
+    		}
+    		if($_ =~ /^\*\//){
+    			$comment_block = 0;
+    			next;
+    		}
+
+            # Helper stuff
+            if($_ =~ /^Pipeline: (.+)$/){
+                $cf->{'pipeline_name'} = $1;
+            }
+
+    		# Get config variables
+    		if($_ =~ /^\@/ && !$comment_block){
+    			my @sections = split(/\t/, $_, 2);
+    			my $cname = substr($sections[0], 1);
+                $sections[1] = 1 if(!defined($sections[1]));
+    			if($cname eq 'notification'){
+    				$cf->{'config'}{'notifications'}{$sections[1]} = 1;
+    			} elsif($cname eq 'reference'){
+                    my @ref_sections = split(/\t/, $sections[1], 2);
+    				$cf->{'refs'}{$ref_sections[0]} = $ref_sections[1];
+    			} else {
+    				$cf->{'config'}{$cname} = $sections[1];
+    			}
+    		}
+
+            # Note - could get the pipeline tree here. Currently no need.
+
+    		# Get files
+    		if($_ =~ /^[^@#>]/ && !$comment_block){
+    			my @sections = split(/\t/, $_, 2);
+
+                # Clear out excess whitespace
+                $sections[1] =~ s/^\s+//;
+                $sections[1] =~ s/\s+$//;
+
+                # Files from previous job
+    			if(defined($cf->{'prev_job_id'}) && $sections[0] eq $cf->{'prev_job_id'}){
+    				push(@{$cf->{'prev_job_files'}}, $sections[1]);
+    			}
+
+                # Starting files
+                if($sections[0] eq 'start_000'){
+                    push(@{$cf->{'starting_files'}}, $sections[1]);
+                    $cf->{'num_starting_files'}++;
+                }
+
+                # All files, by module
+                if(!defined($cf->{'files'}{$sections[0]})){
+                    $cf->{'files'}{$sections[0]} = ();
+                }
+                push(@{$cf->{'files'}{$sections[0]}}, $sections[1]);
+
+    		}
+    	}
+
+    	close(RUN);
     }
 
-    my ($files_ref, $config_ref) = parse_runfile($runfile, $prev_job_id);
-    my @files = @$files_ref;
-    my %config = %$config_ref;
+    # Figure out how many merged files we're likely to have
+    my $regex;
+    if(defined($cf->{'config'}{'merge_regex'}) && length($cf->{'config'}{'merge_regex'}) > 0){
+    	$regex = $cf->{'config'}{'merge_regex'};
+    }
+    if(defined($cf->{'params'}{'regex'})){
+        $regex = $cf->{'params'}{'regex'};
+    }
+    if($regex){
+        my %file_sets;
+        for my $file (@{$cf->{'starting_files'}}){
+        	my $group = ($file =~ m/$regex/) ? $1 : $file;
+        	$file_sets{$group} = 1;
+        }
+        $cf->{'num_starting_merged_files'} = scalar(keys(%file_sets));
+    } else {
+        $cf->{'num_starting_merged_files'} = $cf->{'num_starting_files'};
+    }
 
-	# If we don't have any input files, bail now
-	if(scalar(@files) == 0 && $prev_job_id ne 'null' && !$summary_module){
-	    print "\n###CF Error! No file names found from job $prev_job_id. Exiting...\n\n";
-	    exit;
-	}
+    # How many aligned files? Just check for paired end or single end config
+    if(defined($cf->{'config'}{'force_paired_end'})){
+        $cf->{'num_starting_merged_aligned_files'} = $cf->{'num_starting_merged_files'} / 2;
+    } else {
+        $cf->{'num_starting_merged_aligned_files'} = $cf->{'num_starting_merged_files'};
+    }
 
-	return (\@files, $runfile, $job_id, $prev_job_id, $cores, $mem, \@parameters, \%config);
+    # No need to return anything, as we've been using a hash reference
 }
 
 
@@ -187,14 +332,14 @@ sub load_environment_modules {
 # Function to look at supplied file names and work out whether they're paired end or not
 sub is_paired_end {
 
-	my $config = shift;
+	my $cf = shift;
 
 	my @files = sort(@_);
 	my @se_files;
 	my @pe_files;
 
 	# Force Paired End or Single End if specified in the config
-	if(exists($config->{force_paired_end})){
+	if(exists($cf->{'config'}{'force_paired_end'})){
 		for (my $i = 0; $i <= $#files; $i++){
 			if($i < $#files){
 				my @pe = ($files[$i], $files[$i+1]);
@@ -206,7 +351,7 @@ sub is_paired_end {
 			}
 		}
 		return (\@se_files, \@pe_files);
-	} elsif(exists($config->{force_single_end})){
+	} elsif(exists($cf->{'config'}{'force_paired_end'})){
 		for (my $i = 0; $i <= $#files; $i++){
 			push (@se_files, $files[$i]);
 		}
@@ -449,39 +594,134 @@ sub parse_seconds {
 }
 
 
+# Function to convert a SLURM style timestamp to minutes
+# minutes
+# minutes:seconds
+# hours:minutes:seconds
+# days-hours
+# days-hours:minutes
+# days-hours:minutes:seconds
+sub timestamp_to_minutes {
+    my $timestamp = $_[0];
+    my $days = 0;
+    my $hours = 0;
+    my $minutes = 0;
+    my $seconds = 0;
+    my $re_hh = "([0-2]?[0-9])";
+    my $re_mm = "([0-5]?[0-9])";
 
-# Simple function to take human readable memory string and return bytes
+    # Make sure that we don't have any illegal characters
+    if($timestamp =~ /[^\d\-\:]/){
+        return 0;
+    }
+
+    # First - days
+    if($timestamp =~ /^(\d+)\-/){
+        $days = $1;
+        $timestamp =~ s/^(\d+)\-//;
+    }
+
+    # Progressively match colons to figure out what the rest is
+    if($timestamp =~ /^$re_hh\:$re_mm\:$re_mm$/){
+        $hours = $1;
+        $minutes = $2;
+        $seconds = $3;
+    } else {
+        if($days > 0){
+            if($timestamp =~ /^$re_hh\:$re_mm$/){
+                $hours = $1;
+                $minutes = $2;
+            } elsif(/^$re_hh$/){
+                $hours = $1;
+            }
+        } else {
+            if($timestamp =~ /^$re_mm\:$re_mm$/){
+                $minutes = $1;
+                $seconds = $2;
+            } elsif($timestamp =~ /^$re_mm$/){
+                $minutes = $1;
+            }
+        }
+    }
+
+    my $total_minutes = 0;
+    $total_minutes += $days * 24 * 60;
+    $total_minutes += $hours * 60;
+    $total_minutes += $minutes;
+    # We ignore seconds. Seriously, who does that?
+
+    return $total_minutes;
+
+}
+
+# Function to convert minutes to a SLURM time stamp. Reverse of above.
+sub minutes_to_timestamp {
+    my $minutes = $_[0];
+
+    # Check for illegal characters
+    if($minutes =~ /[^\d\.]/){
+        return 0;
+    }
+    $minutes = int($minutes);
+
+    my $days = int($minutes / (24 * 60));
+    $minutes -= $days * 24 * 60;
+    $minutes = ($minutes < 0) ? 0 : $minutes;
+
+    my $hours = int($minutes / 60);
+    $minutes -= $hours * 60;
+    $minutes = ($minutes < 0) ? 0 : $minutes;
+
+    $minutes = sprintf("%02d", $minutes);
+
+    if($days > 0){
+        return "$days-$hours:$minutes";
+    } elsif($hours > 0){
+        return "$hours:$minutes:00";
+    } else {
+        return "$minutes";
+    }
+}
+
+
+
+
+
+# Function to take human readable memory string and return bytes
 sub human_readable_to_bytes {
 
-	my ($memory_string) = @_;
-	(my $memory = $memory_string) =~ s/\D//g;
+	my $memory = $_[0];
+    my $suffix = '';
+    if($memory =~ /([tgmk])b?$/i){
+        $suffix = $1;
+    }
+	$memory =~ s/[^\d\.]//g;
 
-	# Cut off 'b' from Gb etc if accidentally present
-	$memory_string =~ s/b$//i;
-
-	if(substr(lc($memory_string), -1) eq 'g'){
+	if(lc($suffix) eq 't'){
+		$memory = $memory * 1000000000000;
+	} elsif(lc($suffix) eq 'g'){
 		$memory = $memory * 1000000000;
-	} elsif(substr(lc($memory_string), -1) eq 'm'){
+	} elsif(lc($suffix) eq 'm'){
 		$memory = $memory * 1000000;
-	} elsif(substr(lc($memory_string), -1) eq 'k'){
+	} elsif(lc($suffix) eq 'k'){
 		$memory = $memory * 1000;
 	}
 
 	return $memory;
 }
 
-# Simple function to take bytes and return a human readable memory string
+# Function to take bytes and return a human readable memory string
 sub bytes_to_human_readable {
 
 	my ($bytes) = @_;
 	$bytes =~ s/\D//g;
 
-	if(int($bytes/1073741824) > 0){
-		return sprintf("%.1f", $bytes/1073741824)."G";
-	} elsif(int($bytes/1048576) > 0){
-		return sprintf("%.1f", $bytes/1048576)."M";
-	} elsif(int($bytes/1024) > 0){
-		return sprintf("%.1f", $bytes/1048576)."K";
+	if(int($bytes/1000000000) > 0){
+		return ceil($bytes/1000000000)."G";
+	} elsif(int($bytes/1000000) > 0){
+		return ceil($bytes/1000000)."M";
+	} elsif(int($bytes/1000) > 0){
+		return ceil($bytes/1000)."K";
 	} else {
 		return $bytes."B";
 	}
@@ -489,11 +729,12 @@ sub bytes_to_human_readable {
 }
 
 # Simple function to take bytes and return a human readable memory string
+# NB: Rounds up with ceil()
 sub mem_return_mbs {
 
 	my ($mem) = @_;
 	$mem = human_readable_to_bytes($mem);
-	return sprintf("%.0f", $mem/1048576);
+	return ceil($mem/1000000);
 
 }
 
@@ -516,8 +757,9 @@ sub allocate_memory {
 
 	my ($allocated, $min, $max) = @_;
 
-	$max = CF::Helpers::human_readable_to_bytes($max);
-	$min = CF::Helpers::human_readable_to_bytes($min);
+    $allocated = human_readable_to_bytes($allocated);
+	$max = human_readable_to_bytes($max);
+	$min = human_readable_to_bytes($min);
 
 	if($allocated > $max){
 		return $max;

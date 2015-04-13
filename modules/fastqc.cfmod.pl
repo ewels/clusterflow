@@ -26,69 +26,49 @@ use CF::Helpers;
 # along with Cluster Flow.  If not, see <http://www.gnu.org/licenses/>.  #
 ##########################################################################
 
-# Get Options
-my $required_cores;
-my $required_mem;
-my $required_modules;
-my $run_fn;
-my $help;
-my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "runfn=s" => \$run_fn, "help" => \$help);
+# Module requirements
+my %requirements = (
+	'cores' 	=> '1',
+	'memory' 	=> '2G',
+	'modules' 	=> ['fastqc'],
+	'time' 		=> sub {
+		my $cf = $_[0];
+		my $num_files = $cf->{'num_starting_merged_files'};
+		$num_files = ($num_files > 0) ? $num_files : 1;
+		# FastQC typically takes less than 12 minutes per file
+		return CF::Helpers::minutes_to_timestamp ($num_files * 20);
+	}
+);
 
-# QSUB SETUP
-# --cores i = offered cores. Return number of required cores.
-if($required_cores){
-	print 1;
-	exit;
-}
-# --mem. Return the required memory allocation.
-if($required_mem){
-	print '2G';
-	exit;
-}
-# --modules. Return csv names of any modules which should be loaded.
-if($required_modules){
-	print 'fastqc';
-	exit;
-}
-# --help. Print help.
-if($help){
-	print "".("-"x15)."\n FastQC Module\n".("-"x15)."\n
+# Help text
+my $helptext = "".("-"x15)."\n FastQC Module\n".("-"x15)."\n
 FastQC is a quality control tool for high throughput sequence data.
 For further information, please run fastqc --help\n\n";
-	exit;
-}
+
+# Setup
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
+
 
 # MODULE
-my $timestart = time;
-
-# Read in the input files from the run file
-my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
-my %config = %$config_ref;
-
-open (RUN,'>>',$runfile) or die "###CF Error: Can't write to $runfile: $!";
+open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
 warn "---------- FastQC version information ----------\n";
 warn `fastqc --version`;
-warn "\n------- End of FastQC version information ------\n";	
+warn "\n------- End of FastQC version information ------\n";
 
 # Read any options from the pipeline parameters
-my $nogroup = "";
-foreach my $parameter (@$parameters){
-	if($parameter eq "nogroup"){
-		$nogroup = "--nogroup";
-	}
-}
-
+my $nogroup = defined($cf{'params'}{'nogroup'}) ? "--nogroup" : '';
 
 # Go through each supplied file and run FastQC.
-foreach my $file (@$files){
-	
+foreach my $file (@{$cf{'prev_job_files'}}){
+	my $timestart = time;
+
 	my $command = "fastqc -q $nogroup $file";
 	warn "\n###CFCMD $command\n\n";
-	
+
 	if(!system ($command)){
-		print RUN "$job_id\t$file\n";
+		print RUN "$cf{job_id}\t$file\n";
 		my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 		warn "###CF FastQC successfully ran, took $duration\n";
 	} else {

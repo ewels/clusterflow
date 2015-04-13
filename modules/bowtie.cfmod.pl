@@ -26,33 +26,23 @@ use CF::Helpers;
 # along with Cluster Flow.  If not, see <http://www.gnu.org/licenses/>.  #
 ##########################################################################
 
-# Get Options
-my $required_cores;
-my $required_mem;
-my $required_modules;
-my $run_fn;
-my $help;
-my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "runfn=s" => \$run_fn, "help" => \$help);
+# Module requirements
+my %requirements = (
+	'cores' 	=> ['1', '8'],
+	'memory' 	=> ['4G', '5G'],
+	'modules' 	=> ['bowtie','bowtie2','samtools'],
+	'time' 		=> sub {
+		my $cf = $_[0];
+		my $num_files = $cf->{'num_starting_merged_aligned_files'};
+		$num_files = ($num_files > 0) ? $num_files : 1;
+		# Bowtie alignment typically takes less than 10 hours per BAM file
+		# This is probably inaccurate? May need tweaking.
+		return CF::Helpers::minutes_to_timestamp ($num_files * 14 * 60);
+	}
+);
 
-# QSUB SETUP
-# --cores i = offered cores. Return number of required cores.
-if($required_cores){
-    print CF::Helpers::allocate_cores($required_cores, 1, 8);
-    exit;
-}
-# --mem. Return the required memory allocation.
-if($required_mem){
-    print CF::Helpers::allocate_memory($required_mem, '4G', '5G');
-    exit;
-}
-# --modules. Return csv names of any modules which should be loaded.
-if($required_modules){
-    print 'bowtie,bowtie2,samtools';
-    exit;
-}
-# --help. Print help.
-if($help){
-    print "".("-"x22)."\n Bowtie 1 or 2 Module\n".("-"x22)."\n
+# Help text
+my $helptext = "".("-"x22)."\n Bowtie 1 or 2 Module\n".("-"x22)."\n
 This module inspects the first input file and calculates the
 read length. If this is >= 50bp, it aligns with the Bowtie 2
 module. If not, it aligns with the Bowtie 1 module.\n
@@ -60,31 +50,28 @@ This module assumes that the bowtie1.cfmod and bowtie2.cfmod
 module files are contained within the same directory as this script.\n
 See cf --help bowtie1 and cf --help bowtie2 for more information
 on these modules.\n\n";
-    exit;
-}
+
+# Setup
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
+
 
 # MODULE
 
-# Read in the input files from the run file
-my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
-
 # Look at the read length of the first file
-if(!CF::Helpers::fastq_min_length($files->[0], 50)){
+if(!CF::Helpers::fastq_min_length($cf{'prev_job_files'}[0], 50)){
 	warn "\n\n###CF First file has reads < 50bp long. Using bowtie 1 for alignment.\n";
-	
+
 	my $command = "$FindBin::Bin/bowtie1.cfmod ".join(" ", @ARGV);
 	warn "\nBowtie 1 module command: $command\n\n";
-	
+
 	system($command);
-	
+
 } else {
 	warn "\n\n###CF First file has reads >= 50bp long. Using bowtie 2 for alignment.\n";
-	
+
 	my $command = "$FindBin::Bin/bowtie2.cfmod ".join(" ", @ARGV);
 	warn "\nBowtie 2 module command: $command\n\n";
-	
+
 	system($command);
-	
+
 }
-	
-	

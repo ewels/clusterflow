@@ -28,28 +28,24 @@ use Cwd;
 # along with Cluster Flow.  If not, see <http://www.gnu.org/licenses/>.  #
 ##########################################################################
 
+# Module requirements
+my %requirements = (
+	'cores' 	=> '1',
+	'memory' 	=> '1G',
+	'modules' 	=> '',
+	'time' 		=> '10'
+);
 
-# Get Options
-my $required_cores;
-my $required_mem;
-my $required_modules;
-my $run_fn;
-my $help;
-my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "runfn=s" => \$run_fn, "help" => \$help);
-if($required_cores || $required_mem || $required_modules){
-	exit;
-}
-if($help){
-	die "\nThis is a core module which is executed when each run has finished.\n";
-}
+# Help text
+my $helptext = "\nThis is a core module which is executed when a single run has finished.\n";
+
+# Setup
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 
 # MODULE
-# Read in the input files from the run file
-my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
-my %config = %$config_ref;
-my $pipeline = $parameters->[0];
-my $outfn = $parameters->[1];
+my $pipeline = $cf{'pipeline_name'};
+my $outfn = $cf{'params'}{'outfn'};
 
 # Find current directory
 my $cwd = getcwd()."/";
@@ -70,14 +66,14 @@ my $warnings = 0;
 my $highlights = 0;
 open (IN,'<',$outfn) or die "Can't read ".getcwd()."/$outfn - $!";
 while(<IN>){
-	
+
 	chomp;
-	
+
 	# Ignore crap
 	if(/^Warning: no access to tty/ || /^Thus no job control in this shell/ || /sh: module: line 1: syntax error: unexpected end of file/ || /sh: error importing function definition for/){
 		next;
 	}
-	
+
 	# First, strip the module identifier
 	if(s/^###CF_(.*?)://){
 		$modules{$1} .= "$_\n";
@@ -85,11 +81,11 @@ while(<IN>){
 	} else {
 		$unrecognised .= "$_\n";
 	}
-	
+
 	# Commands run
 	if(/^###CFCMD/){
 		push (@commands, substr($_, 9));
-		
+
 	# Highlight statuses
 	} elsif(/^###CF/){
 		push (@cf_highlights, substr($_, 6));
@@ -101,7 +97,7 @@ while(<IN>){
 				push (@highlightlines, $_);
 			}
 		}
-	
+
 		# Count any custom string errors
 		foreach my $warning_string (@LOG_WARNING_STRINGS){
 			if(/$warning_string/i){
@@ -110,7 +106,7 @@ while(<IN>){
 			}
 		}
 	}
-	
+
 	# Count out any CF errors
 	if(/error/i){
 		if (/^###CF/){
@@ -120,7 +116,7 @@ while(<IN>){
 
 	# Increment counter for module keys hash
 	$i++;
-	
+
 }
 close (IN);
 
@@ -147,8 +143,8 @@ print OUT $outfile;
 close OUT;
 
 # Send e-mail to submitter, if the config demands it
-if($config{notifications}{run} && defined($config{email})){
-	
+if($cf{'config'}{'notifications'}{'run'} && defined($cf{'config'}{'email'})){
+
 	# Write the plain-text e-mail body
 my $plain_content = "A run in the pipeline $pipeline has completed";
 if($errors > 0){
@@ -289,25 +285,23 @@ $html_content .= '
 
 <hr style="color: #d9d9d9; height: 1px; background: #d9d9d9; border: none;" />';
 
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
 	#### SEND THE EMAIL
-	my $to = $config{email};
-	my $subject = "$pipeline run compete - $runfile";
+	my $to = $cf{'config'}{'email'};
+	my $subject = "$pipeline run compete - $cf{run_fn}";
 	my $title = "Run Complete";
-	
+
 	if(CF::Helpers::send_email($subject, $to, $title, $html_content, $plain_content)){
 		warn "Sent a pipeline e-mail notification to $to\n";
 	} else {
 		warn "Error! Problem whilst trying to send a pipeline e-mail notification to $to\n";
 	}
 
-} elsif($config{notifications}{complete} && !defined($config{email})){
+} elsif($cf{'config'}{'notifications'}{'complete'} && !defined($cf{'config'}{'email'})){
 	warn "Error! Tried to send run e-mail notification but no e-mail address found in config\n";
 }
-
-

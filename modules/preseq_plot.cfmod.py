@@ -27,19 +27,31 @@ https://github.com/ewels/ngi_visualizations
 ##########################################################################
 
 from __future__ import print_function
+import datetime
+import sys
 from CF import Helpers
 
 try:
     from ngi_visualizations.preseq_complexity_curves import plot_complexity_curves
-except ImportError(e):
+except ImportError, e:
     print("###CF Error: ngi_visualizations Python Package not installed.\n", file=sys.stderr)
     raise ImportError(e)
 
-import argparse
-import datetime
-import sys
 
-def make_preseq_plots(parameters, required_cores=False, required_mem=False, required_modules=False, runfn=None, print_help=False):
+# Module requirements
+def mod_time_estimate(cf):
+    num_files = cf['num_starting_merged_aligned_files']
+    num_files = 1 if num_files < 1 else num_files
+    return Helpers.minutes_to_timestamp(num_files * 6 * 60);
+
+requirements = {
+	'cores':   '1',
+	'memory':  '3G',
+	'modules': '',
+	'time': mod_time_estimate
+}
+
+def make_preseq_plots(cf):
     """
     -----------------------
     Preseq Plotting Module
@@ -48,85 +60,41 @@ def make_preseq_plots(parameters, required_cores=False, required_mem=False, requ
     using the plot_complexity_curves() function in the ngi_visualizations
     Python package. This package is available here:
     https://github.com/ewels/ngi_visualizations
-    
+
     This module can be run either as a regular module: #plot_preseq
     or as a pipeline summary module: >plot_preseq
     If run as a summary module, all preseq curves will be plotted
-    in a single graph.    
+    in a single graph.
     """
-    
-    # QSUB SETUP
-    # --cores i = offered cores. Return number of required cores.
-    if required_cores:
-        print ('1', file=sys.stdout)
-        sys.exit(0)
 
-    # --mem. Return the required memory allocation.
-    if required_mem:
-        print ('3G', file=sys.stdout)
-        sys.exit(0)
-
-    # --modules. Return csv names of any modules which should be loaded.
-    if required_modules:
-        sys.exit(0)
-
-    # --help. Print help.
-    if print_help:
-        print (make_preseq_plots.__doc__, file=sys.stdout)
-        sys.exit(0)
-    
-    # Running the module properly now. Parse everything that we're given
-    # This includes reading the run file to get input filenames
-    p = Helpers.load_runfile_params(parameters)
-    timestart = datetime.datetime.now()
-    
     # Are we running as a summary module?
-    if 'summary_module' in p['parameters']:
-        runfiles = p['parameters']
-        while 'summary_module' in runfiles:
-            runfiles.remove('summary_module')
-        pipeline = runfiles.pop[0]
-        
+    if 'summary_module' in cf['parameters']:
+        timestart = datetime.datetime.now()
+
         # scrape the last file names from each run file
         preseq_files = []
-        for runfile in runfiles:
-            files, config = Helpers.parse_runfile(runfile, False, True)
+        for cf in cf['runfns']:
+            files, config = Helpers.parse_cf(cf, False, True)
             preseq_files.extend(files)
-        
+
         # Make one single plot with all files
-        plot_complexity_curves.plot_complexity_curves(preseq_files, output_name = "{}_preseq".format(pipeline))
+        plot_complexity_curves.plot_complexity_curves(preseq_files, output_name = "{}_preseq".format(cf['pipeline_name']))
+        duration = str(datetime.datetime.now() - timestart)
         print("\n###CFCMD Ran summary ngi_visualizations.plot_complexity_curves.plot_complexity_curves()\n\n", file=sys.stderr)
-        
-        
-    
+        print("###CF Preseq summary plot successfully exited, took {}..\n".format(duration), file=sys.stderr)
+
+
     # Make one plot per file
     else:
-        for fn in p['files']:
+        for fn in cf['files']:
+            timestart = datetime.datetime.now()
             plot_complexity_curves.plot_complexity_curves(fn)
+            duration = str(datetime.datetime.now() - timestart)
             print("\n###CFCMD Ran ngi_visualizations.plot_complexity_curves.plot_complexity_curves({})\n\n".format(fn), file=sys.stderr)
-    
-    # Print success message if we got this far
-    duration = str(datetime.datetime.now() - timestart)
-    print("###CF Preseq plots successfully exited, took {}..\n".format(duration), file=sys.stderr)
-    
-    
-    
+            print("###CF Preseq plot for {} successfully exited, took {}..\n".format(fn, duration), file=sys.stderr)
 
+
+# Setup
 if __name__ == "__main__":
-    # Command line arguments
-    parser = argparse.ArgumentParser("Make a scatter plot of FPKM counts between conditions")
-    parser.add_argument('--cores', dest='required_cores', action='store_true',
-                        help="Request the number of cores needed by the module.")
-    parser.add_argument('--mem', dest='required_mem', action='store_true',
-                        help="Request the amount of memory needed by the module.")
-    parser.add_argument('--modules', dest='required_modules', action='store_true',
-                        help="Request the names of environment modules needed by the module.")
-    parser.add_argument('--runfn', dest='runfn', type=str, default=None,
-                        help="Path to the Cluster Flow run file for this pipeline")
-    parser.add_argument('parameters', nargs='*', help="List of parameters.")
-    kwargs = vars(parser.parse_args())
-    
-    # Call make_preseq_plots()
-    make_preseq_plots(**kwargs)
-
-
+    cf = Helpers.module_start(requirements, make_preseq_plots.__doc__)
+    make_preseq_plots(cf)
