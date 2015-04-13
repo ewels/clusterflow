@@ -102,7 +102,7 @@ foreach my $folder (@module_folders){
                 }
             }
             # Unreocognised file type
-            elsif($file ne '.' && $file ne '..' && $file ne 'CF' && $file !~ /^example/) {
+            elsif($file ne '.' && $file ne '..' && $file ne 'CF' && $file !~ /^example/ && $file !~ /\.pyc$/) {
                 $unrecognised_filetype++;
 				my ($ext) = $file =~ /(\.[^\.]+)$/;
 				$unrecognised_filetypes{$ext} = 1;

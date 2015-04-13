@@ -82,20 +82,20 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 		warn "\n$file looks like a $filetype file\n";
 		# Recreate the output filename without the BAM extension.
 		($output_fn = $file) =~ s/\.[sb]am$//;
-		$output_fn .= .$output_suffix;
+		$output_fn .= $output_suffix;
 	} else {
 		warn "\n Can't determine file-type for $file. Assuming sam... \n";
 		$filetype = "sam";
 	}
 
 	# The indexing command
-	my $index_command = "samtools index $fn";
+	my $index_command = "samtools index $file";
 
 	# Try to index if we have a BAM file
 	if($filetype eq "bam"){
 		# Samtools index returns 0 even if it fails. Look for the .bai file instead.
 		system ($index_command);
-		if(-e "$fn.bai"){
+		if(-e "$file.bai"){
 			# samtools worked - print out resulting filenames
 			warn "\n###CFCMD $index_command\n\n";
 			print RUN $cf{'job_id'}."\t$file\n";
@@ -136,7 +136,7 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 			$timestart = time;
 			warn "\n###CFCMD $index_command\n\n";
 			system ($index_command);
-			if(-e "$fn.bai"){
+			if(-e "$file.bai"){
 				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 				warn "###CF samtools index successfully exited, took $duration. Skipping sort.\n";
 			} else {
