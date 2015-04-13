@@ -70,31 +70,43 @@ warn "------- End of Samtools version information ------\n";
 foreach my $file (@{$cf{'prev_job_files'}}){
 	my $timestart = time;
 
+	# Output file name - the .bam is looked for later
+	my $output_suffix = "_srtd";
+	$output_suffix .= 'n' if ($namesort eq '-n');
+	my $output_fn = $file.$output_suffix;
+
 	# Figure out the file type
 	my $filetype = "";
 	if (lc($file) =~ /\.([sb]am$)/){
 		$filetype = $1;
 		warn "\n$file looks like a $filetype file\n";
+		# Recreate the output filename without the BAM extension.
+		($output_fn = $file) =~ s/\.[sb]am$//;
+		$output_fn .= .$output_suffix;
 	} else {
 		warn "\n Can't determine file-type for $file. Assuming sam... \n";
 		$filetype = "sam";
 	}
 
+	# The indexing command
+	my $index_command = "samtools index $fn";
+
 	# Try to index if we have a BAM file
 	if($filetype eq "bam"){
-		if(samtools_index($file)){
+		# Samtools index returns 0 even if it fails. Look for the .bai file instead.
+		system ($index_command);
+		if(-e "$fn.bai"){
 			# samtools worked - print out resulting filenames
+			warn "\n###CFCMD $index_command\n\n";
 			print RUN $cf{'job_id'}."\t$file\n";
 			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 			warn "###CF samtools index successfully exited, took $duration. Skipping sort.\n";
 			# If we could index, file must already be sorted.
 			next;
+		} else {
+			warn "Samtools index failed, file not sorted. Going on to sorting step...\n";
 		}
 	}
-
-	# Output file name
-	my $output_fn = $file."_srtd";
-	$output_fn .= 'n' if ($namesort eq '-n');
 
 	# Pipe BAM stream if we need it
 	my $command = '';
@@ -122,7 +134,9 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 
 			# Index the sorted file
 			$timestart = time;
-			if(samtools_index($file)){
+			warn "\n###CFCMD $index_command\n\n";
+			system ($index_command);
+			if(-e "$fn.bai"){
 				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 				warn "###CF samtools index successfully exited, took $duration. Skipping sort.\n";
 			} else {
@@ -137,19 +151,6 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 		warn "\n###CF Error! samtools sort failed, exited in an error state: $? $!\n\n";
 	}
 }
-
-
-# we want e.g. samtools view -bS ./input.sam | samtools sort - outfile
-sub samtools_index {
-	my $fn = $_[0];
-	my $command = "samtools index $fn";
-	warn "\n###CFCMD $command\n\n";
-
-	# Samtools returns 0 even if it fails. Look for the .bai file instead.
-	system ($command);
-	return (-e "$fn.bai");
-}
-
 
 
 close (RUN);
