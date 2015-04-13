@@ -27,22 +27,21 @@ https://github.com/ewels/ngi_visualizations
 ##########################################################################
 
 from __future__ import print_function
+import datetime
+import sys
 from CF import Helpers
 
 try:
     from ngi_visualizations.preseq_complexity_curves import plot_complexity_curves
-except ImportError(e):
+except ImportError, e:
     print("###CF Error: ngi_visualizations Python Package not installed.\n", file=sys.stderr)
     raise ImportError(e)
 
-import argparse
-import datetime
-import sys
-
 
 # Module requirements
-def mod_time_estimate(runfile):
-    num_files = runfile['num_starting_merged_aligned_files']
+def mod_time_estimate(cf):
+    num_files = cf['num_starting_merged_aligned_files']
+    num_files = 1 if num_files < 1 else num_files
     return Helpers.minutes_to_timestamp(num_files * 6 * 60);
 
 requirements = {
@@ -52,13 +51,7 @@ requirements = {
 	'time': mod_time_estimate
 }
 
-# Setup
-if __name__ == "__main__":
-    runfile = Helpers.module_start(requirements, make_preseq_plots.__doc__)
-    make_preseq_plots(runfile)
-
-
-def make_preseq_plots(runfile):
+def make_preseq_plots(cf):
     """
     -----------------------
     Preseq Plotting Module
@@ -75,17 +68,17 @@ def make_preseq_plots(runfile):
     """
 
     # Are we running as a summary module?
-    if 'summary_module' in runfile['parameters']:
+    if 'summary_module' in cf['parameters']:
         timestart = datetime.datetime.now()
 
         # scrape the last file names from each run file
         preseq_files = []
-        for runfile in runfile['runfns']:
-            files, config = Helpers.parse_runfile(runfile, False, True)
+        for cf in cf['runfns']:
+            files, config = Helpers.parse_cf(cf, False, True)
             preseq_files.extend(files)
 
         # Make one single plot with all files
-        plot_complexity_curves.plot_complexity_curves(preseq_files, output_name = "{}_preseq".format(runfile['pipeline_name']))
+        plot_complexity_curves.plot_complexity_curves(preseq_files, output_name = "{}_preseq".format(cf['pipeline_name']))
         duration = str(datetime.datetime.now() - timestart)
         print("\n###CFCMD Ran summary ngi_visualizations.plot_complexity_curves.plot_complexity_curves()\n\n", file=sys.stderr)
         print("###CF Preseq summary plot successfully exited, took {}..\n".format(duration), file=sys.stderr)
@@ -93,9 +86,15 @@ def make_preseq_plots(runfile):
 
     # Make one plot per file
     else:
-        for fn in runfile['files']:
+        for fn in cf['files']:
             timestart = datetime.datetime.now()
             plot_complexity_curves.plot_complexity_curves(fn)
             duration = str(datetime.datetime.now() - timestart)
             print("\n###CFCMD Ran ngi_visualizations.plot_complexity_curves.plot_complexity_curves({})\n\n".format(fn), file=sys.stderr)
             print("###CF Preseq plot for {} successfully exited, took {}..\n".format(fn, duration), file=sys.stderr)
+
+
+# Setup
+if __name__ == "__main__":
+    cf = Helpers.module_start(requirements, make_preseq_plots.__doc__)
+    make_preseq_plots(cf)

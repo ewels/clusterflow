@@ -234,7 +234,7 @@ sub parse_runfile {
             # Note - could get the pipeline tree here. Currently no need.
 
     		# Get files
-    		if($_ =~ /^[^@#]/ && !$comment_block){
+    		if($_ =~ /^[^@#>]/ && !$comment_block){
     			my @sections = split(/\t/, $_, 2);
 
                 # Clear out excess whitespace
@@ -275,10 +275,8 @@ sub parse_runfile {
     if($regex){
         my %file_sets;
         for my $file (@{$cf->{'starting_files'}}){
-        	my $group = ($file =~ m/$regex/) ? $1 : 'file';
-        	if(!defined($file_sets{$group})){
-        		$file_sets{$group} = 1;
-        	}
+        	my $group = ($file =~ m/$regex/) ? $1 : $file;
+        	$file_sets{$group} = 1;
         }
         $cf->{'num_starting_merged_files'} = scalar(keys(%file_sets));
     } else {
@@ -676,7 +674,6 @@ sub minutes_to_timestamp {
 
     $minutes = sprintf("%02d", $minutes);
 
-    my $timestamp = '';
     if($days > 0){
         return "$days-$hours:$minutes";
     } elsif($hours > 0){

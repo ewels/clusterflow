@@ -62,6 +62,7 @@ if($help){
 #
 print "## Step One: Checking core Cluster Flow syntax.\n";
 system("perl -c ".$base_dir."cf");
+system("pyflakes ".$base_dir."source/CF/*py");
 
 
 #
@@ -71,6 +72,7 @@ print "\n## Step Two: Checking module script syntax.\n";
 my $num_passed = 0;
 my $num_failed = 0;
 my $unrecognised_filetype = 0;
+my %unrecognised_filetypes;
 my @modules;
 foreach my $folder (@module_folders){
     if(-e $folder){
@@ -91,8 +93,8 @@ foreach my $folder (@module_folders){
             }
             # Check Python files
             elsif($file =~ /\.cfmod\.py$/){
-                if(system("python -m py_compile $path > /dev/null 2>&1")){
-                    print "Error! $path did not compile\n";
+                if(system("pyflakes $path > /dev/null 2>&1")){
+					system("pyflakes $path");
                     $num_failed++;
                 } else {
                     push(@modules, $path);
@@ -100,14 +102,16 @@ foreach my $folder (@module_folders){
                 }
             }
             # Unreocognised file type
-            elsif($file ne '.' && $file ne '..') {
+            elsif($file ne '.' && $file ne '..' && $file ne 'CF' && $file !~ /^example/) {
                 $unrecognised_filetype++;
+				my ($ext) = $file =~ /(\.[^\.]+)$/;
+				$unrecognised_filetypes{$ext} = 1;
             }
         }
         closedir(DIR);
     }
 }
-print "$num_passed modules passed, $num_failed failed and $unrecognised_filetype had an unrecognised file type.\n";
+print "$num_passed modules passed, $num_failed failed and $unrecognised_filetype had an unrecognised file type (".join(', ', keys(%unrecognised_filetypes)).").\n";
 
 #
 # STEP THREE - TRY TO GET REQUIREMENTS FROM PASSED MODULES
