@@ -32,8 +32,8 @@ my %requirements = (
 	'memory' 	=> ['4G', '5G'],
 	'modules' 	=> ['bowtie','bowtie2','samtools'],
 	'time' 		=> sub {
-		my $runfile = $_[0];
-		my $num_files = $runfile->{'num_starting_merged_aligned_files'};
+		my $cf = $_[0];
+		my $num_files = $cf->{'num_starting_merged_aligned_files'};
 		$num_files = ($num_files > 0) ? $num_files : 1;
 		# Bowtie alignment typically takes less than 10 hours per BAM file
 		# This is probably inaccurate? May need tweaking.
@@ -52,13 +52,13 @@ See cf --help bowtie1 and cf --help bowtie2 for more information
 on these modules.\n\n";
 
 # Setup
-my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 
 # MODULE
 
 # Look at the read length of the first file
-if(!CF::Helpers::fastq_min_length($runfile{'prev_job_files'}[0], 50)){
+if(!CF::Helpers::fastq_min_length($cf{'prev_job_files'}[0], 50)){
 	warn "\n\n###CF First file has reads < 50bp long. Using bowtie 1 for alignment.\n";
 
 	my $command = "$FindBin::Bin/bowtie1.cfmod ".join(" ", @ARGV);

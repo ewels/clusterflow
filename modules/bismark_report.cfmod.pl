@@ -43,7 +43,7 @@ overwriting previously generated reports.\n
 For further information, please run bismark2report --help\n\n";
 
 # Setup
-my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 
 # --version. Returns version information about the module.

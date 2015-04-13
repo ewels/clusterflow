@@ -5,7 +5,7 @@ use warnings;
 use strict;
 use Exporter;
 use FindBin qw($Bin);
-use Getopt::Long qw(GetOptionsFromArray);
+use Getopt::Long;
 use POSIX qw(ceil strftime);
 use Time::Local;
 use CF::Constants;
@@ -37,7 +37,7 @@ use CF::Constants;
 # subroutines) and the help text string.
 sub module_start {
     # Incoming..
-    my ($clargs, $reqs, $helptext) = @_;
+    my ($reqs, $helptext) = @_;
 
     # Get Command Line Options
     my $get_requirements;
@@ -48,7 +48,7 @@ sub module_start {
     my $mem;
     my %params;
     my $help;
-    my $result = GetOptionsFromArray ($clargs,
+    my $result = GetOptions (
         "requirements"      => \$get_requirements,
         "run_fn=s"          => \@run_fns,
         "job_id=s"          => \$job_id,
@@ -68,8 +68,8 @@ sub module_start {
     ($modname = $mod_fn) =~ s/\.cfmod.pl$//i; # Always a perl file here
     $modname =~ s/^.*\///i;
 
-    # Initialise the run file hash
-    my %runfile = (
+    # Initialise the cf hash
+    my %cf = (
         'run_fn'        => $run_fn,
         'run_fns'       => \@run_fns,
         'modname'       => $modname,
@@ -98,13 +98,13 @@ sub module_start {
     if($get_requirements){
 
         # Parse the run file(s)
-        parse_runfile(\%runfile);
+        parse_runfile(\%cf);
 
         # Run through the supplied requirements and print
         foreach my $key (keys (%{$reqs})){
             # Been given a function
             if(ref($reqs->{$key}) eq 'CODE'){
-                print "$key: ".$reqs->{$key}(\%runfile)."\n";
+                print "$key: ".$reqs->{$key}(\%cf)."\n";
             }
             # Been given an array
             elsif(ref($reqs->{$key}) eq 'ARRAY'){
@@ -136,7 +136,7 @@ sub module_start {
     }
 
     # Parse everything we can from the run file
-    parse_runfile(\%runfile);
+    parse_runfile(\%cf);
 
     # Print the module header if needed
     if(!defined($params{'hide_log_header'})){
@@ -158,7 +158,7 @@ sub module_start {
     }
 
 	# If we don't have any input files, bail now
-	if(!defined($runfile{'prev_job_files'}) || scalar(@{$runfile{'prev_job_files'}}) == 0){
+	if(!defined($cf{'prev_job_files'}) || scalar(@{$cf{'prev_job_files'}}) == 0){
         if($prev_job_id && $prev_job_id ne 'null' && !defined($params{'summary_module'})){
     	    print "\n###CF Error! No file names found from job $prev_job_id. Exiting...\n\n";
     	    exit;
@@ -166,32 +166,32 @@ sub module_start {
 	}
 
     # Return the hash of dreams
-    return %runfile;
+    return %cf;
 
 }
 
 
 # Open the run file and parse it's contents.
-# Input arguments: Reference to %runfile
+# Input arguments: Reference to %cf
 # Returns: Nothing (updates hash reference in place)
 sub parse_runfile {
 
     # Get incoming hash reference
-    my $runfile = $_[0];
+    my $cf = $_[0];
 
     # Set up new hash variables if we need them
-    $runfile->{'refs'} = {}                             if(!defined($runfile->{'refs'}));
-	$runfile->{'config'} = {}                           if(!defined($runfile->{'config'}));
-	$runfile->{'config'}{'notifications'} = {}          if(!defined($runfile->{'config'}{'notifications'}));
-	$runfile->{'prev_job_files'} = ()                   if(!defined($runfile->{'prev_job_files'}));
-	$runfile->{'starting_files'} = ()                   if(!defined($runfile->{'starting_files'}));
-    $runfile->{'files'} = {}                            if(!defined($runfile->{'files'}));
-    $runfile->{'num_starting_files'} = 0                if(!defined($runfile->{'num_starting_files'}));
-    $runfile->{'num_starting_merged_files'} = 0         if(!defined($runfile->{'num_starting_merged_files'}));
-    $runfile->{'num_starting_merged_aligned_files'} = 0 if(!defined($runfile->{'num_starting_merged_aligned_files'}));
+    $cf->{'refs'} = {}                             if(!defined($cf->{'refs'}));
+	$cf->{'config'} = {}                           if(!defined($cf->{'config'}));
+	$cf->{'config'}{'notifications'} = {}          if(!defined($cf->{'config'}{'notifications'}));
+	$cf->{'prev_job_files'} = ()                   if(!defined($cf->{'prev_job_files'}));
+	$cf->{'starting_files'} = ()                   if(!defined($cf->{'starting_files'}));
+    $cf->{'files'} = {}                            if(!defined($cf->{'files'}));
+    $cf->{'num_starting_files'} = 0                if(!defined($cf->{'num_starting_files'}));
+    $cf->{'num_starting_merged_files'} = 0         if(!defined($cf->{'num_starting_merged_files'}));
+    $cf->{'num_starting_merged_aligned_files'} = 0 if(!defined($cf->{'num_starting_merged_aligned_files'}));
 
     # Go through each run file
-    foreach my $runfn (@{$runfile->{'run_fns'}}){
+    foreach my $runfn (@{$cf->{'run_fns'}}){
         open (RUN, $runfn) or die "Can't read $runfn: $!";
     	my $comment_block = 0;
     	while(<RUN>){
@@ -213,7 +213,7 @@ sub parse_runfile {
 
             # Helper stuff
             if($_ =~ /^Pipeline: (.+)$/){
-                $runfile->{'pipeline_name'} = $1;
+                $cf->{'pipeline_name'} = $1;
             }
 
     		# Get config variables
@@ -222,12 +222,12 @@ sub parse_runfile {
     			my $cname = substr($sections[0], 1);
                 $sections[1] = 1 if(!defined($sections[1]));
     			if($cname eq 'notification'){
-    				$runfile->{'config'}{'notifications'}{$sections[1]} = 1;
+    				$cf->{'config'}{'notifications'}{$sections[1]} = 1;
     			} elsif($cname eq 'reference'){
                     my @ref_sections = split(/\t/, $sections[1], 2);
-    				$runfile->{'refs'}{$ref_sections[0]} = $ref_sections[1];
+    				$cf->{'refs'}{$ref_sections[0]} = $ref_sections[1];
     			} else {
-    				$runfile->{'config'}{$cname} = $sections[1];
+    				$cf->{'config'}{$cname} = $sections[1];
     			}
     		}
 
@@ -242,21 +242,21 @@ sub parse_runfile {
                 $sections[1] =~ s/\s+$//;
 
                 # Files from previous job
-    			if(defined($runfile->{'prev_job_id'}) && $sections[0] eq $runfile->{'prev_job_id'}){
-    				push(@{$runfile->{'prev_job_files'}}, $sections[1]);
+    			if(defined($cf->{'prev_job_id'}) && $sections[0] eq $cf->{'prev_job_id'}){
+    				push(@{$cf->{'prev_job_files'}}, $sections[1]);
     			}
 
                 # Starting files
                 if($sections[0] eq 'start_000'){
-                    push(@{$runfile->{'starting_files'}}, $sections[1]);
-                    $runfile->{'num_starting_files'}++;
+                    push(@{$cf->{'starting_files'}}, $sections[1]);
+                    $cf->{'num_starting_files'}++;
                 }
 
                 # All files, by module
-                if(!defined($runfile->{'files'}{$sections[0]})){
-                    $runfile->{'files'}{$sections[0]} = ();
+                if(!defined($cf->{'files'}{$sections[0]})){
+                    $cf->{'files'}{$sections[0]} = ();
                 }
-                push(@{$runfile->{'files'}{$sections[0]}}, $sections[1]);
+                push(@{$cf->{'files'}{$sections[0]}}, $sections[1]);
 
     		}
     	}
@@ -266,30 +266,30 @@ sub parse_runfile {
 
     # Figure out how many merged files we're likely to have
     my $regex;
-    if(defined($runfile->{'config'}{'merge_regex'}) && length($runfile->{'config'}{'merge_regex'}) > 0){
-    	$regex = $runfile->{'config'}{'merge_regex'};
+    if(defined($cf->{'config'}{'merge_regex'}) && length($cf->{'config'}{'merge_regex'}) > 0){
+    	$regex = $cf->{'config'}{'merge_regex'};
     }
-    if(defined($runfile->{'params'}{'regex'})){
-        $regex = $runfile->{'params'}{'regex'};
+    if(defined($cf->{'params'}{'regex'})){
+        $regex = $cf->{'params'}{'regex'};
     }
     if($regex){
         my %file_sets;
-        for my $file (@{$runfile->{'starting_files'}}){
+        for my $file (@{$cf->{'starting_files'}}){
         	my $group = ($file =~ m/$regex/) ? $1 : 'file';
         	if(!defined($file_sets{$group})){
         		$file_sets{$group} = 1;
         	}
         }
-        $runfile->{'num_starting_merged_files'} = scalar(keys(%file_sets));
+        $cf->{'num_starting_merged_files'} = scalar(keys(%file_sets));
     } else {
-        $runfile->{'num_starting_merged_files'} = $runfile->{'num_starting_files'};
+        $cf->{'num_starting_merged_files'} = $cf->{'num_starting_files'};
     }
 
     # How many aligned files? Just check for paired end or single end config
-    if(defined($runfile->{'config'}{'force_paired_end'})){
-        $runfile->{'num_starting_merged_aligned_files'} = $runfile->{'num_starting_merged_files'} / 2;
+    if(defined($cf->{'config'}{'force_paired_end'})){
+        $cf->{'num_starting_merged_aligned_files'} = $cf->{'num_starting_merged_files'} / 2;
     } else {
-        $runfile->{'num_starting_merged_aligned_files'} = $runfile->{'num_starting_merged_files'};
+        $cf->{'num_starting_merged_aligned_files'} = $cf->{'num_starting_merged_files'};
     }
 
     # No need to return anything, as we've been using a hash reference
@@ -334,14 +334,14 @@ sub load_environment_modules {
 # Function to look at supplied file names and work out whether they're paired end or not
 sub is_paired_end {
 
-	my $runfile = shift;
+	my $cf = shift;
 
 	my @files = sort(@_);
 	my @se_files;
 	my @pe_files;
 
 	# Force Paired End or Single End if specified in the config
-	if(exists($runfile->{'config'}{'force_paired_end'})){
+	if(exists($cf->{'config'}{'force_paired_end'})){
 		for (my $i = 0; $i <= $#files; $i++){
 			if($i < $#files){
 				my @pe = ($files[$i], $files[$i+1]);
@@ -353,7 +353,7 @@ sub is_paired_end {
 			}
 		}
 		return (\@se_files, \@pe_files);
-	} elsif(exists($runfile->{'config'}{'force_paired_end'})){
+	} elsif(exists($cf->{'config'}{'force_paired_end'})){
 		for (my $i = 0; $i <= $#files; $i++){
 			push (@se_files, $files[$i]);
 		}

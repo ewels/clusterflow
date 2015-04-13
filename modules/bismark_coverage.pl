@@ -32,8 +32,8 @@ my %requirements = (
 	'memory' 	=> ['3G', '10G'],
 	'modules' 	=> 'bismark',
 	'time' 		=> sub {
-		my $runfile = $_[0];
-		my $num_files = $runfile->{'num_starting_merged_aligned_files'};
+		my $cf = $_[0];
+		my $num_files = $cf->{'num_starting_merged_aligned_files'};
         $num_files = ($num_files > 0) ? $num_files : 1;
 		# Bismark coverage analysis typically takes less than 2 hours per BAM file
 		return CF::Helpers::minutes_to_timestamp ($num_files * 4 * 60);
@@ -51,17 +51,17 @@ experiment for information about targeted enrichment.\n".
 "Use coverage2cytosine --help for more information.\n\n";
 
 # Setup
-my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 # MODULE
 # Check that we have a genome defined
-if(!defined($runfile{'refs'}{'fasta'})){
-   die "\n\n###CF Error: No genome fasta path found in run file $runfile{run_fn} for job $runfile{job_id}. Exiting..";
+if(!defined($cf{'refs'}{'fasta'})){
+   die "\n\n###CF Error: No genome fasta path found in run file $cf{run_fn} for job $cf{job_id}. Exiting..";
 } else {
-    warn "\nAligning against $runfile{refs}{fasta}\n\n";
+    warn "\nAligning against $cf{refs}{fasta}\n\n";
 }
 
-open (RUN,'>>',$runfile{'run_fn'}) or die "###CF Error: Can't write to $runfile{run_fn}: $!";
+open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
 warn "---------- bismark coverage2cytosine version information ----------\n";
@@ -69,11 +69,11 @@ warn `coverage2cytosine --version`;
 warn "\n------- End of bismark_methylation_extractor version information ------\n";
 
 # Read any options from the pipeline parameters
-my $capture_regions = (defined($runfile{'params'}{'capture_regions'})) ? $runfile{'params'}{'capture_regions'} : 0;
+my $capture_regions = (defined($cf{'params'}{'capture_regions'})) ? $cf{'params'}{'capture_regions'} : 0;
 
 
 # Go through each file and deduplicate
-foreach my $file (@{$runfile{'prev_job_files'}}){
+foreach my $file (@{$cf{'prev_job_files'}}){
 	my $timestart = time;
 
     # Step 1 - Make the genome wide coverage report
@@ -81,7 +81,7 @@ foreach my $file (@{$runfile{'prev_job_files'}}){
 	$file =~ s/.[bs]am$//;
 	$file .= '.bismark.cov';
     my $output_cov_fn = substr($file,0 ,-3)."gwCov.cov";
-    my $cmd = "coverage2cytosine --genome_folder $runfile{refs}{fasta} $file -o $output_cov_fn";
+    my $cmd = "coverage2cytosine --genome_folder $cf{refs}{fasta} $file -o $output_cov_fn";
     warn "\n###CFCMD $cmd\n\n";
 
     if(!system ($cmd)){
@@ -89,7 +89,7 @@ foreach my $file (@{$runfile{'prev_job_files'}}){
         my $duration =  CF::Helpers::parse_seconds(time - $timestart);
         warn "###CF Bismark coverage2cytosine successfully exited, took $duration..\n";
         if(-e $output_cov_fn){
-            print RUN "$runfile{job_id}\t$output_cov_fn\n";
+            print RUN "$cf{job_id}\t$output_cov_fn\n";
         } else {
             warn "\n###CF Error! Bismark coverage2cytosine output file $output_cov_fn not found..\n";
             next;

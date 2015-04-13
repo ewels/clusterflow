@@ -32,8 +32,8 @@ my %requirements = (
 	'memory' 	=> ['3G', '30G'],
 	'modules' 	=> 'bismark',
 	'time' 		=> sub {
-		my $runfile = $_[0];
-		my $num_files = $runfile->{'num_starting_merged_aligned_files'};
+		my $cf = $_[0];
+		my $num_files = $cf->{'num_starting_merged_aligned_files'};
 		$num_files = ($num_files > 0) ? $num_files : 1;
 		# Bismark deduplication typically takes less than an hour per BAM file
 		return CF::Helpers::minutes_to_timestamp ($num_files * 2 * 60);
@@ -48,10 +48,10 @@ Bismark mapping output which can arise by e.g. excessive PCR amplification.\n
 For further information please run deduplicate_bismark --help \n\n";
 
 # Setup
-my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 # MODULE
-open (RUN,'>>',$runfile{'run_fn'}) or die "###CF Error: Can't write to $runfile{run_fn}: $!";
+open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
 warn "---------- deduplicate_bismark version information ----------\n";
@@ -59,7 +59,7 @@ warn `deduplicate_bismark --version`;
 warn "\n------- End of deduplicate_bismark version information ------\n";
 
 # Go through each file and deduplicate
-foreach my $file (@{$runfile{'prev_job_files'}}){
+foreach my $file (@{$cf{'prev_job_files'}}){
 	my $timestart = time;
 
 	my $output_fn = substr($file,0 ,-3)."deduplicated.bam";
@@ -76,7 +76,7 @@ foreach my $file (@{$runfile{'prev_job_files'}}){
 			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 			warn "###CF Bismark deduplication (PE mode) successfully exited, took $duration..\n";
 			if(-e $output_fn){
-				print RUN "$runfile{job_id}\t$output_fn\n";
+				print RUN "$cf{job_id}\t$output_fn\n";
 			} else {
 				warn "\n###CF Error! Bismark output file $output_fn not found..\n";
 			}
@@ -95,7 +95,7 @@ foreach my $file (@{$runfile{'prev_job_files'}}){
 			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 			warn "###CF Bismark deduplication (SE mode) successfully exited, took $duration..\n";
 			if(-e $output_fn){
-				print RUN "$runfile{job_id}\t$output_fn\n";
+				print RUN "$cf{job_id}\t$output_fn\n";
 			} else {
 				warn "\n###CF Error! Bismark output file $output_fn not found..\n";
 			}

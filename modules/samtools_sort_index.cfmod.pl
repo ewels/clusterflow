@@ -31,8 +31,8 @@ my %requirements = (
 	'memory' 	=> ['8G', '30G'],
 	'modules' 	=> 'samtools',
 	'time' 		=> sub {
-		my $runfile = $_[0];
-		my $num_files = $runfile->{'num_starting_merged_aligned_files'};
+		my $cf = $_[0];
+		my $num_files = $cf->{'num_starting_merged_aligned_files'};
 		$num_files = ($num_files > 0) ? $num_files : 1;
 		# Sorting + indexing typically takes less than 1 hour per BAM file
 		return CF::Helpers::minutes_to_timestamp ($num_files * 60);
@@ -49,17 +49,17 @@ Index files are written to disk but not written to CF run files.
 Using parameter 'byname' or '-n' in pipeline forces sorting by read name.\n";
 
 # Setup
-my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 # MODULE
-my $mem = CF::Helpers::human_readable_to_bytes($runfile{'memory'});
-my $mem_per_thread = CF::Helpers::bytes_to_human_readable(int($mem / $runfile{'cores'}));
-warn "\n\nSamtools memory per thread: $mem_per_thread. Cores: $runfile{cores}\n\n\n";
+my $mem = CF::Helpers::human_readable_to_bytes($cf{'memory'});
+my $mem_per_thread = CF::Helpers::bytes_to_human_readable(int($mem / $cf{'cores'}));
+warn "\n\nSamtools memory per thread: $mem_per_thread. Cores: $cf{cores}\n\n\n";
 
 # Set up optional parameters
-my $namesort = (defined($runfile{'params'}{'byname'})) ? '-n' : '';
+my $namesort = (defined($cf{'params'}{'byname'})) ? '-n' : '';
 
-open (RUN,'>>',$runfile{'run_fn'}) or die "###CF Error: Can't write to $runfile{run_fn}: $!";
+open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
 warn "---------- Samtools version information ----------\n";
@@ -67,7 +67,7 @@ warn `samtools 2>&1 | head -n 4`;
 warn "------- End of Samtools version information ------\n";
 
 # we want e.g. samtools view -bS ./input.sam | samtools sort - outfile
-foreach my $file (@{$runfile{'prev_job_files'}}){
+foreach my $file (@{$cf{'prev_job_files'}}){
 	my $timestart = time;
 
 	# Figure out the file type
@@ -84,7 +84,7 @@ foreach my $file (@{$runfile{'prev_job_files'}}){
 	if($filetype eq "bam"){
 		if(samtools_index($file)){
 			# samtools worked - print out resulting filenames
-			print RUN $runfile{'job_id'}."\t$file\n";
+			print RUN $cf{'job_id'}."\t$file\n";
 			unless (-e "$file.bai"){
 				warn "\n###CF Error! samtools index output file $file.bai not found..\n";
 			} else {
@@ -122,7 +122,7 @@ foreach my $file (@{$runfile{'prev_job_files'}}){
 		}
 
 		if(-e $output_fn){
-			print RUN $runfile{'job_id'}."\t$output_fn\n";
+			print RUN $cf{'job_id'}."\t$output_fn\n";
 
 			# Index the sorted file
 			$timestart = time;

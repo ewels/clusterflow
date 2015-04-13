@@ -40,12 +40,12 @@ my %requirements = (
 my $helptext = "\nThis is a core module which is executed when a single run has finished.\n";
 
 # Setup
-my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 
 # MODULE
-my $pipeline = $runfile{'pipeline_name'};
-my $outfn = $runfile{'params'}{'outfn'};
+my $pipeline = $cf{'pipeline_name'};
+my $outfn = $cf{'params'}{'outfn'};
 
 # Find current directory
 my $cwd = getcwd()."/";
@@ -143,7 +143,7 @@ print OUT $outfile;
 close OUT;
 
 # Send e-mail to submitter, if the config demands it
-if($runfile{'config'}{'notifications'}{'run'} && defined($runfile{'config'}{'email'})){
+if($cf{'config'}{'notifications'}{'run'} && defined($cf{'config'}{'email'})){
 
 	# Write the plain-text e-mail body
 my $plain_content = "A run in the pipeline $pipeline has completed";
@@ -292,8 +292,8 @@ $html_content .= '
 
 
 	#### SEND THE EMAIL
-	my $to = $runfile{'config'}{'email'};
-	my $subject = "$pipeline run compete - $runfile{run_fn}";
+	my $to = $cf{'config'}{'email'};
+	my $subject = "$pipeline run compete - $cf{run_fn}";
 	my $title = "Run Complete";
 
 	if(CF::Helpers::send_email($subject, $to, $title, $html_content, $plain_content)){
@@ -302,6 +302,6 @@ $html_content .= '
 		warn "Error! Problem whilst trying to send a pipeline e-mail notification to $to\n";
 	}
 
-} elsif($runfile{'config'}{'notifications'}{'complete'} && !defined($runfile{'config'}{'email'})){
+} elsif($cf{'config'}{'notifications'}{'complete'} && !defined($cf{'config'}{'email'})){
 	warn "Error! Tried to send run e-mail notification but no e-mail address found in config\n";
 }

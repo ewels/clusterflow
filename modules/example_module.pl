@@ -62,7 +62,7 @@ use File::Copy qw(move);
 # First, we set the module requirements. These should be supplied as a hash with
 # four keys: cores, memory, modules and time. Each can be specified as a string
 # (will be printed verbatim), an array (min and max for cores and memory) or a
-# subroutine. Subroutines will supplied with a single variable - the %runfile hash
+# subroutine. Subroutines will supplied with a single variable - the %cf hash
 # reference with all available info at the time.
 my %requirements = (
 	'cores' 	=> ('1', '8'), # number in this range will be chosen according to --cores
@@ -71,17 +71,17 @@ my %requirements = (
 	'time' 		=> sub {
 
 		# Get the runfile hash reference
-		my $runfile = $_[0];
+		my $cf = $_[0];
 
 		# Example to print the available keys in the supplied hash. Typical
 		# useful keys: {'num_starting_files'}, {'num_starting_merged_files'}, {'num_starting_merged_aligned_files'}
 		# {'pipeline_name'}, {'config'}{'force_paired_end'}, {'refs'}{'reftype'}, {'config'}{'email'}
 		use Data::Dumper;
-		warn Dumper($runfile);
+		warn Dumper($cf);
 
 		# This key estimates how many files there will be after merging
 		# and alignment (eg. no separate paired end files)
-		my $num_files = $runfile->{'num_starting_merged_aligned_files'};
+		my $num_files = $cf->{'num_starting_merged_aligned_files'};
 
 		# Default to 1 if none were parsed for whatever reason
 		$num_files = ($num_files > 0) ? $num_files : 1;
@@ -104,9 +104,9 @@ It doesn't do anything, but its source code is nicely commented..\n\n";
 # Pass everything to the helper function. This parses all of the information
 # possible from the supplied run file. If --requirements or --help has been
 # passed, it gives the relevant output and exits. If the module is running
-# "for real", it returns a hash (not a hash reference) into %runfile with
+# "for real", it returns a hash (not a hash reference) into %cf with
 # lots of useful information needed for the module.
-my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 
 
@@ -116,12 +116,12 @@ my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
 #
 
 # Check that we have a reference genome defined, die if we don't.
-if(!defined($runfile{'refs'}{'fasta'})){
+if(!defined($cf{'refs'}{'fasta'})){
 	# Any STDERR / STDOUT prefixed with ###CF will be highlighted in the summary e-mails
-	die "\n\n###CF Error: No genome fasta path found in run file $runfile{run_fn} for job $runfile{job_id}. Exiting..";
+	die "\n\n###CF Error: No genome fasta path found in run file $cf{run_fn} for job $cf{job_id}. Exiting..";
 } else {
 	# This goes into the log file, but not the summary e-mail
-    warn "\nUsing the genome path: ".$runfile{'refs'}{'fasta'}."\n\n";
+    warn "\nUsing the genome path: ".$cf{'refs'}{'fasta'}."\n\n";
 }
 
 # Print version information about the program to be executed.
@@ -134,18 +134,18 @@ warn "\n------- End of < module > version information ------\n";
 # at run time (eg. cf --param myparamter mymodule *gz)
 # Typically, this is how you add extras into the command for later. You
 # can do whatever you like with these though.
-my $param_flag = (defined($runfile{'params'}{'param_flag'})) ? "--param_flag" : '';
-my $param_var = (defined($runfile{'params'}{'param_var'})) ? "--param_var ".$runfile{'params'}{'param_var'} : '';
-if(defined($runfile{'params'}{'panic'})){
+my $param_flag = (defined($cf{'params'}{'param_flag'})) ? "--param_flag" : '';
+my $param_var = (defined($cf{'params'}{'param_var'})) ? "--param_var ".$cf{'params'}{'param_var'} : '';
+if(defined($cf{'params'}{'panic'})){
 	die "Oh no! '--param panic' was specified!";
 }
 
 # Open up our run file in append mode
-open (RUN,'>>',$runfile{'run_fn'}) or die "###CF Error: Can't write to $runfile{run_fn}: $!";
+open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Separate file names into single end and paired end. The array
 # gives the file names written to the run file from the previous job
-my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%runfile, @{$runfile{'prev_job_files'}});
+my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%cf, @{$cf{'prev_job_files'}});
 
 # Initiate the FastQ encoding type variable.
 # Once we've found the encoding for one file, we'll assume all others are the same
@@ -174,7 +174,7 @@ if($se_files && scalar(@$se_files) > 0){
 		my $output_fn = $file."_processed.output";
 
 		# Write our command!
-		my $command = "my_command $enc $param_flag $param_var -c $runfile{cores} -m $runfile{mem} -g $runfile{refs}{fasta} -i $file -o $output_fn";
+		my $command = "my_command $enc $param_flag $param_var -c $cf{cores} -m $cf{mem} -g $cf{refs}{fasta} -i $file -o $output_fn";
 		# Write the command to the log file
 		warn "\n###CFCMD $command\n\n";
 
@@ -191,7 +191,7 @@ if($se_files && scalar(@$se_files) > 0){
 			if(-e $output_fn){
 				# Print the current job ID and the output filename to the run file
 				# This is so that subsequent modules can use this output
-				print RUN "$runfile{job_id}\t$output_fn\n";
+				print RUN "$cf{job_id}\t$output_fn\n";
 			} else {
 				# Oops - can't find the output file!
 				warn "\n###CF Error! Example module output file $output_fn not found..\n";
@@ -232,7 +232,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			my $output_fn = $files[0]."_".$files[1]."_processed.output";
 
 			# Write our command!
-			my $command = "my_command $enc $param_flag $param_var -c $runfile{cores} -m $runfile{mem} -g $runfile{refs}{fasta} -1 $files[0] -2 $files[1] -o $output_fn";
+			my $command = "my_command $enc $param_flag $param_var -c $cf{cores} -m $cf{mem} -g $cf{refs}{fasta} -1 $files[0] -2 $files[1] -o $output_fn";
 			# Write the command to the log file
 			warn "\n###CFCMD $command\n\n";
 
@@ -249,7 +249,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 				if(-e $output_fn){
 					# Print the current job ID and the output filename to the run file
 					# This is so that subsequent modules can use this output
-					print RUN "$runfile{job_id}\t$output_fn\n";
+					print RUN "$cf{job_id}\t$output_fn\n";
 				} else {
 					# Oops - can't find the output file!
 					warn "\n###CF Error! Example module output file $output_fn not found\n";

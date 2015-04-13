@@ -42,7 +42,7 @@ It reads these, looking for certain values, and generates a .csv and .html
 summary report of the numbers for all samples processed in the pipeline.\n\n";
 
 # Setup
-my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 
 # MODULE
@@ -50,16 +50,16 @@ my $timestart = time;
 
 
 # Setup variables
-my $pipeline = $runfile{'pipeline_name'};
-my $pipeline_id = $runfile{'params'}{'pipeline_name'};
-my @runfiles = $runfile{'run_fns'};
+my $pipeline = $cf{'pipeline_name'};
+my $pipeline_id = $cf{'params'}{'pipeline_name'};
+my @runfiles = $cf{'run_fns'};
 my $report_basename = $pipeline_id."_bismark_summary";
 
 my @bam_files;
 my %stats;
 
 # Find the original bismark aligned BAM files
-while( my( $job_id, $files ) = each %{$runfile{'files'}} ){
+while( my( $job_id, $files ) = each %{$cf{'files'}} ){
     if($job_id =~ m/^bismark_align_\d+/){
     	push(@bam_files, @{$files});
 	}

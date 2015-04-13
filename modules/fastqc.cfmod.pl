@@ -32,8 +32,8 @@ my %requirements = (
 	'memory' 	=> '2G',
 	'modules' 	=> ['fastqc'],
 	'time' 		=> sub {
-		my $runfile = $_[0];
-		my $num_files = $runfile->{'num_starting_merged_files'};
+		my $cf = $_[0];
+		my $num_files = $cf->{'num_starting_merged_files'};
 		$num_files = ($num_files > 0) ? $num_files : 1;
 		# FastQC typically takes less than 12 minutes per file
 		return CF::Helpers::minutes_to_timestamp ($num_files * 20);
@@ -46,11 +46,11 @@ FastQC is a quality control tool for high throughput sequence data.
 For further information, please run fastqc --help\n\n";
 
 # Setup
-my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 
 # MODULE
-open (RUN,'>>',$runfile{'run_fn'}) or die "###CF Error: Can't write to $runfile{run_fn}: $!";
+open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
 warn "---------- FastQC version information ----------\n";
@@ -58,17 +58,17 @@ warn `fastqc --version`;
 warn "\n------- End of FastQC version information ------\n";
 
 # Read any options from the pipeline parameters
-my $nogroup = defined($runfile{'params'}{'nogroup'}) ? "--nogroup" : '';
+my $nogroup = defined($cf{'params'}{'nogroup'}) ? "--nogroup" : '';
 
 # Go through each supplied file and run FastQC.
-foreach my $file (@{$runfile{'prev_job_files'}}){
+foreach my $file (@{$cf{'prev_job_files'}}){
 	my $timestart = time;
-	
+
 	my $command = "fastqc -q $nogroup $file";
 	warn "\n###CFCMD $command\n\n";
 
 	if(!system ($command)){
-		print RUN "$runfile{job_id}\t$file\n";
+		print RUN "$cf{job_id}\t$file\n";
 		my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 		warn "###CF FastQC successfully ran, took $duration\n";
 	} else {

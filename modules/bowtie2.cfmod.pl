@@ -32,8 +32,8 @@ my %requirements = (
 	'memory' 	=> ['4G', '5G'],
 	'modules' 	=> ['bowtie2','samtools'],
 	'time' 		=> sub {
-		my $runfile = $_[0];
-		my $num_files = $runfile->{'num_starting_merged_aligned_files'};
+		my $cf = $_[0];
+		my $num_files = $cf->{'num_starting_merged_aligned_files'};
 		$num_files = ($num_files > 0) ? $num_files : 1;
 		# Bowtie2 alignment typically takes less than 10 hours per BAM file
 		# This is probably inaccurate? May need tweaking.
@@ -53,17 +53,17 @@ generate BAM files.\n
 For further information, please run bowtie2 --help\n\n";
 
 # Setup
-my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 # MODULE
 # Check that we have a genome defined
-if(!defined($runfile{'refs'}{'bowtie2'})){
-   die "\n\n###CF Error: No bowtie2 reference path found in run file $runfile{run_fn} for job $runfile{job_id}. Exiting.. ###";
+if(!defined($cf{'refs'}{'bowtie2'})){
+   die "\n\n###CF Error: No bowtie2 reference path found in run file $cf{run_fn} for job $cf{job_id}. Exiting.. ###";
 } else {
-    warn "\nAligning against $runfile{refs}{bowtie2}\n\n";
+    warn "\nAligning against $cf{refs}{bowtie2}\n\n";
 }
 
-open (RUN,'>>',$runfile{'run_fn'}) or die "###CF Error: Can't write to $runfile{run_fn}: $!";
+open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
 warn "---------- Bowtie 2 version information ----------\n";
@@ -74,7 +74,7 @@ warn "\n------- End of Bowtie 2 version information ------\n";
 my $encoding = 0;
 
 # Separate file names into single end and paired end
-my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%runfile, @{$runfile{'prev_job_files'}});
+my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%cf, @{$cf{'prev_job_files'}});
 
 # Go through each single end files and run Bowtie
 if($se_files && scalar(@$se_files) > 0){
@@ -92,7 +92,7 @@ if($se_files && scalar(@$se_files) > 0){
 
 		my $output_fn = $file."_bowtie2.bam";
 
-		my $command = "bowtie2 -p $runfile{cores} -t $enc -x $runfile{refs}{bowtie2} -U $file | samtools view -bS - > $output_fn";
+		my $command = "bowtie2 -p $cf{cores} -t $enc -x $cf{refs}{bowtie2} -U $file | samtools view -bS - > $output_fn";
 		warn "\n###CFCMD $command\n\n";
 
 		if(!system ($command)){
@@ -100,7 +100,7 @@ if($se_files && scalar(@$se_files) > 0){
 			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 			warn "###CF Bowtie2 (SE mode) successfully exited, took $duration..\n";
 			if(-e $output_fn){
-				print RUN "$runfile{job_id}\t$output_fn\n";
+				print RUN "$cf{job_id}\t$output_fn\n";
 			} else {
 				warn "\n###CF Error! Bowtie2 output file $output_fn not found..\n";
 			}
@@ -128,7 +128,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 
 			my $output_fn = $files[0]."_bowtie2.bam";
 
-			my $command = "bowtie2 -p $runfile{cores} -t $enc -x $runfile{refs}{bowtie2} -1 ".$files[0]." -2 ".$files[1]." | samtools view -bS - > $output_fn";
+			my $command = "bowtie2 -p $cf{cores} -t $enc -x $cf{refs}{bowtie2} -1 ".$files[0]." -2 ".$files[1]." | samtools view -bS - > $output_fn";
 			warn "\n###CFCMD $command\n\n";
 
 			if(!system ($command)){
@@ -136,7 +136,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 				warn "###CF Bowtie2 (PE mode) successfully exited, took $duration..\n";
 				if(-e $output_fn){
-					print RUN "$runfile{job_id}\t$output_fn\n";
+					print RUN "$cf{job_id}\t$output_fn\n";
 				} else {
 					warn "\n###CF Error! Bowtie2 output file $output_fn not found..\n";
 				}

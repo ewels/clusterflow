@@ -40,16 +40,16 @@ my %requirements = (
 my $helptext = "\nThis is a core module which is executed when all runs have finished.\n";
 
 # Setup
-my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 # MODULE
 
-my $pipeline = $runfile{'pipeline_name'};
+my $pipeline = $cf{'pipeline_name'};
 # Get the output filenames
 my $i = 1;
 my @outfns;
-while(defined($runfile{'params'}{'outfn_'.$i})){
-	push(@outfns, $runfile{'params'}{'outfn_'.$i});
+while(defined($cf{'params'}{'outfn_'.$i})){
+	push(@outfns, $cf{'params'}{'outfn_'.$i});
 	$i++;
 }
 
@@ -61,7 +61,7 @@ warn "\n###CF Pipeline $pipeline finished at $date\n\n";
 my $startdate = "?";
 my $duration = "?";
 my $pipeline_id = 'unknown_pipeline';
-if($runfile{'job_id'} =~ /^cf_(.+)_(\d{10})_(.+)_\d{1,3}$/){
+if($cf{'job_id'} =~ /^cf_(.+)_(\d{10})_(.+)_\d{1,3}$/){
 	my $startdate_epoch = $2;
 	$pipeline_id = "cf_$1_$2";
 	$startdate = strftime ("%H:%M %d-%m-%Y", localtime($startdate_epoch));
@@ -153,7 +153,7 @@ foreach my $outfile (@outfns){
 
 
 # Send e-mail to submitter, if the config demands it
-if($runfile{'config'}{'notifications'}{'complete'} && defined($runfile{'config'}{'email'})){
+if($cf{'config'}{'notifications'}{'complete'} && defined($cf{'config'}{'email'})){
 
 	# Write the plain-text e-mail body
 my $plain_content = "The pipeline $pipeline has completed";
@@ -386,7 +386,7 @@ $html_content .= '</ul><hr style="color: #d9d9d9; height: 1px; background: #d9d9
 
 
 	#### SEND THE EMAIL
-	my $to = $runfile{'config'}{'email'};
+	my $to = $cf{'config'}{'email'};
 	my $subject = "$pipeline pipeline complete";
 	my $title = "Run Complete";
 
@@ -405,6 +405,6 @@ $html_content .= '</ul><hr style="color: #d9d9d9; height: 1px; background: #d9d9
 	print PLAIN $text_email;
 	close(PLAIN);
 
-} elsif($runfile{'config'}{'notifications'}{'complete'} && !defined($runfile{'config'}{'email'})){
+} elsif($cf{'config'}{'notifications'}{'complete'} && !defined($cf{'config'}{'email'})){
 	warn "Error! Tried to send run e-mail notification but no e-mail address found in config\n";
 }

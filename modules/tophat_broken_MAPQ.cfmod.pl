@@ -33,8 +33,8 @@ my %requirements = (
 	'memory' 	=> ['3G', '4G'],
 	'modules' 	=> ['tophat', 'samtools'],
 	'time' 		=> sub {
-		my $runfile = $_[0];
-		my $num_files = $runfile->{'num_starting_merged_aligned_files'};
+		my $cf = $_[0];
+		my $num_files = $cf->{'num_starting_merged_aligned_files'};
 		$num_files = ($num_files > 0) ? $num_files : 1;
 		# Alignment typically takes less than 4 hours per BAM file
 		return CF::Helpers::minutes_to_timestamp ($num_files * 5 * 60);
@@ -58,21 +58,21 @@ authors, in the mean time, you can use the new tophat.cfmod module
 to fix this behaviour.\n\n";
 
 # Setup
-my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 # MODULE
 # Check that we have a genome defined
-if(!defined($runfile{'refs'}{'bowtie'})){
-	warn "\n\n###CF Error: No bowtie path found in run file $runfile{run_fn} for job $runfile{job_id}. Exiting..";
+if(!defined($cf{'refs'}{'bowtie'})){
+	warn "\n\n###CF Error: No bowtie path found in run file $cf{run_fn} for job $cf{job_id}. Exiting..";
 	exit;
 } else {
-	warn "\nAligning against bowtie path: $runfile{refs}{bowtie}\n\n";
+	warn "\nAligning against bowtie path: $cf{refs}{bowtie}\n\n";
 }
 
 # Use a GTF file if we have one
-my $gtf = defined($runfile{'refs'}{'gtf'}) ? "-G $runfile{refs}{gtf}" : '';
+my $gtf = defined($cf{'refs'}{'gtf'}) ? "-G $cf{refs}{gtf}" : '';
 
-open (RUN,'>>',$runfile{'run_fn'}) or die "###CF Error: Can't write to $runfile{run_fn}: $!";
+open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
 warn "---------- Tophat version information ----------\n";
@@ -80,7 +80,7 @@ warn `tophat --version`;
 warn "\n------- End of Tophat version information ------\n";
 
 # Separate file names into single end and paired end
-my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%runfile, @{$runfile{'prev_job_files'}});
+my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%cf, @{$cf{'prev_job_files'}});
 
 # FastQ encoding type. Once found on one file will assume all others are the same
 my $encoding = 0;
@@ -116,7 +116,7 @@ if($se_files && scalar(@$se_files) > 0){
 
 		my $output_fn = $output_dir."/accepted_hits.bam";
 
-		my $command = "tophat -p $runfile{cores} -g 1 $enc $gtf -o $output_dir $runfile{refs}{bowtie} $file";
+		my $command = "tophat -p $cf{cores} -g 1 $enc $gtf -o $output_dir $cf{refs}{bowtie} $file";
 		warn "\n###CFCMD $command\n\n";
 
 		if(!system ($command)){
@@ -125,7 +125,7 @@ if($se_files && scalar(@$se_files) > 0){
 			warn "###CF Tophat (SE mode) successfully exited, took $duration..\n";
 			if(-e $output_fn){
 				$output_fn = clean_output($output_dir, $file);
-				print RUN "$runfile{job_id}\t$output_fn\n";
+				print RUN "$cf{job_id}\t$output_fn\n";
 			} else {
 				warn "\n###CF Error! Tophat output file $output_fn not found..\n";
 			}
@@ -168,7 +168,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 
 			my $output_fn = $output_dir."/accepted_hits.bam";
 
-			my $command = "tophat -p $runfile{cores} -g 1 $enc $gtf -o $output_dir $runfile{refs}{bowtie} $files[0] $files[1]";
+			my $command = "tophat -p $cf{cores} -g 1 $enc $gtf -o $output_dir $cf{refs}{bowtie} $files[0] $files[1]";
 			warn "\n###CFCMD $command\n\n";
 
 			if(!system ($command)){
@@ -177,7 +177,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 				warn "###CF Tophat (PE mode) successfully exited, took $duration....\n";
 				if(-e $output_fn){
 					$output_fn = clean_output($output_dir, $files[0]);
-					print RUN "$runfile{job_id}\t$output_fn\n";
+					print RUN "$cf{job_id}\t$output_fn\n";
 				} else {
 					warn "\n###CF Error! Tophat output file $output_fn not found\n";
 				}

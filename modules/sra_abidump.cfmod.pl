@@ -32,8 +32,8 @@ my %requirements = (
 	'memory' 	=> '500M',
 	'modules' 	=> 'sratoolkit',
 	'time' 		=> sub {
-		my $runfile = $_[0];
-		my $num_files = $runfile->{'num_starting_files'};
+		my $cf = $_[0];
+		my $num_files = $cf->{'num_starting_files'};
 		$num_files = ($num_files > 0) ? $num_files : 1;
 		# Who knows? If it tries six times per file, could take ages!
 		return CF::Helpers::minutes_to_timestamp ($num_files * 5 * 60);
@@ -46,10 +46,10 @@ This module uses the sra toolkit abi-dump package
 to extract  csqual and csfasta files from .sra input.\n\n";
 
 # Setup
-my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 # MODULE
-open (RUN,'>>',$runfile{'run_fn'}) or die "###CF Error: Can't write to $runfile{run_fn}: $!";
+open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
 warn "---------- ABI Dump version information ----------\n";
@@ -57,7 +57,7 @@ warn `abi-dump --version`;
 warn "\n------- End of ABI Dump version information ------\n";
 
 # Go through each supplied file and run abi-dump.
-foreach my $file (@{$runfile{'prev_job_files'}}){
+foreach my $file (@{$cf{'prev_job_files'}}){
 
 	my $timestart = time;
 
@@ -75,7 +75,7 @@ foreach my $file (@{$runfile{'prev_job_files'}}){
 			# SOLiD Dump worked - print out resulting filenames
 			foreach my $output_fn (@outputfiles){
 				if(-e $output_fn){
-					print RUN "$runfile{job_id}\t$output_fn\n";
+					print RUN "$cf{job_id}\t$output_fn\n";
 				} else {
 					warn "\n###CF Error! SRA dump files $output_fn not found..\n\n";
 				}

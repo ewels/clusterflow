@@ -32,8 +32,8 @@ my %requirements = (
 	'memory' 	=> ['3G', '10G'],
 	'modules' 	=> 'bismark',
 	'time' 		=> sub {
-		my $runfile = $_[0];
-		my $num_files = $runfile->{'num_starting_merged_aligned_files'};
+		my $cf = $_[0];
+		my $num_files = $cf->{'num_starting_merged_aligned_files'};
 		$num_files = ($num_files > 0) ? $num_files : 1;
 		# Bismark methylation extraction typically takes less than 4 hours per BAM file
 		return CF::Helpers::minutes_to_timestamp ($num_files * 6 * 60);
@@ -49,10 +49,10 @@ and CHH context.\n".
 "Use bismark_methylation_extractor --help for more information.\n\n";
 
 # Setup
-my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 # MODULE
-open (RUN,'>>',$runfile{'run_fn'}) or die "###CF Error: Can't write to $runfile{run_fn}: $!";
+open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
 warn "---------- bismark_methylation_extractor version information ----------\n";
@@ -60,12 +60,12 @@ warn `bismark_methylation_extractor --version`;
 warn "\n------- End of bismark_methylation_extractor version information ------\n";
 
 # Go through each file and deduplicate
-foreach my $file (@{$runfile{'prev_job_files'}}){
+foreach my $file (@{$cf{'prev_job_files'}}){
 	my $timestart = time;
 
 	# Find if PE or SE from input BAM file
 	if(CF::Helpers::is_bam_paired_end($file)){
-		my $command = "bismark_methylation_extractor --multi $runfile{cores} --ignore_r2 2 --bedGraph --counts --buffer_size $runfile{memory} --gzip -p --no_overlap --report $file";
+		my $command = "bismark_methylation_extractor --multi $cf{cores} --ignore_r2 2 --bedGraph --counts --buffer_size $cf{memory} --gzip -p --no_overlap --report $file";
 		warn "\n###CFCMD $command\n\n";
 
 		# Paired End BAM file
@@ -76,7 +76,7 @@ foreach my $file (@{$runfile{'prev_job_files'}}){
 			my @output_fns = find_Xtracted_fns($file);
 			if(scalar(@output_fns) > 0){
 				foreach(@output_fns){
-					print RUN "$runfile{job_id}\t$_\n";
+					print RUN "$cf{job_id}\t$_\n";
 				}
 			} else {
 				warn "\n###CF Error! No bismark meth extrator output files found for input file '$file'..\n";
@@ -87,7 +87,7 @@ foreach my $file (@{$runfile{'prev_job_files'}}){
 
 	} else {
 
-		my $command = "bismark_methylation_extractor --multi $runfile{cores} --bedGraph --counts --buffer_size $runfile{memory} --gzip -s --report $file";
+		my $command = "bismark_methylation_extractor --multi $cf{cores} --bedGraph --counts --buffer_size $cf{memory} --gzip -s --report $file";
 		warn "\n###CFCMD $command\n\n";
 
 		# Single End BAM file
@@ -98,7 +98,7 @@ foreach my $file (@{$runfile{'prev_job_files'}}){
 			my @output_fns = find_Xtracted_fns($file);
 			if(scalar(@output_fns) > 0){
 				foreach(@output_fns){
-					print RUN "$runfile{job_id}\t$_\n";
+					print RUN "$cf{job_id}\t$_\n";
 				}
 			} else {
 				warn "\n###CF Error! No bismark meth extrator output files found for input file '$file'..\n";

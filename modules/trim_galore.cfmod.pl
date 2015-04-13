@@ -32,8 +32,8 @@ my %requirements = (
 	'memory' 	=> '3G',
 	'modules' 	=> ['fastqc','cutadapt','trim_galore'],
 	'time' 		=> sub {
-		my $runfile = $_[0];
-		my $num_files = $runfile->{'num_starting_merged_files'};
+		my $cf = $_[0];
+		my $num_files = $cf->{'num_starting_merged_files'};
 		$num_files = ($num_files > 0) ? $num_files : 1;
 		# Trim Galore typically takes less than 3 hours per file
 		return CF::Helpers::minutes_to_timestamp ($num_files * 4 * 60);
@@ -54,10 +54,10 @@ Illumina common adapter sequence to trim with, but this can be
 overridden by specifying adapter=[Sequence] in the options.\n\n";
 
 # Setup
-my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 # MODULE
-open (RUN,'>>',$runfile{'run_fn'}) or die "###CF Error: Can't write to $runfile{run_fn}: $!";
+open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
 warn "---------- Cutadapt version information ----------\n";
@@ -68,30 +68,30 @@ warn `trim_galore --version`;
 warn "\n------- End of Trim Galore! version information ------\n";
 
 # Read options from the pipeline parameters
-my $min_readlength = defined($runfile{'params'}{'min_readlength'}) ? $runfile{'params'}{'min_readlength'} : 50;
-my $q_cutoff = defined($runfile{'params'}{'q'}) ? "-q ".$runfile{'params'}{'q_cutoff'} : '';
-my $stringency = defined($runfile{'params'}{'stringency'}) ? "--stringency ".$runfile{'params'}{'stringency'} : '';
-my $adapter = defined($runfile{'params'}{'adapter'}) ? "--adapter ".uc($runfile{'params'}{'adapter'}) : '';
-my $RRBS = defined($runfile{'params'}{'RRBS'}) ? "--RRBS" : '';
+my $min_readlength = defined($cf{'params'}{'min_readlength'}) ? $cf{'params'}{'min_readlength'} : 50;
+my $q_cutoff = defined($cf{'params'}{'q'}) ? "-q ".$cf{'params'}{'q_cutoff'} : '';
+my $stringency = defined($cf{'params'}{'stringency'}) ? "--stringency ".$cf{'params'}{'stringency'} : '';
+my $adapter = defined($cf{'params'}{'adapter'}) ? "--adapter ".uc($cf{'params'}{'adapter'}) : '';
+my $RRBS = defined($cf{'params'}{'RRBS'}) ? "--RRBS" : '';
 
 my $clip_r1 = "";
 my $clip_r2 = "";
-if(defined($runfile{'params'}{'pbat'})){
+if(defined($cf{'params'}{'pbat'})){
 	$clip_r1 = "--clip_r1 4";
 	$clip_r2 = "--clip_r2 4";
 }
-if(defined($runfile{'params'}{'single_cell'})){
+if(defined($cf{'params'}{'single_cell'})){
 	$clip_r1 = "--clip_r1 9";
 	$clip_r2 = "--clip_r2 9";
 }
 
 
 # Are these reads long enough to trim? Check first file and assume same for rest
-if(!CF::Helpers::fastq_min_length($runfile{'prev_job_files'}[0], $min_readlength)){
+if(!CF::Helpers::fastq_min_length($cf{'prev_job_files'}[0], $min_readlength)){
 	# First file didn't have long enough reads for trimming
 	# Print output filenames and exit
-	foreach my $file (@{$runfile{'prev_job_files'}}){
-		print RUN "$runfile{job_id}\t$file\n";
+	foreach my $file (@{$cf{'prev_job_files'}}){
+		print RUN "$cf{job_id}\t$file\n";
 	}
 	close (RUN);
 	warn "###CF Trim galore didn't run as reads were too short..\n";
@@ -102,7 +102,7 @@ if(!CF::Helpers::fastq_min_length($runfile{'prev_job_files'}[0], $min_readlength
 my $encoding = 0;
 
 # Separate file names into single end and paired end
-my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%runfile, @{$runfile{'prev_job_files'}});
+my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%cf, @{$cf{'prev_job_files'}});
 
 # Go through each single end files and run trim galore
 if($se_files && scalar(@$se_files) > 0){
@@ -120,7 +120,7 @@ if($se_files && scalar(@$se_files) > 0){
 
 		my $output_fn = trim_galore_basename($file).'_trimmed.fq.gz';
 
-		my $fqc = (defined($runfile{'params'}{'nofastqc'})) ? '' : '--fastqc_args "-q"';
+		my $fqc = (defined($cf{'params'}{'nofastqc'})) ? '' : '--fastqc_args "-q"';
 
 		my $command = "trim_galore --gzip $enc $stringency $RRBS $adapter $q_cutoff $clip_r1 $fqc $file";
 
@@ -131,7 +131,7 @@ if($se_files && scalar(@$se_files) > 0){
 			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 			warn "###CF Trim galore (SE mode) successfully exited, took $duration..\n";
 			if(-e $output_fn){
-				print RUN "$runfile{job_id}\t$output_fn\n";
+				print RUN "$cf{job_id}\t$output_fn\n";
 			} else {
 				warn "\n###CF Error! Trim Galore output file $output_fn not found..\n";
 			}
@@ -164,7 +164,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			my $output_fn_1 = trim_galore_basename($files[0]).'_val_1.fq.gz';
 			my $output_fn_2 = trim_galore_basename($files[1]).'_val_2.fq.gz';
 
-			my $fqc = (defined($runfile{'params'}{'nofastqc'})) ? '' : '--fastqc';
+			my $fqc = (defined($cf{'params'}{'nofastqc'})) ? '' : '--fastqc';
 
 			my $command = "trim_galore --paired --gzip $enc $stringency $RRBS $adapter $q_cutoff $clip_r1 $clip_r2 $fqc $files[0] $files[1]";
 
@@ -175,12 +175,12 @@ if($pe_files && scalar(@$pe_files) > 0){
 				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 				warn "###CF Trim galore (PE mode) successfully exited, took $duration..\n";
 				if(-e $output_fn_1){
-					print RUN "$runfile{job_id}\t$output_fn_1\n";
+					print RUN "$cf{job_id}\t$output_fn_1\n";
 				} else {
 					warn "\n###CF Error! Trim Galore output file $output_fn_1 not found..\n";
 				}
 				if(-e $output_fn_2){
-					print RUN "$runfile{job_id}\t$output_fn_2\n";
+					print RUN "$cf{job_id}\t$output_fn_2\n";
 				} else {
 					warn "\n###CF Error! Trim Galore output file $output_fn_2 not found..\n";
 				}

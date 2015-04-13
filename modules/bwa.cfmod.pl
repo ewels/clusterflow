@@ -32,8 +32,8 @@ my %requirements = (
 	'memory' 	=> ['3G', '5G'],
 	'modules' 	=> ['bwa','samtools'],
 	'time' 		=> sub {
-		my $runfile = $_[0];
-		my $num_files = $runfile->{'num_starting_merged_aligned_files'};
+		my $cf = $_[0];
+		my $num_files = $cf->{'num_starting_merged_aligned_files'};
 		$num_files = ($num_files > 0) ? $num_files : 1;
 		# BWA alignment typically takes less than 10 hours per BAM file
 		# This is probably inaccurate? May need tweaking.
@@ -49,17 +49,17 @@ human genome. The BWA-MEM algorithm is used in this module.\n
 The module needs a reference of type bwa.\n\n";
 
 # Setup
-my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 # MODULE
 # Check that we have a genome defined
-if(!defined($runfile{'refs'}{'bwa'})){
-    die "\n\n###CF Error: No BWA index path found in run file $runfile{run_fn} for job $runfile{job_id}. Exiting.. ###";
+if(!defined($cf{'refs'}{'bwa'})){
+    die "\n\n###CF Error: No BWA index path found in run file $cf{run_fn} for job $cf{job_id}. Exiting.. ###";
 } else {
-    warn "\nAligning against $runfile{refs}{bwa}\n\n";
+    warn "\nAligning against $cf{refs}{bwa}\n\n";
 }
 
-open (RUN,'>>',$runfile{'run_fn'}) or die "###CF Error: Can't write to $runfile{run_fn}: $!";
+open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
 warn "---------- BWA version information ----------\n";
@@ -67,7 +67,7 @@ warn `bwa 2>&1 | head -n 5`;
 warn "\n------- End of BWA version information ------\n";
 
 # Separate file names into single end and paired end
-my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%runfile, @{$runfile{'prev_job_files'}});
+my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%cf, @{$cf{'prev_job_files'}});
 
 
 # Go through each single end files and run BWA
@@ -77,7 +77,7 @@ if($se_files && scalar(@$se_files) > 0){
 
         my $output_fn = $file."_bwa.bam";
 
-		my $command = "bwa mem -t $runfile{cores} $runfile{refs}{bwa} $file | samtools view -bS - > $output_fn";
+		my $command = "bwa mem -t $cf{cores} $cf{refs}{bwa} $file | samtools view -bS - > $output_fn";
 		warn "\n###CFCMD $command\n\n";
 
 		if(!system ($command)){
@@ -85,7 +85,7 @@ if($se_files && scalar(@$se_files) > 0){
 			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 			warn "###CF BWA (SE mode) successfully exited, took $duration..\n";
 			if(-e $output_fn){
-				print RUN "$runfile{job_id}\t$output_fn\n";
+				print RUN "$cf{job_id}\t$output_fn\n";
 			} else {
 				warn "\n###CF Error! BWA output file $output_fn not found..\n";
 			}
@@ -104,7 +104,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 
             my $output_fn = $files[0]."_bwa.bam";
 
-    		my $command = "bwa mem -t $runfile{cores} $runfile{refs}{bwa} $files[0] $files[1] | samtools view -bS - > $output_fn";
+    		my $command = "bwa mem -t $cf{cores} $cf{refs}{bwa} $files[0] $files[1] | samtools view -bS - > $output_fn";
     		warn "\n###CFCMD $command\n\n";
 
     		if(!system ($command)){
@@ -112,7 +112,7 @@ if($pe_files && scalar(@$pe_files) > 0){
     			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
     			warn "###CF BWA (PE mode) successfully exited, took $duration..\n";
     			if(-e $output_fn){
-    				print RUN "$runfile{job_id}\t$output_fn\n";
+    				print RUN "$cf{job_id}\t$output_fn\n";
     			} else {
     				warn "\n###CF Error! BWA output file $output_fn not found..\n";
     			}

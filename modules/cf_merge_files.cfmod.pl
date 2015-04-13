@@ -33,8 +33,8 @@ my %requirements = (
 	'memory' 	=> '3G',
 	'modules' 	=> 'samtools',
 	'time' 		=> sub {
-		my $runfile = $_[0];
-		my $num_files = $runfile->{'num_starting_files'};
+		my $cf = $_[0];
+		my $num_files = $cf->{'num_starting_files'};
 		$num_files = ($num_files > 0) ? $num_files : 1;
 		# This is a tough one! Let's assume a dial-up connection..
 		return CF::Helpers::minutes_to_timestamp ($num_files * 4 * 60);
@@ -79,35 +79,35 @@ actually merging anything.
 HELP_TEXT
 
 # Setup
-my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 # MODULE
 my $timestart = time;
 
 # Get regex from runfile config
 my $regex;
-if(defined($runfile{'config'}{'merge_regex'}) && length($runfile{'config'}{'merge_regex'}) > 0){
-	$regex = $runfile{'config'}{'merge_regex'};
+if(defined($cf{'config'}{'merge_regex'}) && length($cf{'config'}{'merge_regex'}) > 0){
+	$regex = $cf{'config'}{'merge_regex'};
 }
 
 # Try to find regex string in parameters (over-rides config)
-if(defined($runfile{'params'}{'regex'})){
-	$regex = $runfile{'params'}{'regex'};
+if(defined($cf{'params'}{'regex'})){
+	$regex = $cf{'params'}{'regex'};
 	warn "\n\nUsing regex from pipeline parameters: $regex\n\n";
 }
 
 # Check that we have a regex and that it looks ok
 if(length($regex) == 0){
-	die "\n\n###CF Error: No merging regex found in $runfile{run_fn} or params for job $runfile{job_id}\n\n";
+	die "\n\n###CF Error: No merging regex found in $cf{run_fn} or params for job $cf{job_id}\n\n";
 }
 my $opening_p = () = $regex =~ /\(/g;
 my $closing_p = () = $regex =~ /\)/g;
 my $slashes = () = $regex =~ /[^\\]\//g;
 unless($opening_p == 1 && $closing_p == 1){
-	die "\n\n###CF Error: Merging regex didn't have one set of parentheses for job $runfile{job_id}: $regex\n\n";
+	die "\n\n###CF Error: Merging regex didn't have one set of parentheses for job $cf{job_id}: $regex\n\n";
 }
 unless($slashes == 0){
-	die "\n\n###CF Error: Merging regex shouldn't have any unescaped backslashes for job $runfile{job_id}: $regex\n\n";
+	die "\n\n###CF Error: Merging regex shouldn't have any unescaped backslashes for job $cf{job_id}: $regex\n\n";
 }
 
 # We got this far - looking good!
@@ -121,7 +121,7 @@ warn "\n\nMerging files based on regex: $regex\n\n";
 my $num_starting_files = 0;
 my %file_sets;
 my @newfiles;
-foreach my $file (@{$runfile{'prev_job_files'}}){
+foreach my $file (@{$cf{'prev_job_files'}}){
 	my $group = 'unmatched';
 	if($file =~ m/$regex/){
 		if(defined($1)){
@@ -188,10 +188,10 @@ for my $group (keys(%file_sets)) {
 #
 my $merged_files = scalar(@newfiles);
 
-open (RUN,'>>',$runfile{'run_fn'}) or die "###CF Error: Can't write to $runfile{run_fn}: $!";
+open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 for my $output_fn (@newfiles){
 	if(-e $output_fn){
-		print RUN "$runfile{job_id}\t$output_fn\n";
+		print RUN "$cf{job_id}\t$output_fn\n";
 	} else {
 		warn "\n###CF Error! cf_merge_files couldn't find output file $output_fn ..\n";
 	}

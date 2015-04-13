@@ -32,8 +32,8 @@ my %requirements = (
 	'memory' 	=> '500M',
 	'modules' 	=> 'sratoolkit',
 	'time' 		=> sub {
-		my $runfile = $_[0];
-		my $num_files = $runfile->{'num_starting_files'};
+		my $cf = $_[0];
+		my $num_files = $cf->{'num_starting_files'};
 		$num_files = ($num_files > 0) ? $num_files : 1;
 		# Who knows? If it tries six times per file, could take ages!
 		return CF::Helpers::minutes_to_timestamp ($num_files * 5 * 60);
@@ -47,11 +47,11 @@ to extract .fastq files from .sra input. It gzips the fastq
 files once produced.\n\n";
 
 # Setup
-my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 
 # MODULE
-open (RUN,'>>',$runfile{'run_fn'}) or die "###CF Error: Can't write to $runfile{run_fn}: $!";
+open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
 warn "---------- FastQ Dump version information ----------\n";
@@ -59,7 +59,7 @@ warn `fastq-dump --version`;
 warn "\n------- End of FastQ Dump version information ------\n";
 
 # Go through each supplied file and run fastq-dump.
-foreach my $file (@{$runfile{'prev_job_files'}}){
+foreach my $file (@{$cf{'prev_job_files'}}){
 
 	my $timestart = time;
 
@@ -81,10 +81,10 @@ foreach my $file (@{$runfile{'prev_job_files'}}){
 					warn "gzipping dumped fastq file $output_fn..\n";
 					if(!system("gzip  $output_fn")){
 						$output_fn .= '.gz';
-						print RUN "$runfile{job_id}\t$output_fn\n";
+						print RUN "$cf{job_id}\t$output_fn\n";
 					} else {
 						warn "Error - gzipping $output_fn exited with an error state: $? $!\nPrinting ungzipped filename to run file.\n";
-						print RUN "$runfile{job_id}\t$output_fn\n";
+						print RUN "$cf{job_id}\t$output_fn\n";
 					}
 				} else {
 					warn "\nSRA dump file $output_fn not found.. (Probably single end?)\n\n";

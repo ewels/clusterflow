@@ -32,8 +32,8 @@ my %requirements = (
 	'memory' 	=> ['3G', '80G'],
 	'modules' 	=> ['preseq'],
 	'time' 		=> sub {
-		my $runfile = $_[0];
-		my $num_files = $runfile->{'num_starting_merged_aligned_files'};
+		my $cf = $_[0];
+		my $num_files = $cf->{'num_starting_merged_aligned_files'};
 		$num_files = ($num_files > 0) ? $num_files : 1;
 		# Preseq typically takes less than 4 hours per BAM file
 		return CF::Helpers::minutes_to_timestamp ($num_files * 6 * 60);
@@ -49,10 +49,10 @@ Input is a sorted and indexed BAM file. Only the BAM file should be
 in the run file, the .bai index file will be assumed.\n\n";
 
 # Setup
-my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 # MODULE
-open (RUN,'>>',$runfile{'run_fn'}) or die "###CF Error: Can't write to $runfile{run_fn}: $!";
+open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # --version. Returns version information about the module.
 warn "---------- Preseq version information ----------\n";
@@ -60,7 +60,7 @@ warn `preseq 2>&1 | head -n 4`;
 warn "\n------- End of Preseq version information ------\n";
 
 # Go through each file and run Preseq
-foreach my $file (@{$runfile{'prev_job_files'}}){
+foreach my $file (@{$cf{'prev_job_files'}}){
 	my $timestart = time;
 
 	# Find if PE or SE from input BAM file
@@ -81,7 +81,7 @@ foreach my $file (@{$runfile{'prev_job_files'}}){
 		my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 		warn "###CF Preseq ($mode mode) successfully exited, took $duration..\n";
 		if(-e $output_fn){
-			print RUN "$runfile{job_id}\t$output_fn\n";
+			print RUN "$cf{job_id}\t$output_fn\n";
 		} else {
 			warn "\n###CF Error! Preseq output file $output_fn not found..\n";
 		}

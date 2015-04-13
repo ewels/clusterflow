@@ -33,8 +33,8 @@ my %requirements = (
 	'memory' 	=> '1G',
 	'modules' 	=> '',
 	'time' 		=> sub {
-		my $runfile = $_[0];
-		my $num_files = $runfile->{'num_starting_files'};
+		my $cf = $_[0];
+		my $num_files = $cf->{'num_starting_files'};
 		$num_files = ($num_files > 0) ? $num_files : 1;
 		# This is a tough one! Let's assume a dial-up connection..
 		return CF::Helpers::minutes_to_timestamp ($num_files * 4 * 60);
@@ -45,22 +45,22 @@ my %requirements = (
 my $helptext = "\nThis is a core module which downloads files for Cluster Flow.\n";
 
 # Setup
-my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 # MODULE
 my $timestart = time;
 
 # Strip number from download job ID so that these files are all read in the next module
-my $job_id = $runfile{'job_id'};
+my $job_id = $cf{'job_id'};
 $job_id =~ s/download_[\d]{3}$/download/;
 
 # Get URL and download filename from params
-my $url = $runfile{'params'}{'url'};
-my $dl_fn = $runfile{'params'}{'dl_fn'};
+my $url = $cf{'params'}{'url'};
+my $dl_fn = $cf{'params'}{'dl_fn'};
 
 warn "\n---------------------\nDownloading $dl_fn from $url\nStarted at ".strftime("%H:%M, %A - %d/%m/%Y", localtime)."\n";
 
-open (RUN,'>>',$runfile{'run_fn'}) or die "###CF Error: Can't write to $runfile{run_fn}: $!";
+open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 my $command = "wget -nv --tries=10 --output-document=$dl_fn $url";
 warn "\n###CFCMD $command\n\n";

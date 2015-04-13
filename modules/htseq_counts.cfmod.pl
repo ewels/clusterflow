@@ -32,8 +32,8 @@ my %requirements = (
 	'memory' 	=> '1G',
 	'modules' 	=> ['htseq','samtools'],
 	'time' 		=> sub {
-		my $runfile = $_[0];
-		my $num_files = $runfile->{'num_starting_merged_aligned_files'};
+		my $cf = $_[0];
+		my $num_files = $cf->{'num_starting_merged_aligned_files'};
 		$num_files = ($num_files > 0) ? $num_files : 1;
 		# Bismark alignment typically takes less than two hours per BAM file
 		return CF::Helpers::minutes_to_timestamp ($num_files * 3 * 60);
@@ -49,18 +49,18 @@ Use parameter stranded or stranded_rev to count in stranded or reverse
 stranded modes. Defaults to not stranded.\n\n";
 
 # Setup
-my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 # MODULE
 
 # Check that we have a GTF file defined
-if(!defined($runfile{'refs'}{'gtf'})){
-   die "\n\n###CF Error: No GTF path found in run file $runfile{run_fn} for job $runfile{job_id}. Exiting.. ###";
+if(!defined($cf{'refs'}{'gtf'})){
+   die "\n\n###CF Error: No GTF path found in run file $cf{run_fn} for job $cf{job_id}. Exiting.. ###";
 } else {
-    warn "\nUsing GTF file $runfile{refs}{gtf}\n\n";
+    warn "\nUsing GTF file $cf{refs}{gtf}\n\n";
 }
 
-open (RUN,'>>',$runfile{'run_fn'}) or die "###CF Error: Can't write to $runfile{run_fn}: $!";
+open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
 warn "---------- HTSeq version information ----------\n";
@@ -68,35 +68,35 @@ warn `htseq-count --help 2>&1 | tail -n 4`;
 warn "\n------- End of HTSeq version information ------\n";
 
 # Read any options from the pipeline parameters
-my $stranded = defined($runfile{'params'}{'stranded'}) ? "-s yes" : '-s no';
-$stranded =  defined($runfile{'params'}{'stranded_rev'}) ? "-s reverse" : $stranded;
+my $stranded = defined($cf{'params'}{'stranded'}) ? "-s yes" : '-s no';
+$stranded =  defined($cf{'params'}{'stranded_rev'}) ? "-s reverse" : $stranded;
 
 # Get the ID tag from parameters, or try to determine from GTF file
-my $id_tag = defined($runfile{'params'}{'id_tag'}) ? $runfile{'params'}{'id_tag'} : 0;
-$id_tag = get_gtf_id($runfile{'refs'}{'gtf'}) if(!$id_tag);
+my $id_tag = defined($cf{'params'}{'id_tag'}) ? $cf{'params'}{'id_tag'} : 0;
+$id_tag = get_gtf_id($cf{'refs'}{'gtf'}) if(!$id_tag);
 if(!$id_tag){
 	warn "###CF Warning: Can't determine ID tag to use. Trying default 'ID'\n";
 	$id_tag = 'ID';
 }
 
 # Go through each supplied file and run HTSeq Counts
-foreach my $file (@{$runfile{'prev_job_files'}}){
+foreach my $file (@{$cf{'prev_job_files'}}){
 	my $timestart = time;
 	my $annotated_file = $file."_annotated.sam";
 	my $counts_file = $file."_counts.txt";
-	my $command = "samtools view -h $file | htseq-count -o $annotated_file -t exon $stranded -q -i '$id_tag' - $runfile{refs}{gtf} | sort -n -k 2 -r > $counts_file";
+	my $command = "samtools view -h $file | htseq-count -o $annotated_file -t exon $stranded -q -i '$id_tag' - $cf{refs}{gtf} | sort -n -k 2 -r > $counts_file";
 	warn "\n###CFCMD $command\n\n";
 
 	if(!system ($command)){
 		my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 		warn "###CF HTSeq successfully exited, took $duration\n";
 		if(-e $annotated_file){
-			print RUN "$runfile{job_id}\t$annotated_file\n";
+			print RUN "$cf{job_id}\t$annotated_file\n";
 		} else {
 			warn "\n###CF Error! Annotated BAM output file $annotated_file not found..\n";
 		}
 		if(-e $counts_file){
-			print RUN "$runfile{job_id}\t$counts_file\n";
+			print RUN "$cf{job_id}\t$counts_file\n";
 		} else {
 			warn "\n###CF Error! HTSeq counts file $counts_file not found..\n";
 		}

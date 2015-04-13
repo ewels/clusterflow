@@ -32,8 +32,8 @@ my %requirements = (
 	'memory' 	=> ['13G', '160G'],
 	'modules' 	=> ['bowtie','bowtie2','bismark','samtools'],
 	'time' 		=> sub {
-		my $runfile = $_[0];
-		my $num_files = $runfile->{'num_starting_merged_aligned_files'};
+		my $cf = $_[0];
+		my $num_files = $cf->{'num_starting_merged_aligned_files'};
 		$num_files = ($num_files > 0) ? $num_files : 1;
 		# Bismark alignment typically takes around than 3 hours per BAM file
 		# May need tweaking. Could also drop the estimate if we're multi-threading?
@@ -55,10 +55,10 @@ pipelines with the pbat, single_cell bt1 and bt2 parameters. For example:
 Use bismark --help for further information.\n\n";
 
 # Setup
-my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 # Extra log info for requirement refinement
-foreach my $file (@{$runfile{'starting_files'}}){
+foreach my $file (@{$cf{'starting_files'}}){
 	my $filesize = CF::Helpers::bytes_to_human_readable(-s $file);
 	warn "\n###CF Starting filesize $filesize: $file\n";
 }
@@ -66,13 +66,13 @@ foreach my $file (@{$runfile{'starting_files'}}){
 # MODULE
 
 # Check that we have a genome defined
-if(!defined($runfile{'refs'}{'fasta'})){
-   die "\n\n###CF Error: No genome fasta path found in run file $runfile{run_fn} for job $runfile{job_id}. Exiting..";
+if(!defined($cf{'refs'}{'fasta'})){
+   die "\n\n###CF Error: No genome fasta path found in run file $cf{run_fn} for job $cf{job_id}. Exiting..";
 } else {
-    warn "\nAligning against $runfile{refs}{fasta}\n\n";
+    warn "\nAligning against $cf{refs}{fasta}\n\n";
 }
 
-open (RUN,'>>',$runfile{'run_fn'}) or die "###CF Error: Can't write to $runfile{run_fn}: $!";
+open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
 warn "---------- Bismark version information ----------\n";
@@ -80,9 +80,9 @@ warn `bismark --version`;
 warn "\n------- End of Bismark version information ------\n";
 
 # Work out how to parallelise bismark
-warn "Allocated $runfile{cores} cores and $runfile{memory} memory.\n";
-my $multi_cores = $runfile{'cores'} / 8;
-my $multi_mem = CF::Helpers::human_readable_to_bytes($runfile{'memory'})/ CF::Helpers::human_readable_to_bytes('20G');
+warn "Allocated $cf{cores} cores and $cf{memory} memory.\n";
+my $multi_cores = $cf{'cores'} / 8;
+my $multi_mem = CF::Helpers::human_readable_to_bytes($cf{'memory'})/ CF::Helpers::human_readable_to_bytes('20G');
 my $multi;
 $multi = int($multi_cores) if ($multi_cores > $multi_mem); # Really Perl, no min()?
 $multi = int($multi_mem) if ($multi_mem > $multi_cores);
@@ -96,14 +96,14 @@ if($multi > 1){
 
 
 # Read options from the pipeline parameters
-my $bt1 = defined($runfile{'params'}{'bt1'}) ? 1 : 0;
-my $bt2 = defined($runfile{'params'}{'bt2'}) ? "--bowtie2" : '';
-my $pbat = defined($runfile{'params'}{'pbat'}) ? "--pbat" : '';
-my $non_directional = defined($runfile{'params'}{'single_cell'}) ? "--non_directional" : '';
+my $bt1 = defined($cf{'params'}{'bt1'}) ? 1 : 0;
+my $bt2 = defined($cf{'params'}{'bt2'}) ? "--bowtie2" : '';
+my $pbat = defined($cf{'params'}{'pbat'}) ? "--pbat" : '';
+my $non_directional = defined($cf{'params'}{'single_cell'}) ? "--non_directional" : '';
 
 # Work out whether we should use bowtie 1 or 2 by read length
 if(!$bt1 && !$bt2){
-	if(!CF::Helpers::fastq_min_length($runfile{'prev_job_files'}[0], 75)){
+	if(!CF::Helpers::fastq_min_length($cf{'prev_job_files'}[0], 75)){
 		warn "First file has reads < 75bp long. Using bowtie 1 for aligning with bismark.\n";
 		$bt1 = 1;
 		$bt2 = "";
@@ -119,7 +119,7 @@ my $encoding = 0;
 
 
 # Separate file names into single end and paired end
-my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%runfile, @{$runfile{'prev_job_files'}});
+my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%cf, @{$cf{'prev_job_files'}});
 
 
 # Go through each single end files and run Bismark
@@ -144,7 +144,7 @@ if($se_files && scalar(@$se_files) > 0){
 			$output_fn = $file."_bismark.bam";
 		}
 
-		my $command = "bismark $multicore --bam $bt2 $pbat $non_directional $enc $runfile{refs}{fasta} $file";
+		my $command = "bismark $multicore --bam $bt2 $pbat $non_directional $enc $cf{refs}{fasta} $file";
 		warn "\n###CFCMD $command\n\n";
 
 		if(!system ($command)){
@@ -152,7 +152,7 @@ if($se_files && scalar(@$se_files) > 0){
 			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 			warn "\n###CF Bismark (SE mode) successfully exited, took $duration..\n";
 			if(-e $output_fn){
-				print RUN "$runfile{job_id}\t$output_fn\n";
+				print RUN "$cf{job_id}\t$output_fn\n";
 			} else {
 				warn "\n###CF Error! Bismark output file $output_fn not found..\n";
 			}
@@ -186,7 +186,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 				$output_fn = $files[0]."_bismark_pe.bam";
 			}
 
-			my $command = "bismark $multicore --bam $bt2 $pbat $non_directional $enc $runfile{refs}{fasta} -1 ".$files[0]." -2 ".$files[1];
+			my $command = "bismark $multicore --bam $bt2 $pbat $non_directional $enc $cf{refs}{fasta} -1 ".$files[0]." -2 ".$files[1];
 			warn "\n###CFCMD $command\n\n";
 
 			if(!system ($command)){
@@ -194,7 +194,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 				warn "\n###CF Bismark (PE mode) successfully exited, took $duration..\n";
 				if(-e $output_fn){
-					print RUN "$runfile{job_id}\t$output_fn\n";
+					print RUN "$cf{job_id}\t$output_fn\n";
 				} else {
 					warn "\n###CF Error! Bismark output file $output_fn not found..\n";
 				}

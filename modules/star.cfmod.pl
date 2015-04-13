@@ -32,20 +32,20 @@ use CF::Helpers;
 my %requirements = (
 	'cores' 	=> ['4', '8'],
 	'memory' 	=> sub {
-		my $runfile = $_[0];
+		my $cf = $_[0];
 		my $minmem = '32G';
 		my $maxmem = '1.8T';
-		if (defined($runfile->{'refs'}{'star'}) && -e $runfile->{'refs'}{'star'}."/SA") {
+		if (defined($cf->{'refs'}{'star'}) && -e $cf->{'refs'}{'star'}."/SA") {
 			# Make a guess about memory requirement from genome
-			my $estmin = int(1.2 * -s $runfile->{'refs'}{'star'}."/SA");
+			my $estmin = int(1.2 * -s $cf->{'refs'}{'star'}."/SA");
 			$minmem = CF::Helpers::allocate_memory($estmin, '8G', $maxmem);
     	}
-		return CF::Helpers::allocate_memory($runfile->{'mem'}, $minmem, $maxmem);
+		return CF::Helpers::allocate_memory($cf->{'mem'}, $minmem, $maxmem);
 	},
 	'modules' 	=> 'STAR',
 	'time' 		=> sub {
-		my $runfile = $_[0];
-		my $num_files = $runfile->{'num_starting_merged_aligned_files'};
+		my $cf = $_[0];
+		my $num_files = $cf->{'num_starting_merged_aligned_files'};
 		$num_files = ($num_files > 0) ? $num_files : 1;
 		# Alignment typically takes less than 4 hours per BAM file
 		return CF::Helpers::minutes_to_timestamp ($num_files * 5 * 60);
@@ -58,21 +58,21 @@ STAR aligner. Requires a minimum of ~30GB RAM for human genome.\n
 For further information, please run STAR --help\n\n";
 
 # Setup
-my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 
 
 # MODULE
 
 # Check that we have a genome defined
-if(!defined($runfile{'refs'}{'star'})){
-	warn "\n\n###CF Error: No star path found in run file $runfile{run_fn} for job $runfile{job_id}. Exiting..";
+if(!defined($cf{'refs'}{'star'})){
+	warn "\n\n###CF Error: No star path found in run file $cf{run_fn} for job $cf{job_id}. Exiting..";
 	exit;
 } else {
-	warn "\nAligning against $runfile{refs}{star}\n\n";
+	warn "\nAligning against $cf{refs}{star}\n\n";
 }
 
-open (RUN,'>>',$runfile{'run_fn'}) or die "###CF Error: Can't write to $runfile{run_fn}: $!";
+open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
 warn "---------- STAR version information ----------\n";
@@ -80,12 +80,12 @@ warn `STAR --version`;
 warn "\n------- End of STAR version information ------\n";
 
 # Load parameters
-my $genomeLoad = (defined($runfile{'params'}{'LoadAndRemove'})) ? "LoadAndRemove" : 'NoSharedMemory';
-$genomeLoad = (defined($runfile{'params'}{'LoadAndKeep'})) ? "LoadAndKeep" : $genomeLoad;
-my $sam_attributes = (defined($runfile{'params'}{'outSAMattributes'})) ? $runfile{'params'}{'outSAMattributes'} : 'Standard';
+my $genomeLoad = (defined($cf{'params'}{'LoadAndRemove'})) ? "LoadAndRemove" : 'NoSharedMemory';
+$genomeLoad = (defined($cf{'params'}{'LoadAndKeep'})) ? "LoadAndKeep" : $genomeLoad;
+my $sam_attributes = (defined($cf{'params'}{'outSAMattributes'})) ? $cf{'params'}{'outSAMattributes'} : 'Standard';
 
 # Separate file names into single end and paired end
-my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%runfile, @{$runfile{'prev_job_files'}});
+my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%cf, @{$cf{'prev_job_files'}});
 
 # FastQ encoding type. Once found on one file will assume all others are the same
 my $encoding = 0;
@@ -112,11 +112,11 @@ foreach my $file (@$se_files){
 
 	my $output_fn = $prefix."Aligned.out.sam";
 
-	my $command = "STAR --runThreadN $runfile{cores} $enc --outSAMattributes $sam_attributes --genomeLoad $genomeLoad";
+	my $command = "STAR --runThreadN $cf{cores} $enc --outSAMattributes $sam_attributes --genomeLoad $genomeLoad";
 	if ($file =~ /\.gz$/) {
 		$command .= " --readFilesCommand zcat";
 	}
-	$command .= " --genomeDir $runfile{refs}{star} --readFilesIn $file --outFileNamePrefix $prefix";
+	$command .= " --genomeDir $cf{refs}{star} --readFilesIn $file --outFileNamePrefix $prefix";
 	warn "\n###CFCMD $command\n\n";
 
 	if(!system ($command)){
@@ -124,7 +124,7 @@ foreach my $file (@$se_files){
 		my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 		warn "###CF STAR (SE mode) successfully exited, took $duration..\n";
 		if(-e $output_fn){
-			print RUN "$runfile{job_id}\t$output_fn\n";
+			print RUN "$cf{job_id}\t$output_fn\n";
 		} else {
 			warn "\n###CF Error! star output file $output_fn not found..\n";
 		}
@@ -158,11 +158,11 @@ foreach my $files_ref (@$pe_files){
 
 		my $output_fn = $prefix."Aligned.out.sam";
 
-		my $command = "STAR --runThreadN $runfile{cores} $enc --outSAMattributes $sam_attributes --genomeLoad $genomeLoad";
+		my $command = "STAR --runThreadN $cf{cores} $enc --outSAMattributes $sam_attributes --genomeLoad $genomeLoad";
 		if ($files[0] =~ /\.gz$/) {
 			$command .= " --readFilesCommand zcat";
 		}
-		$command .= " --genomeDir $runfile{refs}{star} --readFilesIn $files[0] $files[1] --outFileNamePrefix $prefix";
+		$command .= " --genomeDir $cf{refs}{star} --readFilesIn $files[0] $files[1] --outFileNamePrefix $prefix";
 		warn "\n###CFCMD $command\n\n";
 
 		if(!system ($command)){
@@ -170,7 +170,7 @@ foreach my $files_ref (@$pe_files){
 			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 			warn "###CF STAR (PE mode) successfully exited, took $duration..\n";
 			if(-e $output_fn){
-				print RUN "$runfile{job_id}\t$output_fn\n";
+				print RUN "$cf{job_id}\t$output_fn\n";
 			} else {
 				warn "\n###CF Error! STAR output file $output_fn not found..\n";
 			}

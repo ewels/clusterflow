@@ -45,8 +45,8 @@ my %requirements = (
 	'memory' 	=> ['3G', '4G'],
 	'modules' 	=> ['fastq_screen'],
 	'time' 		=> sub {
-		my $runfile = $_[0];
-		my $num_files = $runfile->{'num_starting_merged_files'};
+		my $cf = $_[0];
+		my $num_files = $cf->{'num_starting_merged_files'};
 		$num_files = ($num_files > 0) ? $num_files : 1;
 		# FastQC typically takes less than 30 minutes per file
 		return CF::Helpers::minutes_to_timestamp ($num_files * 60);
@@ -60,7 +60,7 @@ take a sequence dataset and search it against a set of bowtie databases.\n
 For further information, please run fastq_screen --help\n\n";
 
 # Setup
-my %runfile = CF::Helpers::module_start(\@ARGV, \%requirements, $helptext);
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 
 # MODULE
@@ -74,7 +74,7 @@ warn "\n------- End of FastQ Screen version information ------\n";
 my $encoding = 0;
 
 # Separate file names into single end and paired end
-my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%runfile, @{$runfile{'prev_job_files'}});
+my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%cf, @{$cf{'prev_job_files'}});
 
 # Go through each single end files and run Fastq Screen
 if($se_files && scalar(@$se_files) > 0){
@@ -109,7 +109,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 		my @files = @$files_ref;
 		if(scalar(@files) == 2){
 			my $timestart = time;
-			
+
 			# Figure out the encoding if we don't already know
 			if(!$encoding){
 				($encoding) = CF::Helpers::fastq_encoding_type($files[0]);
