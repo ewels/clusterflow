@@ -85,12 +85,8 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 		if(samtools_index($file)){
 			# samtools worked - print out resulting filenames
 			print RUN $cf{'job_id'}."\t$file\n";
-			unless (-e "$file.bai"){
-				warn "\n###CF Error! samtools index output file $file.bai not found..\n";
-			} else {
-				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-				warn "###CF samtools index successfully exited, took $duration. Skipping sort.\n";
-			}
+			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+			warn "###CF samtools index successfully exited, took $duration. Skipping sort.\n";
 			# If we could index, file must already be sorted.
 			next;
 		}
@@ -127,12 +123,8 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 			# Index the sorted file
 			$timestart = time;
 			if(samtools_index($file)){
-				unless (-e "$file.bai"){
-					warn "\n###CF Error! samtools index output file $file.bai not found..\n";
-				} else {
-					my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-					warn "###CF samtools index successfully exited, took $duration. Skipping sort.\n";
-				}
+				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+				warn "###CF samtools index successfully exited, took $duration. Skipping sort.\n";
 			} else {
 				warn "\n###CF Error! samtools index failed for $file\n\n";
 			}
@@ -153,12 +145,9 @@ sub samtools_index {
 	my $command = "samtools index $fn";
 	warn "\n###CFCMD $command\n\n";
 
-	# Return the opposite of the result so that the function returns true if it works
-	if(!system ($command)){
-		return 1;
-	} else {
-		return 0;
-	}
+	# Samtools returns 0 even if it fails. Look for the .bai file instead.
+	system ($command);
+	return (-e "$fn.bai");
 }
 
 

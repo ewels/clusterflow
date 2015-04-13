@@ -298,10 +298,17 @@ sub parse_runfile {
 # Function to load environment modules into the perl environment
 sub load_environment_modules {
 	my ($modules, $loaded_modules) = @_;
+
+    # Make an array if we've been given a string
+    if (ref($modules) eq '') {
+        my @mods = split(/[\s,]+/, $modules);
+        $modules = \@mods;
+    }
+
 	my $use_modules = $CF::Constants::CF_MODULES;
 	my %mod_aliases = %CF::Constants::ENV_MODULE_ALIASES;
 	if($CF::Constants::CF_MODULES){
-		foreach my $mod (@{$modules}) {
+		foreach my $mod (@$modules) {
 			# Check to see if we have an alias for this module
 			if(defined($mod_aliases{$mod})){
 				$mod = $mod_aliases{$mod};
