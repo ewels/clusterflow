@@ -101,6 +101,12 @@ foreach my $folder (@module_folders){
                     $num_passed++;
                 }
             }
+			# Check R files
+            elsif($file =~ /\.cfmod\.R$/i){
+				# Is there a way to check this without running it?
+                push(@modules, $path);
+                $num_passed++;
+            }
             # Unreocognised file type
             elsif($file ne '.' && $file ne '..' && $file ne 'CF' && $file !~ /^example/ && $file !~ /\.pyc$/) {
                 $unrecognised_filetype++;
