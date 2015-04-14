@@ -1,3 +1,4 @@
+
 #!/usr/bin/env perl
 use warnings;
 use strict;
@@ -139,7 +140,7 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 			system ($index_command_two);
 			if(-e "$output_fn.bai"){
 				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-				warn "###CF samtools index successfully exited, took $duration. Skipping sort.\n";
+				warn "###CF samtools index successfully exited, took $duration.\n";
 			} else {
 				warn "\n###CF Error! samtools index failed for $file\n\n";
 			}

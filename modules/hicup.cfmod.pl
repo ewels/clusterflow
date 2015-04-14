@@ -28,9 +28,15 @@ use CF::Helpers;
 
 # Module requirements
 my %requirements = (
-	'cores' 	=> '1',
-	'memory' 	=> '5G',
-	'modules' 	=> ['hicup'], # hicup_cluster/0.0.1.clusterdev
+	'cores' 	=> sub {
+		my $cf = $_[0];
+		return defined($cf->{'force_paired_end'}) ? '2' : '1';
+	},
+	'memory' 	=> sub {
+		my $cf = $_[0];
+		return defined($cf->{'force_paired_end'}) ? '10G' : '5G';
+	},
+	'modules' 	=> ['hicup'],
 	'time' 		=> sub {
 		my $cf = $_[0];
 		my $num_files = $cf->{'num_starting_merged_aligned_files'};
