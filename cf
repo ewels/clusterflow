@@ -980,12 +980,10 @@ sub get_mod_requirements {
 	}
 
 	# Check that we have what we need
+	# Don't warn about module requesting more than was suggested by core cf - too verbose.
 	unless($cores =~ /^\d+$/){
 		print "\nWarning: no cores allocation or error parsing cores allocation for $module_fn ('$cores'): setting to 1\n";
 		$cores = 1;
-	}
-	if($cores > $cores_allocation){
-		print "\nWarning: Module $module_fn requested more cores ($cores) than was allocated ($cores_allocation). Setting to requested anyway.\n";
 	}
 	if($cores > $TOTAL_CORES){
 		print "\nWarning: Module $module_fn requested more cores ($cores) than the maximum available ($TOTAL_CORES). Setting to max available.\n";
@@ -994,11 +992,6 @@ sub get_mod_requirements {
 	unless($mem =~ /^[\d\.]+[gmkb]*$/i){
 		print "\nWarning: no memory allocation or error parsing memory allocation for $module_fn ('$mem'): setting to 1Gb\n";
 		$mem = '1G';
-	}
-	if(CF::Helpers::human_readable_to_bytes($mem) > CF::Helpers::human_readable_to_bytes($memory_allocation)){
-		my $bytes_difference = CF::Helpers::bytes_to_human_readable(CF::Helpers::human_readable_to_bytes($mem) - CF::Helpers::human_readable_to_bytes($memory_allocation));
-		my $orig_allocated = CF::Helpers::bytes_to_human_readable($memory_allocation);
-		print "\nWarning: Module $module_fn over-requested memory by $bytes_difference - $mem requested, $orig_allocated originally allocated. Setting to requested anyway.\n";
 	}
 	if(CF::Helpers::human_readable_to_bytes($mem) > CF::Helpers::human_readable_to_bytes($TOTAL_MEM)){
 		print "\nWarning: Module $module_fn requested more memory ($mem) than the maximum available ($TOTAL_MEM). Setting to max available.\n";
