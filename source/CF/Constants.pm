@@ -1219,8 +1219,45 @@ These will overwrite any with the same name in the centralised config file
 			open (BASHRC, '>>', $bashrc) or die "Couldn't open $bashrc for appending: $!";
 			print BASHRC $alias."\n\n";
 			close(BASHRC);
+            print "\n$bashrc updated..\n\n".('-'x55)."\n\n";
+            sleep(1);
 		}
 	}
+
+    # Check that we have some genomes and fire the genomes wizard if not
+    my $has_genomes = 0;
+    my @genome_files = ("$FindBin::Bin/genomes.config", "$homedir/.clusterflow/genomes.config", './genomes.config');
+    foreach my $genome_file (@genome_files){
+        if(-e $genome_file){
+            $has_genomes = 1;
+        }
+    }
+    if(!$has_genomes){
+        print "Cluster Flow needs reference genomes for most modules.\n".
+              "It looks like you don't have any set up yet - would you\n".
+              "like to launch the reference genome wizard now?\n".
+              "Note: You can launch this at any time with 'cf --add_genome'\n\n";
+        my $add_some_genomes;
+        while ($add_some_genomes = <STDIN>){
+            chomp ($add_some_genomes);
+            if($add_some_genomes =~ /^y(es)?/i){
+                $add_some_genomes = 1;
+                last;
+            } elsif ($add_some_genomes =~ /^n(o)?/i){
+                print "\nNo problem. That's it from this wizard! If you have\n".
+                      "any questions, please visit http://ewels.github.io/clusterflow/\n".
+                      "or e-mail phil.ewels\@scilifelab.se\n\n".('-'x55)."\n\n";
+                $add_some_genomes = 0;
+                sleep(1); last;
+            } else {
+                print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+            }
+        }
+        if($add_some_genomes){
+            clusterflow_add_genome();
+        }
+
+    }
 }
 
 
