@@ -33,8 +33,8 @@ no warnings qw(once);
 my $CF_VERSION = $CF::Constants::CF_VERSION;
 my $homedir = $ENV{"HOME"};
 my %config = %CF::Constants::config;
-my @pipeline_folders = ('./', "$homedir/clusterflow/pipelines/", "$Bin/pipelines/");
-my @module_folders = ('./', "$homedir/clusterflow/modules/", "$Bin/modules/");
+my @pipeline_folders = ('./', "$homedir/.clusterflow/pipelines/", "$Bin/pipelines/");
+my @module_folders = ('./', "$homedir/.clusterflow/modules/", "$Bin/modules/");
 my $pipeline;
 
 # Get command line parameters
@@ -268,7 +268,7 @@ if($cl_setup){
 } else {
 	# Warn user if we don't have a home directory config file
 	# (probably means no notifications)
-	unless(-e "$homedir/clusterflow/clusterflow.config"){
+	unless(-e "$homedir/.clusterflow/clusterflow.config"){
 		warn "\nYou don't seem to have a config file set up in your
 home directory! It's a good idea to set one up, so that
 you can get e-mailed notifications from Cluster Flow.

@@ -21,19 +21,23 @@ Cluster Flow is released with a GPL v3 licence. Cluster Flow is free software: y
 
 #### v0.4 devel
 * **Warning: Break of backwards compatability**
-	* The way that genome references are handled has been rewritten. They are now agnostic
-      to the type of reference, making it far easier to whatever type of reference you need.
-      Additionally, the wizard to add genome paths has been written and is now largely automated,
-      making it super fast to add new genomes.
-	* A consequence of this change is any `genomes.config` files written before v0.3 of
-      Cluster Flow will no longer work. Thankfully the fix is easy! Replace `@bowtie_path`
-      with `@reference  bowtie`. `@gtf_path` changes to `@reference gtf` and so on.
-      `@genome_path` changes to `@reference  fasta`.
-	* If you have any custom pipelines these will also need to be updated. `@require_bowtie`
-      changes to `@require_reference bowtie`and so on. See updated example module files
-      for examples on how to update custom modules.
-	* Apologies for any inconvenience that this change incurs. Feel free to [get in touch](https://github.com/ewels)
-      if you have any problems.
+	* The way that genome references are handled has been rewritten.
+		* Genome references are no longer tied to specific types, they are now agnostic.
+	      to the type of reference, making it far easier to whatever type of reference you need.
+	      Additionally, the wizard to add genome paths has been written and is now largely automated,
+	      making it super fast to add new genomes.
+		* A consequence of this change is any `genomes.config` files written before v0.3 of
+	      Cluster Flow will no longer work. Thankfully the fix is easy! Replace `@bowtie_path`
+	      with `@reference  bowtie`. `@gtf_path` changes to `@reference gtf` and so on.
+	      `@genome_path` changes to `@reference  fasta`.
+		* If you have any custom pipelines these will also need to be updated. `@require_bowtie`
+	      changes to `@require_reference bowtie`and so on. See updated example module files
+	      for examples on how to update custom modules.
+		* Apologies for any inconvenience that this change incurs. Feel free to [get in touch](https://github.com/ewels)
+	      if you have any problems.
+	* `~/clusterflow/` directory moved to `~/.clusterflow/` to reduce home directory clutter.
+		* Cluster Flow won't find your old config file - run `mv ~/clusterflow/ ~/.clusterflow/` to fix.
+
 * New Stuff
 	* You can now run Cluster Flow locally (new `@cluster_environment` `local` )
         * Tested on Mac OSX and Linux. Includes `--qstat` and `--qdel` functionality
@@ -112,7 +116,7 @@ Cluster Flow is released with a GPL v3 licence. Cluster Flow is free software: y
 	* Ported repository to github: https://github.com/ewels/clusterflow
 	* Wrote new readme for github
 * Bugs Squashed
-	* Custom modules in `~/clusterflow/modules/` weren't being found
+	* Custom modules in `~/.clusterflow/modules/` weren't being found
 	* General code clean-ups all over the place
 
 #### [v0.1](https://github.com/ewels/clusterflow/releases/tag/v0.1) - 2014-04-25

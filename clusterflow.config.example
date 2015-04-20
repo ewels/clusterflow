@@ -3,7 +3,7 @@ Clusterflow Config
 -------------------
 Default static variables for clusterflow.
 Syntax - @key	value
-These will be overwritten by any with the same name in ~/clusterflow/clusterflow.config
+These will be overwritten by any with the same name in ~/.clusterflow/clusterflow.config
 -------------------
 */
 

@@ -32,8 +32,8 @@ my $cf_version = $CF::Constants::CF_VERSION;
 my $homedir = $ENV{"HOME"};
 my %config = %CF::Constants::config;
 my $base_dir = "$Bin/../../";
-my @pipeline_folders = ("$homedir/clusterflow/pipelines/", "$Bin/../../pipelines/");
-my @module_folders = ("$homedir/clusterflow/modules/", "$Bin/../../modules/");
+my @pipeline_folders = ("$homedir/.clusterflow/pipelines/", "$Bin/../../pipelines/");
+my @module_folders = ("$homedir/.clusterflow/modules/", "$Bin/../../modules/");
 
 # Command line options
 my $version;

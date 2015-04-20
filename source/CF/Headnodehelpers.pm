@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-package CF::Headnodehelpers; 
+package CF::Headnodehelpers;
 
 use warnings;
 use strict;
@@ -35,21 +35,21 @@ use LWP::Simple;
 
 # Function to parse squeue results on a SLURM system
 sub parse_localjobs {
-	
+
 	my ($all_users, $cols) = @_;
-    
+
     # Get job list
     my $osx = 0;
     my $jobs = `ps -o pid -o cmd 2>&1`;
     chomp($jobs);
-    
+
     # Mac, not linux
     if($jobs =~ /cmd: keyword not found/){
         $osx = 1;
         $jobs = `ps -o pid -o command`;
         chomp($jobs);
     }
-	
+
 	my $output = "";
 	foreach my $job (split(/\n/, $jobs)){
         # Look for root cluster flow bash jobs
@@ -58,12 +58,12 @@ sub parse_localjobs {
             my $pid = $1;
             my $pipeline = $2;
             my $pipelinekey = "$2_$3";
-            my $started = $3;            
-            
+            my $started = $3;
+
     		# Figure out the cwd for this pipeline
             my $pipeline_wd = `lsof -a -p $pid -d cwd -Fn | tail -1 | sed 's/.//'`;
             $pipeline_wd =~ s/\n//;
-		
+
     		$output .= "\n".('=' x 70)."\n";
     		$output .= sprintf("%-24s%-44s\n", " Cluster Flow Pipeline:", $pipeline);
             $output .= sprintf("%-24s%-44s\n", " Top-Level Process ID:", $pid);
@@ -71,7 +71,7 @@ sub parse_localjobs {
     		$output .= sprintf("%-24s%-44s\n", " Working Directory:", $pipeline_wd) if length($pipeline_wd) > 0;
     		$output .= sprintf("%-24s%-44s\n", " Cluster Flow ID:", $pipelinekey);
     		$output .= "".('=' x 70)."\n";
-            
+
             # Look at child processes using pgrep
             # Should only be one module running
             my $curr_cmd = '?';
@@ -92,7 +92,7 @@ sub parse_localjobs {
                     $curr_mod = $1;
                 }
             }
-            
+
             # Look into the bash script to see how many steps there are
             # Count how far through we are.
             if($pipeline_wd){
@@ -111,7 +111,7 @@ sub parse_localjobs {
                             next if(/cf_runs_all_finished/);
                             $num_commands++;
                             push (@mod_names, $1);
-                            
+
                             my $this = $_;
                             my $match = $curr_cmd;
                             $this =~ s/\s//g;
@@ -159,15 +159,15 @@ sub parse_localjobs {
 
 # Function to parse squeue results on a SLURM system
 sub parse_squeue {
-	
+
 	my ($all_users, $cols) = @_;
-	
+
 	# Set up variables
 	my %jobs;
 	my %pipelines;
 	my @jlist;
 	my %pipeline_single_job_ids;
-	
+
 	# Build command
 	chomp(my $curruser = `whoami`);
 	my $squeue_command = 'squeue -o "%i %T %u %C %S %Q %j %E %r"';
@@ -186,7 +186,7 @@ sub parse_squeue {
 		my %jobhash;
 		my $pipeline = 'unknown';
                 my $pipelinekey = 'unknown';
-		
+
 		# Split result
 		my ($jid, $state, $owner, $cores, $started, $priority, $jobname, $dependency, $dependency_reason) = split(/ /, $job);
 		next if($jid eq 'JOBID');
@@ -198,9 +198,9 @@ sub parse_squeue {
 			$pipelines{$pipelinekey}{started} = $2;
 			$jobhash{module} = $3;
 		}
-		
+
 		$pipeline_single_job_ids{$pipelinekey} = $jid;
-		
+
 		$jobhash{pipeline} = $pipeline;
 		$jobhash{pipelinekey} = $pipelinekey;
 		$jobhash{jobname} = $jobname;
@@ -214,7 +214,7 @@ sub parse_squeue {
 		$jobhash{dependency_reason} = $dependency_reason;
 		$jobhash{children} = {};
 		$jobhash{parent} = '';
-		
+
 		# If we're queued with dependencies, parse them
 		if($dependency_reason eq 'Dependency'){
 			# remove any non-numeric stuff, eg. afterany:
@@ -228,13 +228,13 @@ sub parse_squeue {
 			if($parent && length($parent) > 0){
 				parse_job_dependency_hash(\%jobs, $parent, $jid, \%jobhash);
 			}
-		# No dependencies - give to top level 
+		# No dependencies - give to top level
 		} else {
 			$jobs{$jid} = \%jobhash;
 		}
-		
+
 	}
-	
+
 	# Work out pipeline cwds
 	# Figure out the cwd for this pipeline
 	my %pipeline_wds;
@@ -250,32 +250,32 @@ sub parse_squeue {
 			}
 		}
 	}
-	
+
 	#print Dumper (\%jobs); exit;
 	my $output = print_jobs_output(\%jobs, \%pipelines, \%pipeline_single_job_ids, \%pipeline_wds, $cols, $all_users);
-    
+
 
 	return ($output);
-	
+
 }
 
 # Function to parse qstat results and return them in a nicely formatted manner
 sub parse_qstat {
-	
+
 	my ($all_users, $cols) = @_;
-	
+
 	my $qstat_command = "qstat -pri -r -xml";
 	if($all_users){
 		$qstat_command .= ' -u "*"';
 	}
-	
+
 	my $qstat = `$qstat_command`;
-	
+
 	my $xml = new XML::Simple;
 	my $data = $xml->XMLin($qstat);
-	
+
 	# print Dumper $data; exit;
-	
+
 	my %jobs;
 	my %pipelines;
 	my @jlist;
@@ -290,21 +290,21 @@ sub parse_qstat {
 	}
 	if($data->{queue_info}->{job_list}){
 		foreach my $job (@jlist){
-		
+
 			my $jid = $job->{JB_job_number};
 			my $pipeline = 'unknown';
 			my $pipelinekey = 'unknown';
 			my $jobname = $job->{full_job_name};
-			
+
 			if($jobname =~ /^cf_(.+)_(\d{10})_(.+)_\d{1,3}$/){
 				$pipeline = $1;
 				$pipelinekey = "$1_$2";
 				$pipelines{$pipelinekey}{started} = $2;
 				$jobs{$jid}{module} = $3;
 			}
-			
+
 			$pipeline_single_job_ids{$pipelinekey} = $jid;
-			
+
 			$jobs{$jid}{pipeline} = $pipeline;
 			$jobs{$jid}{pipelinekey} = $pipelinekey;
 			$jobs{$jid}{jobname} = $jobname;
@@ -320,10 +320,10 @@ sub parse_qstat {
 			$jobs{$jid}{started} = $job->{JAT_start_time};
 			$jobs{$jid}{dependency_reason} = '';
 			$jobs{$jid}{children} = {};
-			
+
 		}
 	}
-	
+
 	# Pending Jobs
 	# Returns a hash instead of an array if only one element
 	@jlist = ();
@@ -339,16 +339,16 @@ sub parse_qstat {
 			my $pipeline = 'unknown_pending';
 			my $pipelinekey = 'unknown_pending';
 			my $jobname = $job->{full_job_name};
-			
+
 			if($jobname =~ /^cf_(.+)_(\d{10})_(.+)_\d{1,3}$/){
 				$pipeline = $1;
 				$pipelinekey = "$1_$2";
 				$pipelines{$pipelinekey}{started} = $2;
 				$jobhash{module} = $3;
 			}
-			
+
 			$pipeline_single_job_ids{$pipelinekey} = $jid;
-			
+
 			$jobhash{pipeline} = $pipeline;
 			$jobhash{pipelinekey} = $pipelinekey;
 			$jobhash{jobname} = $jobname;
@@ -360,7 +360,7 @@ sub parse_qstat {
 			$jobhash{submitted} = $job->{JB_submission_time};
 			$jobhash{dependency_reason} = '';
 			$jobhash{children} = {};
-			
+
 			# Find dependency
 			# If more than one (an array), assume last element is latest
 			my $parents = $job->{predecessor_jobs_req};
@@ -368,7 +368,7 @@ sub parse_qstat {
 			if($parents && $parents =~ /^start_/){
 				$parents = '';
 			}
-			
+
 			if(ref($parents)){
 				$parent = pop (@$parents);
 			} else {
@@ -395,10 +395,10 @@ sub parse_qstat {
 			$pipeline_wds{$pipelinekey} = $pipeline_wd;
 		}
 	}
-	
+
 	# print Dumper ($data); exit;
 	# print Dumper (\%jobs); exit;
-	
+
 	my $output = print_jobs_output(\%jobs, \%pipelines, \%pipeline_single_job_ids, \%pipeline_wds, $cols, $all_users);
 	return ($output);
 }
@@ -407,7 +407,7 @@ sub parse_qstat {
 sub parse_job_dependency_hash {
 
 	my ($hashref, $parent, $jid, $jobhash) = @_;
-	
+
 	foreach my $key ( keys (%{$hashref}) ){
 		# If $parent is numeric, it's a job ID. If not, it's a job name
 		my $jobname;
@@ -425,9 +425,9 @@ sub parse_job_dependency_hash {
 }
 
 sub print_jobs_output {
-	
+
 	my ($jobs, $pipelines, $pipeline_single_job_ids, $pipeline_wds, $cols, $all_users) = @_;
-	
+
 	# Go through hash and create output
 	my $output = "";
 	foreach my $pipelinekey (keys (%{$pipelines})){
@@ -435,13 +435,13 @@ sub print_jobs_output {
 		if($pipelinekey =~ /^(.+)_(\d{10})$/){
 			$pipeline = $1;
 		}
-		
+
 		# Figure out the cwd for this pipeline
 		my $pipeline_wd;
 		if($pipeline_wds->{$pipelinekey}){
 			$pipeline_wd = $pipeline_wds->{$pipelinekey};
 		}
-		
+
 		$output .= "\n".('=' x 70)."\n";
 		$output .= sprintf("%-24s%-44s\n", " Cluster Flow Pipeline:", $pipeline);
 		$output .= sprintf("%-24s%-44s\n", " Submitted:", CF::Helpers::parse_seconds(time - $pipelines->{$pipelinekey}{started})." ago");
@@ -450,7 +450,7 @@ sub print_jobs_output {
 		$output .= "".('=' x 70)."\n";
 		print_jobs_pipeline_output(\%{$jobs}, 0, \$output, $all_users, $cols, $pipelinekey);
 	}
-	
+
 	# Go through jobs which don't have a pipeline
 	my $notcf_output = "";
 	print_jobs_pipeline_output(\%{$jobs}, 0, \$notcf_output, $all_users, $cols, 'unknown');
@@ -460,7 +460,7 @@ sub print_jobs_output {
 		$output .= "\n".('=' x 70)."\n";
 		$output .= $notcf_output;
 	}
-	
+
 	# Go through Queing jobs which don't have a pipeline
 	my $notcfpending_output = "";
 	print_jobs_pipeline_output(\%{$jobs}, 0, \$notcfpending_output, $all_users, $cols, 'unknown_pending');
@@ -470,28 +470,28 @@ sub print_jobs_output {
 		$output .= "\n".('=' x 70)."\n";
 		$output .= $notcfpending_output;
 	}
-	
-	return ("$output\n");	
-	
+
+	return ("$output\n");
+
 }
 
 sub print_jobs_pipeline_output {
 
 	my ($hashref, $depth, $output, $all_users, $cols, $pipeline) = @_;
-	
+
 	foreach my $key (keys (%{$hashref}) ){
-	
+
 		# Ignore this unless this is part of the pipeline we're printing
 		next unless (${$hashref}{$key}{pipelinekey} eq $pipeline || $depth > 0);
-		
+
 		my $children = scalar(keys(%{${$hashref}{$key}{children}}));
-		
+
 		if($depth == 0){
 			${$output} .= "\n";
 		}
-		
+
 		${$output} .= " ".(" " x ($depth*5))."- ";
-		
+
 		if(${$hashref}{$key}{state} eq 'running' && $cols){
 			${$output} .= color 'red on_white';
 			${$output} .= " ";
@@ -502,7 +502,7 @@ sub print_jobs_pipeline_output {
 			${$output} .= color 'yellow on_white';
 			${$output} .= " ";
 		}
-		
+
 		if(${$hashref}{$key}{state} eq 'deleting'){
 			${$output} .= "** Terminating ** ";
 		}
@@ -511,23 +511,23 @@ sub print_jobs_pipeline_output {
 		} else {
 			${$output} .= ${$hashref}{$key}{jobname};
 		}
-		
+
 		if($cols){
 			${$output} .= " ";
 			${$output} .= color 'reset';
 		}
-		
+
 		# Extra info for running jobs
 		# if(${$hashref}{$key}{state} eq 'running'){
 		if($depth == 0){
-			
+
 			my @lines = split("\n", ${$output});
 			my $lastline = pop(@lines);
 			my $chars = length($lastline);
 			my $spaces = 50 - $chars;
 			${$output} .= (" " x $spaces);
-			
-			
+
+
 			if($all_users){
 				${$output} .= color 'green' if $cols;
 				my $user = " {".${$hashref}{$key}{owner}."} ";
@@ -536,12 +536,12 @@ sub print_jobs_pipeline_output {
 				$spaces = 12 - length($user);
 				${$output} .= (" " x $spaces);
 			}
-			
+
 			${$output} .= color 'blue' if $cols;
 			my $s = ""; $s = "s" if ${$hashref}{$key}{cores} > 1;
 			${$output} .= " [".${$hashref}{$key}{cores}." core$s] ";
 			${$output} .= color 'reset' if $cols;
-			
+
 			unless(${$hashref}{$key}{state} =~ /running/i){
 				${$output} .= color 'yellow' if $cols;
 				${$output} .= " [queued, priority ".${$hashref}{$key}{priority}."] ";
@@ -552,8 +552,8 @@ sub print_jobs_pipeline_output {
 					${$output} .= color 'reset' if $cols;
 				}
 			}
-			
-			
+
+
 			my $timestamp = "";
 			my ($year, $month, $day, $hour, $minute, $second) = $timestamp =~ /^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)/;
 			if($second){
@@ -576,9 +576,9 @@ sub print_jobs_pipeline_output {
 			${$output} .= color 'reset' if $cols;
 		}
 		${$output} .= "\n";
-		
+
 		# Now go through and print child jobs
-		
+
 		if($children){
 			if(${$hashref}{$key}{module} eq 'download' && ${$hashref}{$key}{state} ne 'running'){
 				# don't increase the depth if this is a download - avoid the huge christmas trees
@@ -588,7 +588,7 @@ sub print_jobs_pipeline_output {
 			}
 		}
 	}
-	
+
 	return (${$output});
 
 }
@@ -596,23 +596,23 @@ sub print_jobs_pipeline_output {
 
 # local Function to delete all jobs with a pipeline ID
 sub cf_pipeline_localkill {
-    
+
 	my ($cf_id) = @_;
 	my $kill_output;
     my $jobcount = 0;
-    
+
     # Get job list
     my $osx = 0;
     my $jobs = `ps -o pid -o cmd 2>&1`;
     chomp($jobs);
-    
+
     # Mac, not linux
     if($jobs =~ /cmd: keyword not found/){
         $osx = 1;
         $jobs = `ps -o pid -o command`;
         chomp($jobs);
     }
-	
+
 	my $output = "";
 	foreach my $job (split(/\n/, $jobs)){
         # Look for top level jobs matching the id
@@ -631,20 +631,20 @@ sub cf_pipeline_localkill {
 	} else {
 		return "Error - no jobs found for pipeline $cf_id\n";
 	}
-    
+
 }
 
 # SLURM Function to delete all jobs with a pipeline ID
 sub cf_pipeline_scancel {
-	
+
 	my ($pid) = @_;
 	my $jobcount = 0;
 	my $scancel_output;
-	
+
 	# Build command
 	my $curruser = `whoami`;
 	my $squeue_command = 'squeue -o "%i %T %u %C %S %Q %j %E %r" -u '.$curruser;
-		
+
 	# Parse results
 	my $squeue = `$squeue_command`;
 	my @sjobs = split(/[\n\r]+/, $squeue);
@@ -657,7 +657,7 @@ sub cf_pipeline_scancel {
 		if($jobname =~ /^cf_(.+)_(\d{10})_(.+)_\d{1,3}$/){
 			$pipelinekey = "$1_$2";
 		}
-		
+
 		if($pipelinekey && $pipelinekey eq $pid){
 			my $scancel_command = "scancel $jid";
 			$jobcount++;
@@ -665,29 +665,29 @@ sub cf_pipeline_scancel {
 			$scancel_output .= $scancel;
 		}
 	}
-	
+
 	if($jobcount > 0){
 		return "$jobcount jobs deleted.\n$scancel_output\n";
 	} else {
 		return "Error - no jobs found for pipeline $pid\n";
 	}
-	
+
 }
 
 
 # GRID Engine Function to delete all jobs with a pipeline ID
 sub cf_pipeline_qdel {
-	
+
 	my ($pid) = @_;
 	my $jobcount = 0;
 	my $qdel_output;
-	
+
 	my $qstat_command = "qstat -pri -r -xml";
 	my $qstat = `$qstat_command`;
-	
+
 	my $xml = new XML::Simple;
 	my $data = $xml->XMLin($qstat);
-		
+
 	my %jobs;
 	my %pipelines;
 	my @jlist;
@@ -704,11 +704,11 @@ sub cf_pipeline_qdel {
 			my $jid = $job->{JB_job_number};
 			my $jobname = $job->{full_job_name};
 			my $pipelinekey;
-			
+
 			if($jobname =~ /^cf_(.+)_(\d{10})_(.+)_\d{1,3}$/){
 				$pipelinekey = "$1_$2";
 			}
-			
+
 			if($pipelinekey && $pipelinekey eq $pid){
 				my $qdel_command = "qdel $jid";
 				$jobcount++;
@@ -717,7 +717,7 @@ sub cf_pipeline_qdel {
 			}
 		}
 	}
-	
+
 	# Pending Jobs
 	# Returns a hash instead of an array if only one element
 	@jlist = ();
@@ -731,11 +731,11 @@ sub cf_pipeline_qdel {
 			my $jid = $job->{JB_job_number};
 			my $jobname = $job->{full_job_name};
 			my $pipelinekey = '';
-            
+
             if($jobname =~ /^cf_(.+)_(\d{10})_(.+)_\d{1,3}$/){
 				$pipelinekey = "$1_$2";
 			}
-			
+
 			if($pipelinekey eq $pid){
 				my $qdel_command = "qdel $jid";
 				$jobcount++;
@@ -744,33 +744,33 @@ sub cf_pipeline_qdel {
 			}
 		}
 	}
-	
+
 	if($jobcount > 0){
 		return "$jobcount jobs deleted:\n$qdel_output\n";
 	} else {
 		return "Error - no jobs found for pipeline $pid\n";
 	}
-	
+
 }
 
 
 sub cf_check_updates {
 
 	my ($current_version) = @_;
-	
+
 	# Get contents of Cluster Flow current version file using LWP::Simple
 	my $version_url = 'http://ewels.github.io/clusterflow/version.txt';
 	my $avail_version = get($version_url) or return "Can't access address to check available version:\n$version_url\n\n";
 	my $timestamp = time();
-	
+
 	# Update the .cfupdates files with the available version and checked timestamp
-	my $updates_file = $ENV{"HOME"}."/clusterflow/.cfupdates";
+	my $updates_file = $ENV{"HOME"}."/.clusterflow/.cfupdates";
 	if(open(my $fh, '>', $updates_file)){
 		# Write out the new config file contents if we can
 		print($fh "$avail_version\n$timestamp\n");
 		close $fh;
 	}
-	
+
 	if(cf_compare_version_numbers($current_version, $avail_version)){
 		return "".("="x45)."\n A new version of Cluster Flow is available!\n Running v$current_version, v$avail_version available.\n".("="x45)."\n
 You can download the latest version of Cluster Flow from\nhttps://github.com/ewels/clusterflow/releases/\n\n";
@@ -782,19 +782,19 @@ You can download the latest version of Cluster Flow from\nhttps://github.com/ewe
 # Function to properly split up version numbers
 # Returns true if second supplied vn is newer than first
 sub cf_compare_version_numbers {
-    
+
 	my ($vn1_string, $vn2_string) = @_;
-    
+
     if(!defined($vn2_string)){
         return 0;
     }
-	
+
 	my @vn1_parts = split(/\.|\s+/, $vn1_string);
 	my @vn2_parts = split(/\.|\s+/, $vn2_string);
-	
+
 	for my $i (0 .. $#vn2_parts){
 		if(defined($vn1_parts[$i])){
-			
+
 			# Numeric checks
 			if($vn1_parts[$i] =~ /^\d+$/ && $vn2_parts[$i] =~ /^\d+$/){
 				if($vn2_parts[$i] > $vn1_parts[$i]){
@@ -808,9 +808,9 @@ sub cf_compare_version_numbers {
 			return 1;
 		}
 	}
-	
+
 	return 0;
-	
+
 }
 
 

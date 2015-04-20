@@ -82,7 +82,7 @@ sub parse_conf_file {
     # by /cf and by /modules/module.cfmod
 
     my $num_configs = 0;
-    my @config_files = ("$FindBin::Bin/clusterflow.config", "$FindBin::Bin/../clusterflow.config", "$homedir/clusterflow/clusterflow.config", './clusterflow.config');
+    my @config_files = ("$FindBin::Bin/clusterflow.config", "$FindBin::Bin/../clusterflow.config", "$homedir/.clusterflow/clusterflow.config", './clusterflow.config');
     foreach my $config_file (@config_files){
         if(-e $config_file){
             $num_configs++;
@@ -195,7 +195,7 @@ sub parse_genomes_file {
 
     # Read genomes config variables in. Do in order so that local prefs overwrite.
 
-    my @genome_files = ("$FindBin::Bin/genomes.config", "$homedir/clusterflow/genomes.config", './genomes.config');
+    my @genome_files = ("$FindBin::Bin/genomes.config", "$homedir/.clusterflow/genomes.config", './genomes.config');
     foreach my $genome_file (@genome_files){
         if(-e $genome_file){
             open (GCONFIG, $genome_file) or die "Can't read $genome_file: $!";
@@ -232,7 +232,7 @@ sub parse_genomes_file {
 
 
 sub parse_updates_file {
-    my $updates_file = $ENV{"HOME"}."/clusterflow/.cfupdates";
+    my $updates_file = $ENV{"HOME"}."/.clusterflow/.cfupdates";
     if(-e $updates_file){
         open (UPDATES, $updates_file) or die "Can't read $updates_file: $!";
         $AVAILABLE_VERSION = <UPDATES>;
@@ -254,7 +254,7 @@ sub list_clusterflow_genomes {
 
     my $returnstring = "";
 
-    my @config_files = ("$FindBin::Bin/genomes.config", "$homedir/clusterflow/genomes.config", './genomes.config');
+    my @config_files = ("$FindBin::Bin/genomes.config", "$homedir/.clusterflow/genomes.config", './genomes.config');
 
     foreach my $config_file (@config_files){
 
@@ -307,8 +307,8 @@ sub clusterflow_pipeline_help {
 
     my $help = "";
 
-    my @pipelines = ("./$pipeline.config", "$homedir/clusterflow/pipelines/$pipeline.config", "$FindBin::Bin/pipelines/$pipeline.config");
-    my @module_folders = ("./", "$homedir/clusterflow/modules/", "$FindBin::Bin/modules/");
+    my @pipelines = ("./$pipeline.config", "$homedir/.clusterflow/pipelines/$pipeline.config", "$FindBin::Bin/pipelines/$pipeline.config");
+    my @module_folders = ("./", "$homedir/.clusterflow/modules/", "$FindBin::Bin/modules/");
     foreach my $pipeline (@pipelines){
         if(-e $pipeline){
             open (PIPELINE, $pipeline) or die "Can't read $pipeline: $!";
@@ -535,7 +535,7 @@ sub clusterflow_add_genome {
           "1 - Cluster Flow Installation directory, will be visible for all users\n".
           "       $FindBin::Bin/genomes.config\n\n".
           "2 - Your home directory, will be visible for you whenever you run Cluster Flow\n".
-          "       $homedir/clusterflow/genomes.config\n\n".
+          "       $homedir/.clusterflow/genomes.config\n\n".
           "3 - This directory, will only be visible when running Cluster Flow here\n".
           "       $cwd/genomes.config\n\n".
           "Please enter 1-3 to select one of the file paths..\n";
@@ -547,7 +547,7 @@ sub clusterflow_add_genome {
             $fn = "$FindBin::Bin/genomes.config";
             last;
         } elsif ($fn =~ /^2$/){
-            $fn = "$homedir/clusterflow/genomes.config";
+            $fn = "$homedir/.clusterflow/genomes.config";
             last;
         } elsif ($fn =~ /^3$/){
             $fn = "./genomes.config";
@@ -905,10 +905,10 @@ sub clusterflow_setup {
     }
 
     # Ok, go on to personal config files
-    my $fn = $homedir."/clusterflow/clusterflow.config";
+    my $fn = $homedir."/.clusterflow/clusterflow.config";
 
     print "\n\nCluster Flow User Config Generator\n".('='x34)."\nRunning Cluster Flow version $CF_VERSION\n\n";
-    print "This mode will generate a personalised Cluster Flow config file for you \nin your home directory: ~/clusterflow/clusterflow.config\n\n";
+    print "This mode will generate a personalised Cluster Flow config file for you \nin your home directory: ~/.clusterflow/clusterflow.config\n\n";
 
 	my $make_personal_config = 1;
     if(-e $fn){
@@ -1111,8 +1111,8 @@ Would you like to receive these notifications? (y/n)\n\n";
 personalised config file - see the Cluster Flow manual
 for further information.\n\n\n";
 
-    unless(-e $homedir."/clusterflow/" && -d $homedir."/clusterflow/"){
-        mkdir ($homedir."/clusterflow/") or die "Can't create clusterflow directory: $!";
+    unless(-e $homedir."/.clusterflow/" && -d $homedir."/.clusterflow/"){
+        mkdir ($homedir."/.clusterflow/") or die "Can't create clusterflow directory: $!";
     }
     open (OUT, '>', $fn) or die "Can't write to $fn: $!";
     print OUT $config;
