@@ -518,9 +518,9 @@ EOT
 
 
 
-####################################
+##############################################################
 # Function to run interactive shell prompt to add new genomes
-####################################
+##############################################################
 
 sub clusterflow_add_genome {
 
@@ -790,16 +790,16 @@ sub clusterflow_add_genome {
 
 
 
-####################################
+#############################################
 # Function to run interactive shell prompt
 # to generate a config file for first run
-####################################
+#############################################
 sub clusterflow_setup {
 
     # First of all - check we have a global config file
     my $global_fn = "$FindBin::Bin/clusterflow.config";
     unless(-e $global_fn){
-        print "\n\nCluster Flow Global Config Generator\n".('='x37)."\nRunning Cluster Flow version $CF_VERSION\n\n";
+        print "\n\nCluster Flow Setup Wizard\n".('='x37)."\nRunning Cluster Flow version $CF_VERSION\n\n";
         print "There is no global config file for Cluster Flow:\n$global_fn\n\n";
         print "This wizard can create one based on \n$global_fn.example\nbefore configuring a personal config file.\n\n";
         print "Would you like to create a global config file?\n\n";
@@ -939,20 +939,19 @@ These will overwrite any with the same name in the centralised config file
 */\n\n";
 
     my $cl_cols;
-    print "Right, let's get started!\nFirst off - Cluster Flow can make nice coloured status messages for you.\n";
+    print "Appearances first - Cluster Flow can make nice coloured status messages for you.\n";
     print "They help to scan quickly, but can look a bit nasty with some colour schemes.\n";
     print "Would you like to have coloured status messages? (y/n)\n\n";
     while ($cl_cols = <STDIN>){
         chomp ($cl_cols);
         if($cl_cols =~ /^y(es)?/i){
-            print "\nYeah! Top tip: they look great with the dark solarized colour scheme.\n\n";
+            print "\nGreat! Top tip: they look great with the dark solarized colour scheme.\n\n";
             $cl_cols = 1;
-            sleep(2);
-            last;
+            sleep(1); last;
         } elsif ($cl_cols =~ /^n(o)?/i){
-            print "\nFair enough. You can change you mind later if you fancy a little colour in your life ;)\n\n";
+            print "\nNo problem. You can always change you mind later.\n\n";
             $cl_cols = 0;
-            last;
+            sleep(1); last;
         } else {
             print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
         }
@@ -961,19 +960,19 @@ These will overwrite any with the same name in the centralised config file
 
 
     my $email;
-    print "Next up - what is your e-mail address?\nThis will be used for sending notifications.\n\n";
+    print "Next - what is your e-mail address?\nThis will be used for sending notifications.\n\n";
     while ($email = <STDIN>){
         chomp ($email);
         if($email =~ /^\w[\w\.\-]*\w\@\w[\w\.\-]*\w(\.\w{2,4})$/){
             print "\nGreat! That looks good..\n\n";
-            last;
+            sleep(1); last;
         } else {
             print "\nHmm, that e-mail address looked a little odd.\nAre you sure you typed it in correctly? (y/n)\n\n";
             my $invalidemail = <STDIN>;
             chomp($invalidemail);
             if($invalidemail =~ /^y(es)?/i){
                 print "\nFair enough!\n\n";
-                last;
+                sleep(1); last;
             } else {
                 print "\nNo problem.. Please try it again..\n\n";
             }
@@ -981,21 +980,31 @@ These will overwrite any with the same name in the centralised config file
     }
     $config .= "\@email    $email\n";
 
+    print "Do you have a cluster project (eg. a2014000)?\nThis is used for job scheduling, it's required for some clusters.\n";
+    print "Leave blank if you don't have a project.\n\n";
+    my $project = <STDIN>;
+    chomp ($project);
+    if(length($project) > 0){
+        print "\nGreat! That looks good..\n\n";
+        $config .= "\@cluster_project    $project\n";
+        sleep(1);
+    }
+
+
     my $use_defaults;
     my $use_defaults_stdin;
-    print "Ok, the rest of this wizard is about which notification e-mails that
-you'd like to receive. We can skip this and use default settings if you
-prefer. Use defaults? (y/n)\n\n";
+    print "Ok, the rest of this wizard is about which notification e-mails that\n".
+          "you'd like to receive. We can skip this and use default settings if you\n".
+          "prefer. Use defaults? (y/n)\n\n";
     while ($use_defaults_stdin = <STDIN>){
         chomp ($use_defaults_stdin);
         if($use_defaults_stdin =~ /^y(es)?/i){
             print "\nGood choice. You can always edit these later anyway, just see the manual..\n\n";
             $use_defaults = 1;
-            sleep(2);
-            last;
+            sleep(1); last;
         } elsif ($use_defaults_stdin =~ /^n(o)?/i){
             print "\nOk, let's delve a little deeper..\n\n";
-            last;
+            sleep(1); last;
         } else {
             print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
         }
@@ -1008,95 +1017,95 @@ prefer. Use defaults? (y/n)\n\n";
 
         my ($notify_complete, $notify_run, $notify_success, $notify_error, $notify_abort);
 
-        print "Would you like to receive a notification when a pipeline is completed?
-The e-mail tells you the pipeline that has finished, the working directory
-for that pipeline, a list of Cluster Flow highlight notifications (typically
-whether each step in the pipeline ran successfully for each file) and then the
-log file output for each file. These notifications are recommended (y/n)\n\n";
+        print "Would you like to receive a notification when a pipeline is completed?\n".
+              "The e-mail tells you the pipeline that has finished, the working directory\n".
+              "for that pipeline, a list of Cluster Flow highlight notifications (typically\n".
+              "whether each step in the pipeline ran successfully for each file) and then the\n".
+              "log file output for each file. These notifications are recommended (y/n)\n\n";
         while ($notify_complete = <STDIN>){
             chomp ($notify_complete);
             if($notify_complete =~ /^y(es)?/i){
                 print "\nGreat!\n\n";
                 $config .= "\@notification    complete\n";
-                last;
+                sleep(1); last;
             } elsif ($notify_complete =~ /^n(o)?/i){
                 print "\nOk, fair enough..\n\n";
-                last;
+                sleep(1); last;
             } else {
                 print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
             }
         }
 
-        print "Would you like to receive a notification when each run is completed?
-Usually a run is the processing of one input file. The e-mail tells you the
-name of the run that has finished, its pipeline and the working directory.
-It includes a list of Cluster Flow highlight notifications (typically
-whether each step in the pipeline ran successfully) and then the log file output.
-These notifications are recommended for those who like to keep a close eye on
-their processing (y/n)\n\n";
+        print "Would you like to receive a notification when each run is completed?\n".
+              "Usually a run is the processing of one input file. The e-mail tells you the\n".
+              "name of the run that has finished, its pipeline and the working directory.\n".
+              "It includes a list of Cluster Flow highlight notifications (typically\n".
+              "whether each step in the pipeline ran successfully) and then the log file output.\n".
+              "These notifications are recommended for those who like to keep a close eye on\n".
+              "their processing (y/n)\n\n";
         while ($notify_run = <STDIN>){
             chomp ($notify_run);
             if($notify_run =~ /^y(es)?/i){
                 print "\nGreat!\n\n";
                 $config .= "\@notification    run\n";
-                last;
+                sleep(1); last;
             } elsif ($notify_run =~ /^n(o)?/i){
                 print "\nOk, sounds good..\n\n";
-                last;
+                sleep(1); last;
             } else {
                 print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
             }
         }
 
-        print "Would you like to receive a notification when step of each run ends?
-This will be a GRID Engine notice for every qsub job. These notifications
-are not recommended as a typicaly Cluster Flow run can flood your inbox with hundreds
-of such e-mails. Would you like to receive them? (y/n)\n\n";
+        print "Would you like to receive a notification when step of each run ends?\n".
+              "This will be a cluster notice for every qsub job. These notifications\n".
+              "are not recommended as a typicaly Cluster Flow run can flood your inbox\n".
+              "with hundreds of such e-mails. Would you like to receive them? (y/n)\n\n";
         while ($notify_success = <STDIN>){
             chomp ($notify_success);
             if($notify_success =~ /^y(es)?/i){
                 print "\nFair enough, you were warned!\n\n";
                 $config .= "\@notification    end\n";
-                last;
+                sleep(1); last;
             } elsif ($notify_success =~ /^n(o)?/i){
                 print "\nProbably sensible..\n\n";
-                last;
+                sleep(1); last;
             } else {
                 print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
             }
         }
 
-        print "Would you like to receive a notification when a GRID Engine
-job is suspended? You're unlikely to get many if any, so they're recommended.
-Would you like to receive these notifications? (y/n)\n\n";
+        print "Would you like to receive a notification when a cluster\n".
+              "job is suspended? You're unlikely to get many if any, so they're recommended.\n".
+              "Would you like to receive these notifications? (y/n)\n\n";
         while ($notify_error = <STDIN>){
             chomp ($notify_error);
             if($notify_error =~ /^y(es)?/i){
                 print "\nSounds good!\n\n";
                 $config .= "\@notification    suspend\n";
-                last;
+                sleep(1); last;
             } elsif ($notify_error =~ /^n(o)?/i){
                 print "\nFair enough..\n\n";
-                last;
+                sleep(1); last;
             } else {
                 print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
             }
         }
 
-        print "Ok, last one. Would you like to receive a notification
-when a GRID Engine job exits in an abort state? This typically only
-happens when you or an administrator kills your cluster jobs using
-qdel. You're unlikely to get many of these, so they're recommended.
-Would you like to receive these notifications? (y/n)\n\n";
+        print "Ok, last one. Would you like to receive a notification\n".
+              "when a job exits in an abort state? This typically only\n".
+              "happens when you or an administrator kills your cluster jobs using\n".
+              "qdel. You're unlikely to get many of these, so they're recommended.\n".
+              "Would you like to receive these notifications? (y/n)\n\n";
         while ($notify_abort = <STDIN>){
             chomp ($notify_abort);
             if($notify_abort =~ /^y(es)?/i){
                 print "\nSounds good!\n\n";
                 $config .= "\@notification    abort\n";
-                last;
+                sleep(1); last;
             } elsif ($notify_abort =~ /^n(o)?/i){
                 print "\nFair enough..\n\n";
-                last;
+                sleep(1); last;
             } else {
                 print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
             }
@@ -1105,11 +1114,12 @@ Would you like to receive these notifications? (y/n)\n\n";
 
     } # end of defaults check
 
-    print "\n\nGreat, that's it! The following config file will be created:\n\n$config\n";
+    print "\nOk, main config file done. That will all be written to $fn\n";
 
-    print "\nRemember that you can add further settings to your
-personalised config file - see the Cluster Flow manual
-for further information.\n\n\n";
+    print "\nPlease note that there are additional customisation options\n".
+          "that you can add to your personalised config file - see the\n".
+          "Cluster Flow documentation for further information.\n\n".('-'x55)."\n\n";
+    sleep(1);
 
     unless(-e $homedir."/.clusterflow/" && -d $homedir."/.clusterflow/"){
         mkdir ($homedir."/.clusterflow/") or die "Can't create clusterflow directory: $!";
@@ -1121,22 +1131,55 @@ for further information.\n\n\n";
 } # if($make_personal_config){
 
 	# Final section - bash aliases
-	my $alias = "\n\n# Aliases added by Cluster Flow setup wizard\n";
+	my $alias = "\n\n# Added by Cluster Flow setup wizard\n";
 	my $bashrc = '';
 	$bashrc = "$homedir/.bashrc" if(-e "$homedir/.bashrc");
 	$bashrc = "$homedir/.bash_profile" if(-e "$homedir/.bash_profile");
 	if(length($bashrc) > 0){
-		my $has_qs = 0;
+
+        my $has_path = 0;
+        my $has_qs = 0;
 		my $has_qsa = 0;
-		open (BASHRC, '<', $bashrc) or die "Couldn't open $bashrc for appending: $!";
+		open (BASHRC, '<', $bashrc) or die "Couldn't open $bashrc for reading: $!";
 		while(<BASHRC>){
+			$has_path = 1 if(/module load clusterflow/);
+			$has_path = 1 if(/$FindBin::Bin/);
 			$has_qs = 1 if(/alias qs='cf --qstat'/);
 			$has_qsa = 1 if(/alias qsa='cf --qstatall'/);
 		}
 		close(BASHRC);
 
+        if(!$has_path){
+            print "Cluster Flow works best when the 'cf' executable is available\n".
+                  "as a command in the terminal. This wizard can add the following\n".
+                  "line to your .bashrc file to load Cluster Flow when you log in:\n\n";
+            if($CF_MODULES){
+                print "\tmodule load clusterflow\n\n";
+            } else {
+                print "\t".'export PATH="'.$FindBin::Bin.':$PATH"'."\n\n";
+            }
+            print "Would you like this to be appended to $bashrc ?\n\n";
+            my $add_to_path;
+            while ($add_to_path = <STDIN>){
+                chomp ($add_to_path);
+                if($add_to_path =~ /^y(es)?/i){
+                    print "\nGreat!\n\n";
+                    if($CF_MODULES){
+                        $alias .= "module load clusterflow\n";
+                    } else {
+                        $alias .= 'export PATH="'.$FindBin::Bin.':$PATH"'."\n";
+                    }
+                    sleep(1); last;
+                } elsif ($add_to_path =~ /^n(o)?/i){
+                    print "\nNo problem.\n\n";
+                    sleep(1); last;
+                } else {
+                    print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
+                }
+            }
+        }
+
 		if(!$has_qs && system("type qs > /dev/null 2>&1")){
-		    print "\n\nCluster Flow Bash Alias Generator\n".('='x34)."\nRunning Cluster Flow version $CF_VERSION\n\n";
 			print "A common command when using Cluster Flow is 'cf --qstat'\n".
 				  "This shows currently running jobs. This is a bit of a mouthful to type,\n".
 				  "so most users set up a bash alias so that you can type 'qs' instead.\n\n".
@@ -1147,10 +1190,10 @@ for further information.\n\n\n";
 			    if($add_qs =~ /^y(es)?/i){
 					$alias .= "alias qs='cf --qstat'\n";
 			        print "\nOk, added..\n\n";
-			        last;
+			        sleep(1); last;
 			    } elsif ($add_qs =~ /^n(o)?/i){
-			        print "\nNo problem..\n\n";
-			        last;
+			        print "\nNo problem.\n\n";
+			        sleep(1); last;
 			    } else {
 			        print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
 			    }
@@ -1162,11 +1205,11 @@ for further information.\n\n\n";
 			    chomp ($add_qsa);
 			    if($add_qsa =~ /^y(es)?/i){
 					$alias .= "alias qsa='cf --qstatall'\n";
-			        print "\nOk, added..\n\n";
-			        last;
+			        print "\nOk, added.\n\n";
+			        sleep(1); last;
 			    } elsif ($add_qsa =~ /^n(o)?/i){
-			        print "\nNo problem..\n\n";
-			        last;
+			        print "\nNo problem.\n\n";
+			        sleep(1); last;
 			    } else {
 			        print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
 			    }
@@ -1177,15 +1220,6 @@ for further information.\n\n\n";
 			print BASHRC $alias."\n\n";
 			close(BASHRC);
 		}
-
-		print "\n\nNote about the cf command\n".('='x25)."\n";
-		print "As a small final note, be aware that Cluster flow is only really useful\n".
-			  "if the main cf executable is available as a command in the terminal.\n".
-			  "How you do this depends heavily on your setup, so this wizard doesn't\n".
-			  "attempt to do it for you. Bear in mind that you may want to add one\n".
-			  "of the following lines to $bashrc :\n\n".
-			  "module load cf\n".
-			  'export PATH="'.$FindBin::Bin.':$PATH"'."\n\n";
 	}
 }
 
