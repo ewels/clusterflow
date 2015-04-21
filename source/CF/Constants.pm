@@ -807,8 +807,7 @@ sub clusterflow_setup {
             chomp ($continue);
             if ($continue =~ /^n(o)?/i){
                 print "\nOk. Bear in mind that certain configuration variables\nsuch as \@cluster_environment) must be set\nfor *all* Cluster Flow users.\n\n";
-				sleep(1);
-				last;
+				        sleep(1); last;
             } elsif($continue =~ /^y(es)?/i){
                 print "\nBrilliant - we'll make a copy of\n$global_fn.example\nand customise a couple of key variables.\n\n";
                 $do_global = 1;
