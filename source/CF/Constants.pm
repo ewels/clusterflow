@@ -798,11 +798,10 @@ sub clusterflow_setup {
 
     # First of all - check we have a global config file
     my $global_fn = "$FindBin::Bin/clusterflow.config";
-    unless(-e $global_fn){
+    if(!-e $global_fn and -e $global_fn.".example" and  -w "$FindBin::Bin/"){
         print "\n\nCluster Flow Setup Wizard\n".('='x37)."\nRunning Cluster Flow version $CF_VERSION\n\n";
         print "There is no global config file for Cluster Flow:\n$global_fn\n\n";
-        print "This wizard can create one based on \n$global_fn.example\nbefore configuring a personal config file.\n\n";
-        print "Would you like to create a global config file?\n\n";
+        print "Would you like to create a global config file before\nconfiguring a personal config file for just you? (y/n)\n\n";
         my $do_global = 0;
         while (my $continue = <STDIN>){
             chomp ($continue);
@@ -813,7 +812,7 @@ sub clusterflow_setup {
             } elsif($continue =~ /^y(es)?/i){
                 print "\nBrilliant - we'll make a copy of\n$global_fn.example\nand customise a couple of key variables.\n\n";
                 $do_global = 1;
-                last;
+                sleep(1); last;
             } else {
                 print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
             }
@@ -821,8 +820,8 @@ sub clusterflow_setup {
         if($do_global){
             # Load the example config file
             open(GLOBAL_CONFIG_EXAMPLE, "<", $global_fn.".example") or die "Can't open global config example file: $!\n\n";
-        	my @config_file = <GLOBAL_CONFIG_EXAMPLE>;
-        	close(GLOBAL_CONFIG_EXAMPLE);
+        	  my @config_file = <GLOBAL_CONFIG_EXAMPLE>;
+        	  close(GLOBAL_CONFIG_EXAMPLE);
 
             # Get environment
             print "First - Cluster Flow is compatible with several HPC cluster managers,\nbut it needs to know which one you're using..\n\n";
@@ -831,13 +830,13 @@ sub clusterflow_setup {
             while ($env = <STDIN>){
                 chomp ($env);
                 if ($env =~ /(local|GRID( )?Engine|SGE|SLURM|LSF)/i){
-					# I'm pedantic when it comes to capitalisation, sorry.
-					$env = 'local' if $env =~ /local/i;
-					$env = 'GRIDEngine' if $env =~ /GRID( )?Engine/i;
-					$env = 'GRIDEngine' if $env =~ /SGE/i;
-					$env = 'SLURM' if $env =~ /SLURM/i;
-					$env = 'LSF' if $env =~ /LSF/i;
-					$CLUSTER_ENVIRONMENT = $env;
+          					# I'm pedantic when it comes to capitalisation, sorry.
+          					$env = 'local' if $env =~ /local/i;
+          					$env = 'GRIDEngine' if $env =~ /GRID( )?Engine/i;
+          					$env = 'GRIDEngine' if $env =~ /SGE/i;
+          					$env = 'SLURM' if $env =~ /SLURM/i;
+          					$env = 'LSF' if $env =~ /LSF/i;
+          					$CLUSTER_ENVIRONMENT = $env;
                     print "\nGreat, going with $env\n\n";
                     my $inserted = 0;
                     for my $i (0 .. $#config_file) {
@@ -850,46 +849,47 @@ sub clusterflow_setup {
                             }
                         }
                     }
-					last;
+					          sleep(1); last;
                 } else {
                     print "\nSorry, I didn't understand that.\nCould you try again please?\n\n";
                 }
             }
 
             # Environment modules?
-            print "Next, do you use environment modules?\nThese use commands such as 'module load bowtie' to\n";
-            print "load tools into your namespace. If you don't\nunderstand what this means, the answer is probably no.\n\n";
-            print "Do you want to use environment modules? (y/n)\n\n";
+            print "Environment modules load tools into your namespace, with commands that look\n".
+                  "like 'module load <tool-name>'. Does your cluster use these? (y/n)\n\n";
             while (my $envmods = <STDIN>){
                 chomp ($envmods);
                 if ($envmods =~ /^y(es)?/i){
-		            my $inserted = 0;
-		            for my $i (0 .. $#config_file) {
-		                if($config_file[$i] =~ /\@ignore_modules/){
-		                    if(!$inserted){
-		                        $config_file[$i] = "/* \@ignore_modules\ttrue */\n";
-		                        $inserted = 1;
-		                    } else {
-		                        $config_file[$i] = '';
-		                    }
-		                }
-		            }
-                    last;
+  		            my $inserted = 0;
+  		            for my $i (0 .. $#config_file) {
+  		                if($config_file[$i] =~ /\@ignore_modules/){
+  		                    if(!$inserted){
+  		                        $config_file[$i] = "/* \@ignore_modules\ttrue */\n";
+  		                        $inserted = 1;
+  		                    } else {
+  		                        $config_file[$i] = '';
+  		                    }
+  		                }
+  		            }
+                  print "\nOk, great.\n\n";
+                  sleep(1); last;
                 } elsif($envmods =~ /^n(o)?/i){
-                    print "\nOk, I'll add \@ignore_modules to the config file..\n\n";
-		            my $inserted = 0;
-		            for my $i (0 .. $#config_file) {
-		                if($config_file[$i] =~ /\@ignore_modules/){
-		                    if(!$inserted){
-		                        $config_file[$i] = "\@ignore_modules\ttrue\n";
-		                        $inserted = 1;
-								$CF_MODULES = 0;
-		                    } else {
-		                        $config_file[$i] = '';
-		                    }
-		                }
-		            }
-                    last;
+                  print "\nOk, I'll add \@ignore_modules to the config file..\n\n";
+  		            my $inserted = 0;
+  		            for my $i (0 .. $#config_file) {
+  		                if($config_file[$i] =~ /\@ignore_modules/){
+  		                    if(!$inserted){
+  		                        $config_file[$i] = "\@ignore_modules\ttrue\n";
+  		                        $inserted = 1;
+  								            $CF_MODULES = 0;
+  		                    } else {
+  		                        $config_file[$i] = '';
+  		                    }
+  		                }
+  		            }
+                  push(@config_file, "\@ignore_modules\ttrue\n") unless($inserted);
+                  sleep(1); last;
                 } else {
                     print "\nSorry, I didn't understand that.\nCould you try again please? (y/n)\n\n";
                 }
@@ -898,9 +898,9 @@ sub clusterflow_setup {
 
             print "Ok, all done - writing to $global_fn\n\nMoving on to personal configs..\n\n";
             open(GLOBAL_CONFIG, ">", $global_fn) or die "Can't open global config file for writing: $!\n\n";
-        	print GLOBAL_CONFIG @config_file;
-        	close(GLOBAL_CONFIG);
-			sleep(1);
+        	  print GLOBAL_CONFIG @config_file;
+        	  close(GLOBAL_CONFIG);
+			      sleep(1);
         }
     }
 
@@ -1219,7 +1219,8 @@ These will overwrite any with the same name in the centralised config file
 			open (BASHRC, '>>', $bashrc) or die "Couldn't open $bashrc for appending: $!";
 			print BASHRC $alias."\n\n";
 			close(BASHRC);
-            print "\n$bashrc updated..\n\n".('-'x55)."\n\n";
+            print "\nThe file $bashrc has been updated.\nNote that these commands won't be active until you log out\n".
+                  "and log in again, or run the following command:\n\n\tsource $bashrc\n\n".('-'x55)."\n\n";
             sleep(1);
 		}
 	}

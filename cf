@@ -326,7 +326,12 @@ if($cl_help){
 my @valid_environments = ('local', 'GRIDEngine', 'SLURM', 'LSF');
 my $environtments_regex = join('|', @valid_environments);
 if(length($CLUSTER_ENVIRONMENT) == 0){
-    print ("Error - Cluster Environment not set. Please configure \@cluster_environment in your config files.\n\n");
+		my $global_fn = "$FindBin::Bin/clusterflow.config";
+		if(-e $global_fn){
+			print ("Error - Cluster Environment not set.\nPlease configure \@cluster_environment in your global config file:\n$global_fn\n\n");
+		} else {
+			print ("Error - Cluster Environment not set. Please run 'cf --setup' to create a global config file.\n\n");
+		}
     exit;
 } elsif($CLUSTER_ENVIRONMENT !~ /^($environtments_regex)$/i){
 	print ("Error - Cluster Environment not recognised. Valid values: ".join(', ', @valid_environments)."\n\n");
