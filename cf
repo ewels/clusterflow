@@ -73,7 +73,7 @@ my $cl_help;
 
 my $config_result = GetOptions(
 	"genome=s" => \$GENOME,
-    "ref=s" => \$cl_reference,
+  "ref=s" => \$cl_reference,
 	"split_files=i" => \$SPLIT_FILES,
 	"max_runs=i" => \$MAX_RUNS,
 	"merge=s" => \$MERGE_REGEX,
@@ -81,7 +81,7 @@ my $config_result = GetOptions(
 	"single" => \$cl_single_end,
 	"no_fn_check" => \$cl_no_fn_check,
 	"file_list=s" => \$file_list,
-    "runfile_prefix=s" => \$cl_runfile_prefix,
+  "runfile_prefix=s" => \$cl_runfile_prefix,
 	"params=s" => \$cl_params,
 	"email=s" => \$EMAIL,
 	"priority=i" => \$PRIORITY,

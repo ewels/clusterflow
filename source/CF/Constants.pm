@@ -259,37 +259,39 @@ sub list_clusterflow_genomes {
     foreach my $config_file (@config_files){
 
         my $conf_count = 0;
-        my $conf_file_string .= "\n".('-' x 50)."\n $config_file\n".('-' x 50)."\n";
+        my $conf_file_string = "\n".('-' x 150)."\n $config_file\n";
+        $conf_file_string .= " Name           Type        Species                  Assembly       Path\n".('-'x150)."\n";
+        my %conf_lines;
         foreach my $ref_type ( keys %REFERENCES){
-            my $type_count = 0;
-            my $type_string = "\n== $ref_type Paths ==\n";
             foreach my $genome_key ( keys %{$REFERENCES{$ref_type}}){
-                if(defined($REFERENCES{$ref_type}{$genome_key}{config_file}) && $REFERENCES{$ref_type}{$genome_key}{config_file} eq $config_file){
-                    my $this_key = $genome_key." " x (20 - length($genome_key));
-                    my $this_species = " " x 20;
-                    if(defined($REFERENCES{$ref_type}{$genome_key}{species})){
-                        $this_species = $REFERENCES{$ref_type}{$genome_key}{species}." " x (20 - length($REFERENCES{$ref_type}{$genome_key}{species}));
-                    }
-                    my $this_assembly = " " x 15;
-                    if(defined($REFERENCES{$ref_type}{$genome_key}{assembly})){
-                        $this_assembly = $REFERENCES{$ref_type}{$genome_key}{assembly}." " x (15 - length($REFERENCES{$ref_type}{$genome_key}{assembly}));
-                    }
-                    my $this_path = $REFERENCES{$ref_type}{$genome_key}{path};
-                    $type_string .= " ".$this_key.$this_species.$this_assembly.$this_path."\n";
+                if(defined($REFERENCES{$ref_type}{$genome_key}{'config_file'}) && $REFERENCES{$ref_type}{$genome_key}{'config_file'} eq $config_file){
+                    my $t_species = defined($REFERENCES{$ref_type}{$genome_key}{'species'}) ? substr($REFERENCES{$ref_type}{$genome_key}{'species'}, 0, 24) : (" " x 24);
+                    my $t_assembly = defined($REFERENCES{$ref_type}{$genome_key}{'species'}) ? substr($REFERENCES{$ref_type}{$genome_key}{'assembly'}, 0, 14) : (" " x 14);
+                    my $t_path = defined($REFERENCES{$ref_type}{$genome_key}{'species'}) ? $REFERENCES{$ref_type}{$genome_key}{'path'} : '';
+
+                    my $this_key = $genome_key.(" " x (15 - length($genome_key)));
+                    my $this_ref = $ref_type.(" " x (10 - length($ref_type)));
+                    my $this_species = $t_species.(" " x (25 - length($t_species)));
+                    my $this_assembly = $t_assembly.(" " x (15 - length($t_assembly)));
+                    my $this_path = $REFERENCES{$ref_type}{$genome_key}{'path'};
+                    my $this_string = " ".$this_key.$this_ref.$this_species.$this_assembly.$this_path;
                     $conf_count++;
-                    $type_count++;
+
+                    if(!defined($conf_lines{$genome_key})){
+                      $conf_lines{$genome_key} = ();
+                    }
+                    push(@{$conf_lines{$genome_key}}, $this_string);
                 }
             }
-            if($type_count > 0){
-                $conf_file_string .= $type_string;
-            }
+        }
+        foreach my $key (sort keys %conf_lines){
+          $conf_file_string .= join("\n", @{$conf_lines{$key}})."\n";
         }
         if($conf_count > 0){
             $returnstring .= $conf_file_string;
         }
     }
     $returnstring .= "\n";
-
     return $returnstring;
 }
 
