@@ -1,5 +1,6 @@
 # /
 /dev
+/scripts
 /clusterflow.config
 /genomes.config
 *.pyc
