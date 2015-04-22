@@ -29,7 +29,7 @@ use CF::Helpers;
 # Module requirements
 my %requirements = (
 	'cores' 	=> '1',
-	'memory' 	=> '500M',
+	'memory' 	=> '4G',
 	'modules' 	=> 'sratoolkit',
 	'time' 		=> sub {
 		my $cf = $_[0];
