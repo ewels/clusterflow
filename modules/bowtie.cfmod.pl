@@ -26,6 +26,9 @@ use CF::Helpers;
 # along with Cluster Flow.  If not, see <http://www.gnu.org/licenses/>.  #
 ##########################################################################
 
+# Save the args for later
+my @rawargs = @ARGV;
+
 # Module requirements
 my %requirements = (
 	'cores' 	=> ['1', '8'],
@@ -61,7 +64,7 @@ my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 if(!CF::Helpers::fastq_min_length($cf{'prev_job_files'}[0], 50)){
 	warn "\n\n###CF First file has reads < 50bp long. Using bowtie 1 for alignment.\n";
 
-	my $command = "$FindBin::Bin/bowtie1.cfmod.pl ".join(" ", @ARGV);
+	my $command = "$FindBin::Bin/bowtie1.cfmod.pl ".join(" ", @rawargs);
 	warn "\nBowtie 1 module command: $command\n\n";
 
 	system($command);
@@ -69,7 +72,7 @@ if(!CF::Helpers::fastq_min_length($cf{'prev_job_files'}[0], 50)){
 } else {
 	warn "\n\n###CF First file has reads >= 50bp long. Using bowtie 2 for alignment.\n";
 
-	my $command = "$FindBin::Bin/bowtie2.cfmod.pl ".join(" ", @ARGV);
+	my $command = "$FindBin::Bin/bowtie2.cfmod.pl ".join(" ", @rawargs);
 	warn "\nBowtie 2 module command: $command\n\n";
 
 	system($command);
