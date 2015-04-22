@@ -1,3 +1,4 @@
+
 #!/usr/bin/env perl
 use warnings;
 use strict;
@@ -46,7 +47,7 @@ my $helptext = "".("-"x22)."\n Bowtie 1 or 2 Module\n".("-"x22)."\n
 This module inspects the first input file and calculates the
 read length. If this is >= 50bp, it aligns with the Bowtie 2
 module. If not, it aligns with the Bowtie 1 module.\n
-This module assumes that the bowtie1.cfmod and bowtie2.cfmod
+This module assumes that the bowtie1.cfmod.pl and bowtie2.cfmod.pl
 module files are contained within the same directory as this script.\n
 See cf --help bowtie1 and cf --help bowtie2 for more information
 on these modules.\n\n";
@@ -61,7 +62,7 @@ my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 if(!CF::Helpers::fastq_min_length($cf{'prev_job_files'}[0], 50)){
 	warn "\n\n###CF First file has reads < 50bp long. Using bowtie 1 for alignment.\n";
 
-	my $command = "$FindBin::Bin/bowtie1.cfmod ".join(" ", @ARGV);
+	my $command = "$FindBin::Bin/bowtie1.cfmod.pl ".join(" ", @ARGV);
 	warn "\nBowtie 1 module command: $command\n\n";
 
 	system($command);
@@ -69,7 +70,7 @@ if(!CF::Helpers::fastq_min_length($cf{'prev_job_files'}[0], 50)){
 } else {
 	warn "\n\n###CF First file has reads >= 50bp long. Using bowtie 2 for alignment.\n";
 
-	my $command = "$FindBin::Bin/bowtie2.cfmod ".join(" ", @ARGV);
+	my $command = "$FindBin::Bin/bowtie2.cfmod.pl ".join(" ", @ARGV);
 	warn "\nBowtie 2 module command: $command\n\n";
 
 	system($command);
