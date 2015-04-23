@@ -46,7 +46,7 @@ my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 my $pipeline = $cf{'pipeline_name'};
 # Get the output filenames
-my $i = 1;
+my $i = 0;
 my @outfns;
 while(defined($cf{'params'}{'outfn_'.$i})){
 	push(@outfns, $cf{'params'}{'outfn_'.$i});
