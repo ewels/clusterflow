@@ -1,5 +1,3 @@
-
-
 #!/usr/bin/env perl
 use warnings;
 use strict;
@@ -260,7 +258,7 @@ sub list_clusterflow_genomes {
 
         my $conf_count = 0;
         my $conf_file_string = "\n".('-' x 150)."\n $config_file\n";
-        $conf_file_string .= " Name           Type        Species                  Assembly       Path\n".('-'x150)."\n";
+        $conf_file_string .= " Name           Type      Species                  Assembly       Path\n".('-'x150)."\n";
         my %conf_lines;
         foreach my $ref_type ( keys %REFERENCES){
             foreach my $genome_key ( keys %{$REFERENCES{$ref_type}}){

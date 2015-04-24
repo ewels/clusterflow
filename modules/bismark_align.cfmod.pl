@@ -66,10 +66,10 @@ foreach my $file (@{$cf{'starting_files'}}){
 # MODULE
 
 # Check that we have a genome defined
-if(!defined($cf{'refs'}{'fasta'})){
-   die "\n\n###CF Error: No genome fasta path found in run file $cf{run_fn} for job $cf{job_id}. Exiting..";
+if(!defined($cf{'refs'}{'bismark'})){
+   die "\n\n###CF Error: No genome bismark path found in run file $cf{run_fn} for job $cf{job_id}. Exiting..";
 } else {
-    warn "\nAligning against $cf{refs}{fasta}\n\n";
+    warn "\nAligning against $cf{refs}{bismark}\n\n";
 }
 
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
@@ -144,7 +144,7 @@ if($se_files && scalar(@$se_files) > 0){
 			$output_fn = $file."_bismark.bam";
 		}
 
-		my $command = "bismark $multicore --bam $bt2 $pbat $non_directional $enc $cf{refs}{fasta} $file";
+		my $command = "bismark $multicore --bam $bt2 $pbat $non_directional $enc $cf{refs}{bismark} $file";
 		warn "\n###CFCMD $command\n\n";
 
 		if(!system ($command)){
@@ -186,7 +186,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 				$output_fn = $files[0]."_bismark_pe.bam";
 			}
 
-			my $command = "bismark $multicore --bam $bt2 $pbat $non_directional $enc $cf{refs}{fasta} -1 ".$files[0]." -2 ".$files[1];
+			my $command = "bismark $multicore --bam $bt2 $pbat $non_directional $enc $cf{refs}{bismark} -1 ".$files[0]." -2 ".$files[1];
 			warn "\n###CFCMD $command\n\n";
 
 			if(!system ($command)){

@@ -1,3 +1,4 @@
+
 #!/usr/bin/env perl
 use warnings;
 use strict;
@@ -43,7 +44,7 @@ my %requirements = (
 # Help text
 my $helptext = "".("-"x38)."\n Bismark Coverage Analysis Module\n".("-"x38)."\n
 The bismark_coverage module runs the bismark coverage2cytosine script.
-This reads in a fasta reference and creates a .cov file with coverage information
+This reads in a bismark reference and creates a .cov file with coverage information
 about every cytosine in the genome. The module then uses this to plot two
 informative plots about the coverage of the experiment.
 Use the capture_regions=<filename.txt> paramter when doing a sequence capture
@@ -55,10 +56,10 @@ my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 # MODULE
 # Check that we have a genome defined
-if(!defined($cf{'refs'}{'fasta'})){
-   die "\n\n###CF Error: No genome fasta path found in run file $cf{run_fn} for job $cf{job_id}. Exiting..";
+if(!defined($cf{'refs'}{'bismark'})){
+   die "\n\n###CF Error: No genome bismark path found in run file $cf{run_fn} for job $cf{job_id}. Exiting..";
 } else {
-    warn "\nAligning against $cf{refs}{fasta}\n\n";
+    warn "\nUsing reference $cf{refs}{bismark}\n\n";
 }
 
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
@@ -81,7 +82,7 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 	$file =~ s/.[bs]am$//;
 	$file .= '.bismark.cov';
     my $output_cov_fn = substr($file,0 ,-3)."gwCov.cov";
-    my $cmd = "coverage2cytosine --genome_folder $cf{refs}{fasta} $file -o $output_cov_fn";
+    my $cmd = "coverage2cytosine --genome_folder $cf{refs}{bismark} $file -o $output_cov_fn";
     warn "\n###CFCMD $cmd\n\n";
 
     if(!system ($cmd)){
