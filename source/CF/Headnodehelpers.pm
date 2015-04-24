@@ -482,9 +482,9 @@ sub print_jobs_pipeline_output {
 	foreach my $key (keys (%{$hashref}) ){
 
 		# Ignore this unless this is part of the pipeline we're printing
-		next unless (${$hashref}{$key}{pipelinekey} eq $pipeline || $depth > 0);
+		next unless (${$hashref}{$key}{'pipelinekey'} eq $pipeline || $depth > 0);
 
-		my $children = scalar(keys(%{${$hashref}{$key}{children}}));
+		my $children = scalar(keys(%{${$hashref}{$key}{'children'}}));
 
 		if($depth == 0){
 			${$output} .= "\n";
@@ -492,10 +492,10 @@ sub print_jobs_pipeline_output {
 
 		${$output} .= " ".(" " x ($depth*5))."- ";
 
-		if(${$hashref}{$key}{state} eq 'running' && $cols){
+		if(${$hashref}{$key}{'state'} eq 'running' && $cols){
 			${$output} .= color 'red on_white';
 			${$output} .= " ";
-		} elsif(${$hashref}{$key}{state} eq 'deleting' && $cols){
+		} elsif(${$hashref}{$key}{'state'} eq 'deleting' && $cols){
 			${$output} .= color 'white on_red';
 			${$output} .= " ";
 		} elsif ($depth == 0 && $cols) {
@@ -503,13 +503,13 @@ sub print_jobs_pipeline_output {
 			${$output} .= " ";
 		}
 
-		if(${$hashref}{$key}{state} eq 'deleting'){
+		if(${$hashref}{$key}{'state'} eq 'deleting'){
 			${$output} .= "** Terminating ** ";
 		}
-		if(${$hashref}{$key}{module}){
-			${$output} .= ${$hashref}{$key}{module};
+		if(${$hashref}{$key}{'module'}){
+			${$output} .= ${$hashref}{$key}{'module'};
 		} else {
-			${$output} .= ${$hashref}{$key}{jobname};
+			${$output} .= ${$hashref}{$key}{'jobname'};
 		}
 
 		if($cols){
@@ -530,7 +530,7 @@ sub print_jobs_pipeline_output {
 
 			if($all_users){
 				${$output} .= color 'green' if $cols;
-				my $user = " {".${$hashref}{$key}{owner}."} ";
+				my $user = " {".${$hashref}{$key}{'owner'}."} ";
 				${$output} .= $user;
 				${$output} .= color 'reset' if $cols;
 				$spaces = 12 - length($user);
@@ -538,17 +538,17 @@ sub print_jobs_pipeline_output {
 			}
 
 			${$output} .= color 'blue' if $cols;
-			my $s = ""; $s = "s" if ${$hashref}{$key}{cores} > 1;
-			${$output} .= " [".${$hashref}{$key}{cores}." core$s] ";
+			my $s = ""; $s = "s" if ${$hashref}{$key}{'cores'} > 1;
+			${$output} .= " [".${$hashref}{$key}{'cores'}." core$s] ";
 			${$output} .= color 'reset' if $cols;
 
-			unless(${$hashref}{$key}{state} =~ /running/i){
+			unless(${$hashref}{$key}{'state'} =~ /running/i){
 				${$output} .= color 'yellow' if $cols;
-				${$output} .= " [queued, priority ".${$hashref}{$key}{priority}."] ";
+				${$output} .= " [queued, priority ".${$hashref}{$key}{'priority'}."] ";
 				${$output} .= color 'reset' if $cols;
-				if(length(${$hashref}{$key}{dependency_reason}) > 0){
+				if(length(${$hashref}{$key}{'dependency_reason'}) > 0){
 					${$output} .= color 'yellow' if $cols;
-					${$output} .= " (Reason: ".${$hashref}{$key}{dependency_reason}.")";
+					${$output} .= " (Reason: ".${$hashref}{$key}{'dependency_reason'}.")";
 					${$output} .= color 'reset' if $cols;
 				}
 			}
@@ -557,14 +557,14 @@ sub print_jobs_pipeline_output {
 			my $timestamp = "";
 			my ($year, $month, $day, $hour, $minute, $second) = $timestamp =~ /^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)/;
 			if($second){
-				if(${$hashref}{$key}{started}){
+				if(${$hashref}{$key}{'started'}){
 					${$output} .= color 'magenta' if $cols;
 					${$output} .= "running for ";
-					$timestamp = ${$hashref}{$key}{started};
+					$timestamp = ${$hashref}{$key}{'started'};
 				} else {
 					${$output} .= color 'yellow' if $cols;
 					${$output} .= "queued for ";
-					$timestamp = ${$hashref}{$key}{submitted};
+					$timestamp = ${$hashref}{$key}{'submitted'};
 				}
 				my $time = timelocal($second ,$minute, $hour, $day, $month-1, $year);
 				my $duration = CF::Helpers::parse_seconds(time - $time, 0);
@@ -580,11 +580,12 @@ sub print_jobs_pipeline_output {
 		# Now go through and print child jobs
 
 		if($children){
-			if(${$hashref}{$key}{module} eq 'download' && ${$hashref}{$key}{state} ne 'running'){
+			if(defined(${$hashref}{$key}{'module'}) and ${$hashref}{$key}{'module'} eq 'download'
+				and defined(${$hashref}{$key}{'state'}) and ${$hashref}{$key}{'state'} ne 'running'){
 				# don't increase the depth if this is a download - avoid the huge christmas trees
-				print_jobs_pipeline_output(\%{${$hashref}{$key}{children}}, $depth, \${$output}, $all_users, $cols, $pipeline);
+				print_jobs_pipeline_output(\%{${$hashref}{$key}{'children'}}, $depth, \${$output}, $all_users, $cols, $pipeline);
 			} else {
-				print_jobs_pipeline_output(\%{${$hashref}{$key}{children}}, $depth + 1, \${$output}, $all_users, $cols, $pipeline);
+				print_jobs_pipeline_output(\%{${$hashref}{$key}{'children'}}, $depth + 1, \${$output}, $all_users, $cols, $pipeline);
 			}
 		}
 	}
