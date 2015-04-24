@@ -3,6 +3,9 @@
 #########################################
 ### CLUSTER FLOW COMMAND LINE ARGUMENTS
 #########################################
+
+# Probably no need to touch this section. Could move it into a shared
+# script to be imported if we have many R modules.
 args <- commandArgs(TRUE)
 cf <- list()
 cf[['params']] <- list()
@@ -96,39 +99,45 @@ if(length(file.list) == 0){
     q(save="no")
 }
 
-# Define the sample names
-sample.list = file.list
+##########################
+### R MODULE INSTALLATION
+##########################
 
-# Make a fake treatment list - we don't know how the samples relate
-treatments = as.list(rep(1, length(sample.list)))
-
-######################
-### INSTALLATION
-######################
-
-# Check if we have the methylKit module already
-if("methylKit" %in% rownames(installed.packages()) == FALSE) {
-  # Not found - install everything...
-
-  # dependencies
-  install.packages( c("data.table","devtools"))
+# Check if we have the exampleModule R module already
+if("exampleModule" %in% rownames(installed.packages()) == FALSE) {
+  # Not found - install it
   source("http://bioconductor.org/biocLite.R")
-  biocLite(c("GenomicRanges","IRanges"))
-
-  # install the development version from github
-  library(devtools)
-  install_github("al2na/methylKit", build_vignettes=FALSE)
+  biocLite('exampleModule')
 }
+# Load exampleModule library
+library('exampleModule')
 
-# Load methylKit library
-library(methylKit)
+# Check if we have the RColorBrewer R module already
+if("RColorBrewer" %in% rownames(installed.packages()) == FALSE) {
+  # Not found - install it
+  install.packages('RColorBrewer')
+}
+# Load exampleModule library
+library('RColorBrewer')
 
 
 ######################
-### LOAD DATA
+### PROCESS DATA
 ######################
 
-# Load sorted deduplicated bismark BAM files to a methylRawList object
-objs=read.bismark(location=file.list, sample.id=sample.list, assembly="GRCh37",
-                  save.folder=NULL, save.context=NULL, read.context="CpG",
-                  nolap=TRUE, mincov=10, minqual=20, treatment=treatments)
+# This contains our input file names
+file.list
+
+# Do some stuff..
+outputfn <- "RColorBrewer_palettes.png"
+png(filename=outputfn)
+display.brewer.all()
+dev.off()
+
+# Print some log messages
+print("###CFCMD display.brewer.all()")
+print("###CF Finished plotting RColorBrewer plot")
+
+# Print the resulting filename to the Cluster Flow run file
+runfileline <- paste0(cf[['job_id']], "\t", outputfn)
+write(runfileline, file=cf[['run_fn']], append=TRUE)
