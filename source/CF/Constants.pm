@@ -495,6 +495,9 @@ RARE FLAGS
     --priority <num>
         Set the queue priority for cluster jobs
 
+    --project <string>
+        Set the project to use on the cluster for this run
+
     --runfile_prefix
         Prefix for run file filename. Avoids potential clashes if
         running multiple instances of Cluster Flow with the same

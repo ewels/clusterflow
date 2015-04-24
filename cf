@@ -44,6 +44,7 @@ my $MAX_RUNS = $CF::Constants::MAX_RUNS;
 my $MERGE_REGEX = $CF::Constants::MERGE_REGEX;
 my $CLUSTER_ENVIRONMENT = $CF::Constants::CLUSTER_ENVIRONMENT;
 my $PRIORITY = $CF::Constants::PRIORITY;
+my $C_PROJECT = $CF::Constants::C_PROJECT;
 my $TOTAL_CORES = $CF::Constants::TOTAL_CORES;
 my $TOTAL_MEM = $CF::Constants::TOTAL_MEM;
 my $EMAIL = $CF::Constants::EMAIL;
@@ -73,7 +74,7 @@ my $cl_help;
 
 my $config_result = GetOptions(
 	"genome=s" => \$GENOME,
-  "ref=s" => \$cl_reference,
+ 	"ref=s" => \$cl_reference,
 	"split_files=i" => \$SPLIT_FILES,
 	"max_runs=i" => \$MAX_RUNS,
 	"merge=s" => \$MERGE_REGEX,
@@ -81,10 +82,11 @@ my $config_result = GetOptions(
 	"single" => \$cl_single_end,
 	"no_fn_check" => \$cl_no_fn_check,
 	"file_list=s" => \$file_list,
-  "runfile_prefix=s" => \$cl_runfile_prefix,
+	"runfile_prefix=s" => \$cl_runfile_prefix,
 	"params=s" => \$cl_params,
 	"email=s" => \$EMAIL,
 	"priority=i" => \$PRIORITY,
+	"project=s" => \$C_PROJECT,
 	"cores=i" => \$TOTAL_CORES,
 	"mem=s" => \$TOTAL_MEM,
 	"environment=s" => \$CLUSTER_ENVIRONMENT,
@@ -113,7 +115,6 @@ $pipeline = shift(@ARGV);
 my @files = @ARGV;
 
 # Set up parameters
-my $C_PROJECT = $CF::Constants::C_PROJECT;
 my $CL_COLOURS = $CF::Constants::CL_COLOURS;
 my $CHECK_UPDATES = $CF::Constants::CHECK_UPDATES;
 my $AVAILABLE_VERSION = $CF::Constants::AVAILABLE_VERSION;
