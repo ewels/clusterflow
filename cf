@@ -308,8 +308,8 @@ if($cl_check_updates){
 # Print warning if we're running a version of Cluster Flow that is out of date
 if($CHECK_UPDATES){
 	if(CF::Headnodehelpers::cf_compare_version_numbers($CF_VERSION, $AVAILABLE_VERSION)){
-		print "\n".("="x45)."\n A new version of Cluster Flow is available!\n Running v$CF_VERSION, v$AVAILABLE_VERSION available.\n".("="x45)."\n
-You can download the latest version of Cluster Flow from\nhttp://www.bioinformatics.babraham.ac.uk/projects/cluster_flow/\n\n";
+		print "\n".("="x45)."\n A new version of Cluster Flow is available!\n Running v$CF_VERSION, v$AVAILABLE_VERSION available.\n".("="x45)."\n".
+			  "You can download the latest version of Cluster Flow from\nhttps://github.com/ewels/clusterflow/releases/\n\n";
 	}
 }
 
@@ -829,12 +829,13 @@ foreach my $file_set (@file_sets){
 				@dlhjid = ($prev_dl_id);
 			}
 			my $qsub = make_submit_cmd($dlcmd, $job_id, \@dlhjid, $prev_dl_id, '1', '1G', '2-00:00:00', $outfn);
+
 			push @qsubs, $qsub;
 			push @job_ids, $job_id;
 			$prev_dl_id = $job_id;
 
 			# The download module ignores this, but good to add so that mods know how many files we're starting with
-			$this_runfile .= "$job_id\t$dl_fn\n";
+			$this_runfile .= "start_000\t$dl_fn\n";
 
 		} elsif(-e $fn) { # Not a URL. Does this file exist?
 			# Add the starting filename to the run file
@@ -1032,15 +1033,13 @@ sub make_qsubs {
         my $module_fn = get_mod_fn($module);
         my ($cores, $mem, $time) = get_mod_requirements($module_fn, $runfn);
 
-    	# get prerequisite / previous job IDs
-    	my $holdjid = $prev_job;
     	# Strip number from download job ID so that these
         # files are all read in the next module
-    	$prev_job =~ s/download_[\d]{3}$/download/;
+    	(my $prev_job_cmd = $prev_job) =~ s/download_[\d]{3}$/download/;
 
 		# formulate qsub command
-		my $cmd = "$module_fn --run_fn $runfn --job_id $job_id --prev_job_id $prev_job --cores $cores --mem $mem $parameters";
-		my @holdids = ($holdjid);
+		my @holdids = ($prev_job);
+		my $cmd = "$module_fn --run_fn $runfn --job_id $job_id --prev_job_id $prev_job_cmd --cores $cores --mem $mem $parameters";
 		my $qsub = make_submit_cmd($cmd, $job_id, \@holdids, $prev_job, $cores, $mem, $time, $outfn);
 
 		push @qsubs, $qsub;
@@ -1164,7 +1163,7 @@ sub make_submit_cmd {
 				if(exists $JOB_NUM_IDS{$jname}){
 					push(@jidarray, $JOB_NUM_IDS{$jname});
 				} elsif(!$cl_dryrun) {
-					print "\nCouldn't find numeric job ID for $jname\n";
+					print "\nCouldn't find numeric job ID! '$job_id' needs ID from '$jname'\n";
 				}
 			}
 			if(scalar @jidarray > 0){
