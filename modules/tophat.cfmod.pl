@@ -45,7 +45,7 @@ my %requirements = (
 my $helptext = "".("-"x15)."\n Tophat Module\n".("-"x15)."\n
 TopHat is a fast splice junction mapper for RNA-Seq reads.
 It can run with or without a supplied GTF path but requires
-a bowtie path.
+a bowtie2 path.
 
 This module fixes a bug in tophat that relates to MAPQ values;
 by using –g 1 (as in the previous tophat module), ALL alignments will
@@ -65,11 +65,11 @@ my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 # MODULE
 # Check that we have a genome defined
-if(!defined($cf{'refs'}{'bowtie'})){
-	warn "\n\n###CF Error: No bowtie path found in run file $cf{run_fn} for job $cf{job_id}. Exiting..";
+if(!defined($cf{'refs'}{'bowtie2'})){
+	warn "\n\n###CF Error: No bowtie2 path found in run file $cf{run_fn} for job $cf{job_id}. Exiting..";
 	exit;
 } else {
-	warn "\nAligning against bowtie path: $cf{refs}{bowtie}\n\n";
+	warn "\nAligning against bowtie2 path: $cf{refs}{bowtie2}\n\n";
 }
 
 # Use a GTF file if we have one
@@ -121,7 +121,7 @@ if($se_files && scalar(@$se_files) > 0){
 		my $output_fn = $output_dir."/accepted_hits.bam";
 
 		# Changing the command to -g 2 so that we can get proper MAPQ values
-		my $command = "tophat -p $cf{cores} -g 2 $enc $gtf -o $output_dir $cf{refs}{bowtie} $file";
+		my $command = "tophat -p $cf{cores} -g 2 $enc $gtf -o $output_dir $cf{refs}{bowtie2} $file";
 		warn "\n###CFCMD $command\n\n";
 
 		if(!system ($command)){
@@ -175,7 +175,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			my $output_fn = $output_dir."/accepted_hits.bam";
 
             # Changing the command to -g 2 so that we can get proper MAPQ values
-			my $command = "tophat -p $cf{cores} -g 2 $enc $gtf -o $output_dir $cf{refs}{bowtie} $files[0] $files[1]";
+			my $command = "tophat -p $cf{cores} -g 2 $enc $gtf -o $output_dir $cf{refs}{bowtie2} $files[0] $files[1]";
 			warn "\n###CFCMD $command\n\n";
 
 			if(!system ($command)){
