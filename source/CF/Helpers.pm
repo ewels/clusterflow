@@ -87,6 +87,13 @@ sub module_start {
         exit;
     }
 
+    # Parse things from the job ID
+    if($job_id && $job_id =~ /^cf_(.+)_(\d{10})_(.+)_\d{1,3}$/){
+        $cf{'pipeline_name'} = $1;
+        $cf{'pipeline_id'} = "$1_$2";
+        $cf{'pipeline_started'} = $2;
+    }
+
     # Check that we have a run file, need it to go any further
     if(!$run_fn or length($run_fn) == 0){
         die ("Error: No run file filename supplied for module $modname\n");
@@ -210,11 +217,6 @@ sub parse_runfile {
     			$comment_block = 0;
     			next;
     		}
-
-            # Helper stuff
-            if($_ =~ /^Pipeline: (.+)$/){
-                $cf->{'pipeline_name'} = $1;
-            }
 
     		# Get config variables
     		if($_ =~ /^\@/ && !$comment_block){

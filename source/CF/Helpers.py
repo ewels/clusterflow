@@ -91,6 +91,14 @@ def module_start (reqs=False, helptext=False):
     # Check that we have at least run file, need one to go any further
     assert len(cf['run_fns']) > 0
 
+    # Parse things from the job ID
+    if kwargs['job_id']:
+        jobid_re = re.match('^cf_(.+)_(\d{10})_(.+)_\d{1,3}$', kwargs['job_id'])
+        if jobid_re:
+            cf['pipeline_name'] = jobid_re.group(1)
+            cf['pipeline_started'] = jobid_re.group(2)
+            cf['pipeline_id'] = "{}_{}".format(cf['pipeline_name'], cf['pipeline_started'])
+
     ###
     # Module requirements
     ###
