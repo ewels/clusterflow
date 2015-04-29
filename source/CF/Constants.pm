@@ -283,20 +283,29 @@ sub list_clusterflow_genomes {
                     $conf_count++;
 
                     if(!defined($conf_lines{$genome_key})){
-                      $conf_lines{$genome_key} = ();
+                      $conf_lines{$genome_key} = {};
                     }
-                    push(@{$conf_lines{$genome_key}}, $this_string);
+                    $conf_lines{$genome_key}{$ref_type} = $this_string;
                 }
             }
         }
+        my $prev_key = '';
         foreach my $key (sort keys %conf_lines){
-          $conf_file_string .= join("\n", @{$conf_lines{$key}})."\n";
+            # Genome separator
+            if($prev_key ne '' and $prev_key ne $key){
+                $conf_file_string .= ('-'x150)."\n";
+            }
+            # sorted by reference type
+            foreach my $reftype (sort keys %{$conf_lines{$key}}){
+                $conf_file_string .= $conf_lines{$key}{$reftype}."\n";
+            }
+            $prev_key = $key;
         }
         if($conf_count > 0){
             $returnstring .= $conf_file_string;
         }
     }
-    $returnstring .= "\n";
+    $returnstring .= ('-'x150)."\n\n";
     return $returnstring;
 }
 
