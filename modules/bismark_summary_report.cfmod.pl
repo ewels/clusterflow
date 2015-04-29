@@ -50,7 +50,7 @@ my $timestart = time;
 
 
 # Setup variables
-my $pipeline_id = $cf{'pipeline_name'};
+my $pipeline_id = $cf{'pipeline_id'};
 my @runfiles = $cf{'run_fns'};
 my $report_basename = $pipeline_id."_bismark_summary";
 
@@ -59,14 +59,14 @@ my %stats;
 
 # Find the original bismark aligned BAM files
 while( my( $job_id, $files ) = each %{$cf{'files'}} ){
-    if($job_id =~ m/^${pipeline_id}_bismark_align_\d+/){
+    if($job_id =~ m/^cf_${pipeline_id}_bismark_align_\d{1,3}$/){
     	push(@bam_files, @{$files});
 	}
 }
 
 my $num_samples = scalar @bam_files;
 if($num_samples == 0){
-    die("###CFSUMMARY Error: No bismark BAM files found for bismark project summary.");
+    die("###CFSUMMARY Error: No bismark BAM files found for bismark project summary (searching for cf_${pipeline_id}_bismark_align_###).");
 } else {
     warn("Found $num_samples bismark BAM files..\n");
 }
@@ -77,8 +77,8 @@ my $dup_alignments = '';
 my $unique_alignments = '';
 my $meth_cpg_string = '';
 my $unmeth_cpg_string = '';
-my $meth_cph_string = '';
-my $unmeth_cph_string = '';
+my $meth_cgh_string = '';
+my $unmeth_cgh_string = '';
 my $meth_chh_string = '';
 my $unmeth_chh_string = '';
 
@@ -94,21 +94,32 @@ for my $bam (@bam_files){
     my $total_c = '';
     my $meth_cpg = '';
     my $unmeth_cpg = '';
-    my $meth_cph = '';
-    my $unmeth_cph = '';
+    my $meth_cgh = '';
+    my $unmeth_cgh = '';
     my $meth_chh = '';
     my $unmeth_chh = '';
 
     # Bismark report
+    # Filenames can be tricky here. This is messy but seems to work...
     my $bm_report;
-	$bm_report = $base."_PE_report.txt" if(-e $base."_PE_report.txt");
-	$bm_report = $base."_SE_report.txt" if(-e $base."_SE_report.txt");
+    my @trimming = ('_se', '_pe', '_SE', '_PE');
+    my @suffixes = ('_PE_report.txt', '_SE_report.txt', '_report.txt', '_pe_report.txt', '_se_report.txt');
+    my $br_base = $base;
+    TRIM: for my $trim (@trimming){
+        $br_base =~ s/$trim$//;
+        for my $suff (@suffixes){
+            if(-e $br_base.$suff){
+                $bm_report = $br_base.$suff;
+                last TRIM;
+            }
+        }
+    }
     if($bm_report){
         if(open(BISMARK_REPORT, "<", $bm_report)){
             while(<BISMARK_REPORT>){
                 chomp;
-                if(/^Sequences analysed in total:\s+(\d+)$/){
-                    $total_reads = $1;
+                if(/^Sequence(s| pairs) analysed in total:\s+(\d+)$/){
+                    $total_reads = $2;
                 }
             }
             close(BISMARK_REPORT);
@@ -116,7 +127,8 @@ for my $bam (@bam_files){
             warn "Warning! Couldn't open bismark report $bm_report: $!\n";
         }
     } else {
-		warn "Warning! Couldn't find main bismark report for $base\n";
+		warn "Error: Couldn't find main bismark report for $bam (base '$base')\n";
+        next;
 	}
 
     # Deduplication report
@@ -136,6 +148,8 @@ for my $bam (@bam_files){
         } else {
             warn "Warning! Couldn't open deduplication report $dedup: $!";
         }
+    } else {
+        warn "Error: Couldn't find deduplication bismark report for $bam ('$dedup')\n";
     }
     if($aligned_reads ne '' && $dup_reads ne ''){
         $unique_reads = $aligned_reads - $dup_reads;
@@ -143,7 +157,7 @@ for my $bam (@bam_files){
 
     # Methylation Extraction report
     my $meth_extract = $base.".deduplicated.bam_splitting_report.txt";
-    if(-e $dedup){
+    if(-e $meth_extract){
         if(open(METHEXTR, "<", $meth_extract)){
             while(<METHEXTR>){
                 chomp;
@@ -154,7 +168,7 @@ for my $bam (@bam_files){
                     $meth_cpg = $1;
                 }
                 if(/^Total methylated C's in CHG context:\s+(\d+)/){
-                    $meth_cph = $1;
+                    $meth_cgh = $1;
                 }
                 if(/^Total methylated C's in CHH context:\s+(\d+)/){
                     $meth_chh = $1;
@@ -163,7 +177,7 @@ for my $bam (@bam_files){
                     $unmeth_cpg = $1;
                 }
                 if(/^Total C to T conversions in CHG context:\s+(\d+)/){
-                    $unmeth_cph = $1;
+                    $unmeth_cgh = $1;
                 }
                 if(/^Total C to T conversions in CHH context:\s+(\d+)/){
                     $unmeth_chh = $1;
@@ -173,26 +187,28 @@ for my $bam (@bam_files){
         } else {
             warn "Warning! Couldn't open methylation extractor report $meth_extract: $!";
         }
+    } else {
+        warn "Error: Couldn't find methylation extractor report for $bam ('$meth_extract')\n";
     }
 
-    $summary_csv .= "$bam\t$total_reads\t$dup_reads\t$unique_reads\t$total_c\t$meth_cpg\t$unmeth_cpg\t$meth_cph\t$unmeth_cph\t$meth_chh\t$unmeth_chh\n";
+    $summary_csv .= "$bam\t$total_reads\t$dup_reads\t$unique_reads\t$total_c\t$meth_cpg\t$unmeth_cpg\t$meth_cgh\t$unmeth_cgh\t$meth_chh\t$unmeth_chh\n";
 
     my $name = $bam;
     $name =~ s/_bismark.bam$//;
     $name =~ s/\.fq\.gz$//;
     $name =~ s/_trimmed$//;
     $name =~ s/_[12]$//;
+    if ($total_reads eq ''){ $total_reads = 0; warn "Warning: Total Reads not found in '$bm_report'\n"; }
+    if ($dup_reads eq ''){ $dup_reads = 0; warn "Warning: Duplicate Reads not found in '$dedup'\n"; }
+    if ($unique_reads eq ''){ $unique_reads = 0; warn "Warning: Unique Reads not found in '$dedup'\n"; }
+    if ($meth_cpg eq ''){ $meth_cpg = 0; warn "Warning: Meth CpG Reads not found in '$meth_extract'\n"; }
+    if ($unmeth_cpg eq ''){ $unmeth_cpg = 0; warn "Warning: Unmeth Cpg Reads not found in '$meth_extract'\n"; }
+    if ($meth_cgh eq ''){ $meth_cgh = 0; warn "Warning: Meth CGH Reads not found in '$meth_extract'\n"; }
+    if ($unmeth_cgh eq ''){ $unmeth_cgh = 0; warn "Warning: Unmeth CGH Reads not found in '$meth_extract'\n"; }
+    if ($meth_chh eq ''){ $meth_chh = 0; warn "Warning: Meth CHH Reads not found in '$meth_extract'\n"; }
+    if ($unmeth_chh eq ''){ $unmeth_chh = 0; warn "Warning: Unmeth CHH Reads not found in '$meth_extract'\n"; }
     my $unaligned = $total_reads - $dup_reads - $unique_reads;
-    $unaligned = 0 if $unaligned < 0;
-    $unaligned = 0 if $unaligned eq '';
-    $dup_reads = 0 if $dup_reads eq '';
-    $unique_reads = 0 if $unique_reads eq '';
-    $meth_cpg = 0 if $meth_cpg eq '';
-    $unmeth_cpg = 0 if $unmeth_cpg eq '';
-    $meth_cph = 0 if $meth_cph eq '';
-    $unmeth_cph = 0 if $unmeth_cph eq '';
-    $meth_chh = 0 if $meth_chh eq '';
-    $unmeth_chh = 0 if $unmeth_chh eq '';
+    if ($unaligned < 0){ $unaligned = 0; warn "Warning: Unaligned Reads < 0 for $bam\n"; }
 
     $categories .= "'$name', ";
     $not_aligned .= $unaligned.', ';
@@ -200,11 +216,16 @@ for my $bam (@bam_files){
     $unique_alignments .= $unique_reads.', ';
     $meth_cpg_string .= $meth_cpg.', ';
     $unmeth_cpg_string .= $unmeth_cpg.', ';
-    $meth_cph_string .= $meth_cph.', ';
-    $unmeth_cph_string .= $unmeth_cph.', ';
+    $meth_cgh_string .= $meth_cgh.', ';
+    $unmeth_cgh_string .= $unmeth_cgh.', ';
     $meth_chh_string .= $meth_chh.', ';
     $unmeth_chh_string .= $unmeth_chh.', ';
 
+}
+
+if(split("\n", $summary_csv) == 1){
+    warn "Error: No bismark information found..\n";
+    exit;
 }
 
 # Write the numeric data to a summary file
@@ -482,11 +503,11 @@ my $html_report = <<'HTMLTEMPLATESTRING';
 	            }],
 				CHG: [{
 					name: 'Unmethylated CHG',
-					data:  [ {{unmeth_cph_string}} ]
+					data:  [ {{unmeth_cgh_string}} ]
 				},
 				{
 		            name: 'Methlyated CHG',
-		            data:  [ {{meth_cph_string}} ]
+		            data:  [ {{meth_cgh_string}} ]
 		        }],
 				CHH: [{
 					name: 'Unmethylated CHH',
@@ -642,8 +663,8 @@ $html_report =~ s/{{report_timestamp}}/$report_timestamp/g;
 $html_report =~ s/{{pipeline_id}}/$pipeline_id/g;
 $html_report =~ s/{{meth_cpg_string}}/$meth_cpg_string/g;
 $html_report =~ s/{{unmeth_cpg_string}}/$unmeth_cpg_string/g;
-$html_report =~ s/{{meth_cph_string}}/$meth_cph_string/g;
-$html_report =~ s/{{unmeth_cph_string}}/$unmeth_cph_string/g;
+$html_report =~ s/{{meth_cgh_string}}/$meth_cgh_string/g;
+$html_report =~ s/{{unmeth_cgh_string}}/$unmeth_cgh_string/g;
 $html_report =~ s/{{meth_chh_string}}/$meth_chh_string/g;
 $html_report =~ s/{{unmeth_chh_string}}/$unmeth_chh_string/g;
 
