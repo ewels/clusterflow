@@ -36,8 +36,8 @@ my %requirements = (
 		my $cf = $_[0];
 		my $num_files = $cf->{'num_starting_merged_aligned_files'};
 		$num_files = ($num_files > 0) ? $num_files : 1;
-		# Alignment typically takes less than 4 hours per BAM file
-		return CF::Helpers::minutes_to_timestamp ($num_files * 5 * 60);
+		# Alignment can take ages. Be conservative..
+		return CF::Helpers::minutes_to_timestamp ($num_files * 10 * 60);
 	}
 );
 

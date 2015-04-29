@@ -50,8 +50,7 @@ my $timestart = time;
 
 
 # Setup variables
-my $pipeline = $cf{'pipeline_name'};
-my $pipeline_id = $cf{'params'}{'pipeline_name'};
+my $pipeline_id = $cf{'pipeline_name'};
 my @runfiles = $cf{'run_fns'};
 my $report_basename = $pipeline_id."_bismark_summary";
 
@@ -60,7 +59,7 @@ my %stats;
 
 # Find the original bismark aligned BAM files
 while( my( $job_id, $files ) = each %{$cf{'files'}} ){
-    if($job_id =~ m/^bismark_align_\d+/){
+    if($job_id =~ m/^${pipeline_id}_bismark_align_\d+/){
     	push(@bam_files, @{$files});
 	}
 }
