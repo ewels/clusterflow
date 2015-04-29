@@ -75,6 +75,9 @@ def module_start (reqs=False, helptext=False):
             except ValueError:
                 params[param] = True
 
+    # Check that we have at least run file, need one to go any further
+    assert kwargs['runfns'] is not None and len(kwargs['runfns']) > 0
+
     # Initialise the run file dict
     cf = {
         'run_fn':       kwargs['runfns'][0],
@@ -87,9 +90,6 @@ def module_start (reqs=False, helptext=False):
         'memory':       kwargs['mem'],
         'params':       params
     }
-
-    # Check that we have at least run file, need one to go any further
-    assert len(cf['run_fns']) > 0
 
     # Parse things from the job ID
     if kwargs['job_id']:
@@ -117,11 +117,11 @@ def module_start (reqs=False, helptext=False):
             # Been given an array
             if type(reqs[key]) is list:
                 if key is 'cores':
-                    print ("cores: {}".format(allocate_cores(kwargs['cores'], int(reqs[key][0]), int(reqs[key][1]))))
+                    print ("cores: {}".format(allocate_cores(kwargs['cores'], int(reqs[key][0]), int(reqs[key][1]))), file=sys.stout)
                 elif key is 'memory':
-                    print ("memory: {}".bytes_to_human_readable(allocate_memory(kwargs['mem'], reqs[key][0], reqs[key][1])))
+                    print ("memory: {}".bytes_to_human_readable(allocate_memory(kwargs['mem'], reqs[key][0], reqs[key][1])), file=sys.stout)
                 else:
-                    print ("{}: {}".format(key, ', '.join(reqs[key])))
+                    print ("{}: {}".format(key, ', '.join(reqs[key])), file=sys.stout)
 
 
             # Been given a string

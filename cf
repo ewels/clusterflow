@@ -958,7 +958,8 @@ sub get_mod_requirements {
     my ($module_fn, $runfn) = @_;
 
 	# Send query to module
-	my $response = `$module_fn --requirements --run_fn $runfn --cores $cores_allocation --mem $memory_allocation 2> /dev/null`;
+	my $req_cmd = "$module_fn --requirements --run_fn $runfn --cores $cores_allocation --mem $memory_allocation 2> /dev/null";
+	my $response = `$req_cmd`;
 
 	# Parse response
 	my $required_modules;
@@ -992,25 +993,30 @@ sub get_mod_requirements {
 
 	# Check that we have what we need
 	# Don't warn about module requesting more than was suggested by core cf - too verbose.
+	my @errors;
 	unless($cores =~ /^\d+$/){
-		print "\nWarning: no cores allocation or error parsing cores allocation for $module_fn ('$cores'): setting to 1\n";
+		push (@errors, "No cores requested ('$cores') - setting to 1");
 		$cores = 1;
 	}
 	if($cores > $TOTAL_CORES){
-		print "\nWarning: Module $module_fn requested more cores ($cores) than the maximum available ($TOTAL_CORES). Setting to max available.\n";
+		push (@errors, "Too many cores requested ('$cores') - setting to $TOTAL_CORES");
 		$cores = $TOTAL_CORES;
 	}
 	unless($mem =~ /^[\d\.]+[gmkb]*$/i){
-		print "\nWarning: no memory allocation or error parsing memory allocation for $module_fn ('$mem'): setting to 1Gb\n";
+		push (@errors, "No memory requested ('$mem') - setting to 1Gb");
 		$mem = '1G';
 	}
 	if(CF::Helpers::human_readable_to_bytes($mem) > CF::Helpers::human_readable_to_bytes($TOTAL_MEM)){
-		print "\nWarning: Module $module_fn requested more memory ($mem) than the maximum available ($TOTAL_MEM). Setting to max available.\n";
+		push (@errors, "Too much memory requested ('$mem') - setting to $TOTAL_MEM");
 		$mem = CF::Helpers::human_readable_to_bytes($TOTAL_MEM);
 	}
 	unless(CF::Helpers::timestamp_to_minutes($time) > 0){
-		print "\nWarning: no time allocation or error parsing time allocation for $module_fn ('$time'): setting to 2 days\n";
+		push (@errors, "No time requested ('$time') - setting to 2 days");
 		$time = '2-00:00:00';
+	}
+	if(scalar @errors > 0){
+		warn "\nWarning: error parsing requirements for $module_fn\n  - ".join("\n  - ", @errors)."\n";
+		warn "Requirments request command: $req_cmd\nResponse: $response\n";
 	}
 
     return ($cores, $mem, $time);
