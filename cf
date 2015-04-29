@@ -127,6 +127,7 @@ my $CF_MODULES = $CF::Constants::CF_MODULES;
 my %ENV_MODULE_ALIASES = %CF::Constants::ENV_MODULE_ALIASES;
 my @LOG_HIGHLIGHT_STRINGS = @CF::Constants::LOG_HIGHLIGHT_STRINGS;
 my @LOG_WARNING_STRINGS = @CF::Constants::LOG_WARNING_STRINGS;
+my %LOADED_MODULES = %CF::Constants::LOADED_MODULES;
 
 # Set up genomes
 my %REFERENCES = %CF::Constants::REFERENCES;
@@ -138,7 +139,6 @@ if($cl_reference){
 
 # Holders for tracking job IDs and loaded modules
 my %JOB_NUM_IDS;
-my %LOADED_MODULES;
 
 if($cl_notifications){
 	my @new_nots = split(//, $cl_notifications);
@@ -977,7 +977,7 @@ sub get_mod_requirements {
 			}
 			if($key eq 'modules'){
 				my @modules = split(/[\s,]+/, $val);
-				&CF::Helpers::load_environment_modules(\@modules, \%LOADED_MODULES)
+				&CF::Helpers::load_environment_modules(\@modules, \%LOADED_MODULES);
 			}
 			if($key eq 'time'){
 				$time = $val;

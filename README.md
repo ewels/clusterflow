@@ -75,6 +75,7 @@ Cluster Flow is released with a GPL v3 licence. Cluster Flow is free software: y
     * Removed the `--qstatcols` command line option and added the `@colourful` config option to replace it
         * The config wizard is also updated to add this to your personal config
     * Added checks to make sure that we have at least one config file, and that the cluster environment is set
+	* Added new `@environment_module_always` config option to _always_ load certain environment modules at run time.
 * Bugs Squashed
 	* Fixed output filename problem in tophat with output cleaning
 	* Fixed bugs causing minimum memory allocation regardless of availability

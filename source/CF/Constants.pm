@@ -1,13 +1,15 @@
 #!/usr/bin/env perl
+package CF::Constants;
+
 use warnings;
 use strict;
+use Exporter;
 use FindBin qw($Bin);
 use File::Find;
 use File::Basename;
 use Cwd;
-use Exporter;
+use CF::Helpers;
 
-package CF::Constants;
 
 ##########################################################################
 # Copyright 2014, Philip Ewels (phil.ewels@scilifelab.se)                #
@@ -50,6 +52,7 @@ our $MAX_RUNS = 12;
 our $CLUSTER_ENVIRONMENT = '';
 our $CUSTOM_JOB_SUBMIT_COMMAND;
 our $CF_MODULES = 1;
+our %LOADED_MODULES;
 our %ENV_MODULE_ALIASES;
 our @LOG_HIGHLIGHT_STRINGS;
 our @LOG_WARNING_STRINGS;
@@ -155,6 +158,10 @@ sub parse_conf_file {
                     }
                     if($name eq 'ignore_modules'){
                         $CF_MODULES = 0;
+                    }
+                    if($name eq 'environment_module_always'){
+                        my @always_mods = split(/\w+/, $val);
+                        &CF::Helpers::load_environment_modules(\@always_mods, \%LOADED_MODULES)
                     }
                     if($name eq 'environment_module_alias'){
                         my ($search, $replace) = split(/\s+/, $val, 2);
