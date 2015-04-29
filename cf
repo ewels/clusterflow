@@ -372,11 +372,16 @@ foreach my $folder (@pipeline_folders){
 
 # No pipeline found - was a single module specified instead?
 if(!$config_found){
+	my $mod_prefix = '#';
+	if($pipeline =~ /^([#>])/){
+		$mod_prefix = $1;
+		$pipeline =~ s/^([#>])//;
+	}
 	foreach my $folder (@module_folders){
 		my @mod_files = glob $folder.$pipeline.'.cfmod*';
 		if(scalar @mod_files == 1){
 			# Make a pseudo pipeline config file handle
-			my $pipeline_config = "\n#$pipeline\n\n";
+			my $pipeline_config = "\n".$mod_prefix.$pipeline."\n\n";
 			open(CONFIG, "<", \$pipeline_config) or die "Can't open variable file handle for single module pipeline: $!\n\n";
 
 			$config_found = 1;
