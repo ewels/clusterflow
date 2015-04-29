@@ -351,7 +351,11 @@ if(scalar @summarylines > 0){
 	<span class="run-name" style="font-weight: bold; margin-bottom: 10px;">
 	Summary Modules</span><ul style="padding-left:20px;">';
     foreach my $ln (@summarylines){
-        $html_content .= '<li style="margin-top: 5px;">'.$ln.'</li>';
+        $html_content .= '<li style="margin-top: 5px;';
+		if($ln =~ /error/i){
+			$html_content .= ' background: #ebccd1; color: #222222; font-weight:bold; padding: 3px 5px;';
+		}
+		$html_content .= '">'.$ln.'</li>';
     }
     $html_content .= '</ul></li>';
 }

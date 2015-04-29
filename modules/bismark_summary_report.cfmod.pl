@@ -66,7 +66,7 @@ while( my( $job_id, $files ) = each %{$cf{'files'}} ){
 
 my $num_samples = scalar @bam_files;
 if($num_samples == 0){
-    die("###CFSUMMARY Error: No bismark BAM files found for bismark project summary (searching for cf_${pipeline_id}_bismark_align_###).");
+    die("###CFSUMMARY Error: No bismark BAM files found for bismark project summary (searching for cf_${pipeline_id}_bismark_align_###).\n");
 } else {
     warn("Found $num_samples bismark BAM files..\n");
 }
@@ -124,10 +124,10 @@ for my $bam (@bam_files){
             }
             close(BISMARK_REPORT);
         } else {
-            warn "Warning! Couldn't open bismark report $bm_report: $!\n";
+            warn "###CFSUMMARY Error! Couldn't open bismark report $bm_report: $!\n";
         }
     } else {
-		warn "Error: Couldn't find main bismark report for $bam (base '$base')\n";
+		warn "###CFSUMMARY Error: Couldn't find main bismark report for $bam (base '$base')\n";
         next;
 	}
 
@@ -146,10 +146,10 @@ for my $bam (@bam_files){
             }
             close(DEDUP);
         } else {
-            warn "Warning! Couldn't open deduplication report $dedup: $!";
+            warn "###CFSUMMARY Error! Couldn't open deduplication report $dedup: $!";
         }
     } else {
-        warn "Error: Couldn't find deduplication bismark report for $bam ('$dedup')\n";
+        warn "###CFSUMMARY Error: Couldn't find deduplication bismark report for $bam ('$dedup')\n";
     }
     if($aligned_reads ne '' && $dup_reads ne ''){
         $unique_reads = $aligned_reads - $dup_reads;
@@ -185,10 +185,10 @@ for my $bam (@bam_files){
             }
             close(METHEXTR);
         } else {
-            warn "Warning! Couldn't open methylation extractor report $meth_extract: $!";
+            warn "###CFSUMMARY Error! Couldn't open methylation extractor report $meth_extract: $!";
         }
     } else {
-        warn "Error: Couldn't find methylation extractor report for $bam ('$meth_extract')\n";
+        warn "###CFSUMMARY Error: Couldn't find methylation extractor report for $bam ('$meth_extract')\n";
     }
 
     $summary_csv .= "$bam\t$total_reads\t$dup_reads\t$unique_reads\t$total_c\t$meth_cpg\t$unmeth_cpg\t$meth_cgh\t$unmeth_cgh\t$meth_chh\t$unmeth_chh\n";
@@ -224,7 +224,7 @@ for my $bam (@bam_files){
 }
 
 if(split("\n", $summary_csv) == 1){
-    warn "Error: No bismark information found..\n";
+    warn "###CFSUMMARY Error: No bismark information found..\n";
     exit;
 }
 
