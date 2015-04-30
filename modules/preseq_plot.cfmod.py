@@ -1,10 +1,29 @@
 #!/usr/bin/env python
 """
-plot_preseq.cfmod.py
+-----------------------
+Preseq Plotting Module
+-----------------------
 Takes results from preseq and plots nice colourful complexity curves
 using the plot_complexity_curves() function in the ngi_visualizations
-Python package. This package is available here:
+Python package.
+
+This CF module can be run either as a regular module: #plot_preseq
+or as a pipeline summary module: >plot_preseq
+If run as a summary module, all preseq curves will be plotted
+in a single graph.
+
+The ngi_visualizations package is available here:
 https://github.com/ewels/ngi_visualizations
+
+To install, run:
+pip install git+https://github.com/NationalGenomicsInfrastructure/ngi_visualizations.git
+
+ ******************************************************************
+NB: Loading some modules (eg. cutadapt) can change your python path.
+You can try running 'module load cutadapt' before the above pip installation.
+If having permission errors, try 'pip install --user' instead.
+ ******************************************************************
+
 """
 
 ##########################################################################
@@ -31,13 +50,6 @@ import datetime
 import sys
 from CF import Helpers
 
-try:
-    from ngi_visualizations.preseq_complexity_curves import plot_complexity_curves
-except ImportError, e:
-    print("###CF Error: ngi_visualizations Python Package not installed.\n", file=sys.stderr)
-    raise ImportError(e)
-
-
 # Module requirements
 def mod_time_estimate(cf):
     num_files = cf['num_starting_merged_aligned_files']
@@ -53,19 +65,15 @@ requirements = {
 
 def make_preseq_plots(cf):
     """
-    -----------------------
-    Preseq Plotting Module
-    -----------------------
-    Takes results from preseq and plots nice colourful complexity curves
-    using the plot_complexity_curves() function in the ngi_visualizations
-    Python package. This package is available here:
-    https://github.com/ewels/ngi_visualizations
-
-    This module can be run either as a regular module: #plot_preseq
-    or as a pipeline summary module: >plot_preseq
-    If run as a summary module, all preseq curves will be plotted
-    in a single graph.
+    Main function to make plots using the plot_complexity_curves()
+    function in the ngi_visualizations Python package.
     """
+    # Load packages
+    try:
+        from ngi_visualizations.preseq_complexity_curves import plot_complexity_curves
+    except ImportError, e:
+        print("###CF Error: ngi_visualizations Python Package not installed.\n", file=sys.stderr)
+        raise ImportError(e)
 
     # Are we running as a summary module?
     if 'summary_module' in cf['parameters']:
@@ -96,5 +104,5 @@ def make_preseq_plots(cf):
 
 # Setup
 if __name__ == "__main__":
-    cf = Helpers.module_start(requirements, make_preseq_plots.__doc__)
+    cf = Helpers.module_start(requirements, __doc__)
     make_preseq_plots(cf)

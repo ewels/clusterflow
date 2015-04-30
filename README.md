@@ -76,6 +76,7 @@ Cluster Flow is released with a GPL v3 licence. Cluster Flow is free software: y
         * The config wizard is also updated to add this to your personal config
     * Added checks to make sure that we have at least one config file, and that the cluster environment is set
 	* Added new `@environment_module_always` config option to _always_ load certain environment modules at run time.
+	* Added new `@require_python_package` pipeline option to check that a Python pacakge is installed before pipeline launch
 * Bugs Squashed
 	* Fixed output filename problem in tophat with output cleaning
 	* Fixed bugs causing minimum memory allocation regardless of availability

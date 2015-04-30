@@ -650,7 +650,7 @@ while (<CONFIG>){
 
 	# Required reference
 	if($_ =~ /^\@require_reference/ && !$comment_block){
-        my $ref_type = (split(/\s+/, $_, 2))[1];
+		my $ref_type = (split(/\s+/, $_, 2))[1];
 		if(!defined $GENOME){
 			print "\n### Error - The pipeline $pipeline requires a genome to be set with --genome or --ref. Exiting... ### \n\n";
 			exit;
@@ -662,6 +662,16 @@ while (<CONFIG>){
                 }
             }
 			print "\n\nExiting...\n\n";
+			exit;
+		}
+	}
+
+	# Require python package
+	if($_ =~ /^\@require_python_package/ && !$comment_block){
+		my $package = (split(/\s+/, $_, 2))[1];
+		my $try_import = `python -c "import $package" 2>&1`;
+		if(length($try_import) > 0){
+			print "\n### Error - The pipeline $pipeline requires the '$package' python package to be installed. Exiting... ### \n\n";
 			exit;
 		}
 	}
@@ -774,6 +784,7 @@ unless($cl_dryrun){
 #
 # START THE PIPELINE
 #
+
 my @qsubs;
 my @job_ids;
 my %run_job_ids;
@@ -958,8 +969,8 @@ sub get_mod_requirements {
     my ($module_fn, $runfn) = @_;
 
 	# Send query to module
-	my $req_cmd = "$module_fn --requirements --run_fn $runfn --cores $cores_allocation --mem $memory_allocation 2> /dev/null";
-	my $response = `$req_cmd`;
+	my $req_cmd .= "$module_fn --requirements --run_fn $runfn --cores $cores_allocation --mem $memory_allocation";
+	my $response = `$req_cmd 2> /dev/null`;
 
 	# Parse response
 	my $required_modules;
@@ -1016,7 +1027,7 @@ sub get_mod_requirements {
 	}
 	if(scalar @errors > 0){
 		warn "\nWarning: error parsing requirements for $module_fn\n  - ".join("\n  - ", @errors)."\n";
-		warn "Requirments request command: $req_cmd\nResponse: $response\n";
+		warn "Requirments request command: $req_cmd\nResponse:\n".`$req_cmd 2>&1`."\n";
 	}
 
     return ($cores, $mem, $time);
