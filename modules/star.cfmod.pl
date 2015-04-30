@@ -39,10 +39,10 @@ my %requirements = (
 			# Make a guess about memory requirement from genome
 			my $estmin = int(1.2 * -s $cf->{'refs'}{'star'}."/SA");
 			$minmem = CF::Helpers::allocate_memory($estmin, '8G', $maxmem);
-    	}
+    }
 		return CF::Helpers::allocate_memory($cf->{'mem'}, $minmem, $maxmem);
 	},
-	'modules' 	=> 'STAR',
+	'modules' 	=> ['STAR','samtools'],
 	'time' 		=> sub {
 		my $cf = $_[0];
 		my $num_files = $cf->{'num_starting_merged_aligned_files'};
@@ -105,18 +105,22 @@ foreach my $file (@$se_files){
 		$enc = '--outQSconversionAdd '.$convert_enc{$encoding};
 	}
 
+	# Do we need to zcat this?
+	my $zcat = '';
+	if ($file =~ /\.gz$/) {
+		$zcat = " --readFilesCommand zcat";
+	}
+
 	my $prefix = $file;
 	$prefix =~ s/\.gz$//;
 	$prefix =~ s/\.fastq$//;
 	$prefix =~ s/\.fq$//;
+	$prefix =~ s/\_R1_001$//;
+	$prefix =~ s/\_R1$//i;
+	$prefix =~ s/\_val_1$//;
+	my $output_fn = $prefix."_star_aligned.bam";
 
-	my $output_fn = $prefix."Aligned.out.sam";
-
-	my $command = "STAR --runThreadN $cf{cores} $enc --outSAMattributes $sam_attributes --genomeLoad $genomeLoad";
-	if ($file =~ /\.gz$/) {
-		$command .= " --readFilesCommand zcat";
-	}
-	$command .= " --genomeDir $cf{refs}{star} --readFilesIn $file --outFileNamePrefix $prefix";
+	my $command = "STAR --runThreadN $cf{cores} $enc --outSAMattributes $sam_attributes --genomeLoad $genomeLoad $zcat --genomeDir $cf{refs}{star} --readFilesIn $file --outFileNamePrefix $prefix --outStd SAM | samtools view -bS - > $output_fn";
 	warn "\n###CFCMD $command\n\n";
 
 	if(!system ($command)){
@@ -155,14 +159,17 @@ foreach my $files_ref (@$pe_files){
 		$prefix =~ s/\.fastq$//;
 		$prefix =~ s/\.fq$//;
 		$prefix =~ s/\_R1_001$//;
+		$prefix =~ s/\_R1$//i;
+		$prefix =~ s/\_val_1$//;
+		my $output_fn = $prefix."_star_aligned.bam";
 
-		my $output_fn = $prefix."Aligned.out.sam";
-
-		my $command = "STAR --runThreadN $cf{cores} $enc --outSAMattributes $sam_attributes --genomeLoad $genomeLoad";
+		# Do we need to zcat this?
+		my $zcat = '';
 		if ($files[0] =~ /\.gz$/) {
-			$command .= " --readFilesCommand zcat";
+			$zcat = " --readFilesCommand zcat";
 		}
-		$command .= " --genomeDir $cf{refs}{star} --readFilesIn $files[0] $files[1] --outFileNamePrefix $prefix";
+
+		my $command = "STAR --runThreadN $cf{cores} $enc --outSAMattributes $sam_attributes --genomeLoad $genomeLoad $zcat --genomeDir $cf{refs}{star} --readFilesIn $files[0] $files[1] --outFileNamePrefix $prefix --outStd SAM | samtools view -bS - > $output_fn";
 		warn "\n###CFCMD $command\n\n";
 
 		if(!system ($command)){
