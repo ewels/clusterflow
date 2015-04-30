@@ -700,10 +700,12 @@ sub minutes_to_timestamp {
 sub human_readable_to_bytes {
 
 	my $memory = $_[0];
-    my $suffix = '';
-    if($memory =~ /([tgmk])b?$/i){
-        $suffix = $1;
-    }
+  return 0 unless(defined($memory) and $memory =~ /\d/);
+
+  my $suffix = '';
+  if($memory =~ /([tgmk])b?$/i){
+    $suffix = $1;
+  }
 	$memory =~ s/[^\d\.]//g;
 
 	if(lc($suffix) eq 't'){
@@ -766,7 +768,9 @@ sub allocate_memory {
 
 	my ($allocated, $min, $max) = @_;
 
-    $allocated = human_readable_to_bytes($allocated);
+  return 0 unless(defined($allocated) and defined($min) and defined($max) and $allocated =~ /\d/ and $min =~ /\d/ and $max =~ /\d/);
+
+  $allocated = human_readable_to_bytes($allocated);
 	$max = human_readable_to_bytes($max);
 	$min = human_readable_to_bytes($min);
 
