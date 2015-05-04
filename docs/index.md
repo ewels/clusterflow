@@ -47,9 +47,9 @@ The easiest way to do this is to [fork the Cluster Flow repository](https://help
 
 * New Stuff
 	* Awesome new HTML report e-mails
-		* Much more readable HTML report e-mails which look super-snazzy (see [example](http://ewels.github.io/clusterflow/example_report_good.html))
-		* Any errors are highlighted making them quick to identify (see [example](http://ewels.github.io/clusterflow/example_report_bad.html))
-		* Custom strings set in the config can flagged as [highlights](http://ewels.github.io/clusterflow/example_report_highlights.html) or as [warnings](http://ewels.github.io/clusterflow/example_report_warnings.html)
+		* Much more readable HTML report e-mails which look super-snazzy (see [example](_files/example_report_good.html))
+		* Any errors are highlighted making them quick to identify (see [example](_files/example_report_bad.html))
+		* Custom strings set in the config can flagged as [highlights](_files/example_report_highlights.html) or as [warnings](_files/example_report_warnings.html)
 		* Designed to work on desktop and mobile phone screens
 	* Cluster Flow now re-orders the log file so that output from different modules doesn't overlap
 		* Made each module prepend its stdout and sterr with a CF module flag
@@ -75,7 +75,7 @@ The easiest way to do this is to [fork the Cluster Flow repository](https://help
 
 * New Stuff
 	* Now compatable with SLURM
-	* Customise batch job commands in the config (see [docs]({{site.baseurl}}/installation/#making_cluster_flow_work_with_your_environment) for more info)
+	* Customise batch job commands in the config (see [docs](installation/#making_cluster_flow_work_with_your_environment) for more info)
 	* Created new GitHub pages website to hold documentation: [http://ewels.github.io/clusterflow/](http://ewels.github.io/clusterflow/)
 * Updates
 	* Ported repository to github: [https://github.com/ewels/clusterflow](https://github.com/ewels/clusterflow)

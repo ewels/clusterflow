@@ -35,7 +35,7 @@ This example is for the modules directory (all modules should have executable pr
 If you've edited any files, you may get problems due to windows-based editors putting DOS-style `\r` carriage returns in.
 
 Most linux environments come with a package called `dos2unix` which will clean these up. eg:
-	
+
 	dos2unix *
 
 
@@ -44,7 +44,7 @@ Most linux environments come with a package called `dos2unix` which will clean t
 ### ERROR:105: Unable to locate a modulefile for 'clusterflow'
 This error probably means that Cluster Flow isn't installed in your environment module system, and you're trying to run `module load clusterflow`
 
-You can skip this step if you have another way of accessing the `cf` file, or see the [Installation Instructions]({{site.baseurl}}/installation/#environment_modules) for details about how to set Cluster Flow up with environment modules.
+You can skip this step if you have another way of accessing the `cf` file, or see the [Installation Instructions](installation/#environment_modules) for details about how to set Cluster Flow up with environment modules.
 
 ## Errors from job submission
 
@@ -64,4 +64,4 @@ _(Answered by Simon Andrews)_
 ### Unable to run job: job rejected (other reasons)
 There may be other differences in the job submission requests that cause them to fail. If you see errors such as this, you can use the `@custom_job_submit_command` configuration variable to customise the way that jobs are requested.
 
-For more information, see the [Installation Instructions]({{site.baseurl}}/installation/#making_cluster_flow_work_with_your_environment)
+For more information, see the [Installation Instructions](installation/#making_cluster_flow_work_with_your_environment)

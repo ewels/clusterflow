@@ -87,7 +87,7 @@ Cluster flow will search three locations for a config file every time it is run.
 * `<installation directory>/clusterflow.config`
 	* A config file in the Cluster Flow installation directory is ideal for common settings specific to the environment
 
-Config files contain key: value pairs. Syntax is as follows: `@key value` (tab delimited, one per line). Cluster Flow ships with an example config file called [clusterflow.config.example](https://github.com/ewels/clusterflow/blob/master/clusterflow.config.example "Browse the example config file on GitHub")
+Config files contain key: value pairs. Syntax is as follows: `@key value` (tab delimited, one per line). Cluster Flow ships with an example config file called `clusterflow.config.example`
 
 Typically, there will be a config file in the installation directory which contains the settings that make Cluster Flow work, then each user will have a personal configuration file in their home directory containing settings such as a notification e-mail address.
 
@@ -121,7 +121,7 @@ To use this, enter your typical submission command with the following placeholde
 	* A string describing which notifications to be sent (syntax depends on environment set above)
 
 For example:
-	
+
 	@custom_job_submit_command      sbatch  -A MY_PROJECT_ID -t 2-00:00:00 -p core -n {{ "{{cores" }}}} --open-mode=append -o {{ "{{outfn" }}}} -J {{ "{{job_id" }}}} {{ "{{notifications" }}}} --wrap="{{ "{{command" }}}}"
 
 Cluster Flow will generate it's own sensible default if this isn't set, so it's worth trying it without first.
@@ -140,7 +140,7 @@ Many modules within Cluster Flow require reference genomes for alignment. You ca
 
 	 cf --add_genome
 
-Genome paths are stored within files called `genomes.config` which are stored in the same directories as `clusterflow.config`. Within this file, each path is described with `@genome_path` followed by a unique IDy used when submitting the Cluster Flow run (eg. `--genome GRCh37`). These are then followed by an absolute path. Optionally, species and assembly can be added after this (see [example](https://github.com/ewels/clusterflow/blob/master/genomes.config.example "Browse the example genomes file on GitHub")).
+Genome paths are stored within files called `genomes.config` which are stored in the same directories as `clusterflow.config`. Within this file, each path is described with `@genome_path` followed by a unique IDy used when submitting the Cluster Flow run (eg. `--genome GRCh37`). These are then followed by an absolute path. Optionally, species and assembly can be added after this (`genomes.config.example`).
 
 There are four types of paths that can be specified:
 
@@ -153,7 +153,7 @@ There are four types of paths that can be specified:
 * `@gtf_path`
 	* The file name of a GTF file for a given genome.
 
-All four types of path should share genome keys if applicable. The fields should be separated by a tab character. Cluster Flow ships with an example genomes file called [genomes.config.example](https://github.com/ewels/clusterflow/blob/master/genomes.config.example "Browse the example genomes file on GitHub")
+All four types of path should share genome keys if applicable. The fields should be separated by a tab character. Cluster Flow ships with an example genomes file called `genomes.config.example`
 
 ## Environment Module Aliases
 If using environment modules, you may get some errors claiming that certain
@@ -169,12 +169,12 @@ Aliases are added with the `@environment_module_alias` tag. For example:
 	@environment_module_alias	trim_galore	TrimGalore
 
 ## Running Cluster Flow
-Ok, you're done! Cluster Flow should now work (see [General Usage]({{site.baseurl}}/usage/) for instructions on how to run Cluster Flow). If you get any weird errors, have a look through the  [Troubleshooting]({{site.baseurl}}/troubleshooting/) section and if in doubt, drop me an e-mail. Good luck!
+Ok, you're done! Cluster Flow should now work (see [General Usage](usage/) for instructions on how to run Cluster Flow). If you get any weird errors, have a look through the  [Troubleshooting](troubleshooting/) section and if in doubt, drop me an e-mail. Good luck!
 
 -------
 
 # Config File reference
-The following section describes the available variables that can be set in the config file. For an example, see the [clusterflow.config.example](https://github.com/ewels/clusterflow/blob/master/clusterflow.config.example "Browse the example config file on GitHub") file that comes bundled with Cluster Flow.
+The following section describes the available variables that can be set in the config file. For an example, see the `clusterflow.config.example` file that comes bundled with Cluster Flow.
 
 ### @email
 Sets your e-mail address, used for e-mail notifications.

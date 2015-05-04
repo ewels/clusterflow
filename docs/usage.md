@@ -12,7 +12,7 @@ If you're not sure what all of that meant, try running `module avail clusterflow
 
 If you are using environment modules and Cluster Flow is set up to work with them, you'll need to load the Cluster Flow module before you can start using it. To do so, run the following command:
 
-    module load clusterflow 
+    module load clusterflow
 
 If you want to make your life easier when using environment modules, you can auto-load Cluster Flow each time you log in. To do this, run the following command:
 
@@ -28,7 +28,7 @@ Before you start using Cluster Flow, it’s a good idea to set yourself up with 
 
 ### Genome Wizard
 
-Most pipelines need a reference genome. Running `--add_genome` gives an interactive wizard which will lead you through the process of adding new genome paths. See the [Installation Instructions]({{site.baseurl}}/installation/#adding_genome_paths) for detailed instructions.
+Most pipelines need a reference genome. Running `--add_genome` gives an interactive wizard which will lead you through the process of adding new genome paths. See the [Installation Instructions](installation/#adding_genome_paths) for detailed instructions.
 
 # Typical usage
 
@@ -64,7 +64,7 @@ See below for an example download `--file-list` file:
 	ftp://ftp-trace.ncbi.nlm.nih.gov/sra/SRR944693.sra Input_4OHT_rep3.sra
 	ftp://ftp-trace.ncbi.nlm.nih.gov/sra/SRR944692.sra Input_4OHT_rep2.sra
 	ftp://ftp-trace.ncbi.nlm.nih.gov/sra/SRR944691.sra Input_4OHT_rep1.sra
-	
+
 # Avoiding cluster overload
 If using Cluster Flow with a large number of files it can be easy to swamp the available resources on the cluster and annoy any other users trying to get things done. Cluster Flow has several built in features to try to avoid this.
 

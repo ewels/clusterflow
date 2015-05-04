@@ -35,7 +35,7 @@ If you have an existing script or tool, it's almost certain that it'll be easier
 It's very easy to execute other code from within a wrapper perl script and will save you a lot of pain!
 
 ## Example module
-An example module comes bunded with Cluster Flow, containing some typical pseudocode which you can modify for your own uses. You can view it on GitHub [here](https://github.com/ewels/clusterflow/blob/master/modules/example_module "Browse the Cluster Flow example module code on GitHub").
+An example module comes bunded with Cluster Flow, containing some typical pseudocode which you can modify for your own uses. You can see it in your `modules` directory.
 
 ## Required command line flags
 All modules will be called directly by Cluster Flow before any cluster jobs are set up, to determine their required job parameters. Each module must return a value for the following command line flags:
@@ -65,7 +65,7 @@ The maximum available memory is a recommendation only. Cluster Flow will assign 
 
 ### `--modules`
 Most Cluster Flow modules will require a system program to exist in the `PATH`. It’s common practice to use environment modules to manage this. Environment modules need to be loaded from the head node before the qsub jobs are set off. Cluster Flow calls each CF module with the `--modules` flag before running it. A comma separated list of module names should be printed. Each of these will be loaded with `module load <name>`.
-	
+
 ### `--help`
 Cluster Flow can be called with the `--help` flag followed by any pipeline or module name. If a module name is requested, Cluster Flow will call that module with the `--help` parameter and print the `STDOUT`.
 
@@ -167,4 +167,3 @@ Takes the suggested number of cores to use, a minimum and maximum number and ret
 
 ### `allocate_memory($recommended, $min, $max);`
 Takes the suggested number of memory to use, a minimum and maximum amount and returns a sensible result. Input can be human readable strings or bytes. Returns a value in bytes.
-
