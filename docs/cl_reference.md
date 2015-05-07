@@ -7,38 +7,37 @@ layout: toc
 ## Command Line Parameter Overview
 
 
-Flag | Description
----- | -----------
-`--genome <ID>` | ID of a genome referred to in `genomes.config `
-`--genome_path <path>` | Path to a genome to be used for alignment
-`--bowtie_path <path>` | Path to a bowtie index base to be used for alignment
-`--gtf_path <path>` | Path to a GTF file to be used for alignment (eg. for Tophat)
-`--paired` | Force paired-end mode
-`--single` | Force single-end mode
-`--no_fn_check` | Disable input file type checking
-`--file_list` | Text file containing input files or download URLs
-`--params` | Specify extra module parameters for this run
-`--split_files <num>` | Create one run per `<num>` files
-`--max_runs <num>` | Divide input files into `<num>` runs. Set as 0 to disable.
-`--email <email>` | Set the e-mail address for notifications
-`--priority <num>` | Set the queue priority for cluster jobs
-`--cores <num>` | Set the maximum number of cores to use for all runs
-`--mem <string>` | Set the maximum memory to use for all runs
+Flag                      | Description
+------------------------- | ---------------------------------------------------
+`--genome <ID>`           | ID of a genome referred to in `genomes.config `
+`--genome_path <path>`    | Path to a genome to be used for alignment
+`--bowtie_path <path>`    | Path to a bowtie index base to be used for alignment
+`--gtf_path <path>`       | Path to a GTF file to be used for alignment (eg. for Tophat)
+`--paired`                | Force paired-end mode
+`--single`                | Force single-end mode
+`--no_fn_check`           | Disable input file type checking
+`--file_list`             | Text file containing input files or download URLs
+`--params`                | Specify extra module parameters for this run
+`--split_files <num>`     | Create one run per `<num>` files
+`--max_runs <num>`        | Divide input files into `<num>` runs. Set as 0 to disable.
+`--email <email>`         | Set the e-mail address for notifications
+`--priority <num>`        | Set the queue priority for cluster jobs
+`--cores <num>`           | Set the maximum number of cores to use for all runs
+`--mem <string>`          | Set the maximum memory to use for all runs
 `--notifications [cresa]` | Specify desired notifications
-`--list_pipelines` | Print available pipelines
-`--list_modules` | Print available modules
-`--list_genomes` | Print available genomes
-`--dry_run` | Prints jobs to terminal instead of submitting them to the cluster
-`--qstat` | Displays formatted qstat output of your jobs
-`--qstatall` | Displays formatted qstat output of all jobs  
-`--qstatcols` | Colours output from --qstat or --qstatall
-`--qdel <id>` | Delete all jobs from a running pipeline. `<id>` is printed with --qstat
-`--make_config` | Interactive prompt to generate a personalised CF config file
-`--add_genome` | Interactive wizard to add new genomes to your genomes.config files
-`--version` | Print version of Cluster Flow installed
-`--check_updates` | Look for available Cluster Flow updates
-`--help` | Print help message
-{: .table}
+`--list_pipelines`        | Print available pipelines
+`--list_modules`          | Print available modules
+`--list_genomes`          | Print available genomes
+`--dry_run`               | Prints jobs to terminal instead of submitting them to the cluster
+`--qstat`                 | Displays formatted qstat output of your jobs
+`--qstatall`              | Displays formatted qstat output of all jobs  
+`--qstatcols`             | Colours output from --qstat or --qstatall
+`--qdel <id>`             | Delete all jobs from a running pipeline. `<id>` is printed with --qstat
+`--make_config`           | Interactive prompt to generate a personalised CF config file
+`--add_genome`            | Interactive wizard to add new genomes to your genomes.config files
+`--version`               | Print version of Cluster Flow installed
+`--check_updates`         | Look for available Cluster Flow updates
+`--help`                  | Print help message
 
 ## Parameter Details
 ### `--genome`
@@ -130,17 +129,21 @@ You'll probably find that you want to run this command quite a lot. To make it a
 
 If you’re feeling lazy, you can append these lines to your .bashrc script through the command line by copying and pasting the following commands:
 
-	sed -i "$ a\alias qs='cf --qstat'" ~/.bashrc
-	sed -i "$ a\alias qsa='cf --qstatall'" ~/.bashrc
+```
+sed -i "$ a\alias qs='cf --qstat'" ~/.bashrc
+sed -i "$ a\alias qsa='cf --qstatall'" ~/.bashrc
+```
 
 Note - these guys don't work with LSF yet, writing the code to parse the status command outputs is a bit of a pain when I don't have a LSF testing server to work on. If anyone fancies contributing some code to do so, that would be great!
 
 ### `--qstatcols`
 How this will look depends entirely on your terminal colour setup. It works nicely in terminal windows with light backgrounds and can look really horrible on terminal windows with dark backgrounds. For this reason it is only enabled when specified. The author uses the lovely  [Solarized](http://ethanschoonover.com/solarized) theme by Ethan Schoonover and it looks nice when he runs it. Maybe you should use Solarized too ;)
 
-If you like how it looks with colour, you can add th `--qstatcols` flag to the `.bashrc` aliases above to use them every time.
+If you like how it looks with colour, you can add the `--qstatcols` flag to the `.bashrc` aliases above to use them every time.
 
 ### `--qdel`
 Sometimes you may be running multiple pipelines and want to stop just one. It can be a pain to find the job numbers to do this manually, so instead you can use Cluster Flow to kill these jobs. When running `cf --qstat`, ID values are printed for each pipeline. Use this with `--qdel`. eg:
 
-	cf --qdel sra_bowtie_1391074179
+```
+cf --qdel sra_bowtie_1391074179
+```

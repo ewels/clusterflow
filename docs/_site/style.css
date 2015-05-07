@@ -187,6 +187,11 @@ h4 {
 	text-decoration: underline;
 }
 
+code {
+	color: #444;
+	background-color: #f2f2f2;
+	font-size: 0.8em;
+}
 pre code {
   overflow: auto;
   word-wrap: normal;

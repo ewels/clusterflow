@@ -15,16 +15,17 @@ Modules are described using `#` prefixes. Tab indentation denotes dependencies b
 ### Example pipeline
 Here is an example pipeline, which requires a genome path and uses three modules:
 
-	/*
-	Example Pipeline
-	================
-	This pipeline is an example of running three modules which depend on each other. Module 2 is run with a parameter that modifies its behaviour. This block of text is used when cf --help example_pipeline is run
-	*/
-	#module1
-	       #module2
-	       #module2 parameter
-	             #module3
-
+```
+/*
+Example Pipeline
+================
+This pipeline is an example of running three modules which depend on each other. Module 2 is run with a parameter that modifies its behaviour. This block of text is used when cf --help example_pipeline is run
+*/
+#module1
+       #module2
+       #module2 parameter
+             #module3
+```
 
 Remember to run `dos2unix` on your pipeline before you run it, if you're working on a windows machine.
 
@@ -42,13 +43,12 @@ An example module comes bunded with Cluster Flow, containing some typical pseudo
 ### Required command line flags
 All modules will be called directly by Cluster Flow before any cluster jobs are set up, to determine their required job parameters. Each module must return a value for the following command line flags:
 
-Flag | Description
------|-------------
-`--cores <num>` | Print required number of cores
-`--mem <num>` | Print required amount of memory Print Help
-`--modules` | Print names of required environment modules
-`--help` | Print Help
-{: .table}
+Flag                | Description
+--------------------|----------------------------------------------
+`--cores <num>`     | Print required number of cores
+`--mem <num>`       | Print required amount of memory Print Help
+`--modules`         | Print names of required environment modules
+`--help`            | Print Help
 
 #### `--cores`
 Cluster Flow will calculate how many cores are available for the module before launching it as a job on the cluster. It will call the module directly with the `--cores` flag and the suggested number of cores that the module can use. The module should print a single integer representing the number of cores that it requires and exit.

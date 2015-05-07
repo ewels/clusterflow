@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title> Cluster Flow |  Cluster Flow</title>
+	<title><?php if(isset($page['title'])){ echo $page['title'].' | '; } ?>Cluster Flow</title>
 	<meta name="description" content="A pipelining tool to automate and standardise bioinformatics analyses on cluster environments"/>
 	<meta name="author" content="Phil Ewels"/>
 	<link rel="shortcut icon" href="_site/img/favicon.ico">
@@ -51,7 +51,7 @@
 			<a href="http://www.babraham.ac.uk" target="_blank"><img src="_site/img/Babraham_logo.png" title="Babraham Institute"></a>
 			<a href="http://www.scilifelab.se" target="_blank"><img src="_site/img/SciLifeLab_logo.png" title="SciLifeLab"></a>
 		</p>
-		<p>This documentation is written using <a href="<?php echo $uri; ?>.md">markdown</a> and included with the Cluster Flow source code.</p>
+		<p>This documentation is written using <a href="<?php echo $source; ?>.md">markdown</a> and included with the Cluster Flow source code.</p>
 	</section>
 </header>
 

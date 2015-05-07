@@ -1,6 +1,9 @@
 // https://github.com/ghiculescu/jekyll-table-of-contents
 (function($){
 
+  // Add 'table' class to tables for bootstrap styling
+  $('table').addClass('table');
+
   // Add ID elements
   // http://stackoverflow.com/questions/4146306/set-header-id-attribute-from-content-with-javascript
   $('.mainpage h2, .mainpage h3, .mainpage h4, .mainpage h5, .mainpage h6').each(function() {
