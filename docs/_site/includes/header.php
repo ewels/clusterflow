@@ -51,7 +51,7 @@
 			<a href="http://www.babraham.ac.uk" target="_blank"><img src="_site/img/Babraham_logo.png" title="Babraham Institute"></a>
 			<a href="http://www.scilifelab.se" target="_blank"><img src="_site/img/SciLifeLab_logo.png" title="SciLifeLab"></a>
 		</p>
-		<p>This documentation is written using <a href="<?php echo $source; ?>.md">markdown</a> and included with the Cluster Flow source code.</p>
+		<p>This documentation is <a href="<?php echo basename($source); ?>" title="View the markdown source for this page">written using markdown</a> and is included with the Cluster Flow source code.</p>
 	</section>
 </header>
 
