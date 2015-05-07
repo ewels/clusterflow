@@ -4,11 +4,11 @@
 
 // Figure out what page we're loading
 // eg. $_SERVER['REQUEST_URI'] = /installation
-$uri = trim($_SERVER['REQUEST_URI'], '/');
+$uri = basename($_SERVER['REQUEST_URI']);
+// Where is this script running?
+// Site root should be in <DIR>/_site/ - run dirname() twice.
 $dirbn = basename(dirname(dirname($_SERVER['SCRIPT_FILENAME'])));
-if (substr($uri, 0, strlen($dirbn)) == $dirbn) $str = substr($uri, strlen($dirbn));
-
-if($uri == ''){
+if($uri == '' || $uri == $dirbn){
     $source = '../home.md';
 } else {
     $source = '../'.$uri.".md";
