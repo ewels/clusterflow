@@ -13,17 +13,17 @@
 	<section class="credits">
 		<p>Cluster Flow was written by <a href="http://phil.ewels.co.uk" target="_blank">Phil Ewels</a> whilst working at the <a href="http://www.babraham.ac.uk" target="_blank">Babraham Institute</a>. He now maintains it from <a href="http://www.scilifelab.se" target="_blank">SciLifeLab</a> in Stockholm, Sweden.</p>
 		<p class="logos">
-			<a href="http://www.babraham.ac.uk" target="_blank"><img src="img/Babraham_logo.png" title="Babraham Institute"></a>
-			<a href="http://www.scilifelab.se" target="_blank"><img src="img/SciLifeLab_logo.png" title="SciLifeLab"></a>
+			<a href="http://www.babraham.ac.uk" target="_blank"><img src="_site/img/Babraham_logo.png" title="Babraham Institute"></a>
+			<a href="http://www.scilifelab.se" target="_blank"><img src="_site/img/SciLifeLab_logo.png" title="SciLifeLab"></a>
 		</p>
-		<p>This documentation is written using <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> and hosted using <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.</p>
+		<p>This documentation is written using <a href="<?php echo $uri; ?>.md" target="_blank">markdown</a> and included with the Cluster Flow source code.</p>
 	</section>
 </footer>
 <!-- jQuery & Boostrap -->
-<script src="jquery-1.11.1.min.js"></script>
-<script src="bootstrap/js/bootstrap.min.js"></script>
+<script src="_site/jquery-1.11.1.min.js"></script>
+<script src="_site/bootstrap/js/bootstrap.min.js"></script>
 <!-- Auto TOC Generator -->
-<script src="toc.js"></script>
+<script src="_site/toc.js"></script>
 <script type="text/javascript">
 	$(document).ready(function() {
 	    $('.toc').toc({

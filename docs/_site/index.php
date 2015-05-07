@@ -4,10 +4,11 @@
 
 // Figure out what page we're loading
 // eg. $_SERVER['REQUEST_URI'] = /installation
-if($_SERVER['REQUEST_URI'] == '/'){
-    $source = '../index.md';
+$uri = trim($_SERVER['REQUEST_URI'], '/');
+if($uri == ''){
+    $source = '../home.md';
 } else {
-    $source = '..'.$_SERVER['REQUEST_URI'].".md";
+    $source = '../'.$uri.".md";
 }
 if(!file_exists($source)){
     $source = 'includes/404.md';
