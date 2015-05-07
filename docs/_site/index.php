@@ -6,7 +6,9 @@
 // eg. $_SERVER['REQUEST_URI'] = /installation
 $uri = trim($_SERVER['REQUEST_URI'], '/');
 $dirbn = basename(dirname(dirname($_SERVER['SCRIPT_FILENAME'])));
-if($uri == '' || $uri == $dirbn){
+if (substr($uri, 0, strlen($dirbn)) == $dirbn) $str = substr($uri, strlen($dirbn));
+
+if($uri == ''){
     $source = '../home.md';
 } else {
     $source = '../'.$uri.".md";
