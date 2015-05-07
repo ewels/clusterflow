@@ -1,10 +1,9 @@
 # Route all requests through index.php
 <IfModule mod_rewrite.c>
 RewriteEngine On
-RewriteBase /
 RewriteRule ^_site/index.php$ - [L]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . /_site/index.php [L]
-RewriteRule ^$ /_site/index.php [L]
+RewriteRule . _site/index.php [L]
+RewriteRule ^$ _site/index.php [L]
 </IfModule>
