@@ -3,9 +3,11 @@ title: General Usage
 layout: toc
 ---
 
-# Using Cluster Flow for the first time
-This part of the documentation is intended for end users. If you're looking for how to set up Cluster Flow, see the [installation instructions]({{site.url}}/installation/)
-## Environment Modules
+# General Usage
+
+## Using Cluster Flow for the first time
+This part of the documentation is intended for end users. If you're looking for how to set up Cluster Flow, see the [installation instructions](installation)
+### Environment Modules
 Many compute clusters use [environment modules](http://modules.sourceforge.net/) to manage the user's `PATH`. This is entirely optional - if you're happy adding Cluster Flow to your `PATH` another way, just skip this section.
 
 If you're not sure what all of that meant, try running `module avail clusterflow` on the command line. You should see the available module. If not, skip this section.
@@ -18,19 +20,19 @@ If you want to make your life easier when using environment modules, you can aut
 
     sed -i "$ a\module load clusterflow" ~/.bashrc
 
-## Personal Config Files
+### Personal Config Files
 
-### Config Wizard
+#### Config Wizard
 
 Before you start using Cluster Flow, it’s a good idea to set yourself up with a personalised Cluster Flow config file. Cluster Flow has an interactive mode which will guide you through the required values and create a config file for you. To run this, run the following command:
 
 	cf --make_config
 
-### Genome Wizard
+#### Genome Wizard
 
 Most pipelines need a reference genome. Running `--add_genome` gives an interactive wizard which will lead you through the process of adding new genome paths. See the [Installation Instructions](installation/#adding_genome_paths) for detailed instructions.
 
-# Typical usage
+## Typical usage
 
 To run cluster flow, use the `cf` command.
 
@@ -42,15 +44,15 @@ Finally, write the input filenames. This can be done with linux wildcard expansi
 
 	cf --genome NCBIM37 sra_bismark *.sra
 
-To read more about the command line options, see the [Command Line Reference]({{site.url}}/cl_reference/).
+To read more about the command line options, see the [Command Line Reference](cl_reference).
 
-# Paired end / single end files
+## Paired end / single end files
 If using Cluster Flow with FastQ files, it will try to guess whether the files are paired end or single end. This is done by sorting the filenames, stripping `_[1-4]` and then comparing each file name to the next. If a pair is found to be identical, they are processed as paired end files.
 
 When input files aren’t FastQ files, each Cluster Flow module will try to determine paird end or single end data by the same method. This behaviour is particularly useful when processing SRA files, as a single input file can split into multiple paired end files. Downstream modules can be run blindly and will behave correctly according to the output `.fastq` files produced by `fastq_dump`.
 This behaviour can be overridden by specifying `--paired` or `--single` on the command line.
 
-# Downloading files
+## Downloading files
 When downloading files from an FTP server, parallelisation can be a problem. Cluster Flow has a download function built into its core `cf` package to deal with downloads. Cluster Flow sets off each download as a cluster job, with queue IDs set so that they process in series. The pipeline jobs also wait on the download IDs, so as soon as a download is finished it begins processing. In this way, processing does not need to wait for all downloads to finish, yet downloads are able to run in series and not overwhelm the server or internet connection.
 
 To use this feature, simply submit download URLs instead of input filenames. Cluster Flow will recognise anything starting with `http`, `https` or `ftp` as a URL and set it off with the `download` module.
@@ -65,7 +67,7 @@ See below for an example download `--file-list` file:
 	ftp://ftp-trace.ncbi.nlm.nih.gov/sra/SRR944692.sra Input_4OHT_rep2.sra
 	ftp://ftp-trace.ncbi.nlm.nih.gov/sra/SRR944691.sra Input_4OHT_rep1.sra
 
-# Avoiding cluster overload
+## Avoiding cluster overload
 If using Cluster Flow with a large number of files it can be easy to swamp the available resources on the cluster and annoy any other users trying to get things done. Cluster Flow has several built in features to try to avoid this.
 
 Firstly, CF can limit the number of parallel runs by using either `--split_files` or `--max_runs`. By default, Cluster Flow runs with a maximum of 12 parallel runs per pipeline. This default can be modified in the Cluster Flow config file or at run time.

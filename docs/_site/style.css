@@ -183,6 +183,10 @@ h1 {
 	border-bottom:1px solid #666;
 	margin-bottom:30px;
 }
+h4 {
+	text-decoration: underline;
+}
+
 pre code {
   overflow: auto;
   word-wrap: normal;

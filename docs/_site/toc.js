@@ -3,7 +3,7 @@
 
   // Add ID elements
   // http://stackoverflow.com/questions/4146306/set-header-id-attribute-from-content-with-javascript
-  $('h1, h2, h3, h4, h5, h6').each(function() {
+  $('h2, h3, h4, h5, h6').each(function() {
       var hyphenated = $(this).text().replace(/\s/g,'-').toLowerCase();
       $(this).attr('id',hyphenated);
     }
@@ -18,7 +18,7 @@
     },
     settings = $.extend(defaults, options);
 
-    var headers = $('h1, h2, h3, h4, h5, h6').filter(function() {
+    var headers = $('h2, h3, h4, h5, h6').filter(function() {
       // get all headers with an ID
       return this.id;
     }), output = $(this);

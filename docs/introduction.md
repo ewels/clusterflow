@@ -3,7 +3,9 @@ title: Introduction
 layout: toc
 ---
 
-# What is Cluster Flow?
+# Introduction
+
+## What is Cluster Flow?
 Cluster Flow is simple package to run pipelines in a cluster environment. It is comprised of several layers:
 
 * `cf`
@@ -17,7 +19,7 @@ Cluster Flow is simple package to run pipelines in a cluster environment. It is 
 
 Cluster Flow will set off multiple queued jobs on the cluster with queue dependencies as defined in the pipeline.
 
-# How does Cluster Flow work?
+## How does Cluster Flow work?
 A typical Cluster Flow run will work as follows:
 
 * Pipelines and modules are written for Cluster Flow
@@ -39,11 +41,11 @@ A typical Cluster Flow run will work as follows:
 * Once all pipeline modules have finished, core cluster flow notification modules run
     * These clean up the output file and send e-mails
 
-# Working Example
-## Find what's available
+## Working Example
+### Find what's available
 Often the first step when running a Cluster Flow pipeline is to remind yourself what is possible. Cluster Flow has a handful of functions to help you do this.
 
-### Available Pipelines
+#### Available Pipelines
 Running
 
 	cf --list_pipelines
@@ -62,7 +64,7 @@ Will give a list of the pipelines installed in your copy of Cluster Flow, for ex
 		- fastq_bowtie
 		... (trimmed) ...
 
-### Available Modules
+#### Available Modules
 Cluster Flow can run single modules as well as strung-together in pipelines. The analgous command is:
 
 	cf --list_modules
@@ -82,12 +84,12 @@ Will give:
 		- bowtie
 		... (trimmed) ...
 
-### Available Genomes
+#### Available Genomes
 Most modules and pipelines require genomes. To see what is set up, run
 
 	cf --list_genomes
 
-Will give: 
+Will give:
 
 ```
 ================================
@@ -104,14 +106,14 @@ Cluster Flow - available genomes
  GRCh37              Human               GRCh37         /Genomes/Human/GRCh37/
  GRCm38              Mouse               GRCm38         /Genomes/Mouse/GRCm38/
  NCBIM37             Mouse               NCBIM37        /Genomes/Mouse/NCBIM37/
- 
+
 == Bowtie Index Base Paths ==
  Key                 Species             Assembly            Path
 ----------------------------------------------------------------------------------------------------
  GRCh37              Human               GRCh37         /Genomes/Human/GRCh37/Homo_sapiens.GRCh37
  GRCm38              Mouse               GRCm38         /Genomes/Mouse/GRCm38/Mus_musculus.GRCm38
  NCBIM37             Mouse               NCBIM37        /Genomes/Mouse/NCBIM37/Mus_musculus.NCBIM37
- 
+
 == GTF File Paths ==
  Key                 Species             Assembly            Path
 ----------------------------------------------------------------------------------------------------
@@ -120,7 +122,7 @@ Cluster Flow - available genomes
  NCBIM37             Mouse               NCBIM37        /Genomes/Mouse/NCBIM37/Mus_musculus.NCBIM37.cleaned.gtf
 ```
 
-## Running Cluster Flow
+### Running Cluster Flow
 Once you're happy with what's available and what you want to run, you use the `cf` command.
 
 For example, to run the `fastq_bowtie` pipeline (runs FastQC, trims the reads with Trim Galore! and then aligns with either bowtie 1 or bowtie 2, depending on the read length) on a selection of FastQ files, I would run:
@@ -157,41 +159,41 @@ A typical output might be:
 	Your job 191778 ("cf_sra_bowtie_1401371996_email_run_complete_922") has been submitted
 	Your job 191779 ("cf_sra_bowtie_1401371996_email_pipeline_complete_127") has been submitted
 
-## Checking the status of a run
+### Checking the status of a run
 I can then check on the progress of my running job using:
 
 	cf --qstat
 
 This will give the following report (much easier to read than the default `qstat`)
-	
-	======================================================================
-	 Cluster Flow Pipeline: sra_bowtie                                  
-	 Submitted:             30 seconds ago                              
-	 Working Directory:     /bi/group/bioinf/clusterflow/dev/test       
-	 ID:                    sra_bowtie_1401371972                       
-	======================================================================
-	
-	 -  sra_fqdump                         [1 core] running for 16s
-	      - fastqc 
-	      - trim_galore 
-	           - bowtie 
-	                - email_run_complete 
-	
-	 -  sra_fqdump                         [1 core]  [priority -500] queued for 27s
-	      - trim_galore 
-	           - bowtie 
-	                - email_run_complete 
-	                     - email_pipeline_complete 
-	      - fastqc 
-	
-	 -  sra_fqdump                         [1 core]  [priority -500] queued for 27s
-	      - fastqc 
-	      - trim_galore 
-	           - bowtie 
-	                - email_run_complete
-	
 
-## Cancelling a pipeline
+	======================================================================
+	 Cluster Flow Pipeline: sra_bowtie
+	 Submitted:             30 seconds ago
+	 Working Directory:     /bi/group/bioinf/clusterflow/dev/test
+	 ID:                    sra_bowtie_1401371972
+	======================================================================
+
+	 -  sra_fqdump                         [1 core] running for 16s
+	      - fastqc
+	      - trim_galore
+	           - bowtie
+	                - email_run_complete
+
+	 -  sra_fqdump                         [1 core]  [priority -500] queued for 27s
+	      - trim_galore
+	           - bowtie
+	                - email_run_complete
+	                     - email_pipeline_complete
+	      - fastqc
+
+	 -  sra_fqdump                         [1 core]  [priority -500] queued for 27s
+	      - fastqc
+	      - trim_galore
+	           - bowtie
+	                - email_run_complete
+
+
+### Cancelling a pipeline
 I might later realise that I messed something up with the input files, but since then I have started loads of other jobs. I don't want to pull out all of the job IDs myself manually, so instead I can use Cluster Flow to delete the jobs belonging to the ID printed with the command above:
 
 	cf --qdel sra_bowtie_1401371972
@@ -217,4 +219,3 @@ Which might give the following outout:
 	ewelsp has deleted job 191761
 	ewelsp has deleted job 191762
 	ewelsp has deleted job 191763
-

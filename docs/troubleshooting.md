@@ -3,21 +3,23 @@ title: Troubleshooting
 layout: toc
 ---
 
-# Bugs and Errors
+# Troubleshooting
+
+## Bugs and Errors
 If you come across a strange looking error message or find a bug, please do let us know. You submit new issues here: [https://github.com/ewels/clusterflow/issues](https://github.com/ewels/clusterflow/issues "Browse and submit new issues about Cluster Flow on github")
 
-## Feature Requests
+### Feature Requests
 If you'd like Cluster Flow to do something it doesn't, log a request! The issue tracker system mentioned above can be used for enhancement requests too.
 
-## Going old-school
+### Going old-school
 If you can't face all of this fancy-pants github stuff, feel free to drop the author an e-mail at <a href="mailto:phil.ewels@scilifelab.se">phil.ewels@scilifelab.se</a>
 
 
-# Frequently Asked Questions
+## Frequently Asked Questions
 
-## General
+### General
 
-### Permission Errors
+#### Permission Errors
 A number of errors can be caused by scripts not having executable file privileges. You can see the file permissions with `ls -l`, you should see something like this:
 
 	$ ls -l clusterflow/modules/
@@ -31,7 +33,7 @@ A number of errors can be caused by scripts not having executable file privilege
 
 This example is for the modules directory (all modules should have executable privileges for all), the same applies to the main `cf` file.
 
-### DOS carriage returns
+#### DOS carriage returns
 If you've edited any files, you may get problems due to windows-based editors putting DOS-style `\r` carriage returns in.
 
 Most linux environments come with a package called `dos2unix` which will clean these up. eg:
@@ -39,16 +41,16 @@ Most linux environments come with a package called `dos2unix` which will clean t
 	dos2unix *
 
 
-## Errors from environment modules
+### Errors from environment modules
 
-### ERROR:105: Unable to locate a modulefile for 'clusterflow'
+#### ERROR:105: Unable to locate a modulefile for 'clusterflow'
 This error probably means that Cluster Flow isn't installed in your environment module system, and you're trying to run `module load clusterflow`
 
 You can skip this step if you have another way of accessing the `cf` file, or see the [Installation Instructions](installation/#environment_modules) for details about how to set Cluster Flow up with environment modules.
 
-## Errors from job submission
+### Errors from job submission
 
-### Unable to run job: job rejected: the requested parallel environment "orte" does not exist.
+#### Unable to run job: job rejected: the requested parallel environment "orte" does not exist.
 This message means that your GRIDEngine setup doesn't have the default `orte` environment set up.  If you have different environments set up you can list them with:
 
 	qconf -spl
@@ -61,7 +63,7 @@ If you find one which assigns slots to a single node (`allocation_rule` should b
 
 _(Answered by Simon Andrews)_
 
-### Unable to run job: job rejected (other reasons)
+#### Unable to run job: job rejected (other reasons)
 There may be other differences in the job submission requests that cause them to fail. If you see errors such as this, you can use the `@custom_job_submit_command` configuration variable to customise the way that jobs are requested.
 
 For more information, see the [Installation Instructions](installation/#making_cluster_flow_work_with_your_environment)
