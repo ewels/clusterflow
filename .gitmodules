@@ -1,0 +1,6 @@
+[submodule "docs/_site/parsedown"]
+	path = docs/_site/parsedown
+	url = https://github.com/erusev/parsedown
+[submodule "docs/_site/parsedown-extra"]
+	path = docs/_site/parsedown-extra
+	url = https://github.com/erusev/parsedown-extra

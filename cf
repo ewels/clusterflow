@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 use warnings;
 use strict;
 use Getopt::Long;
@@ -8,12 +8,11 @@ use lib "$FindBin::Bin/source";
 use CF::Constants;
 use CF::Helpers;
 use CF::Headnodehelpers;
-# use Data::Dumper;
 
 no warnings qw(once);
 
 ##########################################################################
-# Copyright 2014, Philip Ewels (phil.ewels@babraham.ac.uk)               #
+# Copyright 2014, Philip Ewels (phil.ewels@scilifelab.se)                #
 #                                                                        #
 # This file is part of Cluster Flow.                                     #
 #                                                                        #
@@ -34,26 +33,30 @@ no warnings qw(once);
 my $CF_VERSION = $CF::Constants::CF_VERSION;
 my $homedir = $ENV{"HOME"};
 my %config = %CF::Constants::config;
-my @pipeline_folders = ('./', "$homedir/clusterflow/pipelines/", "$Bin/pipelines/");
-my @module_folders = ('./', "$homedir/clusterflow/modules/", "$Bin/modules/");
+my @pipeline_folders = ('./', "$homedir/.clusterflow/pipelines/", "$Bin/pipelines/");
+my @module_folders = ('./', "$homedir/.clusterflow/modules/", "$Bin/modules/");
 my $pipeline;
 
 # Get command line parameters
+# These are fetched from the config, but can be overwritten on the cl
+my $SPLIT_FILES = $CF::Constants::SPLIT_FILES;
+my $MAX_RUNS = $CF::Constants::MAX_RUNS;
+my $MERGE_REGEX = $CF::Constants::MERGE_REGEX;
+my $CLUSTER_ENVIRONMENT = $CF::Constants::CLUSTER_ENVIRONMENT;
+my $PRIORITY = $CF::Constants::PRIORITY;
+my $C_PROJECT = $CF::Constants::C_PROJECT;
+my $TOTAL_CORES = $CF::Constants::TOTAL_CORES;
+my $TOTAL_MEM = $CF::Constants::TOTAL_MEM;
+my $EMAIL = $CF::Constants::EMAIL;
+# These are only set on the cl
 my $GENOME;
-my $cl_genome_path;
-my $cl_bowtie_path;
-my $cl_gtf_path;
-my $SPLIT_FILES = 1;
-my $cl_max_runs;
+my $cl_reference;
 my $cl_paired_end;
 my $cl_single_end;
 my $cl_no_fn_check;
 my $file_list;
-my $cl_params;
-my $cl_email;
-my $cl_priority;
-my $cl_total_cores;
-my $cl_total_mem;
+my $cl_runfile_prefix = "";
+my $cl_params = '';
 my $cl_notifications;
 my $cl_list_pipelines;
 my $cl_list_modules;
@@ -61,43 +64,45 @@ my $cl_list_genomes;
 my $cl_dryrun;
 my $cl_qstat;
 my $cl_qstatall;
-my $cl_qstatcolours;
 my $cl_qdel;
-my $cl_make_config;
+my $cl_setup;
 my $cl_add_genome;
 my $cl_version;
 my $cl_check_updates;
+my $cl_qname;
 my $cl_help;
 
 my $config_result = GetOptions(
 	"genome=s" => \$GENOME,
-	"genome_path=s" => \$cl_genome_path,
-	"bowtie_path=s" => \$cl_bowtie_path,
-	"gtf_path=s" => \$cl_gtf_path,
+ 	"ref=s" => \$cl_reference,
 	"split_files=i" => \$SPLIT_FILES,
-	"max_runs=i" => \$cl_max_runs,
+	"max_runs=i" => \$MAX_RUNS,
+	"merge=s" => \$MERGE_REGEX,
 	"paired" => \$cl_paired_end,
 	"single" => \$cl_single_end,
 	"no_fn_check" => \$cl_no_fn_check,
 	"file_list=s" => \$file_list,
+	"runfile_prefix=s" => \$cl_runfile_prefix,
 	"params=s" => \$cl_params,
-	"email=s" => \$cl_email,
-	"priority=i" => \$cl_priority,
-	"cores=i" => \$cl_total_cores,
-	"mem=s" => \$cl_total_mem,
+	"email=s" => \$EMAIL,
+	"priority=i" => \$PRIORITY,
+	"project=s" => \$C_PROJECT,
+	"cores=i" => \$TOTAL_CORES,
+	"mem=s" => \$TOTAL_MEM,
+	"environment=s" => \$CLUSTER_ENVIRONMENT,
 	"notifications=s"  => \$cl_notifications,
-	"list_pipelines" => \$cl_list_pipelines,
-	"list_modules" => \$cl_list_modules,
-	"list_genomes" => \$cl_list_genomes,
+	"pipelines" => \$cl_list_pipelines,
+	"modules" => \$cl_list_modules,
+	"genomes" => \$cl_list_genomes,
 	"dry_run" => \$cl_dryrun,
 	"qstat" => \$cl_qstat,
 	"qstatall" => \$cl_qstatall,
-	"qstatcols" => \$cl_qstatcolours,
 	"qdel=s" => \$cl_qdel,
-	"make_config" => \$cl_make_config,
+	"setup" => \$cl_setup,
 	"add_genome" => \$cl_add_genome,
 	"version" => \$cl_version,
 	"check_updates" => \$cl_check_updates,
+	"qname=s" => \$cl_qname,
 	"help" => \$cl_help
 );
 
@@ -110,16 +115,11 @@ $pipeline = shift(@ARGV);
 my @files = @ARGV;
 
 # Set up parameters
-my $EMAIL = $CF::Constants::EMAIL;
+my $CL_COLOURS = $CF::Constants::CL_COLOURS;
 my $CHECK_UPDATES = $CF::Constants::CHECK_UPDATES;
 my $AVAILABLE_VERSION = $CF::Constants::AVAILABLE_VERSION;
 my $UPDATES_LAST_CHECKED = $CF::Constants::UPDATES_LAST_CHECKED;
 my @NOTIFICATIONS = @CF::Constants::NOTIFICATIONS;
-my $PRIORITY = $CF::Constants::PRIORITY;
-my $MAX_RUNS = $CF::Constants::MAX_RUNS;
-my $TOTAL_CORES = $CF::Constants::TOTAL_CORES;
-my $TOTAL_MEM = $CF::Constants::TOTAL_MEM;
-my $CLUSTER_ENVIRONMENT = $CF::Constants::CLUSTER_ENVIRONMENT;
 my $CUSTOM_JOB_SUBMIT_COMMAND = $CF::Constants::CUSTOM_JOB_SUBMIT_COMMAND;
 my $PROJECT_ID = $CF::Constants::PROJECT_ID;
 my $JOB_TIMELIMIT = $CF::Constants::JOB_TIMELIMIT;
@@ -127,27 +127,19 @@ my $CF_MODULES = $CF::Constants::CF_MODULES;
 my %ENV_MODULE_ALIASES = %CF::Constants::ENV_MODULE_ALIASES;
 my @LOG_HIGHLIGHT_STRINGS = @CF::Constants::LOG_HIGHLIGHT_STRINGS;
 my @LOG_WARNING_STRINGS = @CF::Constants::LOG_WARNING_STRINGS;
+my %LOADED_MODULES = %CF::Constants::LOADED_MODULES;
 
 # Set up genomes
-my %GENOME_PATH_CONFIGS = %CF::Constants::GENOME_PATH_CONFIGS;
-my %BOWTIE_PATH_CONFIGS = %CF::Constants::BOWTIE_PATH_CONFIGS;
-my %GTF_PATH_CONFIGS = %CF::Constants::GTF_PATH_CONFIGS;
-my %GENOME_PATHS = %CF::Constants::GENOME_PATHS;
-my %BOWTIE_PATHS = %CF::Constants::BOWTIE_PATHS;
-my %GTF_PATHS = %CF::Constants::GTF_PATHS;
-my %GENOME_SPECIES = %CF::Constants::GENOME_SPECIES;
-my %BOWTIE_SPECIES = %CF::Constants::BOWTIE_SPECIES;
-my %GTF_SPECIES = %CF::Constants::GTF_SPECIES;
-my %GENOME_ASSEMBLIES = %CF::Constants::GENOME_ASSEMBLIES;
-my %BOWTIE_ASSEMBLIES = %CF::Constants::BOWTIE_ASSEMBLIES;
-my %GTF_ASSEMBLIES = %CF::Constants::GTF_ASSEMBLIES;
-
-my %JOB_NUM_IDS;
-my %LOADED_MODULES;
-
-if($cl_email){
-	$EMAIL = $cl_email;
+my %REFERENCES = %CF::Constants::REFERENCES;
+if($cl_reference){
+    my ($type, $path) = split('=', $cl_reference, 2);
+	$REFERENCES{$type}{"command_line"} = $path;
+	$GENOME = "command_line";
 }
+
+# Holders for tracking job IDs and loaded modules
+my %JOB_NUM_IDS;
+
 if($cl_notifications){
 	my @new_nots = split(//, $cl_notifications);
 	@NOTIFICATIONS = ();
@@ -158,27 +150,6 @@ if($cl_notifications){
 		push (@NOTIFICATIONS, 'error') if($not eq 'e');
 		push (@NOTIFICATIONS, 'abort') if($not eq 'a');
 	}
-}
-if($cl_genome_path){
-	$GENOME_PATHS{"command_line"} = $cl_genome_path;
-	$GENOME = "command_line";
-}
-if($cl_bowtie_path){
-	$BOWTIE_PATHS{"command_line"} = $cl_bowtie_path;
-	$GENOME = "command_line";
-}
-if($cl_gtf_path){
-	$GTF_PATHS{"command_line"} = $cl_gtf_path;
-	$GENOME = "command_line";
-}
-if(defined($cl_priority)){
-	$PRIORITY = $cl_priority;
-}
-if($cl_total_cores){
-	$TOTAL_CORES = $cl_total_cores;
-}
-if($cl_total_mem){
-	$TOTAL_MEM = $cl_total_mem;
 }
 
 # Printing command line options
@@ -212,6 +183,10 @@ if($cl_list_modules){
 			opendir (DIR, $folder) or die $!;
 			my @dir_files = sort readdir(DIR);
 			while ( my $file = shift @dir_files ) {
+				# Remove file extension if it's not .cfmod
+				if($file !~ /\.cfmod$/){
+					$file =~ s/\.[^.]+$//;
+				}
 				if($file =~ /\.cfmod$/){
 					print "\t- ".substr($file, 0, -6)."\n";
 				}
@@ -234,20 +209,26 @@ if($cl_dryrun){
 	sleep(1);
 }
 if($cl_qstat){
-	if($CLUSTER_ENVIRONMENT eq 'GRIDEngine'){
-		if($cl_qstatcolours){
+	if($CLUSTER_ENVIRONMENT =~ /GRIDEngine/i){
+		if($CL_COLOURS){
 			print CF::Headnodehelpers::parse_qstat(0, 1);
 		} else {
 			print CF::Headnodehelpers::parse_qstat(0, 0);
 		}
-	} elsif($CLUSTER_ENVIRONMENT eq 'SLURM'){
-		if($cl_qstatcolours){
-                        print CF::Headnodehelpers::parse_squeue(0, 1);
-                } else {
-                        print CF::Headnodehelpers::parse_squeue(0, 0);
-                }
+	} elsif($CLUSTER_ENVIRONMENT =~ /SLURM/i){
+		if($CL_COLOURS){
+                print CF::Headnodehelpers::parse_squeue(0, 1);
+        } else {
+                print CF::Headnodehelpers::parse_squeue(0, 0);
+        }
+	} elsif($CLUSTER_ENVIRONMENT =~ /local/i){
+		if($CL_COLOURS){
+                print CF::Headnodehelpers::parse_localjobs(0, 1);
+        } else {
+                print CF::Headnodehelpers::parse_localjobs(0, 0);
+        }
 	} else {
-		print "Apologies, this function is not yet supported for systems other than GRIDEngine.\n";
+		print "Apologies, this function only works for GRIDEngine, SLURM and loca systems.\n";
 	}
 	exit;
 }
@@ -256,43 +237,47 @@ if($cl_qstatall){
 		print "Apologies, this function is not yet supported for systems other than GRIDEngine.\n";
 		exit;
 	}
-	if($cl_qstatcolours){
+	if($CL_COLOURS){
 		print CF::Headnodehelpers::parse_qstat(1, 1);
 	} else {
 		print CF::Headnodehelpers::parse_qstat(1, 0);
 	}
 	exit;
 }
-if($cl_make_config){
-	CF::Constants::clusterflow_make_config();
+if($cl_qdel){
+	if($CLUSTER_ENVIRONMENT =~ /GRIDEngine/i){
+		print "\nDeleting jobs from pipeline: $cl_qdel\n\n";
+		print CF::Headnodehelpers::cf_pipeline_qdel($cl_qdel);
+		exit;
+	} elsif($CLUSTER_ENVIRONMENT =~ /SLURM/i){
+		print "\nDeleting jobs from pipeline: $cl_qdel\n\n";
+		print CF::Headnodehelpers::cf_pipeline_scancel($cl_qdel);
+		exit;
+	} elsif($CLUSTER_ENVIRONMENT =~ /local/i){
+		print "\nDeleting jobs from pipeline: $cl_qdel\n\n";
+		print CF::Headnodehelpers::cf_pipeline_localkill($cl_qdel);
+		exit;
+	} else {
+		print "Apologies, this function only works for GRIDEngine, SLURM and loca systems.\n";
+		exit;
+	}
+}
+
+if($cl_setup){
+	CF::Constants::clusterflow_setup();
 	exit;
 } else {
 	# Warn user if we don't have a home directory config file
 	# (probably means no notifications)
-	unless(-e "$homedir/clusterflow/clusterflow.config"){
-		warn "\nYou don't seem to have a config file set up in your
-home directory! It's a good idea to set one up, so that
-you can get e-mailed notifications from Cluster Flow.
-To create one, run cf --make_config\n\n\n";
+	unless(-e "$homedir/.clusterflow/clusterflow.config"){
+		warn "".('='x55)."\nYou don't seem to have a config file set up in your
+home directory! Cluster Flow may not work without it.
+Please run 'cf --setup' before continuing\n".('='x55)."\n\n\n";
 	}
 }
 if($cl_add_genome){
 	CF::Constants::clusterflow_add_genome();
 	exit;
-}
-if($cl_qdel){
-	if($CLUSTER_ENVIRONMENT eq 'GRIDEngine'){
-		print "\nDeleting jobs from Pipeline id $cl_qdel\n\n";
-		print CF::Headnodehelpers::cf_pipeline_qdel($cl_qdel);
-		exit;
-	} elsif($CLUSTER_ENVIRONMENT eq 'SLURM'){
-		print "\nDeleting jobs from Pipeline id $cl_qdel\n\n";
-		print CF::Headnodehelpers::cf_pipeline_scancel($cl_qdel);
-		exit;
-	} else {
-		print "Apologies, this function is not yet supported for systems other than GRIDEngine.\n";
-		exit;
-	}
 }
 
 if($cl_version){
@@ -312,7 +297,7 @@ if($cl_check_updates){
 	$check_interval += $1 * 604800 if ($CHECK_UPDATES =~ /(\d+)w/i);
 	$check_interval += $1 * 2628000 if ($CHECK_UPDATES =~ /(\d+)m/i);
 	$check_interval += $1 * 31536000 if ($CHECK_UPDATES =~ /(\d+)y/i);
-	
+
 	# See if it's been this many seconds since we last checked
 	if($check_interval){
 		if(!$UPDATES_LAST_CHECKED || (time - $UPDATES_LAST_CHECKED) > $check_interval){
@@ -323,8 +308,8 @@ if($cl_check_updates){
 # Print warning if we're running a version of Cluster Flow that is out of date
 if($CHECK_UPDATES){
 	if(CF::Headnodehelpers::cf_compare_version_numbers($CF_VERSION, $AVAILABLE_VERSION)){
-		print "\n".("="x45)."\n A new version of Cluster Flow is available!\n Running v$CF_VERSION, v$AVAILABLE_VERSION available.\n".("="x45)."\n
-You can download the latest version of Cluster Flow from\nhttp://www.bioinformatics.babraham.ac.uk/projects/cluster_flow/\n\n";
+		print "\n".("="x45)."\n A new version of Cluster Flow is available!\n Running v$CF_VERSION, v$AVAILABLE_VERSION available.\n".("="x45)."\n".
+			  "You can download the latest version of Cluster Flow from\nhttps://github.com/ewels/clusterflow/releases/\n\n";
 	}
 }
 
@@ -337,12 +322,30 @@ if($cl_help){
 	}
 	exit;
 }
+
+# Check that we have everything we need
+my @valid_environments = ('local', 'GRIDEngine', 'SLURM', 'LSF');
+my $environtments_regex = join('|', @valid_environments);
+if(length($CLUSTER_ENVIRONMENT) == 0){
+		my $global_fn = "$FindBin::Bin/clusterflow.config";
+		if(-e $global_fn){
+			print ("Error - Cluster Environment not set.\nPlease configure \@cluster_environment in your global config file:\n$global_fn\n\n");
+		} else {
+			print ("Error - Cluster Environment not set. Please run 'cf --setup' to create a global config file.\n\n");
+		}
+    exit;
+} elsif($CLUSTER_ENVIRONMENT !~ /^($environtments_regex)$/i){
+	print ("Error - Cluster Environment not recognised. Valid values: ".join(', ', @valid_environments)."\n\n");
+    exit;
+}
 if(!$pipeline){
-	die("Error - no pipeline specified. Use --help for instructions.\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n");
+	print ("Error - no pipeline specified. Use --help for instructions.\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n");
+	exit;
 }
 
 if(!$file_list && scalar(@files) == 0){
-	die("Error - no input files specified. Use --help for instructions.\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n");
+	print ("Error - no input files specified. Use --help for instructions.\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n");
+	exit;
 }
 
 # If we're using environment modules, check we can find modulecmd (system returns 1 on error)
@@ -351,17 +354,17 @@ if($CF_MODULES){
 		die( "ERROR - could not find modulecmd on the PATH. Aborting run.\n" .
 		"If you don't use environment modules, please set \@ignore_modules\n" .
 		"in your Cluster Flow configuration file.\n\n");
-	} 
+	}
 }
 
 # Load in the pipeline config file
 my $config_found = 0;
 foreach my $folder (@pipeline_folders){
 	if(-e $folder."$pipeline.config"){
-		
+
 		# Open the pipeline config file handle
 		open (CONFIG,$folder."$pipeline.config") or die "Can't read ".$folder."$pipeline.config: $!";
-		
+
 		$config_found = 1;
 		last;
 	}
@@ -369,26 +372,39 @@ foreach my $folder (@pipeline_folders){
 
 # No pipeline found - was a single module specified instead?
 if(!$config_found){
+	my $mod_prefix = '#';
+	if($pipeline =~ /^([#>])/){
+		$mod_prefix = $1;
+		$pipeline =~ s/^([#>])//;
+	}
 	foreach my $folder (@module_folders){
-		if(-e $folder."$pipeline.cfmod"){
-			
+		my @mod_files = glob $folder.$pipeline.'.cfmod*';
+		if(scalar @mod_files == 1){
 			# Make a pseudo pipeline config file handle
-			my $pipeline_config = "\n#$pipeline\n\n";
+			my $pipeline_config = "\n".$mod_prefix.$pipeline."\n\n";
 			open(CONFIG, "<", \$pipeline_config) or die "Can't open variable file handle for single module pipeline: $!\n\n";
-			
+
 			$config_found = 1;
 			last;
+		} elsif(scalar @mod_files > 1){
+			die "Found more than one module file matching pipeline id:\n - ".join("\n - ", @mod_files)."\n\n";
 		}
 	}
 }
 # No pipeline or module found - die with error
 if(!$config_found){
-	die "Can't find pipeline or module called $pipeline";
+	print "Error! Can't find pipeline or module called $pipeline\n";
+	exit;
 }
 
 
+# Print welcome message
+my $cfid = $pipeline.'_'.time;
+print "="x50, "\n Cluster Flow v".$CF_VERSION."\n Launching pipeline $cfid\n", "="x50, "\n\n";
+
+
 # If we have a file list input file, take input from there
-my @download_fns;
+my %download_fns;
 if($file_list){
 	unless(-e $file_list){
 		print "Error - file list not found: $file_list\nExiting...\n\n";
@@ -403,9 +419,7 @@ if($file_list){
 		my @sections = split(/\s+/);
 		push @files, $sections[0];
 		if(defined($sections[1])){
-			push @download_fns, $sections[1];
-		} else {
-			push @download_fns, 0;
+			$download_fns{$sections[0]} = $sections[1];
 		}
 	}
 	close(FILES);
@@ -421,7 +435,7 @@ for (my $i = 0; $i <= $#files; $i++){
 	if(!$cl_no_fn_check){
 		if ($files[$i] =~ /\.(\w+)(\.gz)?$/i){
 			if($file_ext && $file_ext ne $1){
-				die "\nERROR - found a mixture of input file types! (.$file_ext and .$1) Exiting..\nUse --no_fn_check to disable this.\n\n";
+				die "ERROR - found a mixture of input file types! (.$file_ext and .$1) Exiting..\nUse --no_fn_check to disable this.\n\n";
 			}
 			$file_ext = $1;
 		}
@@ -445,32 +459,77 @@ if(!$cl_paired_end && !$cl_single_end && $fastq_count > 1){
 			}
 		}
 	}
-	
+
 	if($paired_count > 0 && $single_count == 0 && $num_files % 2 == 0){
 		$cl_paired_end = 1;
-		warn "\nFilenames look like paired-end input. Setting --paired\n";
-		warn "Specify --single to prevent this behaviour.\n\n";
+		print "Filenames look like paired-end input. Setting --paired\n";
+		print "Specify --single to prevent this behaviour.\n\n";
 	} elsif($paired_count == 0 && $single_count > 0){
 		$cl_single_end = 1;
-		warn "\nFilenames look like single-end input. Setting --single\n";
-		warn "Specify --paired to prevent this behaviour.\n\n";
+		print "Filenames look like single-end input. Setting --single\n";
+		print "Specify --paired to prevent this behaviour.\n\n";
 	} else {
-		die "\n\nERROR - found a mixture of single end and paired end files! Exiting..\nSpecify --single or --paired to override.\n\n";
+		die "ERROR - found a mixture of single end and paired end files! Exiting..\nSpecify --single or --paired to override.\n\n";
 	}
 }
 
+#
+# MERGE REGEX
+#
+
+# Make an array of file groups for each parallel run
+my %file_sets_hash;
+if($MERGE_REGEX){
+
+	# Check the regex looks ok
+	my $opening_p = () = $MERGE_REGEX =~ /\(/g;
+	my $closing_p = () = $MERGE_REGEX =~ /\)/g;
+	my $slashes = () = $MERGE_REGEX =~ /[^\\]\//g;
+	unless($opening_p == 1 && $closing_p == 1){
+		die "\n\n### Error: Found a merging regex, but it didn't have a single set\nof parentheses: $MERGE_REGEX";
+	}
+	unless($slashes == 0){
+		die "\n\n### Error: Found a merging regex, but it had unescaped backslashes: $MERGE_REGEX";
+	}
+
+	# Loop through each file and add to hash
+	foreach my $fn (@files){
+		my $group = $fn;
+		if($fn =~ m/$config{merge_regex}/){
+			if(defined($1)){
+				$group = $1;
+			}
+		}
+		# No match - add new key to hash
+		if(!defined($file_sets_hash{$group})){
+			$file_sets_hash{$group} = ();
+		}
+		push(@{$file_sets_hash{$group}}, $fn);
+	}
+}
+# No regex - make the hash with keys as the filenames
+else {
+	foreach my $fn (@files){
+		$file_sets_hash{$fn} = ();
+		push(@{$file_sets_hash{$fn}}, $fn);
+	}
+}
+my $num_file_groups = scalar keys %file_sets_hash;
+
+# Did we find any files to merge?
+if($num_file_groups < $num_files){
+	print "Found $num_file_groups groups of files from $num_files using merge regex:\n".$config{merge_regex}."\n\n";
+} elsif($MERGE_REGEX){
+	print "No file groups found with merge regex.\n\n";
+	$MERGE_REGEX = 0;
+}
 
 
 #
 # MAX RUNS and SPLIT FILES
 #
-# Is max_runs set on the command line? Override config defaults if so
-if(defined($cl_max_runs)){
-	$cl_max_runs =~ s/\D//g; # remove any non-numbers
-	$MAX_RUNS = $cl_max_runs;
-}
-# Is split_files set on the command line? Disable max_runs if so
-if($SPLIT_FILES > 2 && !defined($cl_max_runs)){
+# Is split_files configured? Disable max_runs if so
+if($SPLIT_FILES > 1){
 	$MAX_RUNS = 0;
 }
 # Forcing paired end or single end
@@ -481,13 +540,39 @@ if ($cl_paired_end){
 }
 # Set split_files now that we know how many files we have
 if($MAX_RUNS > 0){
-	$SPLIT_FILES = int(($num_files / $MAX_RUNS) + 0.99); # + 0.99 is to do a ceiling round
+	$SPLIT_FILES = int(($num_file_groups / $MAX_RUNS) + 0.99); # + 0.99 is to do a ceiling round
 	if ($cl_paired_end && ($SPLIT_FILES % 2 == 1)){
 		$SPLIT_FILES++;
 	}
-	warn "Processing $num_files files in $MAX_RUNS runs. Submitting $SPLIT_FILES files per run.\n\n";
 }
-my $num_runs = int(($num_files / $SPLIT_FILES) + 0.99); # + 0.99 is to do a ceiling round
+
+# Convert the file sets hash into an array, bundling if we need to
+my @file_sets;
+if($SPLIT_FILES > 1){
+	my @thisgroup;
+	my $thisgroupcounter = 0;
+	foreach my $group (sort keys %file_sets_hash) {
+		if($thisgroupcounter < $SPLIT_FILES){
+			push (@thisgroup, @{$file_sets_hash{$group}});
+			$thisgroupcounter++;
+		} else {
+			push (@file_sets, [@thisgroup]);
+			@thisgroup = @{$file_sets_hash{$group}};
+			$thisgroupcounter = 1;
+		}
+	}
+	if(scalar @thisgroup > 0){
+		push (@file_sets, [@thisgroup]);
+	}
+}
+# One file group per run - just convert the hash to an array
+else {
+	push (@file_sets, values(%file_sets_hash));
+}
+
+my $num_runs = scalar @file_sets;
+my $runs = $num_runs == 1 ? 'run' : 'runs';
+print "Processing $num_files files in $num_runs $runs.\n\n";
 
 
 ## Write the run file, parse the pipeline
@@ -495,6 +580,7 @@ my $runfile;
 my %module_tree;
 my @indents;
 push @indents, \%module_tree;
+my @summary_modules;
 my $comment_block = 0;
 
 # Write config variables to runfile header
@@ -504,7 +590,7 @@ $runfile = <<"EOT";
 \@total_mem	$TOTAL_MEM
 EOT
 if($EMAIL){
-	$runfile .= "\@email	$EMAIL\n";	
+	$runfile .= "\@email	$EMAIL\n";
 }
 if($PRIORITY){
 	$runfile .= "\@priority	$PRIORITY\n";
@@ -513,29 +599,43 @@ foreach my $not (@NOTIFICATIONS){
 	$runfile .= "\@notification\t$not\n";
 }
 
-if(defined($GENOME) && defined($GENOME_PATHS{$GENOME})){
-	$runfile .= "\@genome_path\t$GENOME_PATHS{$GENOME}\n";
-}
-if(defined($GENOME) && defined($BOWTIE_PATHS{$GENOME})){
-	$runfile .= "\@bowtie_path\t$BOWTIE_PATHS{$GENOME}\n";
-}
-if(defined($GENOME) && defined($GTF_PATHS{$GENOME})){
-	$runfile .= "\@gtf_path\t$GTF_PATHS{$GENOME}\n";
+if(defined($GENOME)){
+    my $refs_count = 0;
+	$runfile .= "\@genome\t$GENOME\n";
+    foreach my $ref_type ( keys %REFERENCES){
+        if(defined($REFERENCES{$ref_type}{$GENOME})){
+            $runfile .= "\@reference\t$ref_type\t$REFERENCES{$ref_type}{$GENOME}{path}\n";
+            $refs_count++;
+        }
+    }
+    if($refs_count == 0){
+        die("### Error ###\n\nNo genome references found for genome key \"$GENOME\"..\n\n".
+            "Use cf --genomes to see available references and keys.\n\n".
+            "Exiting...\n\n");
+    }
 }
 if ($cl_paired_end){
 	$runfile .= "\@force_paired_end\n";
 } elsif ($cl_single_end){
 	$runfile .= "\@force_single_end\n";
 }
+if ($MERGE_REGEX){
+	$runfile .= "\@merge_regex\t$MERGE_REGEX\n";
+}
 
 # Parse pipeline config file
-
 my $pipeline_string = "";
+if($MERGE_REGEX){
+	$pipeline_string .= "#cf_merge_files\n";
+	splice @indents, 1;
+	push @indents, $indents[$#indents]->{'cf_merge_files'} = {};
+}
+my $added_summary_mod = 0;
 while (<CONFIG>){
 	chomp;
 	s/\n//;
 	s/\r//;
-	
+
 	# Ignore comment blocks
 	if($_ =~ /^\/\*/){
 		$runfile .= "$_\n";
@@ -547,75 +647,83 @@ while (<CONFIG>){
 		$comment_block = 0;
 		next;
 	}
-	
-	# Required variables
-	if($_ =~ /^\@require_genome/ && !$comment_block){
+
+	# Required reference
+	if($_ =~ /^\@require_reference/ && !$comment_block){
+		my $ref_type = (split(/\s+/, $_, 2))[1];
 		if(!defined $GENOME){
-			warn "\n### Error - The pipeline $pipeline requires a genome to be set with --genome or --genome_path. Exiting... ### \n\n";
+			print "\n### Error - The pipeline $pipeline requires a genome to be set with --genome or --ref. Exiting... ### \n\n";
 			exit;
-		} elsif(!defined $GENOME_PATHS{$GENOME}){
-			warn "\n### Error ###\nNo genome path found for $GENOME.\n\nAvailable genome paths:\n";
-			while ( (my $genome, my $path) = each %GENOME_PATHS ) {
-				warn "\tGenome: $genome, Path: $GENOME_PATHS{$genome}\n";
-			}
-			warn "\n\nExiting...\n\n";
+		} elsif(!defined $REFERENCES{$ref_type}{$GENOME}{path}){
+			print "\n### Error ###\nNo $ref_type path found for genome key \"$GENOME\".\n\nAvailable $ref_type paths:\n";
+            foreach my $genome_key ( keys %{$REFERENCES{$ref_type}}){
+                if(defined($REFERENCES{$ref_type}{$genome_key}{path})){
+                    print "\tGenome: $genome_key, Path: $REFERENCES{$ref_type}{$genome_key}{path}\n";
+                }
+            }
+			print "\n\nExiting...\n\n";
 			exit;
 		}
 	}
-	if($_ =~ /^\@require_bowtie/ && !$comment_block){
-		if(!defined $GENOME){
-			warn "\n### Error - The pipeline $pipeline requires a bowtie index to be set with --genome or --bowtie_path. Exiting... ### \n\n";
-			exit;
-		} elsif(!defined $BOWTIE_PATHS{$GENOME}){
-			warn "\n### Error ###\nNo bowtie path found for $GENOME.\n\nAvailable bowtie paths:\n";
-			while ( (my $genome, my $path) = each %BOWTIE_PATHS ) {
-			  warn "\tGenome: $genome, Path: $BOWTIE_PATHS{$genome}\n";
-			}
-			warn "\n\nExiting...\n\n";
+
+	# Require python package
+	if($_ =~ /^\@require_python_package/ && !$comment_block){
+		my $package = (split(/\s+/, $_, 2))[1];
+		my $try_import = `python -c "import $package" 2>&1`;
+		if(length($try_import) > 0){
+			print "\n### Error - The pipeline $pipeline requires the '$package' python package to be installed. Exiting... ### \n\n";
 			exit;
 		}
 	}
-	if($_ =~ /^\@require_gtf/ && !$comment_block){
-		if(!defined $GENOME){
-			warn "\n### Error - The pipeline $pipeline requires a GTF path to be set with --genome or --gtf_path. Exiting... ### \n\n";
-			exit;
-		} elsif(!defined $GTF_PATHS{$GENOME}){
-			warn "\n### Error ###\nNo GTF path found for $GENOME.\n\nAvailable GTF paths:\n";
-			while ( (my $genome, my $path) = each %GTF_PATHS ) {
-			  warn "\tGenome: $genome, Path: $GTF_PATHS{$genome}\n";
-			}
-			warn "\n\nExiting...\n\n";
-			exit;
-		}
-	}
-	
+
 	# Read the pipeline tree
-	if($_ =~ /^(\t*)#/ && !$comment_block){
-	
+	elsif($_ =~ /^(\t*)#/ && !$comment_block){
+
+        # Check that we haven't already seen a summary module
+        if($added_summary_mod){
+            die "Error! Normal modules (beginning with #) are not allowed after\nsummary modules (beginning with >) in pipelines.\n\n";
+        }
+
 		# Add in any command line parameters to each module
 		if($cl_params){
-			$pipeline_string .= "$_ $cl_params\n";
-			$runfile .= "$_ $cl_params\n";
 			$_ .= " $cl_params";
-		} else {
-			$pipeline_string .= "$_\n";
-			$runfile .= "$_\n";
 		}
-		
-		$_ =~ s/^(\t*)#//; # Remove hash and count tabs
+
+		$_ = "\t".$_ if($MERGE_REGEX); # Add a tab if we prepended merge
+		$pipeline_string .= "$_\n";
+		$runfile .= "$_\n";
+
+		$_ =~ s/^(\t*)#//; # Remove hash symbol and count tabs
 		splice @indents, length($1)+1;
 		push @indents, $indents[$#indents]->{$_} = {};
-	
+	}
+
+    # Read the summary jobs
+    elsif($_ =~ /^\s*>/ && !$comment_block){
+
+		# Add in any command line parameters
+		if($cl_params){
+			$_ .= " $cl_params";
+		}
+		$pipeline_string .= "\t" if($MERGE_REGEX); # Add a tab if we prepended merge
+		$pipeline_string .= "$_\n";
+		$runfile .= "$_\n";
+
+        $_ =~ s/^\s*>|\s+$//g; # Remove gt symbol and trim whitespace
+        push (@summary_modules, $_);
+        $added_summary_mod = 1;
+    }
+
 	# Add everything else to runfile string
-	} else {
+	else {
 		$runfile .= "$_\n";
 	}
-	
+
 }
 
 close(CONFIG);
 
-warn "Pipeline to be used:\n\n$pipeline_string\n\n";
+print "Pipeline to be used:\n\n$pipeline_string\n\n";
 
 
 # Work out quota of cores and memory allowed per job
@@ -639,215 +747,330 @@ my $memory_allocation_hr = CF::Helpers::bytes_to_human_readable($memory_allocati
 sub count_leaves {
 	# Set up parameters
 	my ($mod_tree, $num_leaves, $num_jobs) = @_;
-	
+
 	# Increase job counter
 	$num_jobs++;
-	
+
 	# Run through leaves on this branch
 	foreach ( keys %{$mod_tree} ){
-		
+
 		my $num_keys = scalar keys(%{$mod_tree->{$_}});
-		
+
 		# Recursively call this function if we're not at the end of a branch
 		if ($num_keys > 0) {
 			($num_leaves, $num_jobs) = count_leaves ( $mod_tree->{$_}, $num_leaves, $num_jobs ) ;
-		
+
 		# No children, add one to the count for this leaf
 		} else {
 			$num_leaves++;
 		}
 	}
-	
+
 	return ($num_leaves, $num_jobs);
 }
 
+# Get ready to save the STDOUT from the job submissions
+my $jid_base = 'cf_'.$cfid.'_';
+my $submit_log = $jid_base.'submissionlog.txt';
+if($CLUSTER_ENVIRONMENT =~ /local/i){
+    $submit_log = '/dev/null';
+}
+unless($cl_dryrun){
+    open (SUBMIT,'>>',$submit_log) or die "Can't write to $submit_log: $!";
+    print SUBMIT "Output from $CLUSTER_ENVIRONMENT when submitting Cluster Flow jobs:\n".("="x52)."\n\n";
+}
 
 
-# Go through the supplied starting files
+#
+# START THE PIPELINE
+#
+
 my @qsubs;
 my @job_ids;
-my $jid_base = 'cf_'.$pipeline.'_'.time.'_';
 my %run_job_ids;
 my $job_id;
 my $prev_dl_id = "";
+my @runfns;
 my @outfns;
 my @finished_run_ids;
-for (my $i = 0; $i <= $#files; $i++){
-	my $fn = $files[$i];
-	my $first_fn = $fn;
-	my $outfn = $fn."_".$pipeline."_clusterFlow.txt";
-	
+# Define these here as we need to remember them after the loop finishes
+my $runfn;
+my $run_finish_id;
+my $outfn;
+print "Processing files (one dot per file):\n";
+foreach my $file_set (@file_sets){
+
+	# References give me headaches
+	my @files = @{$file_set};
+
+	# Log file name
+	$outfn = $files[0]."_".$pipeline."_clusterFlow.txt";
+
 	# Make the run file
-	my $runfn = $fn."_$pipeline.run";
+	$runfn = $cl_runfile_prefix.$files[0]."_$pipeline.run";
 	my $date = strftime "%H:%M, %d-%m-%Y", localtime;
 	my $this_runfile = "/*\nCluster Flow Run File\nPipeline: $pipeline\nCreated at $date\n*/\n\n".$runfile."\n\n";
-	
-	# Add files to run file
-	my $max_i = $i + $SPLIT_FILES;
-	my $counter = 0;
-	for (; $i < $max_i; $i++){
-		$counter++;
-		if($i > $#files) {
-			last;
-		}
-		
-		$fn = $files[$i];
-		
+
+	# Loop through each file in file group
+	foreach my $fn (@files){
+
 		# Write status update
-		if($CLUSTER_ENVIRONMENT =~ /SLURM/i){ warn "\n"; }
-		warn "Processing file ".($i+1)." - $fn\n";
-		
+		print ".";
+
 		# Is this filename a URL?
 		if ($fn =~ /^(((ht|f)tp(s?))\:\/\/)/){
-			
+
 			# Find download filename if it exists
 			my $dl_fn;
-			if($download_fns[$i]){
-				$dl_fn = $download_fns[$i];
+			if($download_fns{$fn}){
+				$dl_fn = $download_fns{$fn};
 			} else {
 				my @parts = split("/", $fn);
 				$dl_fn = pop(@parts);
 			}
-			
+
 			# Only do this the first time, else we create a new file for each download when using --split_files
 			if ($runfn =~ /^(((ht|f)tp(s?))\:\/\/)/){
 				$runfn = $dl_fn."_$pipeline.run";
 				$outfn = $dl_fn."_".$pipeline."_clusterFlow.txt";
 			}
-			
+
 			push @outfns, $outfn;
-			
+
 			# URL - set up download module qsub job, dependent on previous download job
 			$job_id = $jid_base.'download_'.sprintf("%03d", rand(999));
-			my $dlcmd = "$Bin/modules/cf_download.cfmod $runfn $job_id $fn $dl_fn";
+			my $dlcmd = "$Bin/modules/cf_download.cfmod.pl --run_fn $runfn --job_id $job_id --prev_job_id null --cores 1 --mem 1G --param url=$fn --param dl_fn=$dl_fn";
 			my @dlhjid = ();
 			if(length($prev_dl_id) > 0){
 				@dlhjid = ($prev_dl_id);
 			}
-			my $qsub = make_submit_cmd($dlcmd, $job_id, \@dlhjid, $prev_dl_id, '1', '1G', $outfn);
+			my $qsub = make_submit_cmd($dlcmd, $job_id, \@dlhjid, $prev_dl_id, '1', '1G', '2-00:00:00', $outfn);
+
 			push @qsubs, $qsub;
 			push @job_ids, $job_id;
 			$prev_dl_id = $job_id;
-			
-			# Done with the download URL. Set $fn for later stuff
-			$fn = $dl_fn;
-			if($counter == 1){
-				$first_fn = $dl_fn;
-			}
-		
+
+			# The download module ignores this, but good to add so that mods know how many files we're starting with
+			$this_runfile .= "start_000\t$dl_fn\n";
+
 		} elsif(-e $fn) { # Not a URL. Does this file exist?
 			# Add the starting filename to the run file
 			$job_id = 'start_000';
 			$this_runfile .= "$job_id\t$fn\n";
 			push @outfns, $outfn;
-		
+
 		} else { # Not a URL, file doesn't exist. Something is wrong!
 			die "\nFile $fn doesn't exist.. Something is wrong! Exiting...\n\n";
 		}
-	
 	}
-	$i--; # Loop increments $i when it finishes. Revert this increment before next loop
-	$fn = $first_fn;
-	
+
 	# Deduplicate output fn array
 	@outfns = do { my %h; @h{@outfns} = @outfns; values %h };
-	
+
 	# Write out the run file
 	open (RUNOUT,'>',$runfn) or die "Can't write to $runfn: $!";
 	print RUNOUT $this_runfile;
 	close(RUNOUT);
-	
+    push (@runfns, $runfn);
+
 	# Make up qsub jobs
 	make_qsubs (\%module_tree, $job_id, $runfn, $outfn);
-	
+
 	# Qsub job to execute on completion of this run
-	my $run_finish_id = $jid_base."email_run_complete_".sprintf("%03d", rand(999));
-	my $run_finish_cmd = "$Bin/modules/cf_run_finished.cfmod $runfn $run_finish_id null 1 1G $pipeline $outfn";
-	my $run_finish_qsub = make_submit_cmd($run_finish_cmd, $run_finish_id, \@{$run_job_ids{$runfn}}, 0, '1', '1G', $outfn, 1);
-	
+	$run_finish_id = $jid_base."email_run_complete_".sprintf("%03d", rand(999));
+	my $run_finish_cmd = "$Bin/modules/cf_run_finished.cfmod.pl --run_fn $runfn --job_id $run_finish_id --prev_job_id null --cores 1 --mem 1G --param hide_log_header=true --param outfn=$outfn";
+	my $run_finish_qsub = make_submit_cmd($run_finish_cmd, $run_finish_id, \@{$run_job_ids{$runfn}}, 0, '1', '1G', '2:00', $outfn, 1);
+
 	push @qsubs, $run_finish_qsub;
 	push @finished_run_ids, $run_finish_id;
-	
-	# Final qsub job to execute on completion of ALL JOBS
-	if($i == $#files){
-		my $all_runs_finish_id = $jid_base."email_pipeline_complete_".sprintf("%03d", rand(999));
-		my $all_runs_finish_cmd = "$Bin/modules/cf_runs_all_finished.cfmod $runfn $run_finish_id null 1 1G $pipeline ".join(" ", @outfns);
-		# my $all_runs_finish_holdjid = join(",", @finished_run_ids);
-		my $all_runs_finish_qsub = make_submit_cmd($all_runs_finish_cmd, $all_runs_finish_id, \@finished_run_ids, 0, '1', '1G', $outfn, 1);
-		
-		push @qsubs, $all_runs_finish_qsub;
-	}
+
 }
+
+#
+# FINAL JOBS to execute on completion of ALL JOBS (entire pipeline)
+#
+
+# Summary Modules
+for my $s_mod (@summary_modules){
+
+	# Set up parameters for these leaves
+	my ($s_module, $parameter_string) = split(/\s/, $s_mod, 2);
+	my $s_job_id = $jid_base.$s_module.'_'.sprintf("%03d", rand(999));
+	my $parameters = '';
+	if($parameter_string){
+		my @params = split(/\s/, $parameter_string);
+		my $parameters = "--param ".join(' --param ', @params);
+	}
+
+	if(length($s_module) > 0){
+        # Get module filename and requirements
+        my $s_module_fn = get_mod_fn($s_module);
+        my ($s_cores, $s_mem, $s_time) = get_mod_requirements($s_module_fn, $runfn);
+
+		# formulate qsub command
+		my $s_cmd = "$s_module_fn --job_id $s_job_id --prev_job_id $run_finish_id --cores $s_cores --mem $s_mem $parameters --param summary_module=true";
+		foreach my $rfn (@runfns){
+			$s_cmd .= " --run_fn $rfn";
+		}
+
+		my $s_qsub = make_submit_cmd($s_cmd, $s_job_id, \@finished_run_ids, $run_finish_id, $s_cores, $s_mem, $s_time, $outfn, 1);
+        push (@qsubs, $s_qsub);
+        push (@finished_run_ids, $s_job_id);
+    }
+}
+
+# Cluster Flow module to send pipeline completion e-mail
+my $all_runs_finish_id = $jid_base."email_pipeline_complete_".sprintf("%03d", rand(999));
+my $all_runs_finish_cmd = "$Bin/modules/cf_runs_all_finished.cfmod.pl --run_fn $runfn --job_id $all_runs_finish_id --prev_job_id $run_finish_id --cores 1 --mem 1G --param summary_module=true --param hide_log_header=true";
+for my $i (0 .. $#outfns) {
+	$all_runs_finish_cmd .= " --param outfn_".$i."=".$outfns[$i];
+}
+
+my $all_runs_finish_qsub = make_submit_cmd($all_runs_finish_cmd, $all_runs_finish_id, \@finished_run_ids, 0, '1', '1G', '2:00', $outfn, 1);
+
+push @qsubs, $all_runs_finish_qsub;
+
+# Write status update
+print "\nFinished processing files.\n";
+
+
+
+
 
 ########################################################
 # Recursive function to create and submit cluster jobs
 ########################################################
+# Find the module file
+sub get_mod_fn {
+    my ($module) = @_;
+    my $module_fn;
+    foreach my $folder (@module_folders){
+
+    	my @mod_files = glob $folder.$module.'.cfmod*';
+		@mod_files = grep { $_ !~ /\.pyc$/ } @mod_files; # Remove ignored filetypes
+
+    	if(scalar @mod_files == 1){
+    		$module_fn = $mod_files[0];
+    		last;
+    	} elsif(scalar @mod_files > 1){
+    		die "Found more than one module file matching module id:\n - ".join("\n - ", @mod_files)."\n\n";
+    	}
+    }
+    if(!$module_fn){
+    	die "\nError! Can't find module file $module.cfmod*";
+    }
+    unless(-x $module_fn){
+    	die "\nError! Can't execute module file $module_fn\n";
+    }
+    return $module_fn;
+}
+
+sub get_mod_requirements {
+    my ($module_fn, $runfn) = @_;
+
+	# Send query to module
+	my $req_cmd .= "$module_fn --requirements --run_fn $runfn --cores $cores_allocation --mem $memory_allocation";
+	my $response = `$req_cmd 2> /dev/null`;
+
+	# Parse response
+	my $required_modules;
+	my $cores = '';
+	my $mem = '';
+	my $time = '';
+	foreach my $ln (split("\n", $response)){
+		chomp($ln);
+		my ($key, $val) = split(':', $ln, 2);
+		if($key and $val){
+			# trim whitespace
+			$key =~ s/^\s+|\s+$//g;
+			$val =~ s/^\s+|\s+$//g;
+
+			if($key eq 'cores'){
+				$cores = $val;
+				$cores =~ s/\D//g;
+			}
+			if($key eq 'memory'){
+				$mem = $val;
+			}
+			if($key eq 'modules'){
+				my @modules = split(/[\s,]+/, $val);
+				&CF::Helpers::load_environment_modules(\@modules, \%LOADED_MODULES);
+			}
+			if($key eq 'time'){
+				$time = $val;
+			}
+		}
+	}
+
+	# Check that we have what we need
+	# Don't warn about module requesting more than was suggested by core cf - too verbose.
+	my @errors;
+	unless($cores =~ /^\d+$/){
+		push (@errors, "No cores requested ('$cores') - setting to 1");
+		$cores = 1;
+	}
+	if($cores > $TOTAL_CORES){
+		push (@errors, "Too many cores requested ('$cores') - setting to $TOTAL_CORES");
+		$cores = $TOTAL_CORES;
+	}
+	unless($mem =~ /^[\d\.]+[gmkb]*$/i){
+		push (@errors, "No memory requested ('$mem') - setting to 1Gb");
+		$mem = '1G';
+	}
+	if(CF::Helpers::human_readable_to_bytes($mem) > CF::Helpers::human_readable_to_bytes($TOTAL_MEM)){
+		push (@errors, "Too much memory requested ('$mem') - setting to $TOTAL_MEM");
+		$mem = CF::Helpers::human_readable_to_bytes($TOTAL_MEM);
+	}
+	unless(CF::Helpers::timestamp_to_minutes($time) > 0){
+		push (@errors, "No time requested ('$time') - setting to 2 days");
+		$time = '2-00:00:00';
+	}
+	if(scalar @errors > 0){
+		warn "\nWarning: error parsing requirements for $module_fn\n  - ".join("\n  - ", @errors)."\n";
+		warn "Requirments request command: $req_cmd\nResponse:\n".`$req_cmd 2>&1`."\n";
+	}
+
+    return ($cores, $mem, $time);
+}
+
 sub make_qsubs {
 	# Set up parameters for this branch
 	my ($mod_tree, $prev_job, $runfn, $outfn) = @_;
-	
+
 	# Run through leaves
 	foreach ( keys %{$mod_tree} ){
-	
+
 		# Set up parameters for these leaves
-		my ($module, $parameters) = split(/\s/, $_, 2);
+		my ($module, $parameter_string) = split(/\s/, $_, 2);
 		my $job_id = $jid_base.$module.'_'.sprintf("%03d", rand(999));
-		
-		unless(length($module) > 0){
-			next;
+
+		next unless(length($module) > 0);
+		my $parameters = '';
+		if($parameter_string){
+			my @params = split(/\s/, $parameter_string);
+			my $parameters = "--param ".join(' --param ', @params);
 		}
-		unless($parameters) {
-			$parameters = '';
-		}
-		
-		# Find the module file
-		my $module_fn;
-		foreach (@module_folders){
-			if((-e $_."$module.cfmod") && (! -d $_."$module.cfmod")){
-				$module_fn = $_."$module.cfmod";
-				last;
-			}
-		}
-		if(!$module_fn){
-			die "Can't find module file $module.cfmod";
-		}
-		unless(-x $module_fn){
-			die "Can't execute module file $module.cfmod\n";
-		}
-		
-		# Get options for module
-		my $cores = `$module_fn --cores $TOTAL_CORES`;
-		my $mem = `$module_fn --mem $TOTAL_MEM`;
-		my $required_modules = `$module_fn --modules`;
-		
-		if(!$cores || length($cores) == 0 || $cores =~ /\D/){
-			$cores = 1;
-		}
-		if(!$mem || length($mem) == 0 || length($mem) > 20){
-			$mem = '1G';
-		}
-		
-		# Load environment modules
-		if($required_modules && length($required_modules) > 0){
-			my @req_modules = split(/[\s,]+/, $required_modules);
-			&CF::Helpers::load_environment_modules(\@req_modules, \%LOADED_MODULES)
-		}
-		
-		# Create cluster job submission command
-		my $holdjid = $prev_job;
-		# Strip number from download job ID so that these files are all read in the next module
-		$prev_job =~ s/download_[\d]{3}$/download/;
-		my $cmd = "$module_fn $runfn $job_id $prev_job $cores $mem $parameters";
-		my @holdids = ($holdjid);
-		my $qsub = make_submit_cmd($cmd, $job_id, \@holdids, $prev_job, $cores, $mem, $outfn);
-		
+
+        # Get module filename and requirements
+        my $module_fn = get_mod_fn($module);
+        my ($cores, $mem, $time) = get_mod_requirements($module_fn, $runfn);
+
+    	# Strip number from download job ID so that these
+        # files are all read in the next module
+    	(my $prev_job_cmd = $prev_job) =~ s/download_[\d]{3}$/download/;
+
+		# formulate qsub command
+		my @holdids = ($prev_job);
+		my $cmd = "$module_fn --run_fn $runfn --job_id $job_id --prev_job_id $prev_job_cmd --cores $cores --mem $mem $parameters";
+		my $qsub = make_submit_cmd($cmd, $job_id, \@holdids, $prev_job, $cores, $mem, $time, $outfn);
+
 		push @qsubs, $qsub;
 		push @job_ids, $job_id;
 		unless(defined $run_job_ids{$runfn}){
 			$run_job_ids{$runfn} = ();
 		}
 		push @{$run_job_ids{$runfn}}, $job_id;
-		
+
 		# Recursively call this function if we're not at the end of a branch
 		if ( ref $mod_tree->{$_} eq 'HASH') {
 			make_qsubs ( $mod_tree->{$_}, $job_id, $runfn, $outfn ) ;
@@ -858,15 +1081,15 @@ sub make_qsubs {
 sub make_submit_cmd {
 	# Get the required variables to assemble this job submission
 	# $holdjid should be an array reference
-	my ($cmd, $job_id, $holdjid, $prev_job, $cores, $mem, $outfn, $noprefix) = @_;
-	
+	my ($cmd, $job_id, $holdjid, $prev_job, $cores, $mem, $time, $outfn, $noprefix) = @_;
+
 	# Make the command prefix all STDOUT and STDERR with the Job ID for parsing
 	unless(defined($noprefix) && $noprefix){
 		$cmd = "$cmd 2>&1 | sed s/^/###CF_$job_id:/";
 	}
-	
-	my $qsub = "";	
-	
+
+	my $qsub = "";
+
 	#########################
 	# Build command for LSF #
 	#########################
@@ -881,41 +1104,53 @@ sub make_submit_cmd {
 				$qsub .= "-sp {{priority}} ";
 			}
 		}
-		
+
 		# Memory has to be specified in megabytes for LSF
 		$mem = CF::Helpers::mem_return_mbs($mem);
-		
+
 		# Swap in real values
 		$qsub =~ s/{{command}}/$cmd/;
 		$qsub =~ s/{{job_id}}/$job_id/;
 		$qsub =~ s/{{outfn}}/$outfn/;
 		$qsub =~ s/{{cores}}/$cores/;
 		$qsub =~ s/{{mem}}/$mem/;
+		$qsub =~ s/{{time}}/$time/;
 		$qsub =~ s/{{priority}}/$PRIORITY/;
 		$qsub =~ s/{{email}}/$EMAIL/;
-		
+		$qsub =~ s/{{project}}/$C_PROJECT/;
+
 		# Job dependencies
 		if(scalar @{$holdjid} > 0 && $prev_job ne 'start_000'){
 			$qsub .= "-w 'done(\"" . join('") && done("', @{$holdjid}) . "\")' ";
 		}
-	
+
 	###########################
 	# Build command for SLURM #
 	###########################
 	} elsif($CLUSTER_ENVIRONMENT =~ /SLURM/i){
-		
+
 		# Build command string
 		if($CUSTOM_JOB_SUBMIT_COMMAND && length($CUSTOM_JOB_SUBMIT_COMMAND) > 0){
 			$qsub = $CUSTOM_JOB_SUBMIT_COMMAND;
 		} else {
-			$qsub = 'sbatch -p core -n {{cores}} --open-mode=append -o {{outfn}} -J {{job_id}} {{notifications}} --wrap="{{command}}"';
-			# Do we have a priority?
+			$qsub = 'sbatch -p core -n {{cores}} --mem {{mem}} --open-mode=append -o {{outfn}} -J {{job_id}} {{notifications}} --wrap="{{command}}"';
+			# Add in flags if we have them
 			if($PRIORITY && $PRIORITY >= 0){
 				$qsub .= " --priority {{priority}}";
 			}
+			if($C_PROJECT){
+				$qsub .= " -A {{project}}";
+			}
+			if($time){
+				$qsub .= " -t {{time}}";
+				# Short jobs, under 15 minutes
+				if($time =~ /^([0-9]|1[0-5])$/){
+					$qsub .= " --qos=short";
+				}
+			}
 		}
-		
-		# Work out qsub notification settings
+
+		# Work out notification settings
 		my $notification_string = "";
 		if(defined($EMAIL) && length($EMAIL) > 0 && @NOTIFICATIONS){
 			$notification_string .= ' --mail-user={{email}} ';
@@ -926,17 +1161,22 @@ sub make_submit_cmd {
 				$notification_string .= '--mail-type=END ';
 			}
 		}
-		
+
+		# Get memory in MB
+		$mem = int(CF::Helpers::human_readable_to_bytes($mem)/1000000);
+
 		# Swap in real values
 		$qsub =~ s/{{command}}/$cmd/;
 		$qsub =~ s/{{job_id}}/$job_id/;
 		$qsub =~ s/{{outfn}}/$outfn/;
 		$qsub =~ s/{{cores}}/$cores/;
 		$qsub =~ s/{{mem}}/$mem/;
+		$qsub =~ s/{{time}}/$time/;
 		$qsub =~ s/{{priority}}/$PRIORITY/;
 		$qsub =~ s/{{notifications}}/$notification_string/;
 		$qsub =~ s/{{email}}/$EMAIL/;
-		
+		$qsub =~ s/{{project}}/$C_PROJECT/;
+
 		# Job dependencies
 		# This is horrible on SLURM (depends on capturing job submission STDOUT)
 		if(scalar @{$holdjid} > 0 && $prev_job ne 'start_000'){
@@ -945,43 +1185,43 @@ sub make_submit_cmd {
 				if(exists $JOB_NUM_IDS{$jname}){
 					push(@jidarray, $JOB_NUM_IDS{$jname});
 				} elsif(!$cl_dryrun) {
-					warn "\nCouldn't find numeric job ID for $jname\n";
+					print "\nCouldn't find numeric job ID! '$job_id' needs ID from '$jname'\n";
 				}
 			}
 			if(scalar @jidarray > 0){
 				$qsub .= " --dependency=afterany:" . join(':', @jidarray);
 			}
 		}
-		
+
 		# Submit Job and capture ID
 		unless($cl_dryrun) {
-			my $job_submit = `$qsub`;
+			my $job_submit = `$qsub 2>&1`;
 			chomp($job_submit);
+            print SUBMIT $job_submit."\n";
 			if($job_submit =~ /Submitted batch job (\d+)/){
 				$JOB_NUM_IDS{$job_id} = $1;
-				warn "$job_submit ($job_id)\n";
 			} else {
-				warn "\nERROR! Couldn't find job id for $job_id: $job_submit\n\n";
+				print "\nERROR! Couldn't find job id for $job_id: $job_submit\n";
 			}
 		}
-	
-	
+
+
 	#################################
 	# Build command for GRID Engine #
 	#################################
 	} elsif($CLUSTER_ENVIRONMENT =~ /GRIDEngine/i){
-		
+
 		# Build command string
 		if($CUSTOM_JOB_SUBMIT_COMMAND && length($CUSTOM_JOB_SUBMIT_COMMAND) > 0){
 			$qsub = $CUSTOM_JOB_SUBMIT_COMMAND;
 		} else {
-			$qsub = 'echo "{{command}}" | qsub -cwd -V -S /bin/bash -pe orte {{cores}} -l vf={{mem}} -o {{outfn}} -j y -N {{job_id}} {{notifications}}';
+			$qsub = 'echo "{{command}}" | qsub -clear -b n -cwd -V -S /bin/bash -pe orte {{cores}} {{qname}} -l h_vmem={{mem}} -o {{outfn}} -j y -N {{job_id}} {{notifications}}';
 			# Do we have a priority?
 			if($PRIORITY && $PRIORITY <= 0){
 				$qsub .= " -p {{priority}}";
 			}
 		}
-		
+
 		# Work out qsub notification settings
 		my $notification_string = "";
 		if(defined($EMAIL) && length($EMAIL) > 0 && @NOTIFICATIONS){
@@ -999,46 +1239,102 @@ sub make_submit_cmd {
 				}
 			}
 		}
-		
+
+		my $qname ='';
+		if ($cl_qname) {
+			$qname = "-q $cl_qname ";
+		}
 		# Swap in real values
 		$qsub =~ s/{{command}}/$cmd/;
 		$qsub =~ s/{{job_id}}/$job_id/;
 		$qsub =~ s/{{outfn}}/$outfn/;
 		$qsub =~ s/{{cores}}/$cores/;
+		$qsub =~ s/{{qname}}/$qname/;
 		$qsub =~ s/{{mem}}/$mem/;
+		$qsub =~ s/{{time}}/$time/;
 		$qsub =~ s/{{priority}}/$PRIORITY/;
 		$qsub =~ s/{{notifications}}/$notification_string/;
 		$qsub =~ s/{{email}}/$EMAIL/;
-		
+		$qsub =~ s/{{project}}/$C_PROJECT/;
+
 		# Job dependencies
 		if(scalar @{$holdjid} > 0 && $prev_job ne 'start_000'){
 			$qsub .= " -hold_jid ". join(',', @{$holdjid});
 		}
-	
+
+
+	###########################
+	# Build command for local #
+	###########################
+	} elsif($CLUSTER_ENVIRONMENT =~ /local/i){
+		# Keepin' it simple..
+		$qsub = "$cmd >> $outfn\n";
+
+
+
 	###########################################
 	# Unrecognised Cluster Environment String #
 	###########################################
 	} else {
 		die ("ERROR - Cluster Environment config value not recognised: $CLUSTER_ENVIRONMENT\n\n");
 	}
-	
+
 	return $qsub;
-	
+
 }
+
 
 # Print qsub jobs to the terminal or submit to cluster
 if($cl_dryrun){
-	print "\n\n".('-' x 46)."\n Jobs that would be submitted to the cluster\n".('-' x 46)."\n\n";
-}
-if($cl_dryrun){
+	print "\n\n".('-' x 46)."\n Jobs that would be submitted to the cluster:\n".('-' x 46)."\n\n" if $cl_dryrun;
+	print "\n\n".('-' x 46)."\n Jobs submitted to the cluster:\n".('-' x 46)."\n\n" if !$cl_dryrun;
 	foreach(@qsubs){
 		print "$_\n\n";
 	}
 	if($CLUSTER_ENVIRONMENT =~ /SLURM/i){
 		print "\n\n".('-' x 86)."\n Warning - Jobs do not have dependencies (SLURM jobs have to be launched to do this)\n".('-' x 86)."\n\n";
 	}
-} elsif ($CLUSTER_ENVIRONMENT !~ /SLURM/i){
-	foreach(@qsubs){
-		system $_;
-	}
 }
+
+# Run jobs
+else {
+    # SLURM jobs are already sent, during command building
+    if($CLUSTER_ENVIRONMENT =~ /SLURM/i){
+        print "\nJobs submitted.\n\n";
+        # Print actual commands to the log file too
+        print SUBMIT "\n\n\n\n\nCluster Flow job submission commands:\n".("="x52)."\n\n";
+      	foreach(@qsubs){
+      		print SUBMIT "$_\n\n";
+      	}
+    }
+    # Run local jobs
+    elsif($CLUSTER_ENVIRONMENT =~ /local/i){
+    	# Write commands to a bash file
+    	my $bash_fn = "cf_local_".$jid_base."commands.sh";
+    	open (BASHOUT,'>',$bash_fn) or die "Can't write to $bash_fn: $!";
+    	my $date = strftime "%H:%M, %d-%m-%Y", localtime;
+        print BASHOUT "#!/bin/bash\n\n# Cluster Flow local script\n# Pipeline: $pipeline\n# Created at $date\n\n";
+    	foreach(@qsubs){
+    		print BASHOUT "$_\n\n";
+    	}
+    	close(BASHOUT);
+    	# Execute the bash file in a single background job
+    	system "nohup bash $bash_fn > /dev/null &";
+    	# Tell the user.
+    	print "\nRunning in Local mode..\nWritten commands to ${bash_fn} and submitted a background nohup job.\n\n";
+    }
+    # Kick off everything else
+    else {
+    	foreach(@qsubs){
+          my $submit_text = `$_`;
+          chomp($submit_text);
+          print SUBMIT "$submit_text\n";
+    	}
+      # Print actual commands to the log file too
+      print SUBMIT "\n\n\n\n\nCluster Flow job submission commands:\n".("="x52)."\n\n";
+    	foreach(@qsubs){
+    		print SUBMIT "$_\n\n";
+    	}
+    }
+}
+close (SUBMIT);
