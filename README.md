@@ -3,7 +3,7 @@
 Cluster Flow is a pipelining tool to automate and standardise bioinformatics analyses on high-performance cluster environments. It is designed to be easy to use, quick to set up and flexible to configure.
 
 ## Documentation
-For Cluster Flow documentation with information and examples, see the Cluster Flow website: **[http://ewels.github.io/clusterflow/](http://ewels.github.io/clusterflow/)**
+For Cluster Flow documentation with information and examples, see: **[http://clusterflow.io](http://clusterflow.io)**
 
 ## Download
 You can find stable versions to download on the [releases page](https://github.com/ewels/clusterflow/releases).
@@ -13,9 +13,6 @@ You can get the development version of the code by cloning this repository:
 git clone https://github.com/ewels/clusterflow.git
 ```
 Alternatively, you can download a [.zip file](https://github.com/ewels/clusterflow/archive/master.zip)
-
-## License
-Cluster Flow is released with a GPL v3 licence. Cluster Flow is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. For more information, see the licence that comes bundled with Cluster Flow.
 
 ## Change Log
 
@@ -112,7 +109,8 @@ Cluster Flow is released with a GPL v3 licence. Cluster Flow is free software: y
 #### [v0.2](https://github.com/ewels/clusterflow/releases/tag/v0.2) - 2014-05-29
 * New Stuff
 	* Now compatable with SLURM
-	* Customise batch job commands in the config (see the [docs](http://ewels.github.io/clusterflow/installation/#making_cluster_flow_work_with_your_environment)
+	* Customise batch job commands in the config (see the
+		[docs](http://ewels.github.io/clusterflow/installation/#making_cluster_flow_work_with_your_environment))
 	* Created new GitHub pages website to hold documentation: http://ewels.github.io/clusterflow
 * Updates
 	* Ported repository to github: https://github.com/ewels/clusterflow
@@ -127,6 +125,14 @@ Cluster Flow is released with a GPL v3 licence. Cluster Flow is free software: y
 
 ## Credits
 
-Cluster Flow was written by [Phil Ewels](http://phil.ewels.co.uk) whilst working in the [Babraham Bioinformatics](http://www.bioinformatics.babraham.ac.uk/) group in Cambridge, UK. He now maintains it whilst working at the [Science for Life Laboratory](http://www.scilifelab.se/) in Stockholm, Sweden.
+Cluster Flow was written by [Phil Ewels](http://phil.ewels.co.uk) whilst working in the
+[Babraham Bioinformatics](http://www.bioinformatics.babraham.ac.uk/) group in Cambridge, UK.
+He now maintains it whilst working at the [Science for Life Laboratory](http://www.scilifelab.se/) in Stockholm, Sweden.
 
-Cluster Flow has also had contributions from [@stu2](https://github.com/stu2), [@s-andrews](https://github.com/s-andrews) and [@FelixKrueger](https://github.com/FelixKrueger), amongst others.
+Cluster Flow has also had contributions from [@stu2](https://github.com/stu2), [@orzechoj](https://github.com/orzechoj),
+[@s-andrews](https://github.com/s-andrews) and [@FelixKrueger](https://github.com/FelixKrueger), amongst others.
+
+## License
+Cluster Flow is released with a GPL v3 licence. Cluster Flow is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version. For more information, see the licence that comes bundled with Cluster Flow.
