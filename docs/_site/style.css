@@ -64,6 +64,7 @@ header .docs_version a:hover, header .docs_version a:focus, header .docs_version
 	background-color: #464e52;
 }
 header .docs_version select {
+	width: 71px; /* Force width so devel doesn't make it longer */
 	background-color: #3c4448;
 	-webkit-border-radius:4px;
     -moz-border-radius:4px;
