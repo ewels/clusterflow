@@ -26,10 +26,21 @@
 <script src="_site/toc.js"></script>
 <script type="text/javascript">
 	$(document).ready(function() {
+		// Table of contents
 	    $('.toc').toc({
 			title: '',
 			listType: 'ul'
 		});
+
+		// Docs version jumper
+		var this_version = <?php echo $DOCS_VERSION; ?>;
+		$('.docs_version select').change(function(){
+			if($(this).val() !== this_version){
+				window.location.href = "../"+$(this).val();
+			}
+		});
+
+		// Homepage demo gif
 		$('.demo_gif').click(function(){
 			if($(this).hasClass('inactive')){
 				$(this).removeClass('inactive');

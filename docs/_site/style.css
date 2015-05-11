@@ -241,6 +241,7 @@ pre code {
 	border-bottom:1px solid #ccc;
 	padding-bottom:5px;
 	margin-top:25px;
+	text-decoration: none;
 }
 .version a:hover {
 	text-decoration:none;

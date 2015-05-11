@@ -5,12 +5,13 @@
 // Available docs versions
 $DOCS_VERSION = '0.3';
 $docs_versions = [$DOCS_VERSION];
-foreach(scandir(dirname(dirname(dirname($_SERVER['SCRIPT_FILENAME'])))) as $f){
-    if(is_dir($f) && preg_match('/^\d+\.\d+$/', $f) && $f !== $DOCS_VERSION){
+$parent_dir = dirname(dirname(dirname($_SERVER['SCRIPT_FILENAME'])));
+foreach(scandir($parent_dir) as $f){
+    if(is_dir("$parent_dir/$f") && preg_match('/^\d+\.\d+$/', $f) && $f !== $DOCS_VERSION){
         $docs_versions[] = $f;
     }
 }
-arsort($docs_versions, SORT_NUMERIC);
+rsort($docs_versions, SORT_NUMERIC);
 $depreciated = false;
 if($DOCS_VERSION < $docs_versions[0]) $depreciated = true;
 

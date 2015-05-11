@@ -35,11 +35,12 @@
 			<a class="text-link" href="https://github.com/ewels/clusterflow/" title="View on GitHub"><img src="_site/img/GitHub-Mark/PNG/GitHub-Mark-Light-16px.png" title="View on GitHub"> &nbsp; View on GitHub</a>
 		</p>
 	</section>
+	<?php if(count($docs_versions) > 1){ ?>
 	<section class="docs_version">
 		<select>
 			<?php
 			foreach($docs_versions as $v){
-				echo '<option';
+				echo '<option value="'.$v.'"';
 				if($v == $DOCS_VERSION) echo ' selected="selected"';
 				echo ">Docs v$v</option>\n";
 			}
@@ -47,6 +48,7 @@
 		</select>
 		<a href="http://clusterflow.io">See all</a>
 	</section>
+	<?php } ?>
 	<nav id="nav">
 		<ul>
 			<li><a href="introduction">Introduction</a></li>
