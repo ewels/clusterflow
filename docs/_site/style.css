@@ -43,10 +43,45 @@ header .download a.text-link {
 	display:inline-block;
 	padding:6px 12px;
 }
-header .download a.text-link:hover {
+header .download a.text-link:hover, header .download a.text-link:focus, header .download a.text-link:active {
 	text-decoration:none;
 	color:#ccc;
 }
+
+header .docs_version {
+	text-align: center;
+}
+header .docs_version a {
+	color: #FFF;
+	background-color: #3c4448;
+	padding: 4px 6px;
+	-webkit-border-radius:4px;
+    -moz-border-radius:4px;
+    border-radius:4px;
+}
+header .docs_version a:hover, header .docs_version a:focus, header .docs_version a:active {
+	text-decoration:none;
+	background-color: #464e52;
+}
+header .docs_version select {
+	background-color: #3c4448;
+	-webkit-border-radius:4px;
+    -moz-border-radius:4px;
+    border-radius:4px;
+	border:none;
+    outline:none;
+    display: inline-block;
+    -webkit-appearance:none;
+    -moz-appearance:none;
+    appearance:none;
+    cursor:pointer;
+	margin-right: 20px;
+	padding: 2px 5px;
+}
+header .docs_version select:hover {
+	background-color: #464e52;
+}
+
 header nav {
 	padding:10px 0 0;
 }
@@ -91,6 +126,10 @@ footer .credits {
 }
 .credits .logos a {
 	padding:10px;
+}
+.depreciation_warning a {
+	color: #a94442;
+	text-decoration: underline;
 }
 
 .sidebar {

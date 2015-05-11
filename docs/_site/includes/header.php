@@ -35,6 +35,18 @@
 			<a class="text-link" href="https://github.com/ewels/clusterflow/" title="View on GitHub"><img src="_site/img/GitHub-Mark/PNG/GitHub-Mark-Light-16px.png" title="View on GitHub"> &nbsp; View on GitHub</a>
 		</p>
 	</section>
+	<section class="docs_version">
+		<select>
+			<?php
+			foreach($docs_versions as $v){
+				echo '<option';
+				if($v == $DOCS_VERSION) echo ' selected="selected"';
+				echo ">Docs v$v</option>\n";
+			}
+			?>
+		</select>
+		<a href="http://clusterflow.io">See all</a>
+	</section>
 	<nav id="nav">
 		<ul>
 			<li><a href="introduction">Introduction</a></li>
@@ -56,3 +68,16 @@
 </header>
 
 <div class="mainpage <?php if(isset($page['layout']) && $page['layout'] == 'toc'){ echo 'mainpage-toc'; } ?>">
+<?php if($depreciated) { ?>
+	<div class="alert alert-danger alert-dismissible" id="depreciation_warning" role="alert">
+		<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+		<strong>Warning:</strong> You are viewing the docs for Cluster Flow v<?php echo $DOCS_VERSION; ?>.
+		<a href="../<?php echo $docs_versions[0]; ?>">See v<?php echo $docs_versions[0]; ?> here.</a>
+	</div>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+	<script type="text/javascript">
+		$(function() {
+			$('#depreciation_warning').insertAfter( $('h1:first-of-type') );
+		});
+	</script>
+<?php }	?>

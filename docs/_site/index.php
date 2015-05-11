@@ -2,6 +2,19 @@
 
 ////// SETUP
 
+// Available docs versions
+$DOCS_VERSION = '0.3';
+$docs_versions = [$DOCS_VERSION];
+foreach(scandir(dirname(dirname(dirname($_SERVER['SCRIPT_FILENAME'])))) as $f){
+    if(is_dir($f) && preg_match('/^\d+\.\d+$/', $f) && $f !== $DOCS_VERSION){
+        $docs_versions[] = $f;
+    }
+}
+arsort($docs_versions, SORT_NUMERIC);
+$depreciated = false;
+if($DOCS_VERSION < $docs_versions[0]) $depreciated = true;
+
+
 // Figure out what page we're loading
 // eg. $_SERVER['REQUEST_URI'] = /installation
 $uri = basename($_SERVER['REQUEST_URI']);
