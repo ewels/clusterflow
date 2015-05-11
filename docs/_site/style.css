@@ -71,31 +71,43 @@ header .logo img {
 	max-width: 230px;
 }
 
-nav {
-	width:100%;
-	text-align: center;
-}
 nav ul {
+    list-style: none;
 	margin: 0 0 0.5em;
     padding: 0.5em 0;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    list-style: none;
 }
 nav ul a {
 	padding: 0.25em 0.5em;
-    max-width: 140px;
     text-decoration: none;
-    display: flex;
-    align-items: flex-start;
-	-webkit-border-radius:4px;
-    -moz-border-radius:4px;
-    border-radius:4px;
+	display: block;
 }
 nav ul a:hover, nav ul a:focus, nav ul a:active {
 	text-decoration: none;
 	background-color: #eee4db;
+}
+@media (max-width: 768px){
+	nav ul a {
+		text-align: center;
+	}
+}
+@media (min-width: 768px){
+	nav {
+		width:100%;
+		text-align: center;
+	}
+	nav ul {
+	    display: flex;
+	    flex-wrap: wrap;
+	    justify-content: center;
+	}
+	nav ul a {
+	    max-width: 140px;
+	    display: flex;
+	    align-items: flex-start;
+		-webkit-border-radius:4px;
+	    -moz-border-radius:4px;
+	    border-radius:4px;
+	}
 }
 
 header .docs_version {
