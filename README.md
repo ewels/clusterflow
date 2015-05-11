@@ -132,7 +132,7 @@ He now maintains it whilst working at the [Science for Life Laboratory](http://w
 Cluster Flow has also had contributions from [@stu2](https://github.com/stu2), [@orzechoj](https://github.com/orzechoj),
 [@s-andrews](https://github.com/s-andrews) and [@FelixKrueger](https://github.com/FelixKrueger), amongst others.
 
-## License
+## License
 Cluster Flow is released with a GPL v3 licence. Cluster Flow is free software: you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the
 License, or (at your option) any later version. For more information, see the licence that comes bundled with Cluster Flow.
