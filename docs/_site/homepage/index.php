@@ -51,7 +51,7 @@
     <hr>
     <div class="row">
       <div class="col-sm-4">
-        <a class="btn btn-lg btn-block btn-default" href="0.4">
+        <a class="btn btn-lg btn-block btn-default" href="0.3">
           <i class="fa fa-book fa-lg"></i>
           Read the Docs
         </a>

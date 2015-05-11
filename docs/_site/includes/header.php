@@ -9,9 +9,9 @@
 	<meta name="author" content="Phil Ewels"/>
 	<link rel="shortcut icon" href="_site/img/favicon.ico">
 
-	<!-- Bootstrap and Google Fonts -->
+	<!-- Bootstrap -->
 	<link href="_site/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-	<link href='http://fonts.googleapis.com/css?family=Lato:400,700,400italic' rel='stylesheet' type='text/css'>
+
 	<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
 	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
 	<!--[if lt IE 9]>
@@ -25,51 +25,42 @@
 <body>
 
 <header>
+
 	<section class="logo">
-		<a href="home"><img src="_site/img/CF_logo.png" title="Cluster Flow"></a>
-		<p>A pipelining tool to automate and standardise bioinformatics analyses on cluster environments.</p>
+		<h1><a href="home"><img src="_site/img/Cluster_Flow_logo.png" title="Cluster Flow"></a></h1>
+		<h3 class="hidden-xs">A simple and flexible bioinformatics pipeline tool</h3>
 	</section>
-	<section class="download">
-		<p>
-			<a class="btn btn-default" href="https://github.com/ewels/clusterflow/releases/" title="Download Cluster Flow"><i class="glyphicon glyphicon-folder-open"></i> &nbsp; &nbsp; Download Cluster Flow</a>
-			<a class="text-link" href="https://github.com/ewels/clusterflow/" title="View on GitHub"><img src="_site/img/GitHub-Mark/PNG/GitHub-Mark-Light-16px.png" title="View on GitHub"> &nbsp; View on GitHub</a>
-		</p>
-	</section>
-	<?php if(count($docs_versions) > 1){ ?>
-	<section class="docs_version">
-		<select>
-			<?php
-			foreach($docs_versions as $v){
-				echo '<option value="'.$v.'"';
-				if($v == $DOCS_VERSION) echo ' selected="selected"';
-				echo ">Docs v$v</option>\n";
-			}
-			?>
-		</select>
-		<a href="http://clusterflow.io">See all</a>
-	</section>
-	<?php } ?>
-	<nav id="nav">
+
+	<nav id="nav" role="navigation">
 		<ul>
-			<li><a href="introduction">Introduction</a></li>
-			<li><a href="installation">Installation Instructions</a></li>
-			<li><a href="usage">General Usage</a></li>
-			<li><a href="cl_reference">Command Line Reference</a></li>
-			<li><a href="writing_pipelines_modules">Writing Pipelines &amp; Modules</a></li>
-			<li><a href="troubleshooting">Troubleshooting</a></li>
+			<li><a href="introduction">Quick Start</a></li>
+			<li><a href="installation">Installation</a></li>
+			<li><a href="usage">Usage</a></li>
+			<li><a href="writing_pipelines_modules">Pipelines</a></li>
+			<li><a href="writing_pipelines_modules">Modules</a></li>
+			<li><a href="troubleshooting">FAQ</a></li>
+			<li><a href="https://github.com/ewels/clusterflow/releases/">Download</a></li>
 		</ul>
+
+		<?php if(count($docs_versions) > 1){ ?>
+		<section class="docs_version">
+			<select>
+				<?php
+				foreach($docs_versions as $v){
+					echo '<option value="'.$v.'"';
+					if($v == $DOCS_VERSION) echo ' selected="selected"';
+					echo ">Docs v$v</option>\n";
+				}
+				?>
+			</select>
+			<a href="http://clusterflow.io">See all</a>
+		</section>
+		<?php } ?>
 	</nav>
-	<section class="credits">
-		<p>Cluster Flow was written by <a href="http://phil.ewels.co.uk" target="_blank">Phil Ewels</a> whilst working at the <a href="http://www.babraham.ac.uk" target="_blank">Babraham Institute</a>. He now maintains it from <a href="http://www.scilifelab.se" target="_blank">SciLifeLab</a> in Stockholm, Sweden.</p>
-		<p class="logos">
-			<a href="http://www.babraham.ac.uk" target="_blank"><img src="_site/img/Babraham_logo.png" title="Babraham Institute"></a>
-			<a href="http://www.scilifelab.se" target="_blank"><img src="_site/img/SciLifeLab_logo.png" title="SciLifeLab"></a>
-		</p>
-		<p>This documentation is <a href="<?php echo basename($source); ?>" title="View the markdown source for this page">written using markdown</a> and is included with the Cluster Flow source code.</p>
-	</section>
 </header>
 
-<div class="mainpage <?php if(isset($page['layout']) && $page['layout'] == 'toc'){ echo 'mainpage-toc'; } ?>">
+<main class="container <?php if(isset($page['layout']) && $page['layout'] == 'toc'){ echo 'mainpage-toc'; } ?>">
+
 <?php if($depreciated) { ?>
 	<div class="alert alert-danger alert-dismissible" id="depreciation_warning" role="alert">
 		<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>

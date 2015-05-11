@@ -1,4 +1,4 @@
-</div> <!-- <div class="mainpage"> -->
+</main>
 
 <?php if(isset($page['layout']) && $page['layout'] == 'toc'){ ?>
 <aside class="sidebar">
@@ -12,10 +12,6 @@
 <footer>
 	<section class="credits">
 		<p>Cluster Flow was written by <a href="http://phil.ewels.co.uk" target="_blank">Phil Ewels</a> whilst working at the <a href="http://www.babraham.ac.uk" target="_blank">Babraham Institute</a>. He now maintains it from <a href="http://www.scilifelab.se" target="_blank">SciLifeLab</a> in Stockholm, Sweden.</p>
-		<p class="logos">
-			<a href="http://www.babraham.ac.uk" target="_blank"><img src="_site/img/Babraham_logo.png" title="Babraham Institute"></a>
-			<a href="http://www.scilifelab.se" target="_blank"><img src="_site/img/SciLifeLab_logo.png" title="SciLifeLab"></a>
-		</p>
 		<p>This documentation is <a href="<?php echo basename($source); ?>" title="View the markdown source for this page">written using markdown</a> and is included with the Cluster Flow source code.</p>
 	</section>
 </footer>
@@ -33,7 +29,7 @@
 		});
 
 		// Docs version jumper
-		var this_version = <?php echo $DOCS_VERSION; ?>;
+		var this_version = '<?php echo $DOCS_VERSION; ?>';
 		$('.docs_version select').change(function(){
 			if($(this).val() !== this_version){
 				window.location.href = "../"+$(this).val();

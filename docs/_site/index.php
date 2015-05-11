@@ -3,9 +3,9 @@
 ////// SETUP
 
 // Available docs versions
-$DOCS_VERSION = '0.3';
+$DOCS_VERSION = '0.4devel';
 $docs_versions = [$DOCS_VERSION];
-$stable_versions = [$DOCS_VERSION];
+$stable_versions = [];
 $parent_dir = dirname(dirname(dirname($_SERVER['SCRIPT_FILENAME'])));
 foreach(scandir($parent_dir) as $f){
     if(is_dir("$parent_dir/$f") && preg_match('/^\d+\.\d+(devel)?$/', $f) && $f !== $DOCS_VERSION){

@@ -3,31 +3,6 @@ title: Cluster Flow
 layout: default
 ---
 
-# Cluster Flow
-
-<p class="lead">A command-line pipeline tool which uses common cluster managers to run bioinformatics analysis pipelines.</p>
-
-Benefits of using Cluster Flow:
-
-* Routine analyses are very quick to run, for example: `cf --genome GRCh37 fastq_bowtie *fq.gz`
-* Pipelines use identical parameters, standardising analysis and making results more reproducable
-* Integrated parallelisation tools help prevent your cluster becoming overloaded
-* All commands and output is logged in files for future reference
-* Intuitive commands and a comprehensive manual make Cluster Flow easy to use
-* Job monitoring tools and E-mail notifications allow you to keep track of your jobs
-
-How Cluster Flow differs from other pipeline tools:
-
-* Very lightweight and flexible
-* Pipelines and configurations can easily be generated on a project-specific basis if required
-* New modules and pipelines are super easy to write (see video tutorial)
-
-Cluster Flow currently supports GRIDEngine (SGE), LSF and SLURM, plus it should be fairly easy to port to others.
-
-<div class="demo_gif inactive">
-<img src="_files/CF_mini.gif" title="mini CF demo">
-</div>
-
 ## Tutorial Videos
 There are two tutorial videos up on YouTube, see below:
 
