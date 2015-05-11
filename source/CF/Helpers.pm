@@ -1,3 +1,4 @@
+
 #!/usr/bin/env perl
 package CF::Helpers;
 
@@ -768,9 +769,9 @@ sub allocate_memory {
 
 	my ($allocated, $min, $max) = @_;
 
-  return 0 unless(defined($allocated) and defined($min) and defined($max) and $allocated =~ /\d/ and $min =~ /\d/ and $max =~ /\d/);
+    return '' unless(defined($allocated) and defined($min) and defined($max) and $allocated =~ /\d/ and $min =~ /\d/ and $max =~ /\d/);
 
-  $allocated = human_readable_to_bytes($allocated);
+    $allocated = human_readable_to_bytes($allocated);
 	$max = human_readable_to_bytes($max);
 	$min = human_readable_to_bytes($min);
 

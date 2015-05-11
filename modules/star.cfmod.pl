@@ -39,8 +39,8 @@ my %requirements = (
 			# Make a guess about memory requirement from genome
 			my $estmin = int(1.2 * -s $cf->{'refs'}{'star'}."/SA");
 			$minmem = CF::Helpers::allocate_memory($estmin, '8G', $maxmem);
-    }
-		return CF::Helpers::allocate_memory($cf->{'mem'}, $minmem, $maxmem);
+    	}
+		return CF::Helpers::allocate_memory($cf->{'memory'}, $minmem, $maxmem);
 	},
 	'modules' 	=> ['STAR','samtools'],
 	'time' 		=> sub {
