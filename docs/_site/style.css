@@ -20,6 +20,7 @@ code, pre {
 }
 code {
 	color: #444;
+	white-space: nowrap;
 }
 pre, code {
 	background-color: #f7f0e9;
@@ -34,12 +35,16 @@ h1, h2, h3, h4 { margin: 1.4em 0 0.8em; }
 h1 { font-size: 4em; }
 h2 { font-size: 3em; }
 h2 { font-size: 2em; }
-h4 { font-size: 1em; }
+h4 { font-size: 1.1em; font-weight: 300; }
+main h1:first-child { margin-top: 0.5em; }
 p {
 	margin: 0 0 1.1em;
 }
-main h1:first-child {
-	margin-top: 0.5em;
+
+blockquote {
+	background-color: #e6e9e9;
+	border-left: 2px solid #ced8de;
+	font-size: 0.9em;
 }
 
 

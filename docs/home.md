@@ -3,62 +3,34 @@ title: Cluster Flow
 layout: default
 ---
 
+# Welcome!
+## Cluster Flow v0.4 Documentation
+Cluster Flow is simple package
+designed to run bioinformatics pipelines. It is operated through a single command
+`cf`, which can be used to launch, configure, monitor and cancel pipelines.
+
+When you run Cluster Flow, you choose a pipeline. This has a list of modules
+in order. Each module is a wrapper around a bioinformatics tool.
+When the pipeline has finished, a notification e-mail is sent to you with
+status messages from the log.
+
 ## Tutorial Videos
-There are two tutorial videos up on YouTube, see below:
 
-* [Usage / Installation Tutorial](http://youtu.be/b2g_zQiz9ys) - How to configure and run Cluster Flow
-* [Advanced Tutorial](http://youtu.be/aBHOcsA2M6w) - How to write your own pipelines and modules
+[Usage / Installation Tutorial](http://youtu.be/b2g_zQiz9ys) | [Advanced Tutorial](http://youtu.be/aBHOcsA2M6w)
+-------------------------------------------------------------|-------------------------------------------------------
+<iframe width="300" height="169" src="https://www.youtube.com/embed/b2g_zQiz9ys?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe> | <iframe width="300" height="169" src="https://www.youtube.com/embed/aBHOcsA2M6w?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>
 
-Please see the sidebar for access to the full Cluster Flow documentation. If you're looking for a quick overview of what Cluster Flow is and how it works, see the [Introduction](/introduction/).
+## Download Cluster Flow
+Cluster Flow is hosted at GitHub: https://github.com/ewels/clusterflow/  
+You can download stable versions from the [releases page](https://github.com/ewels/clusterflow/releases).
+
+If you want to use the development version, you can clone the repository using the following command:
+
+    git clone --recursive https://github.com/ewels/clusterflow.git
 
 ## Contributing to Cluster Flow
-If you write a module or pipeline which could be of use to others, or modify the core Cluster Flow code in a helpful way, it would be great to merge those changes back into the core Cluster Flow project.
+If you write a module or pipeline which could be of use to others, it would be
+great to merge those changes back into the core Cluster Flow project.
 
-The easiest way to do this is to [fork the Cluster Flow repository](https://help.github.com/articles/fork-a-repo), make your changes, committing them and pushing them as you go. When you've finished, submit a [pull request](https://help.github.com/articles/using-pull-requests) and the new code can be merged into the central project.
-
-## Change Log
-
-<h4 class="version"><a href="https://github.com/ewels/clusterflow/releases/tag/v0.3"><span class="label label-success version">Version 0.3</span></a> <small>2014-07-11</small></h4>
-
-* New Stuff
-	* Awesome new HTML report e-mails
-		* Much more readable HTML report e-mails which look super-snazzy (see [example](_files/example_report_good.html))
-		* Any errors are highlighted making them quick to identify (see [example](_files/example_report_bad.html))
-		* Custom strings set in the config can flagged as [highlights](_files/example_report_highlights.html) or as [warnings](_files/example_report_warnings.html)
-		* Designed to work on desktop and mobile phone screens
-	* Cluster Flow now re-orders the log file so that output from different modules doesn't overlap
-		* Made each module prepend its stdout and sterr with a CF module flag
-		* Made the `cf_run_finished` module parse the above flag and print out module by module
-	* Rewrote how the environment module loading works - now much more robust
-		* Uses `modulecmd` to prepare perl syntax commands
-		* Moved code into the `load_environment_modules` function in Helpers.pm
-	* Added environment module aliases
-		* This allows you to load specific environment module versions or use different names to those specified within CF modules
-		* eg. Replace `fastqc` with `FastQC/0.11.2`
-* Updates
-	* Made the `bismark_methXtract` module create genome-wide coverage reports if GTF path is available
-	* Added the `-q` parameter to the FastQC module to make the log files cleaner
-	* Removed the now uneccesary `bismark_tidy` module and renamed `bismark_messy` to `bismark_report`
-* Bugs Squashed
-	* Fixed dependency bug introduced in v0.2 which was making all downloads fire simultaneously
-	* Fixed issue where modules using the CF::Constants Perl Module couldn't load the central config file
-	* Fixed typo in environment module loading in `bismark_align` module
-	* Reordered loading of the environment modules in `trim_galore` so that FastQC is loaded first, fixing dependency issues
-
-
-<h4 class="version"><a href="https://github.com/ewels/clusterflow/releases/tag/v0.2"><span class="label label-success version">Version 0.2</span></a> <small>2014-05-29</small></h4>
-
-* New Stuff
-	* Now compatable with SLURM
-	* Customise batch job commands in the config (see [docs](installation/#making_cluster_flow_work_with_your_environment) for more info)
-	* Created new GitHub pages website to hold documentation: [http://ewels.github.io/clusterflow/](http://ewels.github.io/clusterflow/)
-* Updates
-	* Ported repository to github: [https://github.com/ewels/clusterflow](https://github.com/ewels/clusterflow)
-	* Wrote new readme for github
-* Bugs Squashed
-	* Custom modules in `~/clusterflow/modules/` weren't being found
-	* General code clean-ups all over the place
-
-<h4 class="version"><a href="https://github.com/ewels/clusterflow/releases/tag/v0.1"><span class="label label-success version">Version 0.1</span></a> <small>2014-04-25</small></h4>
-
-* The first public release of Cluster Flow, although it's been in use at the Babraham Institute for around 6 months. It's been in heavy development throughout that time and is now approaching a state of being relatively stable.
+For instructions on how best to do this, please see the
+[contributing instructions](https://github.com/ewels/clusterflow/blob/master/CONTRIBUTING.md).

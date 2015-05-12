@@ -33,11 +33,11 @@
 
 	<nav id="nav" role="navigation">
 		<ul>
-			<li><a href="introduction">Quick Start</a></li>
-			<li><a href="installation">Installation</a></li>
+			<li><a href="installation">Setup</a></li>
 			<li><a href="usage">Usage</a></li>
-			<li><a href="writing_pipelines_modules">Pipelines</a></li>
-			<li><a href="writing_pipelines_modules">Modules</a></li>
+			<li><a href="pipelines">Pipelines</a></li>
+			<li><a href="modules">Modules</a></li>
+			<li><a href="reference">Reference</a></li>
 			<li><a href="troubleshooting">FAQ</a></li>
 			<li><a href="https://github.com/ewels/clusterflow/releases/">Download</a></li>
 		</ul>
