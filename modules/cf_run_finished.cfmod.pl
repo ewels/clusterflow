@@ -1,3 +1,4 @@
+
 #!/usr/bin/env perl
 use warnings;
 use strict;
@@ -31,7 +32,7 @@ use Cwd;
 # Module requirements
 my %requirements = (
 	'cores' 	=> '1',
-	'memory' 	=> '1G',
+	'memory' 	=> '4G',
 	'modules' 	=> '',
 	'time' 		=> '10'
 );

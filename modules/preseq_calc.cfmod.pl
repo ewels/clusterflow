@@ -29,7 +29,7 @@ use CF::Helpers;
 # Module requirements
 my %requirements = (
 	'cores' 	=> ['1', '8'],
-	'memory' 	=> ['3G', '80G'],
+	'memory' 	=> ['40G', '80G'], # Often getting memory overflow failures
 	'modules' 	=> ['preseq'],
 	'time' 		=> sub {
 		my $cf = $_[0];

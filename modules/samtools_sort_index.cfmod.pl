@@ -58,6 +58,7 @@ warn "\n\nSamtools memory per thread: $mem_per_thread. Cores: $cf{cores}\n\n\n";
 
 # Set up optional parameters
 my $namesort = (defined($cf{'params'}{'byname'})) ? '-n' : '';
+my $forcesort = (defined($cf{'params'}{'forcesort'})) ? 1 : 0;
 
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
@@ -89,22 +90,24 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 	}
 
 	# Try to index if we have a BAM file
-	warn "Attempting to index input file in case it's already sorted..\n";
-	if($filetype eq "bam"){
-		# Samtools index returns 0 even if it fails. Look for the .bai file instead.
-		my $index_command_one = "samtools index $file 2>&1";
-		my $indexing_output  = `$index_command_one`;
-		if(-e "$file.bai"){
-			warn $indexing_output."\n";
-			# samtools worked - print out resulting filenames
-			warn "\n###CFCMD $index_command_one\n\n";
-			print RUN $cf{'job_id'}."\t$file\n";
-			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-			warn "###CF samtools index successfully exited, took $duration. Skipping sort.\n";
-			# If we could index, file must already be sorted.
-			next;
-		} else {
-			warn "Samtools index didn't work, file not sorted. Going on to sorting step...\n";
+	unless($forcesort){
+		warn "Attempting to index input file in case it's already sorted..\n";
+		if($filetype eq "bam"){
+			# Samtools index returns 0 even if it fails. Look for the .bai file instead.
+			my $index_command_one = "samtools index $file 2>&1";
+			my $indexing_output  = `$index_command_one`;
+			if(-e "$file.bai"){
+				warn $indexing_output."\n";
+				# samtools worked - print out resulting filenames
+				warn "\n###CFCMD $index_command_one\n\n";
+				print RUN $cf{'job_id'}."\t$file\n";
+				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+				warn "###CF samtools index successfully exited, took $duration. Skipping sort.\n";
+				# If we could index, file must already be sorted.
+				next;
+			} else {
+				warn "Samtools index didn't work, file not sorted. Going on to sorting step...\n";
+			}
 		}
 	}
 
