@@ -72,8 +72,7 @@ foreach my $file (@{$cf{'prev_job_files'}}){
     }
 
     my $output_fn = $file.".preseq";
-
-	my $command = "preseq lc_extrap -Q -B $paired $file -o $output_fn";
+	my $command = "preseq lc_extrap -e 1000000000 -v -Q -B $paired $file -o $output_fn";
 	warn "\n###CFCMD $command\n\n";
 
 	if(!system ($command)){

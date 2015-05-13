@@ -1,4 +1,3 @@
-
 #!/usr/bin/env perl
 package CF::Helpers;
 

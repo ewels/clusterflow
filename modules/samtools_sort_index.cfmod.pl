@@ -109,6 +109,8 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 				warn "Samtools index didn't work, file not sorted. Going on to sorting step...\n";
 			}
 		}
+	} else {
+		warn "Parameter 'forcesort' set, so not checking BAM to see if it's sorted..\n";
 	}
 
 	# Pipe BAM stream if we need it

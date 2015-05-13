@@ -689,6 +689,10 @@ while (<CONFIG>){
 			$_ .= " $cl_params";
 		}
 
+		# Add random numeric ID, used for job name
+		my $suffix = "_".sprintf("%03d", rand(999));
+		$_ =~ s/^(\s*\S+)/$1$suffix/;
+
 		$_ = "\t".$_ if($MERGE_REGEX); # Add a tab if we prepended merge
 		$pipeline_string .= "$_\n";
 		$runfile .= "$_\n";
@@ -705,6 +709,11 @@ while (<CONFIG>){
 		if($cl_params){
 			$_ .= " $cl_params";
 		}
+
+		# Add random numeric ID, used for job name
+		my $suffix = "_".sprintf("%03d", rand(999));
+		$_ =~ s/^(\s*\S+)/$1$suffix/;
+
 		$pipeline_string .= "\t" if($MERGE_REGEX); # Add a tab if we prepended merge
 		$pipeline_string .= "$_\n";
 		$runfile .= "$_\n";
@@ -879,7 +888,7 @@ foreach my $file_set (@file_sets){
 	# Qsub job to execute on completion of this run
 	$run_finish_id = $jid_base."email_run_complete_".sprintf("%03d", rand(999));
 	my $run_finish_cmd = "$Bin/modules/cf_run_finished.cfmod.pl --run_fn $runfn --job_id $run_finish_id --prev_job_id null --cores 1 --mem 4G --param hide_log_header=true --param outfn=$outfn";
-	my $run_finish_qsub = make_submit_cmd($run_finish_cmd, $run_finish_id, \@{$run_job_ids{$runfn}}, 0, '1', '1G', '2:00', $outfn, 1);
+	my $run_finish_qsub = make_submit_cmd($run_finish_cmd, $run_finish_id, \@{$run_job_ids{$runfn}}, 0, '1', '4G', '2:00', $outfn, 1);
 
 	push @qsubs, $run_finish_qsub;
 	push @finished_run_ids, $run_finish_id;
@@ -895,7 +904,9 @@ for my $s_mod (@summary_modules){
 
 	# Set up parameters for these leaves
 	my ($s_module, $parameter_string) = split(/\s/, $s_mod, 2);
-	my $s_job_id = $jid_base.$s_module.'_'.sprintf("%03d", rand(999));
+	my $s_job_id = $jid_base.$s_module;
+	$s_module =~ s/_\d{3}$//;
+
 	my $parameters = '';
 	if($parameter_string){
 		my @params = split(/\s/, $parameter_string);
@@ -926,7 +937,7 @@ for my $i (0 .. $#outfns) {
 	$all_runs_finish_cmd .= " --param outfn_".$i."=".$outfns[$i];
 }
 
-my $all_runs_finish_qsub = make_submit_cmd($all_runs_finish_cmd, $all_runs_finish_id, \@finished_run_ids, 0, '1', '1G', '2:00', $outfn, 1);
+my $all_runs_finish_qsub = make_submit_cmd($all_runs_finish_cmd, $all_runs_finish_id, \@finished_run_ids, 0, '1', '4G', '2:00', $outfn, 1);
 
 push @qsubs, $all_runs_finish_qsub;
 
@@ -1042,13 +1053,14 @@ sub make_qsubs {
 
 		# Set up parameters for these leaves
 		my ($module, $parameter_string) = split(/\s/, $_, 2);
-		my $job_id = $jid_base.$module.'_'.sprintf("%03d", rand(999));
+		my $job_id = $jid_base.$module;
+		$module =~ s/_\d{3}$//;
 
 		next unless(length($module) > 0);
 		my $parameters = '';
 		if($parameter_string){
 			my @params = split(/\s/, $parameter_string);
-			my $parameters = "--param ".join(' --param ', @params);
+			$parameters = "--param ".join(' --param ', @params);
 		}
 
         # Get module filename and requirements

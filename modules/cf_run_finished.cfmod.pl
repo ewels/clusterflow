@@ -1,4 +1,3 @@
-
 #!/usr/bin/env perl
 use warnings;
 use strict;
@@ -71,9 +70,10 @@ while(<IN>){
 	chomp;
 
 	# Ignore crap
-	if(/^Warning: no access to tty/ || /^Thus no job control in this shell/ || /sh: module: line 1: syntax error: unexpected end of file/ || /sh: error importing function definition for/){
-		next;
-	}
+	next if(/^Warning: no access to tty/);
+	next if(/^Thus no job control in this shell/);
+	next if(/sh: module: line 1: syntax error: unexpected end of file/);
+	next if(/sh: error importing function definition for/);
 
 	# First, strip the module identifier
 	if(s/^###CF_(.*?)://){
@@ -86,11 +86,15 @@ while(<IN>){
 	# Commands run
 	if(/^###CFCMD/){
 		push (@commands, substr($_, 9));
+	}
 
 	# Highlight statuses
-	} elsif(/^###CF/){
+	elsif(/^###CF/){
 		push (@cf_highlights, substr($_, 6));
-	} else {
+	}
+
+	# Everything else
+	else {
 		# Count any custom string highlights
 		foreach my $highlight_string (@LOG_HIGHLIGHT_STRINGS){
 			if(/$highlight_string/i){
