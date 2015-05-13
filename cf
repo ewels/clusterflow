@@ -689,10 +689,6 @@ while (<CONFIG>){
 			$_ .= " $cl_params";
 		}
 
-		# Add random numeric ID, used for job name
-		my $suffix = "_".sprintf("%03d", rand(999));
-		$_ =~ s/^(\s*\S+)/$1$suffix/;
-
 		$_ = "\t".$_ if($MERGE_REGEX); # Add a tab if we prepended merge
 		$pipeline_string .= "$_\n";
 		$runfile .= "$_\n";
@@ -709,10 +705,6 @@ while (<CONFIG>){
 		if($cl_params){
 			$_ .= " $cl_params";
 		}
-
-		# Add random numeric ID, used for job name
-		my $suffix = "_".sprintf("%03d", rand(999));
-		$_ =~ s/^(\s*\S+)/$1$suffix/;
 
 		$pipeline_string .= "\t" if($MERGE_REGEX); # Add a tab if we prepended merge
 		$pipeline_string .= "$_\n";
@@ -904,8 +896,7 @@ for my $s_mod (@summary_modules){
 
 	# Set up parameters for these leaves
 	my ($s_module, $parameter_string) = split(/\s/, $s_mod, 2);
-	my $s_job_id = $jid_base.$s_module;
-	$s_module =~ s/_\d{3}$//;
+	my $s_job_id = $jid_base.$s_module.'_'.sprintf("%03d", rand(999));
 
 	my $parameters = '';
 	if($parameter_string){
@@ -1053,8 +1044,7 @@ sub make_qsubs {
 
 		# Set up parameters for these leaves
 		my ($module, $parameter_string) = split(/\s/, $_, 2);
-		my $job_id = $jid_base.$module;
-		$module =~ s/_\d{3}$//;
+		my $job_id = $jid_base.$module.'_'.sprintf("%03d", rand(999));
 
 		next unless(length($module) > 0);
 		my $parameters = '';
