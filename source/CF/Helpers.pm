@@ -55,7 +55,7 @@ sub module_start {
         "prev_job_id=s"     => \$prev_job_id,
         "cores=i"           => \$cores,
         "mem=s"             => \$mem,
-        "param=s"           => \%params,
+        "param:s"           => \%params,
         "help"              => \$help
     );
 
