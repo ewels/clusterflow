@@ -44,8 +44,10 @@ my $helptext = "".("-"x30)."\n RSeQC - Inner Distance\n".("-"x30)."\n
 Module to run RSeQC 'inner distance' script:
 http://rseqc.sourceforge.net/#inner-distance-py
 Calculates the distance between reasd for an RNA-seq library, whilst
-considering introns. Takes aligned BAM files as input. Requires a 
-BED12 reference gene model. Uses first 1000000 reads.\n";
+considering introns. Takes aligned BAM files as input. Requires a
+BED12 reference gene model. Uses first 1000000 reads.\n
+Use the 'keep_intermediate' parameter to keep the inner_distance.txt
+and inner_distance_plot.r files, otherwise these will be deleted.\n";
 
 # Setup
 my %cf = CF::Helpers::module_start(\%requirements, $helptext);
@@ -69,22 +71,13 @@ warn `inner_distance.py --version`;
 warn "------- End of RSeQC version information ------\n";
 
 # Set up optional parameters
-my $nosubdir = (defined($cf{'params'}{'nosubdir'})) ? 1 : 0;
-
-# Make a directory for RSeQC analysis as it produces a tonne of files
-my $output_dir = '';
-unless($nosubdir){
-	if( !-e 'rseqc'){
-		mkdir('rseqc');
-		$output_dir = 'rseqc/';
-	}
-}
+my $keep_intermediate = (defined($cf{'params'}{'keep_intermediate'})) ? 1 : 0;
 
 foreach my $file (@{$cf{'prev_job_files'}}){
 	my $timestart = time;
 
 	# Output file name prefix
-	my $output_prefix = $output_dir.$file;
+	my $output_prefix = $file;
 	$output_prefix =~ s/.bam//;
 
 	my $cmd .= "inner_distance.py -i $file -o $output_prefix -r $cf{refs}{bed12}";
@@ -95,9 +88,10 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 		my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 		warn "###CF RSeQC inner distance successfully exited, took $duration..\n";
 
-		# Did we add .bam to the filename?
-		if (-e "$output_prefix.bam"){
-			$output_prefix = "$output_prefix.bam";
+		# Delete intermediate files
+		if(!$keep_intermediate){
+			unlink($output_prefix.".inner_distance.txt");
+			unlink($output_prefix.".inner_distance_plot.r");
 		}
 
 		if(-e $output_prefix.".inner_distance_plot.pdf"){
