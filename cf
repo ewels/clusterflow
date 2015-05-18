@@ -880,7 +880,7 @@ foreach my $file_set (@file_sets){
 	# Qsub job to execute on completion of this run
 	$run_finish_id = $jid_base."email_run_complete_".sprintf("%03d", rand(999));
 	my $run_finish_cmd = "$Bin/modules/cf_run_finished.cfmod.pl --run_fn $runfn --job_id $run_finish_id --prev_job_id null --cores 1 --mem 4G --param hide_log_header=true --param outfn=$outfn";
-	my $run_finish_qsub = make_submit_cmd($run_finish_cmd, $run_finish_id, \@{$run_job_ids{$runfn}}, 0, '1', '4G', '2:00', $outfn, 1);
+	my $run_finish_qsub = make_submit_cmd($run_finish_cmd, $run_finish_id, \@{$run_job_ids{$runfn}}, 0, '1', '4G', '12:00', $outfn, 1);
 
 	push @qsubs, $run_finish_qsub;
 	push @finished_run_ids, $run_finish_id;
@@ -928,7 +928,7 @@ for my $i (0 .. $#outfns) {
 	$all_runs_finish_cmd .= " --param outfn_".$i."=".$outfns[$i];
 }
 
-my $all_runs_finish_qsub = make_submit_cmd($all_runs_finish_cmd, $all_runs_finish_id, \@finished_run_ids, 0, '1', '4G', '2:00', $outfn, 1);
+my $all_runs_finish_qsub = make_submit_cmd($all_runs_finish_cmd, $all_runs_finish_id, \@finished_run_ids, 0, '1', '4G', '12:00', $outfn, 1);
 
 push @qsubs, $all_runs_finish_qsub;
 
@@ -1135,7 +1135,7 @@ sub make_submit_cmd {
 		if($CUSTOM_JOB_SUBMIT_COMMAND && length($CUSTOM_JOB_SUBMIT_COMMAND) > 0){
 			$qsub = $CUSTOM_JOB_SUBMIT_COMMAND;
 		} else {
-			$qsub = 'sbatch -p core -n {{cores}} --mem {{mem}} --open-mode=append -o {{outfn}} -J {{job_id}} {{notifications}} --wrap="{{command}}"';
+			$qsub = 'sbatch -p core -n {{cores}} --mem {{mem}} --open-mode=append -o {{outfn}} -J {{job_id}} {{notifications}}';
 			# Add in flags if we have them
 			if($PRIORITY && $PRIORITY >= 0){
 				$qsub .= " --priority {{priority}}";
@@ -1145,11 +1145,9 @@ sub make_submit_cmd {
 			}
 			if($time){
 				$qsub .= " -t {{time}}";
-				# Short jobs, under 15 minutes
-				if($time =~ /^([0-9]|1[0-5])$/){
-					$qsub .= " --qos=short";
-				}
 			}
+			# Add the actual command
+			$qsub .= ' --wrap="{{command}}"';
 		}
 
 		# Work out notification settings
