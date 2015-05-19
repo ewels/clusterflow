@@ -90,7 +90,7 @@ if(defined($cf{'params'}{'summary_module'})){
 	}
 
 	# Output file name prefix
-	my $output_prefix = $cf{'pipeline_id'};
+	my $output_prefix = 'cf_'.$cf{'pipeline_id'};
 
 	my $cmd = "geneBody_coverage.py -i ".join(",", @bamfiles)." -o $output_prefix -r $cf{refs}{bed12}";
 	run_command($cmd, $output_prefix);

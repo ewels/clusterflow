@@ -87,15 +87,16 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 
 		# Delete intermediate file
 		if(!$keep_intermediate){
-			# TODO - don't know what these are called yet
-			# unlink($output_prefix.".GC_plot.r");
+			unlink($output_prefix.".junction_plot.r");
 		}
 
-		my $outputfile = $output_prefix.".junction.pdf";
-		if(-e $outputfile){
-			print RUN $cf{'job_id'}."\t$outputfile\n";
+		my $outputfile1 = $output_prefix.".splice_events.pdf";
+		my $outputfile2 = $output_prefix.".splice_junction.pdf";
+		if(-e $outputfile1){
+			print RUN $cf{'job_id'}."\t$outputfile1\n";
+			print RUN $cf{'job_id'}."\t$outputfile2\n";
 		} else {
-			warn "\n###CF Error! RSeQC junction annotation output file $outputfile not found..\n";
+			warn "\n###CF Error! RSeQC junction annotation output file $outputfile1 not found..\n";
 		}
 
 	} else {
@@ -114,11 +115,10 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 
 		# Delete intermediate file
 		if(!$keep_intermediate){
-			# TODO - don't know what these are called yet
-			# unlink($output_prefix.".GC_plot.r");
+			unlink($output_prefix.".junctionSaturation_plot.r");
 		}
 
-		my $outputfile = $output_prefix.".junction_saturation.pdf";
+		my $outputfile = $output_prefix.".junctionSaturation_plot.pdf";
 		if(-e $outputfile){
 			print RUN $cf{'job_id'}."\t$outputfile\n";
 		} else {

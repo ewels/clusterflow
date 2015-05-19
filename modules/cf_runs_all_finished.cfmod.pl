@@ -402,10 +402,10 @@ $html_content .= '</ul><hr style="color: #d9d9d9; height: 1px; background: #d9d9
 
 	#### SAVE THE REPORTS
   my ($html_email, $text_email) = CF::Helpers::build_emails($title, $html_content, $plain_content);
-	open (HTML,'>',$pipeline_id.'.html') or die "Can't write to $pipeline_id.html: $!";
+	open (HTML,'>',$pipeline_id.'_summary.html') or die "Can't write to ".$pipeline_id."_summary.html: $!";
 	print HTML $html_email;
 	close(HTML);
-	open (PLAIN,'>',$pipeline_id.'.txt') or die "Can't write to $pipeline_id.txt: $!";
+	open (PLAIN,'>',$pipeline_id.'_summary.txt') or die "Can't write to ".$pipeline_id."_summary.txt: $!";
 	print PLAIN $text_email;
 	close(PLAIN);
 
