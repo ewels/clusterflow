@@ -69,7 +69,7 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 	my $output_prefix = $file;
 	$output_prefix =~ s/.bam//;
 
-	my $cmd .= "read_GC.py -i $file -o $output_prefix";
+	my $cmd = "read_GC.py -i $file -o $output_prefix";
 	warn "\n###CFCMD $cmd\n\n";
 
 	if(!system ($cmd)){

@@ -92,7 +92,7 @@ if(defined($cf{'params'}{'summary_module'})){
 	# Output file name prefix
 	my $output_prefix = $cf{'pipeline_id'};
 
-	my $cmd .= "geneBody_coverage.py -i ".join(",", @bamfiles)." -o $output_prefix -r $cf{refs}{bed12}";
+	my $cmd = "geneBody_coverage.py -i ".join(",", @bamfiles)." -o $output_prefix -r $cf{refs}{bed12}";
 	run_command($cmd, $output_prefix);
 }
 
@@ -104,7 +104,7 @@ else {
 		my $output_prefix = $file;
 		$output_prefix =~ s/.bam//;
 
-		my $cmd .= "geneBody_coverage.py -i $file -o $output_prefix -r $cf{refs}{bed12}";
+		my $cmd = "geneBody_coverage.py -i $file -o $output_prefix -r $cf{refs}{bed12}";
 		run_command($cmd, $output_prefix);
 	}
 }
@@ -129,8 +129,7 @@ sub run_command {
 
 		# Delete intermediate files
 		if(!$keep_intermediate){
-			# TODO - don't know if this file is generated yet...?
-			# unlink($output_prefix.".geneBodyCoverage.curves.r");
+			unlink($output_prefix.".geneBodyCoverage.r");
 		}
 
 		my $outputfile = $output_prefix.".geneBodyCoverage.curves.pdf";

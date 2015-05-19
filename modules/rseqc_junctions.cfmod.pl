@@ -41,13 +41,11 @@ my %requirements = (
 
 # Help text
 my $helptext = "".("-"x30)."\n RSeQC - Inner Distance\n".("-"x30)."\n
-Module to run RSeQC 'inner distance' script:
-http://rseqc.sourceforge.net/#inner-distance-py
-Calculates the distance between reasd for an RNA-seq library, whilst
-considering introns. Takes aligned BAM files as input. Requires a
-BED12 reference gene model. Uses first 1000000 reads.\n
-Use the 'keep_intermediate' parameter to keep the inner_distance.txt
-and inner_distance_plot.r files, otherwise these will be deleted.\n";
+Module to run RSeQC 'junctions annotation' and 'junction saturation' scripts:
+http://rseqc.sourceforge.net/#junction-annotation-py
+http://rseqc.sourceforge.net/#junction-saturation-py\n
+Use the 'keep_intermediate' parameter to keep the r plotting files, otherwise
+these will be deleted.\n";
 
 # Setup
 my %cf = CF::Helpers::module_start(\%requirements, $helptext);
@@ -67,7 +65,8 @@ open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $
 
 # Print version information about the module.
 warn "---------- RSeQC version information ----------\n";
-warn `inner_distance.py --version`;
+warn `junction_annotation.py --version`;
+warn `junction_saturation.py --version`;
 warn "------- End of RSeQC version information ------\n";
 
 # Set up optional parameters
@@ -80,29 +79,54 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 	my $output_prefix = $file;
 	$output_prefix =~ s/.bam//;
 
-	my $cmd = "inner_distance.py -i $file -o $output_prefix -r $cf{refs}{bed12}";
-	warn "\n###CFCMD $cmd\n\n";
+	# Step 1 - Junction annotation
+	my $junc_annotation_cmd = "junction_annotation.py -i $file -o $output_prefix -r $cf{refs}{bed12}";
+	warn "\n###CFCMD $junc_annotation_cmd\n\n";
 
-	if(!system ($cmd)){
-		# command worked - print out resulting filenames
-		my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-		warn "###CF RSeQC inner distance successfully exited, took $duration..\n";
+	if(!system ($junc_annotation_cmd)){
 
-		# Delete intermediate files
+		# Delete intermediate file
 		if(!$keep_intermediate){
-			unlink($output_prefix.".inner_distance.txt");
-			unlink($output_prefix.".inner_distance_plot.r");
+			# TODO - don't know what these are called yet
+			# unlink($output_prefix.".GC_plot.r");
 		}
 
-		my $outputfile = $output_prefix.".inner_distance_plot.pdf";
+		my $outputfile = $output_prefix.".junction.pdf";
 		if(-e $outputfile){
 			print RUN $cf{'job_id'}."\t$outputfile\n";
 		} else {
-			warn "\n###CF Error! RSeQC inner distance output file $outputfile not found..\n";
+			warn "\n###CF Error! RSeQC junction annotation output file $outputfile not found..\n";
 		}
 
 	} else {
-		warn "\n###CF Error! RSeQC inner distance failed, exited in an error state: $? $!\n\n";
+		warn "\n###CF Error! RSeQC junction annotation plot failed, exited in an error state: $? $!\n\n";
+	}
+
+
+	# Step 2 - Junction saturation
+	my $junc_saturation_cmd = "junction_saturation.py -i $file -o $output_prefix -r $cf{refs}{bed12}";
+	warn "\n###CFCMD $junc_saturation_cmd\n\n";
+
+	if(!system ($junc_saturation_cmd)){
+		# command worked - print out resulting filenames
+		my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+		warn "###CF RSeQC junction annotation and saturation analysis finished, took $duration..\n";
+
+		# Delete intermediate file
+		if(!$keep_intermediate){
+			# TODO - don't know what these are called yet
+			# unlink($output_prefix.".GC_plot.r");
+		}
+
+		my $outputfile = $output_prefix.".junction_saturation.pdf";
+		if(-e $outputfile){
+			print RUN $cf{'job_id'}."\t$outputfile\n";
+		} else {
+			warn "\n###CF Error! RSeQC junction saturation plot output file $outputfile not found..\n";
+		}
+
+	} else {
+		warn "\n###CF Error! RSeQC junction saturation plot failed, exited in an error state: $? $!\n\n";
 	}
 }
 
