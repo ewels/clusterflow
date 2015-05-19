@@ -41,33 +41,22 @@ my %requirements = (
 
 # Help text
 my $helptext = "".("-"x30)."\n RSeQC - Inner Distance\n".("-"x30)."\n
-Module to run RSeQC 'inner distance' script:
-http://rseqc.sourceforge.net/#inner-distance-py
-Calculates the distance between reasd for an RNA-seq library, whilst
-considering introns. Takes aligned BAM files as input. Requires a
-BED12 reference gene model. Uses first 1000000 reads.\n
-Use the 'keep_intermediate' parameter to keep the inner_distance.txt
-and inner_distance_plot.r files, otherwise these will be deleted.\n";
+Module to run RSeQC 'read GC' script:
+http://rseqc.sourceforge.net/#read-gc-py
+Calculates a histogram showing the GC content of reads in a library.\n
+Use the 'keep_intermediate' parameter to keep the GC_plot.r
+file, otherwise this will be deleted.\n";
 
 # Setup
 my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 # MODULE
 
-# Check that we have a genome defined
-if(!defined($cf{'refs'}{'bed12'})){
-    die "\n\n###CF Error: No BED12 reference gene model found in run file $cf{run_fn} for job $cf{job_id}. Exiting..";
-}elsif(! -e $cf{'refs'}{'bed12'}){
-    die "\n\n###CF Error: BED12 reference gene model file not found: $cf{refs}{bed12}";
-} else {
-    warn "\nUsing BED gene model: ".$cf{'refs'}{'bed12'}."\n\n";
-}
-
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
 warn "---------- RSeQC version information ----------\n";
-warn `inner_distance.py --version`;
+warn `read_GC.py --version`;
 warn "------- End of RSeQC version information ------\n";
 
 # Set up optional parameters
@@ -80,29 +69,28 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 	my $output_prefix = $file;
 	$output_prefix =~ s/.bam//;
 
-	my $cmd .= "inner_distance.py -i $file -o $output_prefix -r $cf{refs}{bed12}";
+	my $cmd .= "read_GC.py -i $file -o $output_prefix";
 	warn "\n###CFCMD $cmd\n\n";
 
 	if(!system ($cmd)){
 		# command worked - print out resulting filenames
 		my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-		warn "###CF RSeQC inner distance successfully exited, took $duration..\n";
+		warn "###CF RSeQC read GC successfully exited, took $duration..\n";
 
-		# Delete intermediate files
+		# Delete intermediate file
 		if(!$keep_intermediate){
-			unlink($output_prefix.".inner_distance.txt");
-			unlink($output_prefix.".inner_distance_plot.r");
+			unlink($output_prefix.".GC_plot.r");
 		}
 
-		my $outputfile = $output_prefix.".inner_distance_plot.pdf";
+		my $outputfile = $output_prefix.".GC_plot.pdf";
 		if(-e $outputfile){
 			print RUN $cf{'job_id'}."\t$outputfile\n";
 		} else {
-			warn "\n###CF Error! RSeQC inner distance output file $outputfile not found..\n";
+			warn "\n###CF Error! RSeQC GC plot output file $outputfile not found..\n";
 		}
 
 	} else {
-		warn "\n###CF Error! RSeQC inner distance failed, exited in an error state: $? $!\n\n";
+		warn "\n###CF Error! RSeQC GC plot failed, exited in an error state: $? $!\n\n";
 	}
 }
 
