@@ -17,7 +17,7 @@ To get instructions for how to use Cluster Flow on the command line, use:
 
     cf --help
 
-However, you can also use this command to find out more information about
+You can also use this command to find out more information about
 pipelines and modules:
 
     cf --help <module-name>
@@ -30,7 +30,7 @@ In its most basic form, analyses are run as follows:
 
 Single modules can also be specified instead of a pipeline, _e.g._:
 
-    cf samtools_sort_index *.bam
+    cf <module> *.bam
 
 Most pipelines and modules will need a reference genome, specified
 using `--genome`:
@@ -50,8 +50,8 @@ be overridden with `--single`).
 If `@merge_regex` is configured in the configuration file, input files may be
 merged before processing.
 
-If a mixture of file types or paired end / single end files are found, Cluster
-Flow will show an error and exit. This step can be skipped by using the
+If a mixture of file types or paired end / single end FastQ files are found,
+Cluster Flow will show an error and exit. This step can be skipped by using the
 `--no_fn_check` parameter.
 
 ## Downloading files
@@ -60,7 +60,7 @@ cause Cluster Flow to add the `cf_download` module to the start of your pipeline
 to download the data.
 
 Cluster Flow will recognise anything starting with `http`, `https` or `ftp` as
-a URL. Downloads are processes in series to avoid overwhemling the internet connection.
+a URL. Downloads are processes in series to avoid overwhelming the internet connection.
 
 If using the `--file-list` parameter you can also specify a filename for each download.
 Add this on the same line as the download URL, separated by a tab character. This is
@@ -76,6 +76,6 @@ Firstly, limits the number of parallel runs created. Defaults are set in the con
 
 Cluster Flow also try to intelligently limit the memory usage and number of cores each module uses.
 The config options `@total_cores` and `@total_mem` specify the maximum resources to be used
-by each Cluster Flow pipeline. These are split up amongst the max simultanoeus jobs and
-presented to each module. The modules can then request reseources, making use of optional
+by each Cluster Flow pipeline. These are split up amongst the max simultaneous jobs and
+presented to each module. The modules can then request resources, making use of optional
 parallelisation where available.

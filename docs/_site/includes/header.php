@@ -33,7 +33,7 @@
 
 	<nav id="nav" role="navigation">
 		<ul>
-			<li><a href="installation">Setup</a></li>
+			<li><a href="installation">Installation</a></li>
 			<li><a href="usage">Usage</a></li>
 			<li><a href="pipelines">Pipelines</a></li>
 			<li><a href="modules">Modules</a></li>
