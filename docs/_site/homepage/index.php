@@ -51,38 +51,74 @@
     <hr>
     <div class="row">
       <div class="col-sm-4">
-        <a class="btn btn-lg btn-block btn-default" href="0.3">
-          <i class="fa fa-book fa-lg"></i>
+        <a class="panel-btn panel-btn-info" href="0.3">
+          <i class="fa fa-book"></i><br>
           Read the Docs
         </a>
         <span class="visible-xs">&nbsp;</span>
       </div>
       <div class="col-sm-4">
-        <a class="btn btn-lg btn-block btn-primary" href="https://github.com/ewels/clusterflow/releases">
-          <i class="fa fa-download fa-lg"></i>
+        <a class="panel-btn panel-btn-primary" href="https://github.com/ewels/clusterflow/releases">
+          <i class="fa fa-download"></i><br>
           Download
         </a>
         <span class="visible-xs">&nbsp;</span>
       </div>
       <div class="col-sm-4">
+        <a class="panel-btn panel-btn-success" href="0.4/demo">
+          <i class="fa fa-flask"></i><br>
+          Online Demo
+        </a>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-4">
+        <a class="btn btn-lg btn-block btn-default" href="0.3">
+          <i class="fa fa-pencil-square-o fa-lg"></i>
+          Devel Version Docs
+        </a>
+        <span class="visible-xs">&nbsp;</span>
+      </div>
+      <div class="col-sm-4">
+        <a class="btn btn-lg btn-block btn-default" href="https://github.com/ewels/clusterflow/releases">
+          <i class="fa fa-github fa-lg"></i>
+          CF on GitHub
+        </a>
+        <span class="visible-xs">&nbsp;</span>
+      </div>
+      <div class="col-sm-4">
         <a class="btn btn-lg btn-block btn-default" href="0.4/demo">
-          <i class="fa fa-life-ring fa-lg"></i>
-          Try the Demo
+          <i class="fa fa-picture-o fa-lg"></i>
+          See Examples
         </a>
       </div>
     </div>
     <hr>
+
+    <h3>Why choose Cluster Flow?</h3>
+    <p>There are many bioinformatics pipeline tools available, once you've decided that you need a framework to manage your analyses
+      it can be difficult to know which to use. Cluster Flow stands out from the crowd for the following reasons:</p>
     <div class="row">
-      <div class="col-sm-6">
-        <h2>Development Version</h2>
-        <p>Cluster Flow is developed on <a href="https://github.com/ewels/clusterflow">GitHub</a>, where you can get the current development version. You can see the development version <a href="0.4devel">documentation here</a>.</p>
-      </div>
-      <div class="col-sm-6 text-right">
-        <h2>Contributing</h2>
-        <p>Cluster Flow is an open-source project, with a number of <a href="https://github.com/ewels/clusterflow/graphs/contributors">contributors</a>.
-          If you would like to add a module or pipeline, please see the <a href="https://github.com/ewels/clusterflow/blob/master/CONTRIBUTING.md">instructions</a>.</p>
+      <div class="col-lg-8 col-lg-push-2 col-md-10 col-md-push-1">
+        <dl class="dl-horizontal">
+          <dt>Simplicity</dt>
+          <dd>Installation walkthroughs and a large module toolset mean you get up and running quickly.</dd>
+
+          <dt>Flexibility</dt>
+          <dd>Pipelines are fast to assemble, making it trivial to change on the fly.</dd>
+
+          <dt>Traceability</dt>
+          <dd>Commands, software versions, everything is logged for reproducability.</dd>
+
+          <dt>Extensibility</dt>
+          <dd>Helper functions and commented examples make writing your own modules easy.</dd>
+        </dl>
       </div>
     </div>
+
+    <h3>Contributing</h3>
+    <p>Cluster Flow is an open-source project, with a number of <a href="https://github.com/ewels/clusterflow/graphs/contributors">contributors</a>.
+      If you would like to add a module or pipeline, please see the <a href="https://github.com/ewels/clusterflow/blob/master/CONTRIBUTING.md">instructions</a>.</p>
     <hr>
   </div>
 </main>

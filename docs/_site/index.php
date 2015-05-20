@@ -18,7 +18,7 @@ foreach(scandir($parent_dir) as $f){
 rsort($docs_versions, SORT_NUMERIC);
 rsort($stable_versions, SORT_NUMERIC);
 $depreciated = false;
-if($DOCS_VERSION < $stable_versions[0]) $depreciated = true;
+if(count($stable_versions) > 1 && $DOCS_VERSION < $stable_versions[0]) $depreciated = true;
 
 
 // Figure out what page we're loading
