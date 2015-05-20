@@ -1,5 +1,5 @@
-
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -58,14 +58,14 @@
         <span class="visible-xs">&nbsp;</span>
       </div>
       <div class="col-sm-4">
-        <a class="panel-btn panel-btn-primary" href="https://github.com/ewels/clusterflow/releases">
+        <a class="panel-btn panel-btn-primary" href="https://github.com/ewels/clusterflow/archive/v0.3.tar.gz">
           <i class="fa fa-download"></i><br>
           Download
         </a>
         <span class="visible-xs">&nbsp;</span>
       </div>
       <div class="col-sm-4">
-        <a class="panel-btn panel-btn-success" href="0.4/demo">
+        <a class="panel-btn panel-btn-success" href="demo">
           <i class="fa fa-flask"></i><br>
           Online Demo
         </a>
@@ -73,21 +73,21 @@
     </div>
     <div class="row">
       <div class="col-sm-4">
-        <a class="btn btn-lg btn-block btn-default" href="0.3">
+        <a class="btn btn-lg btn-block btn-default" href="0.4">
           <i class="fa fa-pencil-square-o fa-lg"></i>
           Devel Version Docs
         </a>
         <span class="visible-xs">&nbsp;</span>
       </div>
       <div class="col-sm-4">
-        <a class="btn btn-lg btn-block btn-default" href="https://github.com/ewels/clusterflow/releases">
+        <a class="btn btn-lg btn-block btn-default" href="https://github.com/ewels/clusterflow/">
           <i class="fa fa-github fa-lg"></i>
           CF on GitHub
         </a>
         <span class="visible-xs">&nbsp;</span>
       </div>
       <div class="col-sm-4">
-        <a class="btn btn-lg btn-block btn-default" href="0.4/demo">
+        <a class="btn btn-lg btn-block btn-default" href="examples">
           <i class="fa fa-picture-o fa-lg"></i>
           See Examples
         </a>
