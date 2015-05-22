@@ -1,0 +1,31 @@
+================================
+Cluster Flow - available pipelines
+================================
+Installed pipelines:
+    Directory ./
+    Directory /Users/demouser/.clusterflow/pipelines/ (not found)
+    Directory /Users/demouser/Work/Cluster_Flow/clusterflow/pipelines/
+	- bam_preseq
+	- bismark
+	- bismark_pbat
+	- bismark_singlecell
+	- bwa_preseq
+	- fastq_bismark
+	- fastq_bismark_RRBS
+	- fastq_bowtie
+	- fastq_hicup
+	- fastq_pbat
+	- fastq_star
+	- fastq_tophat
+	- sra_bismark
+	- sra_bismark_RRBS
+	- sra_bowtie
+	- sra_bowtie1
+	- sra_bowtie2
+	- sra_bowtie_miRNA
+	- sra_hicup
+	- sra_pbat
+	- sra_tophat
+	- sra_trim
+	- trim_bowtie_miRNA
+	- trim_tophat

@@ -15,8 +15,6 @@
     <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
     <!-- jQuery -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-    <!-- Google reCaptcha -->
-    <script src='https://www.google.com/recaptcha/api.js'></script>
 
     <!-- Custom Styles -->
     <link href="styles.css" rel="stylesheet">

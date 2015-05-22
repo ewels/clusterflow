@@ -1,0 +1,148 @@
+
+
+Cluster Flow Help
+=================
+Running Cluster Flow version 0.4
+
+SYNTAX
+    cf [flags] pipeline_name file_1 file_2..
+
+    Note that the name of a single module can be used instead of a
+    pipeline name.
+
+EXAMPLE
+    cf --genome NCBIM37 sra_bismark *.sra
+
+SPECIFIC PIPELINE / MODULE HELP
+    To see specific help about a pipeline or module, use
+    cf --help followed by a pipeline or module name.
+
+INTRODUCTION
+    Cluster Flow is simple package to run pipelines in a cluster environment.
+
+    Cluster Flow will set off multiple queued jobs on the cluster with queue
+    dependencies as defined in the pipeline.
+
+COMMON FLAGS
+    These are flags that are commonly used in day to day Cluster Flow use.
+    For a full description of the avilable flags and how to use them, see
+    the Cluster Flow documentation.
+
+    --setup
+        Interactive prompt to generate required CF config files
+
+    --genome <ID>
+        ID of a genome referred to in clusterflow.config
+        This genome ID is used to specify genome paths, bowtie
+        index basenames and GTF file paths.
+        Use --genomes to show available IDs
+
+    --file_list
+        Text file containing input files or download URLs
+
+    --params
+        Specify extra module parameters. These will be applied to every
+        module if a pipeline name is specified.
+
+    --pipelines
+        Print available pipelines
+
+    --modules
+        Print available modules
+
+    --genomes
+        Print available genomes
+
+    --qstat
+        Parses the output from qstat in a visually attractive and intuitive manner
+
+    --qstatall
+        Same as --qstat, but for all jobs submitted by all users
+
+    --qdel
+        Delete all jobs running in a particular Cluster Flow pipeline. Follow
+        with a pipeline ID, printed when running --qstat
+
+    --add_genome
+        Interactive wizard to add new genomes to your genomes.config files
+
+    --dry_run
+        Prints jobs to terminal instead of submitting them to the cluster
+
+    --version
+        Print version of Cluster Flow installed
+
+    --check_updates
+        Look for available Cluster Flow updates
+
+    --help
+        Print this help message.
+        If specified with a pipeline or module name afterwards, the help for that
+        pipeline or module will be displayed. eg. cf --help sra_bismark
+
+RARE FLAGS
+    These flags are used to override Cluster Flow defaults for a single run.
+    For a full description of the avilable flags and how to use them, see
+    the Cluster Flow documentation.
+
+    --cores <num>
+        Set the maximum number of cores to use for all runs
+
+    --email <email>
+        Set the e-mail address for notifications
+
+    --max_runs <num>
+        Divide input files into <num> runs. Overrides --split_files
+        Setting this will override the default value set in
+        clusterflow.config. Set to 0 to disable max_runs.
+
+    --mem <string>
+        Set the maximum memory to use for all runs
+
+    --environment <local | GRIDEngine | SLURM | LSF>
+        Over-ride the cluster environment to use (useful for local testing)
+
+    --merge <string>
+        Set a regex string to match file name patterns for merging
+        input files.
+
+    --notifications <cresa>
+        Specify desired notifications
+        c = pipeline complete, r = run complete, e = qsub job ends
+        s = qsub job suspended, a = qsub job aborted
+
+    --no_fn_check
+        Disable input file type checking
+
+    --ref <type>=<path>
+        Path to a reference to be used for alignment. Overrides --genome
+        Possible values for type: fasta / bowtie / bowtie2 / star / gtf
+        eg: --ref fasta=/path/to/fasta/files
+
+    --single
+        Force single-end mode
+
+    --split_files <num>
+        Create one run per <num> files
+
+    --paired
+        Force paired-end mode
+
+    --priority <num>
+        Set the queue priority for cluster jobs
+
+    --project <string>
+        Set the project to use on the cluster for this run
+
+    --runfile_prefix
+        Prefix for run file filename. Avoids potential clashes if
+        running multiple instances of Cluster Flow with the same
+        input file.
+
+AUTHOR
+    Written by Phil Ewels (GitHub: @ewels). Initial work done at the
+    Babraham Institute, Cambridge. Continued at SciLifeLab, Stockholm.
+
+SEE ALSO
+    There is a full Cluster Flow manual available at
+    http://ewels.github.io/clusterflow/

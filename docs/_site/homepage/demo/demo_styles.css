@@ -1,0 +1,53 @@
+/* Styles specifically for the Cluster Flow demo */
+
+
+
+#demo_terminal {
+    display: block;
+    overflow-x: auto;;
+    overflow-y: auto;
+    margin: 20px auto;
+    padding: 20px;
+    width: 100%;
+    max-width: 800px;
+    height: 500px;
+    border-radius: 6px;
+    background-color: #002b36;
+    color: #657b83;
+    font-family: 'Monaco', monospace;
+    border: 1px solid #ccc;
+    font-size: 12px;
+}
+#demo_terminal pre {
+    background-color: transparent;
+    font-size: 1em;
+    padding: 0;
+    margin: 0;
+    border: none;
+    color: inherit;
+    overflow-x: auto;
+}
+
+
+/* WTerm Styles */
+.wterm_terminal input {
+    background: transparent;
+    border: 0;
+    color: #657b83;
+    width: 100%;
+    font-size: 1em;
+    font-family: 'Monaco', monospace;
+    outline: none;
+}
+.wterm_terminal div:first {
+    margin-bottom: 1em;
+}
+.wterm_terminal .wterm_prompt {
+    float: left;
+    clear: left;
+}
+.wterm_terminal form {
+    float: left;
+    margin: 0px;
+    width: 75%;
+}

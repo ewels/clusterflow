@@ -13,13 +13,17 @@
     <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
-    <!-- jQuery -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-    <!-- Google reCaptcha -->
-    <script src='https://www.google.com/recaptcha/api.js'></script>
+
+    <!-- jQuery - NB - WTerm needs this specific old version!! -->
+    <script src="assets/jquery.1.3.2.min.js"></script>
+    <!-- WTerm jQuery for terminal emulation -->
+    <script src="assets/wterm.jquery.js"></script>
+    <!-- Demo Javascript -->
+    <script src="demo_js.js"></script>
 
     <!-- Custom Styles -->
     <link href="../styles.css" rel="stylesheet">
+    <link href="demo_styles.css" rel="stylesheet">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -33,8 +37,50 @@
 <body>
 
 <div class="container">
+
   <h1>Cluster Flow Demo</h1>
-  <p><em>Coming soon...</em></p>
+
+  <ol id="demo_instructions">
+    <li>First, let's remind ourselves of the commands
+      <ul>
+        <li><code>cf --help</code></li>
+      </ul>
+    </li>
+    <li>Which pipelines do we have available?
+      <ul>
+        <li><code>cf --pipelines</code></li>
+        <li><code>cf --modules</code></li>
+        <li><code>cf --genomes</code></li>
+      </ul>
+    </li>
+    <li>Find more information about the 'fastq_bismark' pipeline
+      <ul>
+        <li><code>cf --help [pipeline]</code></li>
+        <li><code>cf --help [module]</code></li>
+      </ul>
+    </li>
+    <li>Add a new reference genome
+      <ul>
+        <li><code>cf --add_genome</code></li>
+      </ul>
+    </li>
+    <li>Check your files and run the pipeline!
+      <ul>
+        <li><code>ls</code> (list files)</li>
+        <li><code>cf --genome GRCh37 fastq_bismark *.fastq.gz</code></li>
+      </ul>
+    </li>
+    <li>Monitor the pipeline's progress
+      <ul>
+        <li><code>cf --qstat</code></li>
+        <li><code>qs</code> (usual alias for above)</li>
+      </ul>
+    </li>
+    <li>Check the e-mail when the pipeline finishes!</li>
+  </ol>
+
+  <div id="demo_terminal"></div>
+
 </div>
 
 </body>
