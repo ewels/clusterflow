@@ -54,3 +54,28 @@
     margin: 0px;
     width: 75%;
 }
+
+
+
+/* Easter Eggs */
+.rm_error {
+  font-family: Times, serif;
+  padding: 0;
+  margin: 8px;
+  color: #000;
+}
+.rm_error h1 {
+  font-size: 32px;
+  font-weight: bold;
+}
+.rm_error p {
+  font-size: 16px;
+}
+.rm_error hr {
+  border-style: inset;
+  border-width: 1px;
+}
+.rm_error #rm_joking {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  margin: 50px;
+}

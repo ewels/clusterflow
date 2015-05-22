@@ -11,15 +11,19 @@ $( document ).ready( function() {
 
     // Using depreciated jQuery, so let's do this the hard way..
     // Deliberately breaking indentation else it'd be silly.
-    outputs = [];
-    $.get("outputs/help.txt", function(text) {
-        outputs['help'] = '<pre>'+text+'<pre>';
-    $.get("outputs/pipelines.txt", function(text) {
-        outputs['pipelines'] = '<pre>'+text+'<pre>';
-    $.get("outputs/modules.txt", function(text) {
-        outputs['modules'] = '<pre>'+text+'<pre>';
-    $.get("outputs/genomes.txt", function(text) {
-        outputs['genomes'] = '<pre>'+text+'<pre>';
+    output = [];
+    $.get("output/help.txt", function(text) {
+        output['help'] = '<pre>'+text+'<pre>';
+    $.get("output/pipelines.txt", function(text) {
+        output['pipelines'] = '<pre>'+text+'<pre>';
+    $.get("output/modules.txt", function(text) {
+        output['modules'] = '<pre>'+text+'<pre>';
+    $.get("output/genomes.txt", function(text) {
+        output['genomes'] = '<pre>'+text+'<pre>';
+    $.get("output/rm_text.txt", function(text) {
+        output['rm_text'] = text.split("\n");
+    $.get("output/rm_page.html", function(text) {
+        output['rm_page'] = text;
 
 
         // Launch the WTerm plugin
@@ -41,19 +45,19 @@ $( document ).ready( function() {
             /////// MAIN SUB-COMMANDS
             // cf --help
             if(tokens[0] == '--help'){
-                return outputs['help'];
+                return output['help'];
             }
             // cf --pipelines
             if(tokens[0] == '--pipelines'){
-                return outputs['pipelines'];
+                return output['pipelines'];
             }
             // cf --modules
             if(tokens[0] == '--modules'){
-                return outputs['modules'];
+                return output['modules'];
             }
             // cf --genomes
             if(tokens[0] == '--genomes'){
-                return outputs['genomes'];
+                return output['genomes'];
             }
 
             //////// PARAMETERS
@@ -83,7 +87,50 @@ $( document ).ready( function() {
         }
         $.register_command('cf', cf );
 
+        ////////// EASTER EGGS
+        // Seriously? You came to the source code to find the easter eggs?
+        // Ok, fair enough. I'd have probably done the same...
+
+
         var command_directory = {
+            'rm': function(tokens){
+              tokens.shift();
+              if(tokens.length == 0 || tokens[0] == ''){
+                return "<pre>usage: rm [-f | -i] [-dPRrvW] file ...<br>       unlink file</pre>";
+              } else {
+                var returnvals = [];
+                var killall = false;
+                $.each(tokens, function(i, val){
+                  if(val.substr(0,1) !== '-' && val.substr(0,1) !== '/'){
+                    returnvals.push('rm: '+val+': No such file or directory');
+                  } else if(val.substr(0,1) == '/'){
+                    killall = true;
+                  }
+                });
+                if(killall){
+                  $('#demo_terminal').html('');
+                  var time = 5;
+                  $.each(output['rm_text'], function(i, val){
+                    setTimeout( function(){
+                      $('#demo_terminal').append('<pre>'+val+'</pre>').scrollTop($("#demo_terminal")[0].scrollHeight);
+                    }, time);
+                    time += 5;
+                  });
+                  setTimeout(function(){
+                    $('body').html('');
+                    setTimeout(function(){
+                      $('body').html(output['rm_page']);
+                      setTimeout(function(){
+                        $('#rm_joking').slideDown();
+                      }, 5000);
+                    }, 1000);
+                  }, 2250);
+                } else {
+                  return returnvals.join('<br>');
+                }
+              }
+            },
+
             'eval': function( tokens ) {
                 tokens.shift();
                 var expression = tokens.join( ' ' );
@@ -132,6 +179,6 @@ $( document ).ready( function() {
             $.register_command( j, command_directory[j] );
         }
 
-    }); }); }); });
+    }); }); }); }); }); });
 
 });
