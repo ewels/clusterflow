@@ -27,6 +27,9 @@
     color: inherit;
     overflow-x: auto;
 }
+#demo_terminal span, #demo_terminal input {
+    color: #859900;
+}
 
 
 /* WTerm Styles */
