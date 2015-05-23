@@ -29,7 +29,7 @@ $( document ).ready( function() {
         // Launch the WTerm plugin
         $('#demo_terminal').wterm({
             PS1: 'cfdemo $',
-            WIDTH: '100%', HEIGHT: '500px',
+            WIDTH: '800px', HEIGHT: '500px',
             WELCOME_MESSAGE: 'Welcome to the Cluster Flow demo!',
             AUTOCOMPLETE: false
         });
@@ -87,61 +87,84 @@ $( document ).ready( function() {
         }
         $.register_command('cf', cf );
 
+
+
+
+
+
         ////////// EASTER EGGS
         // Seriously? You came to the source code to find the easter eggs?
         // Ok, fair enough. I'd have probably done the same...
 
+        // rm -rf /*
+        var rm = function(tokens){
+          tokens.shift();
+          if(tokens.length == 0 || tokens[0] == ''){
+            return "<pre>usage: rm [-f | -i] [-dPRrvW] file ...<br>       unlink file</pre>";
+          } else {
+            var returnvals = [];
+            var killall = false;
+            $.each(tokens, function(i, val){
+              if(val.substr(0,1) !== '-' && val.substr(0,1) !== '/'){
+                returnvals.push('rm: '+val+': No such file or directory');
+              } else if(val.substr(0,1) == '/'){
+                killall = true;
+              }
+            });
+            if(killall){
+              $('#demo_terminal').html('');
+              var time = 5;
+              $.each(output['rm_text'], function(i, val){
+                setTimeout( function(){
+                  $('#demo_terminal').append('<pre>'+val+'</pre>').scrollTop($("#demo_terminal")[0].scrollHeight);
+                }, time);
+                time += 5;
+              });
+              setTimeout(function(){
+                $('body').html('');
+                setTimeout(function(){
+                  $('body').html(output['rm_page']);
+                  setTimeout(function(){
+                    $('#rm_joking').slideDown();
+                  }, 5000);
+                }, 1000);
+              }, 2250);
+            } else {
+              return returnvals.join('<br>');
+            }
+          }
+        }
+        $.register_command('rm', rm );
+
+
+        // pong
+        var pong = function (tokens) {
+          $('#demo_terminal').html('').addClass('pong');
+          $('#demo_terminal').pong('assets/circle.gif', {
+            targetSpeed: 20,  //ms
+            ballSpeed: 12,     //pixels per update
+            width: 800,       //px
+            height: 500,      //px
+            paddleHeight: 80, //px
+            paddleBuffer: 25,  //px from the edge of the play area
+            difficulty: 1,
+          });
+        }
+        $.register_command('pong', pong );
+
+        // gravity / fall
+        var gravity = function (tokens) {
+          $('body').jGravity({
+            target: 'h1, ol, #demo_terminal',
+            depth: 50,
+          });
+        }
+        $.register_command('gravity', gravity );
+        $.register_command('fall', gravity );
+
+
 
         var command_directory = {
-            'rm': function(tokens){
-              tokens.shift();
-              if(tokens.length == 0 || tokens[0] == ''){
-                return "<pre>usage: rm [-f | -i] [-dPRrvW] file ...<br>       unlink file</pre>";
-              } else {
-                var returnvals = [];
-                var killall = false;
-                $.each(tokens, function(i, val){
-                  if(val.substr(0,1) !== '-' && val.substr(0,1) !== '/'){
-                    returnvals.push('rm: '+val+': No such file or directory');
-                  } else if(val.substr(0,1) == '/'){
-                    killall = true;
-                  }
-                });
-                if(killall){
-                  $('#demo_terminal').html('');
-                  var time = 5;
-                  $.each(output['rm_text'], function(i, val){
-                    setTimeout( function(){
-                      $('#demo_terminal').append('<pre>'+val+'</pre>').scrollTop($("#demo_terminal")[0].scrollHeight);
-                    }, time);
-                    time += 5;
-                  });
-                  setTimeout(function(){
-                    $('body').html('');
-                    setTimeout(function(){
-                      $('body').html(output['rm_page']);
-                      setTimeout(function(){
-                        $('#rm_joking').slideDown();
-                      }, 5000);
-                    }, 1000);
-                  }, 2250);
-                } else {
-                  return returnvals.join('<br>');
-                }
-              }
-            },
-
-            'eval': function( tokens ) {
-                tokens.shift();
-                var expression = tokens.join( ' ' );
-                var result = '';
-                try {
-                    result = eval( expression );
-                } catch( e ) {
-                    result = 'Error: ' + e.message;
-                }
-                return result;
-            },
 
             'date': function( tokens ) {
                 var now = new Date();
@@ -157,22 +180,6 @@ $( document ).ready( function() {
                 var url = tokens[1];
                 document.location.href = url;
             },
-
-            'strrev': {
-                PS1: 'strrev $',
-
-                EXIT_HOOK: function() {
-                    return 'exit interface commands';
-                },
-
-                START_HOOK: function() {
-                    return 'exit interface commands';
-                },
-
-                DISPATCH: function( tokens ) {
-                    return tokens.join('').reverse();
-                }
-            }
         };
 
         for( var j in command_directory ) {

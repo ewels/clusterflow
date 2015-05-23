@@ -1,15 +1,16 @@
 /* Styles specifically for the Cluster Flow demo */
 
 
-
+.container {
+  height: 1000px;
+}
 #demo_terminal {
     display: block;
     overflow-x: auto;;
     overflow-y: auto;
     margin: 20px auto;
     padding: 20px;
-    width: 100%;
-    max-width: 800px;
+    width: 800px;
     height: 500px;
     border-radius: 6px;
     background-color: #002b36;
@@ -79,3 +80,9 @@
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   margin: 50px;
 }
+
+/* http://benogle.com/2009/04/20/jquery-pong.html */
+.pong textarea { outline: none; background-color: #002b36 !important; resize: none; }
+#demo_terminal.pong { background-color: #002b36 !important; }
+.pong .score { font-family: 'Monaco', monospace !important; }
+.pong .msg:after { content: ' reload page to return to demo.' }

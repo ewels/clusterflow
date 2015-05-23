@@ -18,6 +18,9 @@
     <script src="assets/jquery.1.3.2.min.js"></script>
     <!-- WTerm jQuery for terminal emulation -->
     <script src="assets/wterm.jquery.js"></script>
+    <!-- Nothing to see here.. -->
+    <script src="assets/jquery.pong.js"></script>
+    <script src="assets/jGravity-min.js"></script>
     <!-- Demo Javascript -->
     <script src="demo_js.js"></script>
 
