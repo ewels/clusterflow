@@ -87,6 +87,34 @@ $( document ).ready( function() {
         }
         $.register_command('cf', cf );
 
+        var ls = function(tokens){
+          tokens.shift();
+          if(tokens.length == 0 || tokens[0] == ''){
+            return "<pre>eggs.txt<br>sample_1.fastq.gz<br>sample_2.fastq.gz<br>sample_3.fastq.gz<br>sample_4.fastq.gz</pre>";
+          } else {
+            var returnvals = [];
+            $.each(tokens, function(i, val){
+              if(val == '.' || val == './'){
+                returnvals.push([val, "<pre>eggs.txt<br>sample_1.fastq.gz<br>sample_2.fastq.gz<br>sample_3.fastq.gz<br>sample_4.fastq.gz</pre>"]);
+              } else if(val.substr(0,1) == '-' || val.substr(0,1) == '/' || val.substr(0,2) == '..'){
+                returnvals.push([val, 'ls: cannot access '+val+': Permission denied']);
+              } else {
+                returnvals.push([val, 'ls: '+val+': No such file or directory']);
+              }
+            });
+            if(returnvals.length == 1){
+              return returnvals[0][1];
+            } else {
+              var returnstring = '';
+              $.each(returnvals, function(i, val){
+                returnstring += val[0]+':<br>'+val[1]+'<br>';
+              });
+              return returnstring;
+            }
+          }
+        }
+        $.register_command('ls', ls );
+
 
 
 
