@@ -20,6 +20,8 @@ $( document ).ready( function() {
         output['modules'] = '<pre>'+text+'<pre>';
     $.get("output/genomes.txt", function(text) {
         output['genomes'] = '<pre>'+text+'<pre>';
+    $.get("output/help_fastq_bismark.txt", function(text) {
+        output['help_fastq_bismark'] = '<pre>'+text+'<pre>';
     $.get("output/rm_text.txt", function(text) {
         output['rm_text'] = text.split("\n");
     $.get("output/rm_page.html", function(text) {
@@ -34,6 +36,20 @@ $( document ).ready( function() {
             AUTOCOMPLETE: false
         });
 
+        // Modules and pipelines
+        modules = ['bismark_align', 'bismark_coverage', 'bismark_deduplicate', 'bismark_methXtract',
+                   'bismark_report', 'bismark_summary_report', 'bowtie', 'bowtie1', 'bowtie2', 'bwa',
+                   'cf_download', 'cf_merge_files', 'cf_run_finished', 'cf_runs_all_finished',
+                   'fastq_screen', 'fastqc', 'featureCounts', 'hicup', 'htseq_counts', 'preseq_calc',
+                   'preseq_plot', 'rseqc_geneBody_coverage', 'rseqc_inner_distance', 'rseqc_junctions',
+                   'rseqc_read_GC', 'samtools_bam2sam', 'samtools_sort_index', 'sra_abidump',
+                   'sra_fqdump', 'star', 'tophat', 'tophat_broken_MAPQ', 'trim_galore'];
+        pipelines = ['bam_preseq', 'bismark', 'bismark_pbat', 'bismark_singlecell', 'bwa_preseq',
+                     'fastq_bismark', 'fastq_bismark_RRBS', 'fastq_bowtie', 'fastq_hicup', 'fastq_pbat',
+                     'fastq_star', 'fastq_tophat', 'sra_bismark', 'sra_bismark_RRBS', 'sra_bowtie',
+                     'sra_bowtie1', 'sra_bowtie2', 'sra_bowtie_miRNA', 'sra_hicup', 'sra_pbat',
+                     'sra_tophat', 'sra_trim', 'trim_bowtie_miRNA', 'trim_tophat'];
+
         // Write the cf terminal function
         var cf = function (tokens){
             // ignore the initial 'cf'
@@ -45,7 +61,16 @@ $( document ).ready( function() {
             /////// MAIN SUB-COMMANDS
             // cf --help
             if(tokens[0] == '--help'){
+              tokens.shift();
+              if(tokens.length == 0 || tokens[0] == ''){
                 return output['help'];
+              } else if(tokens[0] == 'fastq_bismark'){
+                return output['help_fastq_bismark']
+              } else if(modules.indexOf(tokens[0]) >= 0 || pipelines.indexOf(tokens[0]) >= 0){
+                return "Apologies, not implemented for this demo";
+              } else {
+                return "Sorry, no help found for this pipeline or module.";
+              }
             }
             // cf --pipelines
             if(tokens[0] == '--pipelines'){
@@ -90,12 +115,12 @@ $( document ).ready( function() {
         var ls = function(tokens){
           tokens.shift();
           if(tokens.length == 0 || tokens[0] == ''){
-            return "<pre>eggs.txt<br>sample_1.fastq.gz<br>sample_2.fastq.gz<br>sample_3.fastq.gz<br>sample_4.fastq.gz</pre>";
+            return "<pre>sample_1.fastq.gz<br>sample_2.fastq.gz<br>sample_3.fastq.gz<br>sample_4.fastq.gz</pre>";
           } else {
             var returnvals = [];
             $.each(tokens, function(i, val){
               if(val == '.' || val == './'){
-                returnvals.push([val, "<pre>eggs.txt<br>sample_1.fastq.gz<br>sample_2.fastq.gz<br>sample_3.fastq.gz<br>sample_4.fastq.gz</pre>"]);
+                returnvals.push([val, "<pre>sample_1.fastq.gz<br>sample_2.fastq.gz<br>sample_3.fastq.gz<br>sample_4.fastq.gz</pre>"]);
               } else if(val.substr(0,1) == '-' || val.substr(0,1) == '/' || val.substr(0,2) == '..'){
                 returnvals.push([val, 'ls: cannot access '+val+': Permission denied']);
               } else {
@@ -214,6 +239,6 @@ $( document ).ready( function() {
             $.register_command( j, command_directory[j] );
         }
 
-    }); }); }); }); }); });
+    }); }); }); }); }); }); });
 
 });
