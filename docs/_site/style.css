@@ -127,9 +127,10 @@ header .docs_version a {
     -moz-border-radius:4px;
     border-radius:4px;
 }
-header .docs_version a:hover, header .docs_version a:focus, header .docs_version a:active {
+header .docs_version a:hover, header .docs_version a:focus, header .docs_version a:active,
+header .docs_version select:hover, header .docs_version select:focus {
 	text-decoration:none;
-	background-color: #464e52;
+	background-color: #e4dad2;
 }
 header .docs_version select {
 	/*width: 71px;*/
@@ -147,9 +148,6 @@ header .docs_version select {
     cursor:pointer;
 	margin-right: 20px;
 	padding: 2px 5px;
-}
-header .docs_version select:hover {
-	background-color: #464e52;
 }
 
 
