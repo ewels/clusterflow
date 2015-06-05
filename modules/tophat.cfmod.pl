@@ -30,7 +30,7 @@ use File::Copy qw(move);
 # Module requirements
 my %requirements = (
 	'cores' 	=> ['1', '6'],
-	'memory' 	=> ['3G', '4G'],
+	'memory' 	=> ['8G', '12G'],
 	'modules' 	=> ['tophat', 'samtools'],
 	'time' 		=> sub {
 		my $cf = $_[0];
