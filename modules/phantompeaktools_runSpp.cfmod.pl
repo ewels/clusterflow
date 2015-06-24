@@ -51,8 +51,20 @@ and  basename_crosscorrelation.txt (a text file with various cross correlation
 statistics). For convenience the input bam file is also passed on as output
 to be used by the next script in the pipeline.\n\n";
 
-# The script we will run. Now hard coded path. FIX THIS!!
-my $runSppScript = "/home/jacke/bin/run_spp_nodups.R";
+# The script we will run.
+## my $runSppScript = "/home/jacke/bin/run_spp_nodups.R";
+
+use Env qw(PATH);
+my $runSppScript = 0;
+foreach my $path (split(/:/, $PATH)){
+    if(-e "$path/run_spp_nodups.R"){
+        $runSppScript = "$path/run_spp_nodups.R";
+        last;
+    }
+}
+die "###CF Error - could not find phantompeaktools run_spp_nodups.R script" unless($runSppScript);
+
+
 
 # Start your engines...
 my %cf = CF::Helpers::module_start(\%requirements, $helptext);
@@ -67,7 +79,7 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 
   # Check that input is bam file
   if($file !~ /\.bam$/i){
-      warn "\n###CF Error! bedtools_bamToBed failed: bam file expected, got $file\n\n";
+      warn "\n###CF Error! Phantompeaktools failed: bam file expected, got $file\n\n";
       next;
   } 
 
