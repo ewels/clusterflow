@@ -53,6 +53,10 @@ This file is named basename_nrf.txt.\n\n";
 # Start your engines...
 my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
+warn "---------- BedToNrf version information ----------\n";
+warn "Cluster Flow version v".$CF::Constants::CF_VERSION."\n";
+warn "\n------- End of BedToNrf version information ------\n";
+
 # Open up our run file in append mode
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
