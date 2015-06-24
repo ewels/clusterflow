@@ -127,7 +127,7 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 	}
     } else {
 	# Command returned a non-zero result, probably went wrong...
-	warn "\n###CF Error! DeepTools bamCoverage failed: $? $!\n\n";
+	warn "\n###CF Error! DeepTools bamCoverage failed for '$file': $? $!\n\n";
     }
 }
 

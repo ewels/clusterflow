@@ -116,7 +116,7 @@ foreach my $file (@{$cf{'prev_job_files'}}){
     }
   } else {
     # Command returned a non-zero result, probably went wrong...
-    warn "\n###CF Error! Bedtools bamToBed failed: $? $!\n\n";
+    warn "\n###CF Error! Bedtools bamToBed failed for '$file': $? $!\n\n";
   }
   
   # clean up temp file

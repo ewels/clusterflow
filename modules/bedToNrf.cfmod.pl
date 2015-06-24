@@ -86,7 +86,7 @@ foreach my $file (@{$cf{'prev_job_files'}}){
     close(IN);
 
     # Print results to out file: nr total reads, nr unique reads, NRF
-    open(OUT,"> $output_fn")||die "###CF Error! bedToNrf failed: $!\n";
+    open(OUT,"> $output_fn") || die "###CF Error! bedToNrf could not open output file '$output_fn' for writing: $!\n";
     print OUT "$Tcnt\t$lcnt\t".($Tcnt/$lcnt)."\n";
     close(OUT);
     
@@ -101,10 +101,8 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 	# This is so that subsequent modules can use this output
 	print RUN "$cf{job_id}\t$output_fn\n";
     } else {
-	# Command returned a non-zero result, probably went wrong...
-	warn "\n###CF Error! bedToNrf failed: $? $!\n\n";
 	# Oops - can't find the output file! Err...
-	warn "\nbedToNrf output file $output_fn not found..\n";
+	warn "\n###CF Error! bedToNrf could not find output file: $output_fn\n\n";
     }
 }
 

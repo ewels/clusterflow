@@ -133,7 +133,7 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 	}
     } else {
 	# Command returned a non-zero result, probably went wrong...
-	warn "\n###CF Error! DeepTools bamFingerprint failed: $? $!\n\n";
+	warn "\n###CF Error! DeepTools bamFingerprint failed for '$file': $? $!\n\n";
     }
 }
 

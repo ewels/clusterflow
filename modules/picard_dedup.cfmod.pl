@@ -98,11 +98,11 @@ foreach my $file (@{$cf{'prev_job_files'}}){
       print RUN "$cf{job_id}\t$output_fn\n";
     } else {
       # Oops - can't find the output file! Err...
-      warn "\nPicard Dedup output file $output_fn not found..\n";
+      warn "\n###CF Error! Picard Dedup output file $output_fn not found..\n";
     }
   } else {
     # Command returned a non-zero result, probably went wrong...
-    warn "\n###CF Error! Picard Dedup failed: $? $!\n\n";
+    warn "\n###CF Error! Picard Dedup failed for '$file': $? $!\n\n";
   }
 }
 
