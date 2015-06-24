@@ -62,7 +62,7 @@ foreach my $file (@{$cf{'prev_job_files'}}){
     my $timestart = time;
 
     # Check that input is bed file
-    if(!($file =~ /\.bed$/)){
+    if($file !~ /\.bed$/i){
 	warn "\n###CF Error! bedToNrf failed: bed file expected, got $file\n\n";
 	next;
     }

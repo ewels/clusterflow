@@ -75,8 +75,8 @@ foreach my $file (@{$cf{'prev_job_files'}}){
     # Start the clock...
     my $timestart = time;
 
-    # Check that input is bed file
-    if(!($file =~ /\.bam$/)){
+    # Check that input is bam file
+    if($file !~ /\.bam$/i){
        	next;
     }
 
