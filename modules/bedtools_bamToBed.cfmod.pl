@@ -70,7 +70,9 @@ foreach my $file (@{$cf{'prev_job_files'}}){
   }
   
   # Generate a nice output file name
-  my $output_fn = $file.".bed";
+  (my $output_fn = $file) =~ s/\.bam//i;
+  $output_fn .= ".bed";
+  ##my $output_fn = $file.".bed";
   my $tmpFile = $file."_TOSORT.bed";
 
 
@@ -89,6 +91,7 @@ foreach my $file (@{$cf{'prev_job_files'}}){
   } else {
     # Command returned a non-zero result, probably went wrong...
     warn "\n###CF Error! Bedtools bamToBed failed: $? $!\n\n";
+    next;
   }
 
   
