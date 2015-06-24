@@ -71,7 +71,7 @@ foreach my $file (@{$cf{'prev_job_files'}}){
     my $output_fn = $file."_nrf.txt";
     
     # Go through bed file and compute NRF (non redundant fraction) of reads.
-    open(IN,"<$file")||die "###CF Error! bedToNrf failed: $!\n";
+    open(IN,"<$file") || die "###CF Error! bedToNrf could not load input file '$file': $!\n";
     my $Tcnt=0;
     my $prev="NA";
     my $lcnt=0;
