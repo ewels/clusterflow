@@ -45,7 +45,15 @@ my %requirements = (
 
 
 # The help text
-my $helptext = "".("-"x15)."\n DeepTools bamFingerprint\n".("-"x15)."\nTakes two input files: a bam file and a _crosscorrelation.txt file, as created by phantompeaktools. Creates a \"fingerprint\" plot of the read coverage, using deepTools/bamFingerprint. Outputs are are plot files named basename_fingerprint.png. The fragment length is set using 1) the input parameter fragmentLength 2) the file _crosscorrelation.txt and 3) default fragment length of 200 (if no input parameter is set and the file _crosscorrelation.txt doesn't exist). Currently expects a locally installed bamFingerprint.\n\n";
+my $helptext = "".("-"x15)."\n DeepTools bamFingerprint\n".("-"x15)."\n
+Takes two input files: a bam file and a _crosscorrelation.txt file, 
+as created by phantompeaktools. Creates a \"fingerprint\" plot of 
+the read coverage, using deepTools/bamFingerprint. Outputs are are 
+plot files named basename_fingerprint.png. The fragment length is set
+using 1) the input parameter fragmentLength 2) the file _crosscorrelation.txt
+and 3) default fragment length of 200 (if no input parameter is set 
+and the file _crosscorrelation.txt doesn't exist). Currently expects
+a locally installed bamFingerprint.\n\n";
 
 
 # Start your engines...

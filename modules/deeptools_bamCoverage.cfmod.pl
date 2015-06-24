@@ -44,7 +44,14 @@ my %requirements = (
 
 
 # The help text
-my $helptext = "".("-"x15)."\n DeepTools bamCoverage\n".("-"x15)."\n Takes two input files: a bam file and a _crosscorrelation.txt file, as created by phantompeaktools. Creates a bigWig coverage file, using deepTools/bamCoverage. Outputs are are bw files named basename.bw. The fragment length is set using 1) the input parameter fragmentLength 2) the file _crosscorrelation.txt and 3) default fragment length of 200 (if no input parameter is set and the file _crosscorrelation.txt doesn't exist). Currently this module expects a locally installed bamCoverage script.\n\n";
+my $helptext = "".("-"x15)."\n DeepTools bamCoverage\n".("-"x15)."\n 
+Takes two input files: a bam file and a _crosscorrelation.txt file, 
+as created by phantompeaktools. Creates a bigWig coverage file,
+using deepTools/bamCoverage. Outputs are are bw files named basename.bw.
+The fragment length is set using 1) the input parameter fragmentLength 
+2) the file _crosscorrelation.txt and 3) default fragment length of 200 
+(if no input parameter is set and the file _crosscorrelation.txt doesn't exist). 
+Currently this module expects a locally installed bamCoverage script.\n\n";
 
 # Start your engines...
 my %cf = CF::Helpers::module_start(\%requirements, $helptext);

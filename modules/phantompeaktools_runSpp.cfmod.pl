@@ -44,7 +44,12 @@ my %requirements = (
 
 # The help text
 my $helptext = "".("-"x15)."\nPhantompeaktools run SPP".("-"x15)."\n
-Takes (deduplicated) bam files as input and runs cross correlation analysis, using the run_spp.r script from the pantompeaktools packeage. Outputs for each bam file are basename_crosscorrelation.pdf (a cross correlation plot) and  basename_crosscorrelation.txt (a text file with various cross correlation statistics). For convenience the input bam file is also passed on as output to be used by the next script in the pipeline.\n\n";
+Takes (deduplicated) bam files as input and runs cross correlation analysis, 
+using the run_spp.r script from the pantompeaktools packeage. Outputs for 
+each bam file are basename_crosscorrelation.pdf (a cross correlation plot)
+and  basename_crosscorrelation.txt (a text file with various cross correlation
+statistics). For convenience the input bam file is also passed on as output
+to be used by the next script in the pipeline.\n\n";
 
 # The script we will run. Now hard coded path. FIX THIS!!
 my $runSppScript = "/home/jacke/bin/run_spp_nodups.R";

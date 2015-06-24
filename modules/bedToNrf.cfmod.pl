@@ -45,9 +45,9 @@ my %requirements = (
 
 # The help text
 my $helptext = "".("-"x15)."\n BedToNrf\n".("-"x15)."\n
-Takes bed file and computes the NRF (non-redundant fraction).
-Uses code taken from https://github.com/mel-astar/mel-ngs/blob/master/mel-chipseq/chipseq-metrics/CalBedNrf.pl
-Output is a txt file with the total number of reads, the number of unique reads and the  NRF. 
+Takes bed file and computes the NRF (non-redundant fraction). Uses code taken from 
+https://github.com/mel-astar/mel-ngs/blob/master/mel-chipseq/chipseq-metrics/CalBedNrf.pl
+Output is a txt file with the total number of reads, the number of unique reads and the NRF. 
 This file is named basename_nrf.txt.\n\n";
 
 # Start your engines...
