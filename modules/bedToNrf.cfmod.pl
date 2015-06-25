@@ -90,7 +90,7 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 
     # Print results to out file: nr total reads, nr unique reads, NRF
     open(OUT,"> $output_fn") || die "###CF Error! bedToNrf could not open output file '$output_fn' for writing: $!\n";
-    print OUT "$Tcnt\t$lcnt\t".($Tcnt/$lcnt)."\n";
+    printf OUT "%d\t%d\t%.3f\n", $Tcnt, $lcnt, ($Tcnt/$lcnt);
     close(OUT);
 
 

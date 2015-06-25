@@ -50,21 +50,18 @@ and  basename_crosscorrelation.txt (a text file with various cross correlation
 statistics). For convenience the input bam file is also passed on as output
 to be used by the next script in the pipeline.\n\n";
 
-# The script we will run.
-use Env qw(PATH);
+# Start your engines...
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
+
+# Find the script we will run.
 my $runSppScript = 0;
-foreach my $path (split(/:/, $PATH)){
+foreach my $path (split(/:/, $ENV{'PATH'})){
     if(-e "$path/run_spp_nodups.R"){
         $runSppScript = "$path/run_spp_nodups.R";
         last;
     }
 }
 die "###CF Error - could not find phantompeaktools run_spp_nodups.R script" unless($runSppScript);
-
-
-
-# Start your engines...
-my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 # Open up our run file in append mode
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
