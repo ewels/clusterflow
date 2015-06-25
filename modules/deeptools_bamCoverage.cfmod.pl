@@ -92,9 +92,10 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 	my @entries = split(/\s+/, $line1);
 	my $crossCorrelationStr = $entries[2];
 	my @crossCorrelations  = split(/\,/, $crossCorrelationStr);
-	my $nrPeaks = @crossCorrelations;
 	
-	$fragmentLength = $crossCorrelations[floor($nrPeaks/2)]; ## use the middle peak
+	## my $nrPeaks = @crossCorrelations;
+	## $fragmentLength = $crossCorrelations[floor($nrPeaks/2)]; ## use the middle peak
+	$fragmentLength = $crossCorrelations[0]; ## use the first peak (the peaks are ordered on height?
 	warn "###CF bamCoverage: Using fragment length from phantompeaktools cross correlation analysis: $fragmentLength.\n";
     } else { # Else, use default value and give warning
 	$fragmentLength = $defaultFragLen;
