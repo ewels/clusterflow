@@ -75,27 +75,31 @@ foreach my $file (@{$cf{'prev_job_files'}}){
   my $tmpFile = $file."_TOSORT.bed";
 
 
-  # Convert to bed format
-  my $cmd = "bamToBed -i $file > $tmpFile";
-  warn "\n###CFCMD $cmd\n\n";
-  
-  # Try to run the command - returns 0 on success (which evaluated to false)
-  if(!system ($cmd)){
-    # Command worked!
-    # Work out how long the processing took
-    my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-    
-    # Print a success message to the log file which will be e-mailed out
-    warn "###CF bamToBed successfully exited, took $duration..\n";
-  } else {
-    # Command returned a non-zero result, probably went wrong...
-    warn "\n###CF Error! Bedtools bamToBed failed: $? $!\n\n";
-    next;
-  }
+  ## New test
+  my $cmd = "bamToBed -i $file | sort -k 1,1 -k2,2n > $output_fn";
+
+
+  # # Convert to bed format
+  # my $cmd = "bamToBed -i $file > $tmpFile";
+  # warn "\n###CFCMD $cmd\n\n";
+  # 
+  # # Try to run the command - returns 0 on success (which evaluated to false)
+  # if(!system ($cmd)){
+  #   # Command worked!
+  #   # Work out how long the processing took
+  #   my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+  #   
+  #   # Print a success message to the log file which will be e-mailed out
+  #   warn "###CF bamToBed successfully exited, took $duration..\n";
+  # } else {
+  #   # Command returned a non-zero result, probably went wrong...
+  #   warn "\n###CF Error! Bedtools bamToBed failed: $? $!\n\n";
+  #   next;
+  # }
 
   
-  # Sort bed file
-  $cmd = "sortBed -i $tmpFile > $output_fn";
+  # # Sort bed file
+  # $cmd = "sortBed -i $tmpFile > $output_fn";
   warn "\n###CFCMD $cmd\n\n";
   
   # Try to run the command - returns 0 on success (which evaluated to false)
