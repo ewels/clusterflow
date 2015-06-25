@@ -77,7 +77,8 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 
     # Check that input is bam file
     if($file !~ /\.bam$/i){
-       	next;
+       	warn "Skipping '$file' as not a BAM file..\n";
+	next;
     }
 
     my $crossCorrelationFile = $file."_crosscorrelation.txt"; # name of corresponding _crosscorrelation.txt file

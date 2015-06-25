@@ -73,6 +73,7 @@ foreach my $file (@{$cf{'prev_job_files'}}){
     
     # Check that input is bam file
     if($file !~ /\.bam$/i){
+        warn "Skipping '$file' as not a BAM file..\n";
        	next;
     }
     

@@ -52,8 +52,6 @@ statistics). For convenience the input bam file is also passed on as output
 to be used by the next script in the pipeline.\n\n";
 
 # The script we will run.
-## my $runSppScript = "/home/jacke/bin/run_spp_nodups.R";
-
 use Env qw(PATH);
 my $runSppScript = 0;
 foreach my $path (split(/:/, $PATH)){
