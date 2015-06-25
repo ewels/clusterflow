@@ -6,7 +6,6 @@ use FindBin qw($Bin);
 use lib "$FindBin::Bin/../source";
 use CF::Constants;
 use CF::Helpers;
-use File::Copy qw(move);
 
 ##########################################################################
 # Copyright 2014, Philip Ewels (phil.ewels@babraham.ac.uk)               #
@@ -44,8 +43,8 @@ my %requirements = (
 
 # The help text
 my $helptext = "".("-"x15)."\nPhantompeaktools run SPP".("-"x15)."\n
-Takes (deduplicated) bam files as input and runs cross correlation analysis, 
-using the run_spp.r script from the pantompeaktools packeage. Outputs for 
+Takes (deduplicated) bam files as input and runs cross correlation analysis,
+using the run_spp.r script from the pantompeaktools packeage. Outputs for
 each bam file are basename_crosscorrelation.pdf (a cross correlation plot)
 and  basename_crosscorrelation.txt (a text file with various cross correlation
 statistics). For convenience the input bam file is also passed on as output
@@ -79,7 +78,7 @@ foreach my $file (@{$cf{'prev_job_files'}}){
   if($file !~ /\.bam$/i){
       warn "\n###CF Error! Phantompeaktools failed: bam file expected, got $file\n\n";
       next;
-  } 
+  }
 
   # Generate a nice output file name
   my $outputPlot = $file."_crosscorrelation.pdf";
@@ -89,16 +88,16 @@ foreach my $file (@{$cf{'prev_job_files'}}){
   # Convert to bed format
   my $cmd = "Rscript $runSppScript -c=$file -savp=$outputPlot -out=$outputStats";
   warn "\n###CFCMD $cmd\n\n";
-  
+
   # Try to run the command - returns 0 on success (which evaluated to false)
   if(!system ($cmd)){
       # Command worked!
       # Work out how long the processing took
       my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-      
+
       # Print a success message to the log file which will be e-mailed out
       warn "###CF Phantompeaktools run SPP successfully exited, took $duration..\n";
-      
+
       # Check if we can find the output plot!
       if(!(-e $outputPlot)){
 	  # Oops - can't find the output file! Err...
