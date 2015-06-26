@@ -41,6 +41,7 @@ my $pipeline;
 # These are fetched from the config, but can be overwritten on the cl
 my $SPLIT_FILES = $CF::Constants::SPLIT_FILES;
 my $MAX_RUNS = $CF::Constants::MAX_RUNS;
+my $TIME_MULTIPLIER = $CF::Constants::TIME_MULTIPLIER;
 my $MERGE_REGEX = $CF::Constants::MERGE_REGEX;
 my $CLUSTER_ENVIRONMENT = $CF::Constants::CLUSTER_ENVIRONMENT;
 my $PRIORITY = $CF::Constants::PRIORITY;
@@ -89,6 +90,7 @@ my $config_result = GetOptions(
 	"project=s" => \$C_PROJECT,
 	"cores=i" => \$TOTAL_CORES,
 	"mem=s" => \$TOTAL_MEM,
+	"time=f" => \$TIME_MULTIPLIER,
 	"environment=s" => \$CLUSTER_ENVIRONMENT,
 	"notifications=s"  => \$cl_notifications,
 	"pipelines" => \$cl_list_pipelines,
@@ -1031,6 +1033,9 @@ sub get_mod_requirements {
 		warn "\nWarning: error parsing requirements for $module_fn\n  - ".join("\n  - ", @errors)."\n";
 		warn "Requirments request command: $req_cmd\nResponse:\n".`$req_cmd 2>&1`."\n";
 	}
+
+	# Adjust time request by time multiplier
+	$time *= $TIME_MULTIPLIER;
 
     return ($cores, $mem, $time);
 }

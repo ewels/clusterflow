@@ -43,6 +43,8 @@ Alternatively, you can download a [.zip file](https://github.com/ewels/clusterfl
 	* The `--make_config` wizard has been renamed to `--setup` and does a lot more stuff
         * Should make first-run of Cluster Flow much easier - just download and run `cf --setup`
 	* Support for STAR RNA-seq aligner (thanks to [@stu2](https://github.com/stu2))
+	* New ChIP-Seq analysis pipeline (thanks to [@orzechoj](https://github.com/orzechoj))
+		* Includes six new modules: `bedToNrf`, `bedtools_bamToBed`, `deeptools_bamCoverage`, `deeptools_bamFingerprint`, `phantompeaktools_runSpp` and `picard_dedup`
 	* Modules are given more information via the run file to help
        decide the amount of memory and cores they bid for (eg. number of files, reference)
 	* All perl scripts now have `env perl` in shebang to increase portability

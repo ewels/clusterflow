@@ -6,8 +6,6 @@ use FindBin qw($Bin);
 use lib "$FindBin::Bin/../source";
 use CF::Constants;
 use CF::Helpers;
-use File::Copy qw(move);
-use POSIX;
 
 ##########################################################################
 # Copyright 2014, Philip Ewels (phil.ewels@babraham.ac.uk)               #
@@ -44,19 +42,19 @@ my %requirements = (
 
 
 # The help text
-my $helptext = "".("-"x15)."\n DeepTools bamCoverage\n".("-"x15)."\n 
-Takes two input files: a bam file and a _crosscorrelation.txt file, 
+my $helptext = "".("-"x15)."\n DeepTools bamCoverage\n".("-"x15)."\n
+Takes two input files: a bam file and a _crosscorrelation.txt file,
 as created by phantompeaktools. Creates a bigWig coverage file,
 using deepTools/bamCoverage. Outputs are are bw files named basename.bw.
-The fragment length is set using 1) the input parameter fragmentLength 
-2) the file _crosscorrelation.txt and 3) default fragment length of 200 
-(if no input parameter is set and the file _crosscorrelation.txt doesn't exist). 
+The fragment length is set using 1) the input parameter fragmentLength
+2) the file _crosscorrelation.txt and 3) default fragment length of 200
+(if no input parameter is set and the file _crosscorrelation.txt doesn't exist).
 Currently this module expects a locally installed bamCoverage script.\n\n";
 
 # Start your engines...
 my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
-my $defaultFragLen = 200; # If fragment length not defined, use this value. 
+my $defaultFragLen = 200; # If fragment length not defined, use this value.
 
 # Print version information about the program to be executed.
 warn "---------- bamCoverage  version information ----------\n";
@@ -70,29 +68,29 @@ open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $
 foreach my $file (@{$cf{'prev_job_files'}}){
     # Start the clock...
     my $timestart = time;
-    
+
     # Check that input is bam file
     if($file !~ /\.bam$/i){
         warn "Skipping '$file' as not a BAM file..\n";
        	next;
     }
-    
+
     my $crossCorrelationFile = $file."_crosscorrelation.txt"; # name of corresponding _crosscorrelation.txt file
-    
+
     # set fragment length:
     my $fragmentLength = -1;
-    
+
     # If paramater fragmentLength is set, use this value
     if(defined($cf{'params'}{'fragmentLength'})){
 	$fragmentLength = $cf{'params'}{'fragmentLength'};
 	warn "###CF bamCoverage: Using fragment length set as parameter: $fragmentLength.\n";
-    } elsif(-e $crossCorrelationFile){ # Else, look for fragment length in _crosscorrelation.txt file 
+    } elsif(-e $crossCorrelationFile){ # Else, look for fragment length in _crosscorrelation.txt file
 	open(IN,"$crossCorrelationFile") or die "Cannot open $crossCorrelationFile";
 	my $line1 = <IN>; # Just reads first line
 	my @entries = split(/\s+/, $line1);
 	my $crossCorrelationStr = $entries[2];
 	my @crossCorrelations  = split(/\,/, $crossCorrelationStr);
-	
+
 	## my $nrPeaks = @crossCorrelations;
 	## $fragmentLength = $crossCorrelations[floor($nrPeaks/2)]; ## use the middle peak
 	$fragmentLength = $crossCorrelations[0]; ## use the first peak (the peaks are ordered on height?
@@ -104,20 +102,20 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 
     # Generate a nice output file name
     my $output_fn = $file."_coverage.bw";
-    
+
     # Run bamCoverage, to get bigWig file
     my $cmd = "bamCoverage -f $fragmentLength -p $cf{cores} -b $file -o $output_fn";
-    warn "\n###CFCMD $cmd\n\n";    
-    
+    warn "\n###CFCMD $cmd\n\n";
+
     # Try to run the command - returns 0 on success (which evaluated to false)
     if(!system ($cmd)){
 	# Command worked!
 	# Work out how long the processing took
 	my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-	
+
 	# Print a success message to the log file which will be e-mailed out
 	warn "###CF bamCoverage successfully exited, took $duration..\n";
-	
+
 	# Check we can find our output filename!
 	if(-e $output_fn){
 	    # Print the current job ID and the output filename to the run file

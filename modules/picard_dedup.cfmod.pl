@@ -6,7 +6,6 @@ use FindBin qw($Bin);
 use lib "$FindBin::Bin/../source";
 use CF::Constants;
 use CF::Helpers;
-use File::Copy qw(move);
 
 ##########################################################################
 # Copyright 2014, Philip Ewels (phil.ewels@babraham.ac.uk)               #
@@ -77,20 +76,20 @@ foreach my $file (@{$cf{'prev_job_files'}}){
   # Generate a nice output file name
   my $output_fn = $file."_dedup.bam";
   my $metricsFile = $file."_picardDupMetrics.txt";
-  
+
   # Remove duplicates
   my $cmd = "java -Xmx2g -jar $md INPUT=$file OUTPUT=$output_fn ASSUME_SORTED=true REMOVE_DUPLICATES=true METRICS_FILE=$metricsFile VALIDATION_STRINGENCY=LENIENT";
   warn "\n###CFCMD $cmd\n\n";
-  
+
   # Try to run the command - returns 0 on success (which evaluated to false)
   if(!system ($cmd)){
     # Command worked!
     # Work out how long the processing took
     my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-    
+
     # Print a success message to the log file which will be e-mailed out
     warn "###CF Picard Dedup successfully exited, took $duration..\n";
-    
+
     # Check we can find our output filename!
     if(-e $output_fn){
       # Print the current job ID and the output filename to the run file

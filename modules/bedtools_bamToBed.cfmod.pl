@@ -6,7 +6,6 @@ use FindBin qw($Bin);
 use lib "$FindBin::Bin/../source";
 use CF::Constants;
 use CF::Helpers;
-use File::Copy qw(move);
 
 ##########################################################################
 # Copyright 2014, Philip Ewels (phil.ewels@babraham.ac.uk)               #
@@ -68,7 +67,7 @@ foreach my $file (@{$cf{'prev_job_files'}}){
       warn "\n###CF Error! bedtools_bamToBed failed: bam file expected, got $file\n\n";
       next;
   }
-  
+
   # Generate a nice output file name
   (my $output_fn = $file) =~ s/\.bam//i;
   $output_fn .= ".bed";
@@ -78,16 +77,16 @@ foreach my $file (@{$cf{'prev_job_files'}}){
   ## Convert bam to bed, and sort result
   my $cmd = "bamToBed -i $file | sort -k 1,1 -k2,2n > $output_fn";
   warn "\n###CFCMD $cmd\n\n";
-  
+
   # Try to run the command - returns 0 on success (which evaluated to false)
   if(!system ($cmd)){
     # Command worked!
     # Work out how long the processing took
     my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-    
+
     # Print a success message to the log file which will be e-mailed out
     warn "###CFBedtools bamToBed successfully exited, took $duration..\n";
-    
+
     # Check we can find our output filename!
     if(-e $output_fn){
       # Print the current job ID and the output filename to the run file
@@ -101,7 +100,7 @@ foreach my $file (@{$cf{'prev_job_files'}}){
     # Command returned a non-zero result, probably went wrong...
     warn "\n###CF Error! Bedtools bamToBed failed for '$file': $? $!\n\n";
   }
-  
+
   # clean up temp file
   unlink($tmpFile) if (-e $tmpFile);
 }

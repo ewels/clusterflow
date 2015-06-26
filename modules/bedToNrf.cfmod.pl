@@ -6,7 +6,6 @@ use FindBin qw($Bin);
 use lib "$FindBin::Bin/../source";
 use CF::Constants;
 use CF::Helpers;
-use File::Copy qw(move);
 
 ##########################################################################
 # Copyright 2014, Philip Ewels (phil.ewels@babraham.ac.uk)               #
@@ -45,9 +44,9 @@ my %requirements = (
 
 # The help text
 my $helptext = "".("-"x15)."\n BedToNrf\n".("-"x15)."\n
-Takes bed file and computes the NRF (non-redundant fraction). Uses code taken from 
+Takes bed file and computes the NRF (non-redundant fraction). Uses code taken from
 https://github.com/mel-astar/mel-ngs/blob/master/mel-chipseq/chipseq-metrics/CalBedNrf.pl
-Output is a txt file with the total number of reads, the number of unique reads and the NRF. 
+Output is a txt file with the total number of reads, the number of unique reads and the NRF.
 This file is named basename_nrf.txt.\n\n";
 
 # Start your engines...
@@ -70,10 +69,10 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 	warn "\n###CF Error! bedToNrf failed: bed file expected, got $file\n\n";
 	next;
     }
-    
+
     # Generate a nice output file name
     my $output_fn = $file."_nrf.txt";
-    
+
     # Go through bed file and compute NRF (non redundant fraction) of reads.
     open(IN,"<$file") || die "###CF Error! bedToNrf could not load input file '$file': $!\n";
     my $Tcnt=0;
@@ -91,16 +90,16 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 
     # Print results to out file: nr total reads, nr unique reads, NRF
     open(OUT,"> $output_fn") || die "###CF Error! bedToNrf could not open output file '$output_fn' for writing: $!\n";
-    print OUT "$Tcnt\t$lcnt\t".($Tcnt/$lcnt)."\n";
+    printf OUT "%d\t%d\t%.3f\n", $Tcnt, $lcnt, ($Tcnt/$lcnt);
     close(OUT);
-    
-    
+
+
     my $duration = CF::Helpers::parse_seconds(time - $timestart);
-     
+
     # Check we can find our output filename!
     if(-e $output_fn){
 	warn "###CF bedToNrf done, took $duration..\n";
-	
+
 	# Print the current job ID and the output filename to the run file
 	# This is so that subsequent modules can use this output
 	print RUN "$cf{job_id}\t$output_fn\n";

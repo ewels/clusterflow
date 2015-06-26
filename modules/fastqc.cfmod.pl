@@ -36,7 +36,7 @@ my %requirements = (
 		my $num_files = $cf->{'num_starting_merged_files'};
 		$num_files = ($num_files > 0) ? $num_files : 1;
 		# FastQC typically takes less than 12 minutes per file
-		return CF::Helpers::minutes_to_timestamp ($num_files * 20);
+		return CF::Helpers::minutes_to_timestamp ($num_files * 40);
 	}
 );
 
