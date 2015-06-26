@@ -1,3 +1,4 @@
+
 /*
 Clusterflow Config
 -------------------
@@ -22,6 +23,7 @@ These will be overwritten by any with the same name in ~/.clusterflow/clusterflo
 @total_cores	64
 @total_mem	128G
 @max_runs       12
+@time_multiplier    1
 
 /***********************/
 /* Cluster Environment */

@@ -49,6 +49,7 @@ our $PRIORITY;
 our $TOTAL_CORES = 64;
 our $TOTAL_MEM = '4G';
 our $MAX_RUNS = 12;
+our $TIME_MULTIPLIER = 1;
 our $CLUSTER_ENVIRONMENT = '';
 our $CUSTOM_JOB_SUBMIT_COMMAND;
 our $CF_MODULES = 1;
@@ -143,6 +144,9 @@ sub parse_conf_file {
                     }
                     if($name eq 'max_runs'){
                         $MAX_RUNS = $val;
+                    }
+                    if($name eq 'time_multiplier'){
+                        $TIME_MULTIPLIER = $val;
                     }
                     if($name eq 'total_cores'){
                         $TOTAL_CORES = $val;
@@ -476,6 +480,10 @@ RARE FLAGS
 
     --mem <string>
         Set the maximum memory to use for all runs
+
+    --time <num>
+        Time multiplier - set to above 1 to increase the time requested
+        for all jobs (useful when the cluster is running slowly)
 
     --environment <local | GRIDEngine | SLURM | LSF>
         Over-ride the cluster environment to use (useful for local testing)
