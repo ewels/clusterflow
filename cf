@@ -1035,7 +1035,10 @@ sub get_mod_requirements {
 	}
 
 	# Adjust time request by time multiplier
-	$time *= $TIME_MULTIPLIER;
+	if($TIME_MULTIPLIER != 1){
+		$time = CF::Helpers::minutes_to_timestamp(CF::Helpers::timestamp_to_minutes($time) * $TIME_MULTIPLIER);
+
+	}
 
     return ($cores, $mem, $time);
 }
