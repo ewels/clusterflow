@@ -419,7 +419,6 @@ sub parse_job_dependency_hash {
 		if($jobname eq $parent){
 			${$hashref}{$key}{children}{$jid} = \%$jobhash;
 		} elsif (scalar(keys(%{${$hashref}{$key}{children}})) > 0){
-			no warnings 'recursion';
 			parse_job_dependency_hash(\%{${$hashref}{$key}{children}}, $parent, $jid, \%$jobhash);
 		}
 	}
@@ -443,30 +442,18 @@ sub print_jobs_output {
 			$pipeline_wd = $pipeline_wds->{$pipelinekey};
 		}
 
-		my $header = "\n".('=' x 70)."\n";
-		$header .= sprintf("%-24s%-44s\n", " Cluster Flow Pipeline:", $pipeline);
-		$header .= sprintf("%-24s%-44s\n", " Submitted:", CF::Helpers::parse_seconds(time - $pipelines->{$pipelinekey}{started})." ago");
-		$header .= sprintf("%-24s%-44s\n", " Working Directory:", $pipeline_wd) if $pipeline_wd;
-		$header .= sprintf("%-24s%-44s\n", " Cluster Flow ID:", $pipelinekey);
-		$header .= "".('=' x 70)."\n";
-		my $num_qdl = 0;
-		print_jobs_pipeline_output(\%{$jobs}, 0, \$num_qdl, \$output, $all_users, $cols, $pipelinekey);
-		# Print the number of queued downloads
-		if($num_qdl > 0){
-			$header .= "\n - ";
-			$header .= color 'yellow on_white' if($cols);
-			$header .= ' ' if($cols);
-			$header .= "$num_qdl file".($num_qdl > 1 ? 's':'');
-			$header .= ' ' if($cols);
-			$header .= color 'reset' if($cols);
-			$header .= " in download queue\n";
-		}
-		$output = $header . $output;
+		$output .= "\n".('=' x 70)."\n";
+		$output .= sprintf("%-24s%-44s\n", " Cluster Flow Pipeline:", $pipeline);
+		$output .= sprintf("%-24s%-44s\n", " Submitted:", CF::Helpers::parse_seconds(time - $pipelines->{$pipelinekey}{started})." ago");
+		$output .= sprintf("%-24s%-44s\n", " Working Directory:", $pipeline_wd) if $pipeline_wd;
+		$output .= sprintf("%-24s%-44s\n", " Cluster Flow ID:", $pipelinekey);
+		$output .= "".('=' x 70)."\n";
+		print_jobs_pipeline_output(\%{$jobs}, 0, \$output, $all_users, $cols, $pipelinekey);
 	}
 
 	# Go through jobs which don't have a pipeline
 	my $notcf_output = "";
-	print_jobs_pipeline_output(\%{$jobs}, 0, 0, \$notcf_output, $all_users, $cols, 'unknown');
+	print_jobs_pipeline_output(\%{$jobs}, 0, \$notcf_output, $all_users, $cols, 'unknown');
 	if(length($notcf_output) > 0){
 		$output .= "\n".('=' x 70)."\n";
 		$output .= "  Not Cluster Flow Jobs  ";
@@ -476,7 +463,7 @@ sub print_jobs_output {
 
 	# Go through Queing jobs which don't have a pipeline
 	my $notcfpending_output = "";
-	print_jobs_pipeline_output(\%{$jobs}, 0, 0, \$notcfpending_output, $all_users, $cols, 'unknown_pending');
+	print_jobs_pipeline_output(\%{$jobs}, 0, \$notcfpending_output, $all_users, $cols, 'unknown_pending');
 	if(length($notcfpending_output) > 0){
 		$output .= "\n".('=' x 70)."\n";
 		$output .= "  Not Cluster Flow Jobs - Queing  ";
@@ -490,11 +477,9 @@ sub print_jobs_output {
 
 sub print_jobs_pipeline_output {
 
-	my ($hashref, $depth, $num_qdl, $output, $all_users, $cols, $pipeline) = @_;
+	my ($hashref, $depth, $output, $all_users, $cols, $pipeline) = @_;
 
 	foreach my $key (keys (%{$hashref}) ){
-
-		my $thisoutput = '';
 
 		# Ignore this unless this is part of the pipeline we're printing
 		next unless (${$hashref}{$key}{'pipelinekey'} eq $pipeline || $depth > 0);
@@ -502,69 +487,69 @@ sub print_jobs_pipeline_output {
 		my $children = scalar(keys(%{${$hashref}{$key}{'children'}}));
 
 		if($depth == 0){
-			$thisoutput .= "\n";
+			${$output} .= "\n";
 		}
 
-		$thisoutput .= " ".(" " x ($depth*5))."- ";
+		${$output} .= " ".(" " x ($depth*5))."- ";
 
 		if(${$hashref}{$key}{'state'} eq 'running' && $cols){
-			$thisoutput .= color 'red on_white';
-			$thisoutput .= " ";
+			${$output} .= color 'red on_white';
+			${$output} .= " ";
 		} elsif(${$hashref}{$key}{'state'} eq 'deleting' && $cols){
-			$thisoutput .= color 'white on_red';
-			$thisoutput .= " ";
+			${$output} .= color 'white on_red';
+			${$output} .= " ";
 		} elsif ($depth == 0 && $cols) {
-			$thisoutput .= color 'yellow on_white';
-			$thisoutput .= " ";
+			${$output} .= color 'yellow on_white';
+			${$output} .= " ";
 		}
 
 		if(${$hashref}{$key}{'state'} eq 'deleting'){
-			$thisoutput .= "** Terminating ** ";
+			${$output} .= "** Terminating ** ";
 		}
 		if(${$hashref}{$key}{'module'}){
-			$thisoutput .= ${$hashref}{$key}{'module'};
+			${$output} .= ${$hashref}{$key}{'module'};
 		} else {
-			$thisoutput .= ${$hashref}{$key}{'jobname'};
+			${$output} .= ${$hashref}{$key}{'jobname'};
 		}
 
 		if($cols){
-			$thisoutput .= " ";
-			$thisoutput .= color 'reset';
+			${$output} .= " ";
+			${$output} .= color 'reset';
 		}
 
 		# Extra info for running jobs
 		# if(${$hashref}{$key}{state} eq 'running'){
 		if($depth == 0){
 
-			my @lines = split("\n", $thisoutput);
+			my @lines = split("\n", ${$output});
 			my $lastline = pop(@lines);
 			my $chars = length($lastline);
 			my $spaces = 50 - $chars;
-			$thisoutput .= (" " x $spaces);
+			${$output} .= (" " x $spaces);
 
 
 			if($all_users){
-				$thisoutput .= color 'green' if $cols;
+				${$output} .= color 'green' if $cols;
 				my $user = " {".${$hashref}{$key}{'owner'}."} ";
-				$thisoutput .= $user;
-				$thisoutput .= color 'reset' if $cols;
+				${$output} .= $user;
+				${$output} .= color 'reset' if $cols;
 				$spaces = 12 - length($user);
-				$thisoutput .= (" " x $spaces);
+				${$output} .= (" " x $spaces);
 			}
 
-			$thisoutput .= color 'blue' if $cols;
+			${$output} .= color 'blue' if $cols;
 			my $s = ""; $s = "s" if ${$hashref}{$key}{'cores'} > 1;
-			$thisoutput .= " [".${$hashref}{$key}{'cores'}." core$s] ";
-			$thisoutput .= color 'reset' if $cols;
+			${$output} .= " [".${$hashref}{$key}{'cores'}." core$s] ";
+			${$output} .= color 'reset' if $cols;
 
 			unless(${$hashref}{$key}{'state'} =~ /running/i){
-				$thisoutput .= color 'yellow' if $cols;
-				$thisoutput .= " [queued, priority ".${$hashref}{$key}{'priority'}."] ";
-				$thisoutput .= color 'reset' if $cols;
+				${$output} .= color 'yellow' if $cols;
+				${$output} .= " [queued, priority ".${$hashref}{$key}{'priority'}."] ";
+				${$output} .= color 'reset' if $cols;
 				if(length(${$hashref}{$key}{'dependency_reason'}) > 0){
-					$thisoutput .= color 'yellow' if $cols;
-					$thisoutput .= " (Reason: ".${$hashref}{$key}{'dependency_reason'}.")";
-					$thisoutput .= color 'reset' if $cols;
+					${$output} .= color 'yellow' if $cols;
+					${$output} .= " (Reason: ".${$hashref}{$key}{'dependency_reason'}.")";
+					${$output} .= color 'reset' if $cols;
 				}
 			}
 
@@ -573,38 +558,34 @@ sub print_jobs_pipeline_output {
 			my ($year, $month, $day, $hour, $minute, $second) = $timestamp =~ /^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)/;
 			if($second){
 				if(${$hashref}{$key}{'started'}){
-					$thisoutput .= color 'magenta' if $cols;
-					$thisoutput .= "running for ";
+					${$output} .= color 'magenta' if $cols;
+					${$output} .= "running for ";
 					$timestamp = ${$hashref}{$key}{'started'};
 				} else {
-					$thisoutput .= color 'yellow' if $cols;
-					$thisoutput .= "queued for ";
+					${$output} .= color 'yellow' if $cols;
+					${$output} .= "queued for ";
 					$timestamp = ${$hashref}{$key}{'submitted'};
 				}
 				my $time = timelocal($second ,$minute, $hour, $day, $month-1, $year);
 				my $duration = CF::Helpers::parse_seconds(time - $time, 0);
-				$thisoutput .= $duration;
+				${$output} .= $duration;
 			} else {
-				$thisoutput .= $timestamp;
+				${$output} .= $timestamp;
 			}
 
-			$thisoutput .= color 'reset' if $cols;
+			${$output} .= color 'reset' if $cols;
 		}
-		$thisoutput .= "\n";
+		${$output} .= "\n";
 
 		# Now go through and print child jobs
 
 		if($children){
 			if(defined(${$hashref}{$key}{'module'}) and ${$hashref}{$key}{'module'} eq 'download'
 				and defined(${$hashref}{$key}{'state'}) and ${$hashref}{$key}{'state'} ne 'running'){
-				# count the queued download jobs
-				$$num_qdl += 1;
-				# don't increase the depth if this is a download
-				no warnings 'recursion';
-				print_jobs_pipeline_output(\%{${$hashref}{$key}{'children'}}, $depth, \$$num_qdl, \${$output}, $all_users, $cols, $pipeline);
+				# don't increase the depth if this is a download - avoid the huge christmas trees
+				print_jobs_pipeline_output(\%{${$hashref}{$key}{'children'}}, $depth, \${$output}, $all_users, $cols, $pipeline);
 			} else {
-				${$output} .= $thisoutput;
-				print_jobs_pipeline_output(\%{${$hashref}{$key}{'children'}}, $depth + 1, \$num_qdl, \${$output}, $all_users, $cols, $pipeline);
+				print_jobs_pipeline_output(\%{${$hashref}{$key}{'children'}}, $depth + 1, \${$output}, $all_users, $cols, $pipeline);
 			}
 		}
 	}
