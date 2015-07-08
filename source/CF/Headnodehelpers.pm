@@ -428,9 +428,16 @@ sub print_jobs_output {
 
 	my ($jobs, $pipelines, $pipeline_single_job_ids, $pipeline_wds, $cols, $all_users) = @_;
 
+	# Set up counts
+	my %summary_counts;
+	$summary_counts{'pipelines'} = $summary_counts{'running'} = $summary_counts{'dependency'} = $summary_counts{'pending'} = $summary_counts{'deleting'} = 0;
+
 	# Go through hash and create output
 	my $output = "";
 	foreach my $pipelinekey (keys (%{$pipelines})){
+
+		$summary_counts{'pipelines'}++;
+
 		my $pipeline = $pipelinekey;
 		if($pipelinekey =~ /^(.+)_(\d{10})$/){
 			$pipeline = $1;
@@ -472,14 +479,13 @@ sub print_jobs_output {
 	}
 
 	# Print a summary of jobs
-	my $summary_output;
-	my %summary_counts;
-	$summary_counts{'running_count'} = $summary_counts{'dependency_count'} = $summary_counts{'pending_count'} = $summary_counts{'deleting_count'} = 0;
+	my $summary_output; # counts defined at top of subroutine
 	print_jobs_summary(\%{$jobs}, \%summary_counts);
-	if($summary_counts{'running_count'} > 0){ 		$summary_output .= sprintf(" Running Jobs:        %6s\n", $summary_counts{'running_count'}); }
-	if($summary_counts{'pending_count'} > 0){ 		$summary_output .= sprintf(" Queued (Resources):  %6s\n", $summary_counts{'pending_count'}); }
-	if($summary_counts{'dependency_count'} > 0){ 	$summary_output .= sprintf(" Queued (Dependency): %6s\n", $summary_counts{'dependency_count'}); }
-	if($summary_counts{'deleting_count'} > 0){ 		$summary_output .= sprintf(" Jobs being deleted:  %6s\n", $summary_counts{'deleting_count'}); }
+	if($summary_counts{'pipelines'} > 0){ 	$summary_output .= sprintf(" Cluster Flow Pipelines: %6s\n", $summary_counts{'pipelines'}); }
+	if($summary_counts{'running'} > 0){ 		$summary_output .= sprintf(" Running Jobs:           %6s\n", $summary_counts{'running'}); }
+	if($summary_counts{'pending'} > 0){ 		$summary_output .= sprintf(" Queued (Resources):     %6s\n", $summary_counts{'pending'}); }
+	if($summary_counts{'dependency'} > 0){ 	$summary_output .= sprintf(" Queued (Dependency):    %6s\n", $summary_counts{'dependency'}); }
+	if($summary_counts{'deleting'} > 0){ 		$summary_output .= sprintf(" Jobs being deleted:     %6s\n", $summary_counts{'deleting'}); }
 	if($summary_output){
 		$output .= "\n".('=' x 70)."\n Summary Job Counts \n".('=' x 70)."\n$summary_output";
 	}
@@ -614,15 +620,15 @@ sub print_jobs_summary {
 	foreach my $key (keys (%{$hashref}) ){
 
 		# State for this job
-		${$counts}{'running_count'}++ if(${$hashref}{$key}{'state'} =~ /running/i);
+		${$counts}{'running'}++ if(${$hashref}{$key}{'state'} =~ /running/i);
 		if(${$hashref}{$key}{'state'} =~ /pending/i){
 			if(${$hashref}{$key}{'dependency_reason'} =~ /Dependency/i){
-				${$counts}{'dependency_count'}++;
+				${$counts}{'dependency'}++;
 			} else {
-				${$counts}{'pending_count'}++;
+				${$counts}{'pending'}++;
 			}
 		}
-		${$counts}{'deleting_count'}++ if(${$hashref}{$key}{'state'} =~ /deleting/i);
+		${$counts}{'deleting'}++ if(${$hashref}{$key}{'state'} =~ /deleting/i);
 
 		# Recursion to children if we have any
 		my $children = scalar(keys(%{${$hashref}{$key}{'children'}}));
