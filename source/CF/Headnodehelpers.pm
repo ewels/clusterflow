@@ -66,7 +66,7 @@ sub parse_localjobs {
 
     		$output .= "\n".('=' x 70)."\n";
     		$output .= sprintf("%-24s%-44s\n", " Cluster Flow Pipeline:", $pipeline);
-            $output .= sprintf("%-24s%-44s\n", " Top-Level Process ID:", $pid);
+    		$output .= sprintf("%-24s%-44s\n", " Top-Level Process ID:", $pid);
     		$output .= sprintf("%-24s%-44s\n", " Submitted:", CF::Helpers::parse_seconds(time - $started)." ago");
     		$output .= sprintf("%-24s%-44s\n", " Working Directory:", $pipeline_wd) if length($pipeline_wd) > 0;
     		$output .= sprintf("%-24s%-44s\n", " Cluster Flow ID:", $pipelinekey);
@@ -471,6 +471,19 @@ sub print_jobs_output {
 		$output .= $notcfpending_output;
 	}
 
+	# Print a summary of jobs
+	my $summary_output;
+	my %summary_counts;
+	$summary_counts{'running_count'} = $summary_counts{'dependency_count'} = $summary_counts{'pending_count'} = $summary_counts{'deleting_count'} = 0;
+	print_jobs_summary(\%{$jobs}, \%summary_counts);
+	if($summary_counts{'running_count'} > 0){ 		$summary_output .= sprintf(" Running Jobs:        %6s\n", $summary_counts{'running_count'}); }
+	if($summary_counts{'pending_count'} > 0){ 		$summary_output .= sprintf(" Queued (Resources):  %6s\n", $summary_counts{'pending_count'}); }
+	if($summary_counts{'dependency_count'} > 0){ 	$summary_output .= sprintf(" Queued (Dependency): %6s\n", $summary_counts{'dependency_count'}); }
+	if($summary_counts{'deleting_count'} > 0){ 		$summary_output .= sprintf(" Jobs being deleted:  %6s\n", $summary_counts{'deleting_count'}); }
+	if($summary_output){
+		$output .= "\n".('=' x 70)."\n Summary Job Counts \n".('=' x 70)."\n$summary_output";
+	}
+
 	return ("$output\n");
 
 }
@@ -492,10 +505,10 @@ sub print_jobs_pipeline_output {
 
 		${$output} .= " ".(" " x ($depth*5))."- ";
 
-		if(${$hashref}{$key}{'state'} eq 'running' && $cols){
+		if(${$hashref}{$key}{'state'} =~ /running/i && $cols){
 			${$output} .= color 'red on_white';
 			${$output} .= " ";
-		} elsif(${$hashref}{$key}{'state'} eq 'deleting' && $cols){
+		} elsif(${$hashref}{$key}{'state'} =~ /deleting/i && $cols){
 			${$output} .= color 'white on_red';
 			${$output} .= " ";
 		} elsif ($depth == 0 && $cols) {
@@ -503,7 +516,7 @@ sub print_jobs_pipeline_output {
 			${$output} .= " ";
 		}
 
-		if(${$hashref}{$key}{'state'} eq 'deleting'){
+		if(${$hashref}{$key}{'state'} =~ /deleting/i){
 			${$output} .= "** Terminating ** ";
 		}
 		if(${$hashref}{$key}{'module'}){
@@ -592,6 +605,31 @@ sub print_jobs_pipeline_output {
 
 	return (${$output});
 
+}
+
+# Built a summary of all active jobs
+sub print_jobs_summary {
+	my ($hashref, $counts) = @_;
+
+	foreach my $key (keys (%{$hashref}) ){
+
+		# State for this job
+		${$counts}{'running_count'}++ if(${$hashref}{$key}{'state'} =~ /running/i);
+		if(${$hashref}{$key}{'state'} =~ /pending/i){
+			if(${$hashref}{$key}{'dependency_reason'} =~ /Dependency/i){
+				${$counts}{'dependency_count'}++;
+			} else {
+				${$counts}{'pending_count'}++;
+			}
+		}
+		${$counts}{'deleting_count'}++ if(${$hashref}{$key}{'state'} =~ /deleting/i);
+
+		# Recursion to children if we have any
+		my $children = scalar(keys(%{${$hashref}{$key}{'children'}}));
+		if($children){
+			print_jobs_summary(\%{${$hashref}{$key}{'children'}}, \%{${counts}});
+		}
+	}
 }
 
 
