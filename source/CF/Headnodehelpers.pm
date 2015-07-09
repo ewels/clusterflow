@@ -431,6 +431,13 @@ sub print_jobs_output {
 	# Set up counts
 	my %summary_counts;
 	$summary_counts{'pipelines'} = $summary_counts{'running'} = $summary_counts{'dependency'} = $summary_counts{'pending'} = $summary_counts{'deleting'} = 0;
+	my $summary_output; # counts defined at top of subroutine
+	print_jobs_summary(\%{$jobs}, \%summary_counts);
+	if($summary_counts{'pipelines'} > 0){ 	$summary_output .= sprintf(" Cluster Flow Pipelines: %6s\n", $summary_counts{'pipelines'}); }
+	if($summary_counts{'running'} > 0){ 		$summary_output .= sprintf(" Running Jobs:           %6s\n", $summary_counts{'running'}); }
+	if($summary_counts{'pending'} > 0){ 		$summary_output .= sprintf(" Queued (Resources):     %6s\n", $summary_counts{'pending'}); }
+	if($summary_counts{'dependency'} > 0){ 	$summary_output .= sprintf(" Queued (Dependency):    %6s\n", $summary_counts{'dependency'}); }
+	if($summary_counts{'deleting'} > 0){ 		$summary_output .= sprintf(" Jobs being deleted:     %6s\n", $summary_counts{'deleting'}); }
 
 	# Go through hash and create output
 	my $output = "";
@@ -449,11 +456,49 @@ sub print_jobs_output {
 			$pipeline_wd = $pipeline_wds->{$pipelinekey};
 		}
 
+		# See if we can find the number of jobs originally submitted
+		my $sub_log = $pipeline_wd."/cf_".$pipelinekey."_submissionlog.txt";
+		my $submitted_jobs;
+		if(-e $sub_log){
+			if(open(my $sfh, '<', $sub_log)){
+				while (my $srow = <$sfh>){
+					if($srow =~ /Total number of Cluster Flow jobs submitted: (\d+)/){
+						$submitted_jobs = $1;
+						last;
+					}
+				}
+				close $sfh;
+			}
+		}
+        # Get the completed jobs by subtraction
+        my $completed_jobs;
+        if($submitted_jobs){
+            $completed_jobs = $submitted_jobs;
+            $completed_jobs -= $summary_counts{$pipelinekey}{'running'} if $summary_counts{$pipelinekey}{'running'};
+            $completed_jobs -= $summary_counts{$pipelinekey}{'pending'} if $summary_counts{$pipelinekey}{'pending'};
+            $completed_jobs -= $summary_counts{$pipelinekey}{'dependency'} if $summary_counts{$pipelinekey}{'dependency'};
+            $completed_jobs -= $summary_counts{$pipelinekey}{'deleting'} if $summary_counts{$pipelinekey}{'deleting'};
+            $completed_jobs .= sprintf(" (%d%%)", ($completed_jobs/$submitted_jobs)*100);
+        }
+
+        # Make a Queued summary string
+        my $queued_jobs;
+        if ($summary_counts{$pipelinekey}{'pending'}){
+            $queued_jobs .= $summary_counts{$pipelinekey}{'pending'}." (resources)";
+            $queued_jobs .= " / " if $summary_counts{$pipelinekey}{'dependency'};
+        }
+        $queued_jobs .= $summary_counts{$pipelinekey}{'dependency'}." (dependencies)" if $summary_counts{$pipelinekey}{'dependency'};
+
 		$output .= "\n".('=' x 70)."\n";
 		$output .= sprintf("%-24s%-44s\n", " Cluster Flow Pipeline:", $pipeline);
 		$output .= sprintf("%-24s%-44s\n", " Submitted:", CF::Helpers::parse_seconds(time - $pipelines->{$pipelinekey}{started})." ago");
 		$output .= sprintf("%-24s%-44s\n", " Working Directory:", $pipeline_wd) if $pipeline_wd;
 		$output .= sprintf("%-24s%-44s\n", " Cluster Flow ID:", $pipelinekey);
+		$output .= sprintf("%-24s%-44s\n", " Submitted Jobs:", $submitted_jobs) if $submitted_jobs;
+		$output .= sprintf("%-24s%-44s\n", " Running Jobs:", $summary_counts{$pipelinekey}{'running'}) if $summary_counts{$pipelinekey}{'running'};
+		$output .= sprintf("%-24s%-44s\n", " Queued Jobs:", $queued_jobs) if $queued_jobs;
+		$output .= sprintf("%-24s%-44s\n", " Deleting Jobs:", $summary_counts{$pipelinekey}{'deleting'}) if $summary_counts{$pipelinekey}{'deleting'};
+		$output .= sprintf("%-24s%-44s\n", " Completed Jobs:", $completed_jobs) if $completed_jobs;
 		$output .= "".('=' x 70)."\n";
 		print_jobs_pipeline_output(\%{$jobs}, 0, \$output, $all_users, $cols, $pipelinekey);
 	}
@@ -478,14 +523,7 @@ sub print_jobs_output {
 		$output .= $notcfpending_output;
 	}
 
-	# Print a summary of jobs
-	my $summary_output; # counts defined at top of subroutine
-	print_jobs_summary(\%{$jobs}, \%summary_counts);
-	if($summary_counts{'pipelines'} > 0){ 	$summary_output .= sprintf(" Cluster Flow Pipelines: %6s\n", $summary_counts{'pipelines'}); }
-	if($summary_counts{'running'} > 0){ 		$summary_output .= sprintf(" Running Jobs:           %6s\n", $summary_counts{'running'}); }
-	if($summary_counts{'pending'} > 0){ 		$summary_output .= sprintf(" Queued (Resources):     %6s\n", $summary_counts{'pending'}); }
-	if($summary_counts{'dependency'} > 0){ 	$summary_output .= sprintf(" Queued (Dependency):    %6s\n", $summary_counts{'dependency'}); }
-	if($summary_counts{'deleting'} > 0){ 		$summary_output .= sprintf(" Jobs being deleted:     %6s\n", $summary_counts{'deleting'}); }
+	# Print a summary of jobs - numbers are calculated at top of sub
 	if($summary_output){
 		$output .= "\n".('=' x 70)."\n Summary Job Counts \n".('=' x 70)."\n$summary_output";
 	}
@@ -619,16 +657,27 @@ sub print_jobs_summary {
 
 	foreach my $key (keys (%{$hashref}) ){
 
+        # Which pipeline is this job with?
+        my $p = ${$hashref}{$key}{'pipelinekey'};
+
 		# State for this job
-		${$counts}{'running'}++ if(${$hashref}{$key}{'state'} =~ /running/i);
+		if(${$hashref}{$key}{'state'} =~ /running/i){
+            ${$counts}{'running'}++;
+            ${$counts}{$p}{'running'}++;
+        }
 		if(${$hashref}{$key}{'state'} =~ /pending/i){
 			if(${$hashref}{$key}{'dependency_reason'} =~ /Dependency/i){
 				${$counts}{'dependency'}++;
+                ${$counts}{$p}{'dependency'}++;
 			} else {
 				${$counts}{'pending'}++;
+                ${$counts}{$p}{'pending'}++;
 			}
 		}
-		${$counts}{'deleting'}++ if(${$hashref}{$key}{'state'} =~ /deleting/i);
+		if(${$hashref}{$key}{'state'} =~ /deleting/i){
+            ${$counts}{'deleting'}++;
+            ${$counts}{$p}{'deleting'}++;
+        }
 
 		# Recursion to children if we have any
 		my $children = scalar(keys(%{${$hashref}{$key}{'children'}}));

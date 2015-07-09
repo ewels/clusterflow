@@ -1309,7 +1309,8 @@ else {
     # SLURM jobs are already sent, during command building
     if($CLUSTER_ENVIRONMENT =~ /SLURM/i){
         print "\nJobs submitted.\n\n";
-        # Print actual commands to the log file too
+		print SUBMIT "\n\nTotal number of Cluster Flow jobs submitted: ".(scalar @qsubs)."\n";
+        # Print actual commands to the submission log file
         print SUBMIT "\n\n\n\n\nCluster Flow job submission commands:\n".("="x52)."\n\n";
       	foreach(@qsubs){
       		print SUBMIT "$_\n\n";
@@ -1338,8 +1339,9 @@ else {
           chomp($submit_text);
           print SUBMIT "$submit_text\n";
     	}
-      # Print actual commands to the log file too
-      print SUBMIT "\n\n\n\n\nCluster Flow job submission commands:\n".("="x52)."\n\n";
+		print SUBMIT "\n\nTotal number of Cluster Flow jobs submitted: ".(scalar @qsubs)."\n";
+		# Print actual commands to the submission log file
+		print SUBMIT "\n\n\n\n\nCluster Flow job submission commands:\n".("="x52)."\n\n";
     	foreach(@qsubs){
     		print SUBMIT "$_\n\n";
     	}
