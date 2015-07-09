@@ -1,3 +1,4 @@
+
 # Cluster Flow
 
 Cluster Flow is a pipelining tool to automate and standardise bioinformatics analyses on high-performance cluster environments. It is designed to be easy to use, quick to set up and flexible to configure.
@@ -10,7 +11,7 @@ You can find stable versions to download on the [releases page](https://github.c
 
 You can get the development version of the code by cloning this repository:
 ```
-git clone https://github.com/ewels/clusterflow.git
+git clone --recursive https://github.com/ewels/clusterflow.git
 ```
 Alternatively, you can download a [.zip file](https://github.com/ewels/clusterflow/archive/master.zip)
 
@@ -85,9 +86,9 @@ Alternatively, you can download a [.zip file](https://github.com/ewels/clusterfl
 #### [v0.3](https://github.com/ewels/clusterflow/releases/tag/v0.3) - 2014-07-11
 * New Stuff
 	* Awesome new HTML report e-mails
-		* Much more readable HTML report e-mails which look super-snazzy (see [example](http://ewels.github.io/clusterflow/example_report_good.html))
-		* Any errors are highlighted making them quick to identify (see [example](http://ewels.github.io/clusterflow/example_report_bad.html))
-		* Custom strings set in the config can flagged as [highlights](http://ewels.github.io/clusterflow/example_report_highlights.html) or as [warnings](http://ewels.github.io/clusterflow/example_report_warnings.html)
+		* Much more readable HTML report e-mails which look super-snazzy (see [example](http://clusterflow.io/0.3/_files/example_report_good.html))
+		* Any errors are highlighted making them quick to identify (see [example](http://clusterflow.io/0.3/_files/example_report_bad.html))
+		* Custom strings set in the config can flagged as [highlights](http://clusterflow.io/0.3/_files/example_report_highlights.html) or as [warnings](http://clusterflow.io/0.3/_files/example_report_warnings.html)
 		* Designed to work on desktop and mobile phone screens
 	* Cluster Flow now re-orders the log file so that output from different modules doesn't overlap
 		* Made each module prepend its stdout and sterr with a CF module flag
@@ -112,8 +113,8 @@ Alternatively, you can download a [.zip file](https://github.com/ewels/clusterfl
 * New Stuff
 	* Now compatable with SLURM
 	* Customise batch job commands in the config (see the
-		[docs](http://ewels.github.io/clusterflow/installation/#making_cluster_flow_work_with_your_environment))
-	* Created new GitHub pages website to hold documentation: http://ewels.github.io/clusterflow
+		[docs](http://clusterflow.io/0.3/installation#making-cluster-flow-work-with-your-environment))
+	* Created new GitHub pages website to hold documentation: ~~http://ewels.github.io/clusterflow~~ (now moved to http://clusterflow.io)
 * Updates
 	* Ported repository to github: https://github.com/ewels/clusterflow
 	* Wrote new readme for github
