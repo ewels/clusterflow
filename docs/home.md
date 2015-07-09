@@ -20,13 +20,7 @@ status messages from the log.
 -------------------------------------------------------------|-------------------------------------------------------
 <iframe width="300" height="169" src="https://www.youtube.com/embed/b2g_zQiz9ys?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe> | <iframe width="300" height="169" src="https://www.youtube.com/embed/aBHOcsA2M6w?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>
 
-## Download Cluster Flow
-Cluster Flow is hosted at GitHub: https://github.com/ewels/clusterflow/  
-You can download stable versions from the [releases page](https://github.com/ewels/clusterflow/releases).
-
-If you want to use the development version, you can clone the repository using the following command:
-
-    git clone --recursive https://github.com/ewels/clusterflow.git
+See the Installation page for setup instructions.
 
 ## Contributing to Cluster Flow
 If you write a module or pipeline which could be of use to others, it would be
