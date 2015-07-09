@@ -37,6 +37,10 @@ Alternatively, you can download a [.zip file](https://github.com/ewels/clusterfl
 		* Cluster Flow won't find your old config file - run `mv ~/clusterflow/ ~/.clusterflow/` to fix.
 
 * New Stuff
+	* **New website!** http://clusterflow.io
+		* New home of cluster flow documentation
+		* Docs are now versioned along with CF version.
+		* Online interactive demo and other cool stuff. Code can be found at https://github.com/ewels/clusterflow-website
 	* You can now run Cluster Flow locally (new `@cluster_environment` `local` )
         * Tested on Mac OSX and Linux. Includes `--qstat` and `--qdel` functionality
         * Allows easy testing and use of pipelines for those without access to a HPC cluster.
@@ -48,6 +52,9 @@ Alternatively, you can download a [.zip file](https://github.com/ewels/clusterfl
 		* Includes six new modules: `bedToNrf`, `bedtools_bamToBed`, `deeptools_bamCoverage`, `deeptools_bamFingerprint`, `phantompeaktools_runSpp` and `picard_dedup`
 	* Modules are given more information via the run file to help
        decide the amount of memory and cores they bid for (eg. number of files, reference)
+	* Running job stats (`cf --qstat`) now has a summary at the bottom, and counts running and completed jobs.
+	* New config option `@time_multiplier` to globally adjust time requests for slow clusters
+	* Added a special case value `null` for the ``@environment_module_alias` config option, to prevent Cluster Flow from loading that specific module.
 	* All perl scripts now have `env perl` in shebang to increase portability
 	* Modules can now have file extensions, as long as they have `.cfmod` at the end of the basename
         * This helps editing tools with syntax highlighting, amongst other things
