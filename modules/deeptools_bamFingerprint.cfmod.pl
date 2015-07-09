@@ -29,7 +29,7 @@ use CF::Helpers;
 my %requirements = (
         'cores'         => ['2', '4'],
         'memory'        => ['4G', '8G'],
-        'modules'       => '',
+        'modules'       => 'deeptools',
         'time'          => sub {
 
                 my $cf = $_[0];

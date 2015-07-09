@@ -314,6 +314,7 @@ sub load_environment_modules {
 			# Check to see if we have an alias for this module
 			if(defined($mod_aliases{$mod})){
 				$mod = $mod_aliases{$mod};
+				next if ($mod eq 'null'); # Special value to tell CF not to load this module
 			}
 			# Skip modules that have already been loaded
 			next if defined($loaded_modules->{$mod});
