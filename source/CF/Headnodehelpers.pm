@@ -430,20 +430,19 @@ sub print_jobs_output {
 
 	# Set up counts
 	my %summary_counts;
-	$summary_counts{'pipelines'} = $summary_counts{'running'} = $summary_counts{'dependency'} = $summary_counts{'pending'} = $summary_counts{'deleting'} = 0;
-	my $summary_output; # counts defined at top of subroutine
-	print_jobs_summary(\%{$jobs}, \%summary_counts);
-	if($summary_counts{'pipelines'} > 0){ 	$summary_output .= sprintf(" Cluster Flow Pipelines: %6s\n", $summary_counts{'pipelines'}); }
+	$summary_counts{'running'} = $summary_counts{'dependency'} = $summary_counts{'pending'} = $summary_counts{'deleting'} = 0;
+	$summary_counts{'pipelines'} = scalar (keys (%{$pipelines}));
+	my $summary_output;
+	get_job_counts(\%{$jobs}, \%summary_counts);
+	if($summary_counts{'pipelines'} > 0){ 		$summary_output .= sprintf(" Cluster Flow Pipelines: %6s\n", $summary_counts{'pipelines'}); }
 	if($summary_counts{'running'} > 0){ 		$summary_output .= sprintf(" Running Jobs:           %6s\n", $summary_counts{'running'}); }
 	if($summary_counts{'pending'} > 0){ 		$summary_output .= sprintf(" Queued (Resources):     %6s\n", $summary_counts{'pending'}); }
-	if($summary_counts{'dependency'} > 0){ 	$summary_output .= sprintf(" Queued (Dependency):    %6s\n", $summary_counts{'dependency'}); }
+	if($summary_counts{'dependency'} > 0){ 		$summary_output .= sprintf(" Queued (Dependency):    %6s\n", $summary_counts{'dependency'}); }
 	if($summary_counts{'deleting'} > 0){ 		$summary_output .= sprintf(" Jobs being deleted:     %6s\n", $summary_counts{'deleting'}); }
 
 	# Go through hash and create output
 	my $output = "";
 	foreach my $pipelinekey (keys (%{$pipelines})){
-
-		$summary_counts{'pipelines'}++;
 
 		my $pipeline = $pipelinekey;
 		if($pipelinekey =~ /^(.+)_(\d{10})$/){
@@ -652,7 +651,7 @@ sub print_jobs_pipeline_output {
 }
 
 # Built a summary of all active jobs
-sub print_jobs_summary {
+sub get_job_counts {
 	my ($hashref, $counts) = @_;
 
 	foreach my $key (keys (%{$hashref}) ){
@@ -682,7 +681,7 @@ sub print_jobs_summary {
 		# Recursion to children if we have any
 		my $children = scalar(keys(%{${$hashref}{$key}{'children'}}));
 		if($children){
-			print_jobs_summary(\%{${$hashref}{$key}{'children'}}, \%{${counts}});
+			get_job_counts(\%{${$hashref}{$key}{'children'}}, \%{${counts}});
 		}
 	}
 }
