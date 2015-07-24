@@ -41,7 +41,7 @@ if($required_cores){
 }
 # --mem. Return the required memory allocation.
 if($required_mem){
-	print CF::Helpers::allocate_memory($required_mem, '13G', '20G');
+	print CF::Helpers::allocate_memory($required_mem, '18G', '25G');
 	exit;
 }
 # --modules. Return csv names of any modules which should be loaded.
@@ -109,12 +109,12 @@ foreach my $parameter (@$parameters){
 
 # Work out whether we should use bowtie 1 or 2 by read length
 if(!$bt1 && !$bt2){
-	if(!CF::Helpers::fastq_min_length($files->[0], 75)){
-		warn "First file has reads < 75bp long. Using bowtie 1 for aligning with bismark.\n";
+	if(!CF::Helpers::fastq_min_length($files->[0], 50)){
+		warn "First file has reads < 50bp long. Using bowtie 1 for aligning with bismark.\n";
 		$bt1 = 1;
 		$bt2 = "";
 	} else {
-		warn "First file has reads >= 75bp long. Using bowtie 2 for aligning with bismark.\n";
+		warn "First file has reads >= 50bp long. Using bowtie 2 for aligning with bismark.\n";
 		$bt1 = 0;
 		$bt2 = "--bowtie2";
 	}

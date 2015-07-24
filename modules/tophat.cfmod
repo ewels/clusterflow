@@ -42,7 +42,7 @@ if($required_cores){
 }
 # --mem. Return the required memory allocation.
 if($required_mem){
-	print CF::Helpers::allocate_memory($required_mem, '3G', '4G');
+	print CF::Helpers::allocate_memory($required_mem, '20G', '20G');
 	exit;
 }
 # --modules. Return csv names of any modules which should be loaded.
@@ -141,17 +141,17 @@ if($se_files && scalar(@$se_files) > 0){
 		warn "\n###CFCMD $command\n\n";
 		
 		if(!system ($command)){
-			# Tophat worked - print out resulting filenames
-			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-			warn "###CF Tophat (SE mode) successfully exited, took $duration..\n";
-			if(-e $output_fn){
-                $output_fn = clean_output($output_dir, $file);
-				print RUN "$job_id\t$output_fn\n"; 
-			} else {
-				warn "\n###CF Error! Tophat output file $output_fn not found..\n";
-			}
+		    # Tophat worked - print out resulting filenames
+		    my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+		    warn "###CF Tophat (SE mode) successfully exited, took $duration..\n";
+		    if(-e $output_fn){
+			$output_fn = clean_output($output_dir, $file);
+			print RUN "$job_id\t$output_fn\n"; 
+		    } else {
+			warn "\n###CF Error! Tophat output file $output_fn not found..\n";
+		    }
 		} else {
-			warn "\n###CF Error! Tophat (SE mode) failed for input file '$file': $? $!\n\n";
+		    warn "\n###CF Error! Tophat (SE mode) failed for input file '$file': $? $!\n\n";
 		}
 		
 	}

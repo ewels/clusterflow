@@ -56,7 +56,7 @@ if($required_cores){
 }
 # --mem. Return the required memory allocation.
 if($required_mem){
-	print CF::Helpers::allocate_memory($required_mem, '3G', '4G');
+	print CF::Helpers::allocate_memory($required_mem, '6G', '10G');
 	exit;
 }
 # --modules. Return csv names of any modules which should be loaded.

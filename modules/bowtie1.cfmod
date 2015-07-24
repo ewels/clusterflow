@@ -41,7 +41,7 @@ if($required_cores){
 }
 # --mem. Return the required memory allocation.
 if($required_mem){
-    print CF::Helpers::allocate_memory($required_mem, '3G', '4G');
+    print CF::Helpers::allocate_memory($required_mem, '10G', '10G');
     exit;
 }
 # --modules. Return csv names of any modules which should be loaded.
@@ -123,9 +123,9 @@ if($se_files && scalar(@$se_files) > 0){
 			$file = "-";
 		}
 		
-		my $command = "$gzip bowtie -p $cores -t -m 1 $enc --strata --best -S --chunkmbs 2048 ".$config{bowtie_path}." $file | samtools view -bS - > $output_fn";
+		my $command = "$gzip bowtie -p $cores -t -m 1 $enc --strata --best -S --chunkmbs 512 ".$config{bowtie_path}." $file | samtools view -bS - > $output_fn";
 		if ($mirna) {
-		    $command = "$gzip bowtie -p $cores -t -n 0 -l 15 -e 99999 -k 200 $enc --best -S --chunkmbs 2048 ".$config{bowtie_path}." $file | samtools view -bS - > $output_fn"
+		    $command = "$gzip bowtie -p $cores -t -n 0 -l 15 -e 99999 -k 200 $enc --best -S --chunkmbs 512 ".$config{bowtie_path}." $file | samtools view -bS - > $output_fn"
 		}
 		warn "\n###CFCMD $command\n\n";
 		
@@ -139,7 +139,7 @@ if($se_files && scalar(@$se_files) > 0){
 				warn "\n###CF Error! Bowtie output file $output_fn not found..\n";
 			}
 		} else {
-			warn "\n###CF Error! Bowtie (SE mode) exited in an error state for inpiut file '$file': $? $!\n\n";
+			warn "\n###CF Error! Bowtie (SE mode) exited in an error state for input file '$file': $? $!\n\n";
 		}
 	}
 }
@@ -170,10 +170,10 @@ if($pe_files && scalar(@$pe_files) > 0){
 			
 			my $output_fn = $files[0]."_bowtie.bam";
 			
-			my $command = "bowtie -p $cores -t -m 1 $enc --strata --best --maxins 700 -S --chunkmbs 2048 ".$config{bowtie_path}." -1 ".$files[0]." -2 ".$files[1]." | samtools view -bSh 2>/dev/null - > $output_fn";
+			my $command = "bowtie -p $cores -t -m 1 $enc --strata --best --maxins 700 -S --chunkmbs 512 ".$config{bowtie_path}." -1 ".$files[0]." -2 ".$files[1]." | samtools view -bSh 2>/dev/null - > $output_fn";
 
 			if ($mirna) {
-			    $command = "bowtie -p $cores -t -n 0 -l 15 -e 99999 -k 200 $enc --best --maxins 700 -S --chunkmbs 2048 ".$config{bowtie_path}." -1 ".$files[0]." -2 ".$files[1]." | samtools view -bSh 2>/dev/null - > $output_fn";
+			    $command = "bowtie -p $cores -t -n 0 -l 15 -e 99999 -k 200 $enc --best --maxins 700 -S --chunkmbs 512 ".$config{bowtie_path}." -1 ".$files[0]." -2 ".$files[1]." | samtools view -bSh 2>/dev/null - > $output_fn";
 			}
 			warn "\n###CFCMD $command\n\n";
 			
