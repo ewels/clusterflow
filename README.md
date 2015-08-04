@@ -1,4 +1,3 @@
-
 # Cluster Flow
 
 Cluster Flow is a pipelining tool to automate and standardise bioinformatics analyses on high-performance cluster environments. It is designed to be easy to use, quick to set up and flexible to configure.
@@ -54,6 +53,7 @@ Alternatively, you can download a [.zip file](https://github.com/ewels/clusterfl
        decide the amount of memory and cores they bid for (eg. number of files, reference)
 	* Running job stats (`cf --qstat`) now has a summary at the bottom, and counts running and completed jobs.
 	* New config option `@time_multiplier` to globally adjust time requests for slow clusters
+		* To stop things getting silly, there's also `@max_time` to put a top limit on what's possible..
 	* Added a special case value `null` for the ``@environment_module_alias` config option, to prevent Cluster Flow from loading that specific module.
 	* All perl scripts now have `env perl` in shebang to increase portability
 	* Modules can now have file extensions, as long as they have `.cfmod` at the end of the basename

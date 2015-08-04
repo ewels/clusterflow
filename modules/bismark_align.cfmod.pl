@@ -37,7 +37,8 @@ my %requirements = (
 		$num_files = ($num_files > 0) ? $num_files : 1;
 		# Bismark alignment typically takes around than 3 hours per BAM file
 		# May need tweaking. Could also drop the estimate if we're multi-threading?
-		return CF::Helpers::minutes_to_timestamp ($num_files * 5 * 60);
+		# Update: Keeps timing out. Bumping to 48 hours per file.
+		return CF::Helpers::minutes_to_timestamp ($num_files * 48 * 60);
 	}
 );
 

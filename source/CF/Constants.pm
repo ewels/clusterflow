@@ -1,3 +1,4 @@
+
 #!/usr/bin/env perl
 package CF::Constants;
 
@@ -50,6 +51,7 @@ our $TOTAL_CORES = 64;
 our $TOTAL_MEM = '4G';
 our $MAX_RUNS = 12;
 our $TIME_MULTIPLIER = 1;
+our $JOB_TIMELIMIT;
 our $CLUSTER_ENVIRONMENT = '';
 our $CUSTOM_JOB_SUBMIT_COMMAND;
 our $CF_MODULES = 1;
@@ -147,6 +149,9 @@ sub parse_conf_file {
                     }
                     if($name eq 'time_multiplier'){
                         $TIME_MULTIPLIER = $val;
+                    }
+                    if($name eq 'max_time'){
+                        $JOB_TIMELIMIT = $val;
                     }
                     if($name eq 'total_cores'){
                         $TOTAL_CORES = $val;

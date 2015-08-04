@@ -1037,7 +1037,13 @@ sub get_mod_requirements {
 	# Adjust time request by time multiplier
 	if($TIME_MULTIPLIER != 1){
 		$time = CF::Helpers::minutes_to_timestamp(CF::Helpers::timestamp_to_minutes($time) * $TIME_MULTIPLIER);
+	}
 
+	# Check that we haven't gone over the maximum time allowed
+	if($JOB_TIMELIMIT &&
+		CF::Helpers::timestamp_to_minutes($JOB_TIMELIMIT) > 0 &&
+		CF::Helpers::timestamp_to_minutes($JOB_TIMELIMIT) < CF::Helpers::timestamp_to_minutes($time)) {
+		$time = CF::Helpers::minutes_to_timestamp(CF::Helpers::timestamp_to_minutes($JOB_TIMELIMIT));
 	}
 
     return ($cores, $mem, $time);
