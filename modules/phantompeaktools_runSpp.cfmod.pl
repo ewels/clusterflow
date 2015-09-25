@@ -29,7 +29,7 @@ use CF::Helpers;
 my %requirements = (
 	'cores' 	=> '1',
 	'memory' 	=> '2G',
-	'modules' 	=> 'samtools',
+	'modules' 	=> ['phantompeakqualtools', 'samtools'],
 	'time' 		=> sub {
 
 		my $cf = $_[0];
