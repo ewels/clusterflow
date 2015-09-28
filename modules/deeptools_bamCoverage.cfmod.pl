@@ -29,7 +29,7 @@ use CF::Helpers;
 my %requirements = (
     'cores'         => ['2', '4'],
     'memory'        => ['4G', '8G'],
-    'modules'       => 'deeptools',
+    'modules'       => 'deepTools',
     'time'          => sub {
 	my $cf = $_[0];
 	my $num_files = $cf->{'num_starting_merged_aligned_files'};
