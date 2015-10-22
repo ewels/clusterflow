@@ -62,7 +62,7 @@ my $command = "multiqc -v $template .";
 warn "\n###CFCMD $command\n\n";
 
 if(!system ($command)){
-	print RUN "$cf{job_id}\t$file\n";
+	print RUN "$cf{job_id}\n";
 	my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 	warn "###CF MultiQC successfully ran, took $duration\n";
 } else {
