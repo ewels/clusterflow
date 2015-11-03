@@ -641,7 +641,7 @@ sub timestamp_to_minutes {
             if($timestamp =~ /^$re_hh\:$re_mm$/){
                 $hours = $1;
                 $minutes = $2;
-            } elsif(/^$re_hh$/){
+            } elsif($timestamp =~ /^$re_hh$/){
                 $hours = $1;
             }
         } else {
