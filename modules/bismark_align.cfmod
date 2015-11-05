@@ -36,7 +36,7 @@ my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_me
 # QSUB SETUP
 # --cores i = offered cores. Return number of required cores.
 if($required_cores){
-	print CF::Helpers::allocate_cores($required_cores, 4, 8);
+	print CF::Helpers::allocate_cores($required_cores, 4, 6);
 	exit;
 }
 # --mem. Return the required memory allocation.
@@ -61,7 +61,7 @@ pipelines with the pbat, single_cell bt1 and bt2 parameters. For example:
   #bismark_align	bt1\n
   #bismark_align	bt2\n
   #bismark_align	single_cell\n
-  #bismark_align  unmapped\n
+  #bismark_align        unmapped\n
 Use bismark --help for further information.\n\n";
 	exit;
 }
@@ -101,14 +101,14 @@ foreach my $parameter (@$parameters){
 			$unmapped = "--unmapped"
 	}
 	if($parameter eq "bt1"){
-		$bt1 = 1;
-		$bt2 = "";
+	    $bt1 = "--bowtie1";
+	    $bt2 = "";
 	} elsif($parameter eq "bt2"){
 		$bt2 = "--bowtie2";
 	}
 	if($parameter eq "single_cell"){
-		$non_directional = "--non_directional ";
-		$bt2 = "--bowtie2";
+	    $non_directional = "--non_directional ";
+	    $bt2 = "--bowtie2";
 	}
 }
 

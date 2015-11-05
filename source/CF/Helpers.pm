@@ -275,7 +275,7 @@ sub is_bam_paired_end {
 	my $header_found;
 	foreach (split("\n", $headers)){
 		if(/^\@PG/){
-			if(/-1/ && /-2/){
+			if(/\s+-1\s+/ && /\s+-2\s+/){
 				$paired_end = 1;
 				$header_found = 1;
 			} else {

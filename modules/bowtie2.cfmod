@@ -72,15 +72,17 @@ my %config = %$config_ref;
 
 # Check that we have a genome defined
 if(!defined($config{bowtie2_path})){
-	if (defined($config{bowtie_path})){
-		warn "\n\n###CF Error: No bowtie2 path found in run file $runfile for job $job_id.\n Exiting.. ###\n";
+    if (defined($config{bowtie_path})){
+		warn "\n\n### CF Error: No bowtie2 path found in run file $runfile for job $job_id.\n Exiting.. ###\n";
+		
 		exit;
 		# In future version, may do defaulting back to bowtie1:
 		#warn "\n\n###CF No bowtie2 path found in run file $runfile for job $job_id.\n Defaulting to bowtie path: ".$config{bowtie_path}."\n\n";
 		#$config{bowtie2_path} = $config{bowtie_path};
 	}  else  {
-		warn "\n\n###CF Error: No bowtie or bowtie2 path found in run file $runfile for job $job_id. Exiting.. ###";
-		exit;
+
+	    warn "\n\n###CF Error: No bowtie or bowtie2 path found in run file $runfile for job $job_id. Exiting.. ###";
+	    exit;
 	}
 } else {
 	warn "\nAligning against ".$config{bowtie2_path}."\n\n";
