@@ -37,6 +37,7 @@ my %requirements = (
 		return defined($cf->{'force_paired_end'}) ? '10G' : '5G';
 	},
 	'modules' 	=> ['hicup'],
+	'references'=> ['fasta','bowtie'],
 	'time' 		=> sub {
 		my $cf = $_[0];
 		my $num_files = $cf->{'num_starting_merged_aligned_files'};

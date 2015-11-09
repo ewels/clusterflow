@@ -650,24 +650,6 @@ while (<CONFIG>){
 		next;
 	}
 
-	# Required reference
-	if($_ =~ /^\@require_reference/ && !$comment_block){
-		my $ref_type = (split(/\s+/, $_, 2))[1];
-		if(!defined $GENOME){
-			print "\n### Error - The pipeline $pipeline requires a genome to be set with --genome or --ref. Exiting... ### \n\n";
-			exit;
-		} elsif(!defined $REFERENCES{$ref_type}{$GENOME}{path}){
-			print "\n### Error ###\nNo $ref_type path found for genome key \"$GENOME\".\n\nAvailable $ref_type paths:\n";
-            foreach my $genome_key ( keys %{$REFERENCES{$ref_type}}){
-                if(defined($REFERENCES{$ref_type}{$genome_key}{path})){
-                    print "\tGenome: $genome_key, Path: $REFERENCES{$ref_type}{$genome_key}{path}\n";
-                }
-            }
-			print "\n\nExiting...\n\n";
-			exit;
-		}
-	}
-
 	# Require python package
 	if($_ =~ /^\@require_python_package/ && !$comment_block){
 		my $package = (split(/\s+/, $_, 2))[1];
@@ -977,7 +959,6 @@ sub get_mod_requirements {
 	my $response = `$req_cmd 2> /dev/null`;
 
 	# Parse response
-	my $required_modules;
 	my $cores = '';
 	my $mem = '';
 	my $time = '';
@@ -1003,9 +984,30 @@ sub get_mod_requirements {
 			if($key eq 'time'){
 				$time = $val;
 			}
+			if($key eq 'references'){
+				my @refs = split(/[\s,]+/, $val);
+				# No --genome specified
+				if(!defined $GENOME){
+					print "\n### Error - The pipeline $pipeline requires a genome to be set with --genome or --ref. Exiting... ### \n\n";
+					exit;
+				} else {
+					foreach my $ref (@refs){
+						if(!defined $REFERENCES{$ref}{$GENOME}{path}){
+							print "\n### Error ###\nNo $ref path found for genome key \"$GENOME\".\n\nAvailable $ref paths:\n";
+							foreach my $genome_key ( keys %{$REFERENCES{$ref}}){
+				                if(defined($REFERENCES{$ref}{$genome_key}{path})){
+				                    print "\tGenome: $genome_key, Path: $REFERENCES{$ref}{$genome_key}{path}\n";
+				                }
+				            }
+							print "\n\nExiting...\n\n";
+							exit;
+						}
+					}
+				}
+			}
 		}
 	}
-
+	
 	# Check that we have what we need
 	# Don't warn about module requesting more than was suggested by core cf - too verbose.
 	my @errors;
