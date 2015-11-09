@@ -985,19 +985,24 @@ sub get_mod_requirements {
 				$time = $val;
 			}
 			if($key eq 'references'){
+				my @refs = split(/[\s,]+/, $val);
 				# No --genome specified
 				if(!defined $GENOME){
 					print "\n### Error - The pipeline $pipeline requires a genome to be set with --genome or --ref. Exiting... ### \n\n";
 					exit;
-				} elsif(!defined $REFERENCES{$val}{$GENOME}{path}){
-					print "\n### Error ###\nNo $val path found for genome key \"$GENOME\".\n\nAvailable $val paths:\n";
-		            foreach my $genome_key ( keys %{$REFERENCES{$val}}){
-		                if(defined($REFERENCES{$val}{$genome_key}{path})){
-		                    print "\tGenome: $genome_key, Path: $REFERENCES{$val}{$genome_key}{path}\n";
-		                }
-		            }
-					print "\n\nExiting...\n\n";
-					exit;
+				} else {
+					foreach my $ref (@refs){
+						if(!defined $REFERENCES{$ref}{$GENOME}{path}){
+							print "\n### Error ###\nNo $ref path found for genome key \"$GENOME\".\n\nAvailable $ref paths:\n";
+							foreach my $genome_key ( keys %{$REFERENCES{$ref}}){
+				                if(defined($REFERENCES{$ref}{$genome_key}{path})){
+				                    print "\tGenome: $genome_key, Path: $REFERENCES{$ref}{$genome_key}{path}\n";
+				                }
+				            }
+							print "\n\nExiting...\n\n";
+							exit;
+						}
+					}
 				}
 			}
 		}
