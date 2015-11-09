@@ -1,0 +1,4 @@
+language: perl
+# command to run tests
+script:
+  - perl source/CF/cf_tests.pl
