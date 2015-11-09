@@ -43,6 +43,7 @@ my %requirements = (
 		return CF::Helpers::allocate_memory($cf->{'memory'}, $minmem, $maxmem);
 	},
 	'modules' 	=> ['STAR','samtools'],
+	'references'=> 'star',
 	'time' 		=> sub {
 		my $cf = $_[0];
 		my $num_files = $cf->{'num_starting_merged_aligned_files'};
@@ -66,8 +67,7 @@ my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 # Check that we have a genome defined
 if(!defined($cf{'refs'}{'star'})){
-	warn "\n\n###CF Error: No star path found in run file $cf{run_fn} for job $cf{job_id}. Exiting..";
-	exit;
+	die "\n\n###CF Error: No star path found in run file $cf{run_fn} for job $cf{job_id}. Exiting..";
 } else {
 	warn "\nAligning against $cf{refs}{star}\n\n";
 }
