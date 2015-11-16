@@ -852,7 +852,7 @@ sub cf_check_updates {
 	my ($current_version) = @_;
 
 	# Get contents of Cluster Flow current version file using LWP::Simple
-	my $version_url = 'http://ewels.github.io/clusterflow/version.txt';
+	my $version_url = 'http://clusterflow.io/version.php';
 	my $avail_version = get($version_url) or return "Can't access address to check available version:\n$version_url\n\n";
 	my $timestamp = time();
 
