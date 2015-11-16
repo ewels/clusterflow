@@ -29,7 +29,7 @@ use CF::Helpers;
 # Module requirements
 my %requirements = (
 	'cores' 	=> ['4', '64'],
-	'memory' 	=> ['13G', '160G'],
+	'memory' 	=> ['64G', '160G'],
 	'modules' 	=> ['bowtie','bowtie2','bismark','samtools'],
 	'time' 		=> sub {
 		my $cf = $_[0];
@@ -101,6 +101,11 @@ my $bt1 = defined($cf{'params'}{'bt1'}) ? 1 : 0;
 my $bt2 = defined($cf{'params'}{'bt2'}) ? "--bowtie2" : '';
 my $pbat = defined($cf{'params'}{'pbat'}) ? "--pbat" : '';
 my $non_directional = defined($cf{'params'}{'single_cell'}) ? "--non_directional" : '';
+my $subsample = defined($cf{'params'}{'subsample'}) ? "-u 1000000" : '';
+
+if(defined($cf{'params'}{'subsample'})){
+	warn "WARNING! Bismark running in subsample mode - only first 1000000 reads will be aligned.\n";
+}
 
 # Work out whether we should use bowtie 1 or 2 by read length
 if(!$bt1 && !$bt2){

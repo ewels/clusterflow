@@ -84,18 +84,28 @@ if(defined($cf{'params'}{'single_cell'})){
 	$clip_r1 = "--clip_r1 9";
 	$clip_r2 = "--clip_r2 9";
 }
+if(defined($cf{'params'}{'epignome'})){
+	$clip_r1 = "--clip_r1 6 --three_prime_clip_r1 6";
+	$clip_r2 = "--clip_r2 6 --three_prime_clip_r2 6";
+}
+if(defined($cf{'params'}{'cegx'})){
+	$clip_r1 = "--clip_r1 6";
+	$clip_r2 = "--clip_r2 6";
+}
 
 
 # Are these reads long enough to trim? Check first file and assume same for rest
-if(!CF::Helpers::fastq_min_length($cf{'prev_job_files'}[0], $min_readlength)){
-	# First file didn't have long enough reads for trimming
-	# Print output filenames and exit
-	foreach my $file (@{$cf{'prev_job_files'}}){
-		print RUN "$cf{job_id}\t$file\n";
+if(!defined($cf{'params'}{'force_trim'})){
+	if(!CF::Helpers::fastq_min_length($cf{'prev_job_files'}[0], $min_readlength)){
+		# First file didn't have long enough reads for trimming
+		# Print output filenames and exit
+		foreach my $file (@{$cf{'prev_job_files'}}){
+			print RUN "$cf{job_id}\t$file\n";
+		}
+		close (RUN);
+		warn "###CF Trim galore didn't run as reads were too short..\n";
+		exit;
 	}
-	close (RUN);
-	warn "###CF Trim galore didn't run as reads were too short..\n";
-	exit;
 }
 
 # FastQ encoding type. Once found on one file will assume all others are the same

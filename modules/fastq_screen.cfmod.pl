@@ -43,7 +43,7 @@ use CF::Helpers;
 my %requirements = (
 	'cores' 	=> '8', # [1, 8]
 	'memory' 	=> ['3G', '4G'],
-	'modules' 	=> ['fastq_screen'],
+	'modules' 	=> ['fastq_screen', 'bowtie2'],
 	'time' 		=> sub {
 		my $cf = $_[0];
 		my $num_files = $cf->{'num_starting_merged_files'};
@@ -69,6 +69,9 @@ warn "---------- FastQ Screen version information ----------\n";
 warn `fastq_screen --version`;
 warn "\n------- End of FastQ Screen version information ------\n";
 
+# Parameters
+my $conf = defined($cf{'params'}{'fastq_screen_config'}) ? "--conf ".$cf{'params'}{'fastq_screen_config'} : '';
+
 
 # FastQ encoding type. Once found on one file will assume all others are the same
 my $encoding = 0;
@@ -91,7 +94,7 @@ if($se_files && scalar(@$se_files) > 0){
 		}
 
 		# Uses --cores $cores when this is written into Fastq Screen
-		my $command = "fastq_screen --subset 100000 $enc --quiet --aligner bowtie2 $file";
+		my $command = "fastq_screen $conf --subset 100000 $enc --quiet --aligner bowtie2 $file";
 		warn "\n###CFCMD $command\n\n";
 
 		if(!system ($command)){

@@ -40,7 +40,7 @@ my %requirements = (
 			my $estmin = int(1.2 * -s $cf->{'refs'}{'star'}."/SA");
 			$minmem = CF::Helpers::allocate_memory($estmin, '8G', $maxmem);
     	}
-		return CF::Helpers::allocate_memory($cf->{'memory'}, $minmem, $maxmem);
+		return CF::Helpers::bytes_to_human_readable(CF::Helpers::allocate_memory($cf->{'memory'}, $minmem, $maxmem));
 	},
 	'modules' 	=> ['STAR','samtools'],
 	'time' 		=> sub {

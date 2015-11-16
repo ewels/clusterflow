@@ -73,7 +73,12 @@ if(!defined($cf{'refs'}{'bowtie2'})){
 }
 
 # Use a GTF file if we have one
-my $gtf = defined($cf{'refs'}{'gtf'}) ? "-G $cf{refs}{gtf}" : '';
+my $gtf = '';
+if(defined($cf{'refs'}{'gtf'}) && -e $cf{'refs'}{'gtf'}){
+	$gtf = "-G $cf{refs}{gtf}";
+} elsif(defined($cf{'refs'}{'gtf'})){
+	warn "\nWarning! GTF reference ".$cf{'refs'}{'gtf'}." specified, but file doesn't exist. Ignoring.\n\n";
+}
 
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 

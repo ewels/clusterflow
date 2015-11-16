@@ -1177,7 +1177,7 @@ sub make_submit_cmd {
 		}
 
 		# Get memory in MB
-		$mem = int(CF::Helpers::human_readable_to_bytes($mem)/1000000);
+		# $mem = int(CF::Helpers::human_readable_to_bytes($mem)/1000000);
 
 		# Swap in real values
 		$qsub =~ s/{{command}}/$cmd/;
