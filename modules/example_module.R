@@ -47,7 +47,7 @@ if(!is.null(cf[['help']])){
 
 # Requirements
 if(!is.null(cf[['requirements']])){
-    cat("cores:1\nmemory:10G\nmodules:\ntime:4:00:00\n")
+    cat("cores:1\nmemory:10G\nmodules:\nreferences:\ntime:4:00:00\n")
     q(save="no")
 }
 

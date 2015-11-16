@@ -29,7 +29,7 @@ use CF::Helpers;
 my %requirements = (
 	'cores' 	=> '1',
 	'memory' 	=> '2G',
-	'modules' 	=> 'samtools',
+	'modules' 	=> ['phantompeakqualtools', 'samtools'],
 	'time' 		=> sub {
 
 		my $cf = $_[0];
@@ -55,11 +55,15 @@ my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 # Find the script we will run.
 my $runSppScript = 0;
-foreach my $path (split(/:/, $ENV{'PATH'})){
-    if(-e "$path/run_spp_nodups.R"){
-        $runSppScript = "$path/run_spp_nodups.R";
-        last;
-    }
+if(-e "run_spp_nodups.R"){
+	$runSppScript = "run_spp_nodups.R";
+} else {
+	foreach my $path (split(/:/, $ENV{'PATH'})){
+	    if(-e "$path/run_spp_nodups.R"){
+	        $runSppScript = "$path/run_spp_nodups.R";
+	        last;
+	    }
+	}
 }
 die "###CF Error - could not find phantompeaktools run_spp_nodups.R script" unless($runSppScript);
 

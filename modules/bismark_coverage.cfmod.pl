@@ -31,6 +31,7 @@ my %requirements = (
 	'cores' 	=> '1',
 	'memory' 	=> ['3G', '10G'],
 	'modules' 	=> 'bismark',
+	'references'=> 'bismark',
 	'time' 		=> sub {
 		my $cf = $_[0];
 		my $num_files = $cf->{'num_starting_merged_aligned_files'};

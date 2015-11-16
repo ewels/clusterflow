@@ -26,56 +26,47 @@ use CF::Helpers;
 # along with Cluster Flow.  If not, see <http://www.gnu.org/licenses/>.  #
 ##########################################################################
 
-# Save the args for later
-my @rawargs = @ARGV;
-
 # Module requirements
 my %requirements = (
-	'cores' 	=> ['1', '8'],
-	'memory' 	=> ['4G', '5G'],
-	'modules' 	=> ['bowtie','bowtie2','samtools'],
-	'references'=> ['bowtie','bowtie2'],
-	'time' 		=> sub {
-		my $cf = $_[0];
-		my $num_files = $cf->{'num_starting_merged_aligned_files'};
-		$num_files = ($num_files > 0) ? $num_files : 1;
-		# Bowtie alignment typically takes less than 10 hours per BAM file
-		# This is probably inaccurate? May need tweaking.
-		return CF::Helpers::minutes_to_timestamp ($num_files * 14 * 60);
-	}
+	'cores' 	=> '1',
+	'memory' 	=> '2G',
+	'modules' 	=> ['multiqc'],
+	'time' 		=> '30'
 );
 
 # Help text
-my $helptext = "".("-"x22)."\n Bowtie 1 or 2 Module\n".("-"x22)."\n
-This module inspects the first input file and calculates the
-read length. If this is >= 50bp, it aligns with the Bowtie 2
-module. If not, it aligns with the Bowtie 1 module.\n
-This module assumes that the bowtie1.cfmod.pl and bowtie2.cfmod.pl
-module files are contained within the same directory as this script.\n
-See cf --help bowtie1 and cf --help bowtie2 for more information
-on these modules.\n\n";
+my $helptext = "".("-"x15)."\n MultiQC\n".("-"x15)."\n
+MultiQC creates summary reports showing analysis results
+across multiple samples for any analysis pipeline.
+For further information, please run multiqc --help\n\n";
 
 # Setup
 my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 
 # MODULE
+open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
-# Look at the read length of the first file
-if(!CF::Helpers::fastq_min_length($cf{'prev_job_files'}[0], 50)){
-	warn "\n\n###CF First file has reads < 50bp long. Using bowtie 1 for alignment.\n";
+# Print version information about the module.
+warn "---------- MultiQC version information ----------\n";
+warn `multiqc --version`;
+warn "\n------- End of MultiQC version information ------\n";
 
-	my $command = "$FindBin::Bin/bowtie1.cfmod.pl ".join(" ", @rawargs);
-	warn "\nBowtie 1 module command: $command\n\n";
+# Read any options from the pipeline parameters
+my $template = defined($cf{'params'}{'template'}) ? "-t ".$cf{'params'}{'template'} : '';
 
-	system($command);
+# Run MultiQC - doesn't need to know about previous files
+my $timestart = time;
 
+my $command = "multiqc -v $template .";
+warn "\n###CFCMD $command\n\n";
+
+if(!system ($command)){
+	print RUN "$cf{job_id}\n";
+	my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+	warn "###CF MultiQC successfully ran, took $duration\n";
 } else {
-	warn "\n\n###CF First file has reads >= 50bp long. Using bowtie 2 for alignment.\n";
-
-	my $command = "$FindBin::Bin/bowtie2.cfmod.pl ".join(" ", @rawargs);
-	warn "\nBowtie 2 module command: $command\n\n";
-
-	system($command);
-
+	print "###CF Error! MultiQC exited with an error state: $? $!\n";
 }
+
+close (RUN);

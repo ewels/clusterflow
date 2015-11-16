@@ -31,6 +31,7 @@ my %requirements = (
 	'cores' 	=> ['1', '8'],
 	'memory' 	=> ['3G', '5G'],
 	'modules' 	=> ['bwa','samtools'],
+	'references'=> 'bwa',
 	'time' 		=> sub {
 		my $cf = $_[0];
 		my $num_files = $cf->{'num_starting_merged_aligned_files'};
