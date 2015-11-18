@@ -8,7 +8,17 @@ perl:
 
 # Skip automatic dependency installation, which breaks on Travis
 install:
-  - pip install --upgrade pyflakes
+  # Install conda + pyflakes for python clusterflow module checks
+  - wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  - conda info -a
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION pyflakes
+  - source activate test-environment
+  # Install CPAN module dependencies
   - cpanm XML::Simple
 
 before_script:
