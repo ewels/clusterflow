@@ -1,6 +1,7 @@
 # Cluster Flow
-
 Cluster Flow is a pipelining tool to automate and standardise bioinformatics analyses on high-performance cluster environments. It is designed to be easy to use, quick to set up and flexible to configure.
+
+[![Build Status](https://travis-ci.org/ewels/clusterflow.svg?branch=master)](https://travis-ci.org/ewels/clusterflow)
 
 ## Documentation
 For Cluster Flow documentation with information and examples, see: **[http://clusterflow.io](http://clusterflow.io)**
