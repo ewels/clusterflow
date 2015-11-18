@@ -7,7 +7,9 @@ perl:
   - "5.12"
 
 # Skip automatic dependency installation, which breaks on Travis
-install: true
+install:
+  - pip install --upgrade pyflakes
+  - cpanm XML::Simple
 
 before_script:
   - mv clusterflow.config.example clusterflow.config
