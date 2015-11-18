@@ -6,8 +6,7 @@ perl:
   - "5.14"
   - "5.12"
 
-install:
-  - cpanm -v --installdeps --notest --mirror http://cpan.mirrors.travis-ci.org .
+install: true
 
 script:
   - perl source/CF/cf_tests.pl
