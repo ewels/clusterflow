@@ -16,7 +16,7 @@ install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda info -a
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION pyflakes
+  - conda create -q -n test-environment python=2.7 pyflakes
   - source activate test-environment
   # Install CPAN module dependencies
   - cpanm XML::Simple
