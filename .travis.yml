@@ -1,4 +1,13 @@
 language: perl
-# command to run tests
+
+perl:
+  - "5.18"
+  - "5.16"
+  - "5.14"
+  - "5.12"
+
+install:
+  - cpanm -v --installdeps --notest --mirror http://cpan.mirrors.travis-ci.org .
+
 script:
   - perl source/CF/cf_tests.pl
