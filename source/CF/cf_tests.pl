@@ -35,6 +35,8 @@ my $base_dir = "$Bin/../../";
 my @pipeline_folders = ("$homedir/.clusterflow/pipelines/", "$Bin/../../pipelines/");
 my @module_folders = ("$homedir/.clusterflow/modules/", "$Bin/../../modules/");
 
+my $exit_status = 0;
+
 # Command line options
 my $version;
 my $help;
@@ -61,8 +63,12 @@ if($help){
 # STEP ONE - CORE CF SYNTAX
 #
 print "## Step One: Checking core Cluster Flow syntax.\n";
-system("perl -c ".$base_dir."cf");
-system("pyflakes ".$base_dir."source/CF/*py");
+if(system("perl -c ".$base_dir."cf")){
+    $exit_status = 1;
+}
+if(system("pyflakes ".$base_dir."source/CF/*py")){
+    $exit_status = 1;
+}
 
 
 #
@@ -85,6 +91,7 @@ foreach my $folder (@module_folders){
                 # Crude way to hide the output from valid files
                 if(system("perl -c $path > /dev/null 2>&1")){
                     system("perl -c $path");
+                    $exit_status = 1;
                     $num_failed++;
                 } else {
                     push(@modules, $path);
@@ -95,6 +102,7 @@ foreach my $folder (@module_folders){
             elsif($file =~ /\.cfmod\.py$/){
                 if(system("pyflakes $path > /dev/null 2>&1")){
 					system("pyflakes $path");
+                    $exit_status = 1;
                     $num_failed++;
                 } else {
                     push(@modules, $path);
@@ -208,6 +216,7 @@ foreach my $module_fn (@modules){
 
     if($failed){
         $num_requirements_failed++;
+        $exit_status = 1;
         print "\nCommand for testing:\n$cmd\n";
         print "".('-'x50)."\n";
     }
@@ -215,3 +224,5 @@ foreach my $module_fn (@modules){
 print "".($num_passed - $num_requirements_failed)." modules passed requirements check, $num_requirements_failed failed.\n";
 
 print "\nDone.\n\n";
+
+exit $exit_status;
