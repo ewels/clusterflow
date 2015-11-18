@@ -9,5 +9,8 @@ perl:
 # Skip automatic dependency installation, which breaks on Travis
 install: true
 
+before_script:
+  - mv clusterflow.config.example clusterflow.config
+
 script:
   - perl source/CF/cf_tests.pl
