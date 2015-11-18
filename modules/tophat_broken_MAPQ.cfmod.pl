@@ -64,8 +64,7 @@ my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 # MODULE
 # Check that we have a genome defined
 if(!defined($cf{'refs'}{'bowtie2'})){
-	warn "\n\n###CF Error: No bowtie2 path found in run file $cf{run_fn} for job $cf{job_id}. Exiting..";
-	exit;
+	die "\n\n###CF Error: No bowtie2 path found in run file $cf{run_fn} for job $cf{job_id}. Exiting..";
 } else {
 	warn "\nAligning against bowtie2 path: $cf{refs}{bowtie2}\n\n";
 }

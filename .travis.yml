@@ -6,6 +6,7 @@ perl:
   - "5.14"
   - "5.12"
 
+# Skip automatic dependency installation, which breaks on Travis
 install: true
 
 script:

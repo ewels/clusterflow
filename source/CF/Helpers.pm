@@ -167,8 +167,7 @@ sub module_start {
 	# If we don't have any input files, bail now
 	if(!defined($cf{'prev_job_files'}) || scalar(@{$cf{'prev_job_files'}}) == 0){
         if($prev_job_id && $prev_job_id ne 'null' && !defined($params{'summary_module'})){
-    	    print "\n###CF Error! No file names found from job $prev_job_id. Exiting...\n\n";
-    	    exit;
+    	    die "\n###CF Error! No file names found from job $prev_job_id. Exiting...\n\n";
         }
 	}
 

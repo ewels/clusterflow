@@ -329,25 +329,21 @@ if($cl_help){
 my @valid_environments = ('local', 'GRIDEngine', 'SLURM', 'LSF');
 my $environtments_regex = join('|', @valid_environments);
 if(length($CLUSTER_ENVIRONMENT) == 0){
-		my $global_fn = "$FindBin::Bin/clusterflow.config";
-		if(-e $global_fn){
-			print ("Error - Cluster Environment not set.\nPlease configure \@cluster_environment in your global config file:\n$global_fn\n\n");
-		} else {
-			print ("Error - Cluster Environment not set. Please run 'cf --setup' to create a global config file.\n\n");
-		}
-    exit;
+	my $global_fn = "$FindBin::Bin/clusterflow.config";
+	if(-e $global_fn){
+		die ("Error - Cluster Environment not set.\nPlease configure \@cluster_environment in your global config file:\n$global_fn\n\n");
+	} else {
+		die ("Error - Cluster Environment not set. Please run 'cf --setup' to create a global config file.\n\n");
+	}
 } elsif($CLUSTER_ENVIRONMENT !~ /^($environtments_regex)$/i){
-	print ("Error - Cluster Environment not recognised. Valid values: ".join(', ', @valid_environments)."\n\n");
-    exit;
+	die ("Error - Cluster Environment not recognised. Valid values: ".join(', ', @valid_environments)."\n\n");
 }
 if(!$pipeline){
-	print ("Error - no pipeline specified. Use --help for instructions.\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n");
-	exit;
+	die ("Error - no pipeline specified. Use --help for instructions.\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n");
 }
 
 if(!$file_list && scalar(@files) == 0){
-	print ("Error - no input files specified. Use --help for instructions.\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n");
-	exit;
+	die ("Error - no input files specified. Use --help for instructions.\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n");
 }
 
 # If we're using environment modules, check we can find modulecmd (system returns 1 on error)
@@ -395,8 +391,7 @@ if(!$config_found){
 }
 # No pipeline or module found - die with error
 if(!$config_found){
-	print "Error! Can't find pipeline or module called $pipeline\n";
-	exit;
+	die ("Error! Can't find pipeline or module called $pipeline\n");
 }
 
 
@@ -409,8 +404,7 @@ print "="x50, "\n Cluster Flow v".$CF_VERSION."\n Launching pipeline $cfid\n", "
 my %download_fns;
 if($file_list){
 	unless(-e $file_list){
-		print "Error - file list not found: $file_list\nExiting...\n\n";
-		exit;
+		die ("Error - file list not found: $file_list\nExiting...\n\n");
 	}
 	@files = ();
 	open (FILES, $file_list) or die "Can't read $file_list: $!";
@@ -655,8 +649,7 @@ while (<CONFIG>){
 		my $package = (split(/\s+/, $_, 2))[1];
 		my $try_import = `python -c "import $package" 2>&1`;
 		if(length($try_import) > 0){
-			print "\n### Error - The pipeline $pipeline requires the '$package' python package to be installed. Exiting... ### \n\n";
-			exit;
+			die "\n### Error - The pipeline $pipeline requires the '$package' python package to be installed. Exiting... ### \n\n";
 		}
 	}
 
@@ -988,8 +981,7 @@ sub get_mod_requirements {
 				my @refs = split(/[\s,]+/, $val);
 				# No --genome specified
 				if(!defined $GENOME){
-					print "\n### Error - The pipeline $pipeline requires a genome to be set with --genome or --ref. Exiting... ### \n\n";
-					exit;
+					die "\n### Error - The pipeline $pipeline requires a genome to be set with --genome or --ref. Exiting... ### \n\n";
 				} else {
 					foreach my $ref (@refs){
 						if(!defined $REFERENCES{$ref}{$GENOME}{path}){
@@ -999,8 +991,7 @@ sub get_mod_requirements {
 				                    print "\tGenome: $genome_key, Path: $REFERENCES{$ref}{$genome_key}{path}\n";
 				                }
 				            }
-							print "\n\nExiting...\n\n";
-							exit;
+							die "\n\nExiting...\n\n";
 						}
 					}
 				}
