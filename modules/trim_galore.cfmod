@@ -103,6 +103,9 @@ foreach my $parameter (@$parameters){
 		$clip_r1 = "--clip_r1 4";
 		$clip_r2 = "--clip_r2 4";
 	}
+	if($parameter eq "ATAC"){
+		$clip_r1 = "--clip_r1 4";
+	}
 	if($parameter eq "single_cell"){
 		$clip_r1 = "--clip_r1 9";
 		$clip_r2 = "--clip_r2 9";
