@@ -88,6 +88,10 @@ if(defined($cf{'params'}{'epignome'})){
 	$clip_r1 = "--clip_r1 6 --three_prime_clip_r1 6";
 	$clip_r2 = "--clip_r2 6 --three_prime_clip_r2 6";
 }
+if(defined($cf{'params'}{'accel'})){
+	$clip_r1 = "--clip_r1 10 --three_prime_clip_r1 10";
+	$clip_r2 = "--clip_r2 15 --three_prime_clip_r2 10";
+}
 if(defined($cf{'params'}{'cegx'})){
 	$clip_r1 = "--clip_r1 6";
 	$clip_r2 = "--clip_r2 6";
