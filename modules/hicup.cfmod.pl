@@ -72,8 +72,7 @@ my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 # Make sure that we have a recent enough version of HiCUP
 my $hicup_version = `hicup -v`;
 unless(CF::Helpers::cf_compare_version_numbers($hicup_version, '0.5')){
-	warn "\n\n###CF Error! HiCUP version $hicup_version is installed, version 0.5 is required for Cluster Flow. Exiting..\n\n";
-	exit;
+	die "\n\n###CF Error! HiCUP version $hicup_version is installed, version 0.5 is required for Cluster Flow. Exiting..\n\n";
 }
 
 # Check that we have a genome defined

@@ -199,8 +199,7 @@ sub parse_conf_file {
     @NOTIFICATIONS = @unique_notifications;
 
     if($num_configs == 0){
-        print ("Cluster Flow Error - no config files found. See clusterflow.config.example for an example.\n\n");
-        exit;
+        die ("Cluster Flow Error - no config files found. See clusterflow.config.example for an example.\n\n");
     }
 }
 
