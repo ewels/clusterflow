@@ -1,4 +1,3 @@
-
 #!/usr/bin/env perl
 package CF::Constants;
 
@@ -45,7 +44,7 @@ our $CL_COLOURS = 0;
 our $CHECK_UPDATES;
 our @NOTIFICATIONS;
 our $SPLIT_FILES = 1;
-our $MERGE_REGEX;
+our @MERGE_REGEXES;
 our $PRIORITY;
 our $TOTAL_CORES = 64;
 our $TOTAL_MEM = '4G';
@@ -139,7 +138,7 @@ sub parse_conf_file {
                         $SPLIT_FILES = $val;
                     }
                     if($name eq 'merge_regex'){
-                        $MERGE_REGEX = $val;
+                        push @MERGE_REGEXES, $val;
                     }
                     if($name eq 'priority'){
                         $PRIORITY = $val;

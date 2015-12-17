@@ -42,7 +42,6 @@ my $pipeline;
 my $SPLIT_FILES = $CF::Constants::SPLIT_FILES;
 my $MAX_RUNS = $CF::Constants::MAX_RUNS;
 my $TIME_MULTIPLIER = $CF::Constants::TIME_MULTIPLIER;
-my $MERGE_REGEX = $CF::Constants::MERGE_REGEX;
 my $CLUSTER_ENVIRONMENT = $CF::Constants::CLUSTER_ENVIRONMENT;
 my $PRIORITY = $CF::Constants::PRIORITY;
 my $C_PROJECT = $CF::Constants::C_PROJECT;
@@ -62,6 +61,7 @@ my $cl_notifications;
 my $cl_list_pipelines;
 my $cl_list_modules;
 my $cl_list_genomes;
+my $cl_merge;
 my $cl_dryrun;
 my $cl_qstat;
 my $cl_qstatall;
@@ -78,7 +78,7 @@ my $config_result = GetOptions(
  	"ref=s" => \$cl_reference,
 	"split_files=i" => \$SPLIT_FILES,
 	"max_runs=i" => \$MAX_RUNS,
-	"merge=s" => \$MERGE_REGEX,
+	"merge=s" => \$cl_merge,
 	"paired" => \$cl_paired_end,
 	"single" => \$cl_single_end,
 	"no_fn_check" => \$cl_no_fn_check,
@@ -122,6 +122,7 @@ my $CHECK_UPDATES = $CF::Constants::CHECK_UPDATES;
 my $AVAILABLE_VERSION = $CF::Constants::AVAILABLE_VERSION;
 my $UPDATES_LAST_CHECKED = $CF::Constants::UPDATES_LAST_CHECKED;
 my @NOTIFICATIONS = @CF::Constants::NOTIFICATIONS;
+my @MERGE_REGEXES = @CF::Constants::MERGE_REGEXES;
 my $CUSTOM_JOB_SUBMIT_COMMAND = $CF::Constants::CUSTOM_JOB_SUBMIT_COMMAND;
 my $PROJECT_ID = $CF::Constants::PROJECT_ID;
 my $JOB_TIMELIMIT = $CF::Constants::JOB_TIMELIMIT;
@@ -476,33 +477,35 @@ if(!$cl_paired_end && !$cl_single_end && $fastq_count > 1){
 }
 
 #
-# MERGE REGEX
+# MERGE REGEXES
 #
 
 # Make an array of file groups for each parallel run
 my %file_sets_hash;
-if($MERGE_REGEX){
-
-	# Check the regex looks ok
-	my $opening_p = () = $MERGE_REGEX =~ /\(/g;
-	my $closing_p = () = $MERGE_REGEX =~ /\)/g;
-	my $slashes = () = $MERGE_REGEX =~ /[^\\]\//g;
-	unless($opening_p == 1 && $closing_p == 1){
-		die "\n\n### Error: Found a merging regex, but it didn't have a single set\nof parentheses: $MERGE_REGEX";
-	}
-	unless($slashes == 0){
-		die "\n\n### Error: Found a merging regex, but it had unescaped backslashes: $MERGE_REGEX";
-	}
+if($cl_merge){
+	@MERGE_REGEXES = [$cl_merge];
+}
+if(@MERGE_REGEXES){
 
 	# Loop through each file and add to hash
 	foreach my $fn (@files){
 		my $group = $fn;
-		if($fn =~ m/$config{merge_regex}/){
-			if(defined($1)){
-				$group = $1;
+		
+		# Loop through regexes and update group if we have a match
+		foreach my $merge (@MERGE_REGEXES){
+			if($fn =~ m/$merge/){
+				my $i = 1;
+				my $groupstr = '';
+				# Loop through each regex match - $1, $2 and so on.
+				while(defined($$i)){
+					$groupstr .= $$i;
+					$i++;
+				}
+				$group = $groupstr if(length($groupstr) > 0);
 			}
 		}
-		# No match - add new key to hash
+		
+		# Group doesn't exist yet - add new key to hash
 		if(!defined($file_sets_hash{$group})){
 			$file_sets_hash{$group} = ();
 		}
@@ -521,9 +524,9 @@ my $num_file_groups = scalar keys %file_sets_hash;
 # Did we find any files to merge?
 if($num_file_groups < $num_files){
 	print "Found $num_file_groups groups of files from $num_files using merge regex:\n".$config{merge_regex}."\n\n";
-} elsif($MERGE_REGEX){
+} elsif(@MERGE_REGEXES){
 	print "No file groups found with merge regex.\n\n";
-	$MERGE_REGEX = 0;
+	@MERGE_REGEXES = [];
 }
 
 
@@ -621,13 +624,15 @@ if ($cl_paired_end){
 } elsif ($cl_single_end){
 	$runfile .= "\@force_single_end\n";
 }
-if ($MERGE_REGEX){
-	$runfile .= "\@merge_regex\t$MERGE_REGEX\n";
+if (@MERGE_REGEXES){
+	foreach my $merge (@MERGE_REGEXES){
+		$runfile .= "\@merge_regex\t$merge\n";
+	}
 }
 
 # Parse pipeline config file
 my $pipeline_string = "";
-if($MERGE_REGEX){
+if(@MERGE_REGEXES){
 	$pipeline_string .= "#cf_merge_files\n";
 	splice @indents, 1;
 	push @indents, $indents[$#indents]->{'cf_merge_files'} = {};
@@ -673,7 +678,7 @@ while (<CONFIG>){
 			$_ .= " $cl_params";
 		}
 
-		$_ = "\t".$_ if($MERGE_REGEX); # Add a tab if we prepended merge
+		$_ = "\t".$_ if(@MERGE_REGEXES); # Add a tab if we prepended merge
 		$pipeline_string .= "$_\n";
 		$runfile .= "$_\n";
 
@@ -690,7 +695,7 @@ while (<CONFIG>){
 			$_ .= " $cl_params";
 		}
 
-		$pipeline_string .= "\t" if($MERGE_REGEX); # Add a tab if we prepended merge
+		$pipeline_string .= "\t" if(@MERGE_REGEXES); # Add a tab if we prepended merge
 		$pipeline_string .= "$_\n";
 		$runfile .= "$_\n";
 
