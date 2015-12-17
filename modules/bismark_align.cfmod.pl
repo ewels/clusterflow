@@ -98,27 +98,12 @@ if($multi > 1){
 
 
 # Read options from the pipeline parameters
-my $bt1 = defined($cf{'params'}{'bt1'}) ? 1 : 0;
-my $bt2 = defined($cf{'params'}{'bt2'}) ? "--bowtie2" : '';
 my $pbat = defined($cf{'params'}{'pbat'}) ? "--pbat" : '';
 my $non_directional = defined($cf{'params'}{'single_cell'}) ? "--non_directional" : '';
 my $subsample = defined($cf{'params'}{'subsample'}) ? "-u 1000000" : '';
 
 if(defined($cf{'params'}{'subsample'})){
 	warn "WARNING! Bismark running in subsample mode - only first 1000000 reads will be aligned.\n";
-}
-
-# Work out whether we should use bowtie 1 or 2 by read length
-if(!$bt1 && !$bt2){
-	if(!CF::Helpers::fastq_min_length($cf{'prev_job_files'}[0], 75)){
-		warn "First file has reads < 75bp long. Using bowtie 1 for aligning with bismark.\n";
-		$bt1 = 1;
-		$bt2 = "";
-	} else {
-		warn "First file has reads >= 75bp long. Using bowtie 2 for aligning with bismark.\n";
-		$bt1 = 0;
-		$bt2 = "--bowtie2";
-	}
 }
 
 # FastQ encoding type. Once found on one file will assume all others are the same
@@ -144,14 +129,9 @@ if($se_files && scalar(@$se_files) > 0){
 			$enc = '--'.$encoding.'-quals';
 		}
 
-		my $output_fn;
-		if($bt2){
-			$output_fn = $file."_bismark_bt2.bam";
-		} else {
-			$output_fn = $file."_bismark.bam";
-		}
+		my $output_fn = $file."_bismark_bt2.bam";
 
-		my $command = "bismark $multicore --bam $bt2 $pbat $non_directional $enc $cf{refs}{bismark} $file";
+		my $command = "bismark $multicore --bam $pbat $non_directional $enc $cf{refs}{bismark} $file";
 		warn "\n###CFCMD $command\n\n";
 
 		if(!system ($command)){
@@ -186,14 +166,9 @@ if($pe_files && scalar(@$pe_files) > 0){
 				$enc = '--'.$encoding.'-quals';
 			}
 
-			my $output_fn;
-			if(length($bt2) > 0){
-				$output_fn = $files[0]."_bismark_bt2_pe.bam";
-			} else {
-				$output_fn = $files[0]."_bismark_pe.bam";
-			}
+			my $output_fn = $files[0]."_bismark_bt2_pe.bam";
 
-			my $command = "bismark $multicore --bam $bt2 $pbat $non_directional $enc $cf{refs}{bismark} -1 ".$files[0]." -2 ".$files[1];
+			my $command = "bismark $multicore --bam $pbat $non_directional $enc $cf{refs}{bismark} -1 ".$files[0]." -2 ".$files[1];
 			warn "\n###CFCMD $command\n\n";
 
 			if(!system ($command)){
