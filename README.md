@@ -90,6 +90,7 @@ Alternatively, you can download a [.zip file](https://github.com/ewels/clusterfl
 	* Fixed bugs causing minimum memory allocation regardless of availability
 	* Fixed bug causing Bowtie2 to fail if Bowtie1 index absent
     * Cleaned up some unrecognised output that always made it into the log file
+    * Allow multiple merge regexes
 
 #### [v0.3](https://github.com/ewels/clusterflow/releases/tag/v0.3) - 2014-07-11
 * New Stuff
