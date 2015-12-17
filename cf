@@ -520,7 +520,7 @@ if($num_file_groups < $num_files){
 	print "Found $num_file_groups groups of files from $num_files using merge regex:\n".$config{merge_regex}."\n\n";
 } elsif(@MERGE_REGEXES){
 	print "No file groups found with merge regex.\n\n";
-	@MERGE_REGEXES = [];
+	@MERGE_REGEXES = ();
 }
 
 
