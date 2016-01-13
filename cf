@@ -487,13 +487,11 @@ if(@MERGE_REGEXES){
 		
 		# Loop through regexes and update group if we have a match
 		foreach my $merge (@MERGE_REGEXES){
-			if($fn =~ m/$merge/){
-				my $i = 1;
+			if(my @captured = $fn =~ m/$merge/){
 				my $groupstr = '';
 				# Loop through each regex match - $1, $2 and so on.
-				while(defined($$i)){
-					$groupstr .= $$i;
-					$i++;
+				for (0 .. $#captured){
+					$groupstr .= $captured[$_];
 				}
 				$group = $groupstr if(length($groupstr) > 0);
 			}
