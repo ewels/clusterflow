@@ -43,13 +43,12 @@ my %requirements = (
 
 # The help text
 my $helptext = "".("-"x15)."\n DeepTools bamCoverage\n".("-"x15)."\n
-Takes two input files: a bam file and a _crosscorrelation.txt file,
+Takes two input files: a bam file and an (optional) _crosscorrelation.txt file,
 as created by phantompeaktools. Creates a bigWig coverage file,
 using deepTools/bamCoverage. Outputs are are bw files named basename.bw.
 The fragment length is set using 1) the input parameter fragmentLength
 2) the file _crosscorrelation.txt and 3) default fragment length of 200
-(if no input parameter is set and the file _crosscorrelation.txt doesn't exist).
-Currently this module expects a locally installed bamCoverage script.\n\n";
+(if no input parameter is set and the file _crosscorrelation.txt doesn't exist).\n\n";
 
 # Start your engines...
 my %cf = CF::Helpers::module_start(\%requirements, $helptext);
@@ -104,14 +103,15 @@ foreach my $file (@{$cf{'prev_job_files'}}){
     my $output_fn = $file."_coverage.bw";
 
     # Run bamCoverage, to get bigWig file
-    my $cmd = "bamCoverage -f $fragmentLength -p $cf{cores} -b $file -o $output_fn";
+    # my $cmd = "bamCoverage -f $fragmentLength -p $cf{cores} -b $file -o $output_fn";
+    my $cmd = "bamCoverage --normalizeUsingRPKM --extendReads $fragmentLength -p $cf{cores} -b $file -o $output_fn";  
     warn "\n###CFCMD $cmd\n\n";
 
     # Try to run the command - returns 0 on success (which evaluated to false)
     if(!system ($cmd)){
 	# Command worked!
 	# Work out how long the processing took
-	my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+	my $duration = CF::Helpers::parse_seconds(time - $timestart);
 
 	# Print a success message to the log file which will be e-mailed out
 	warn "###CF bamCoverage successfully exited, took $duration..\n";

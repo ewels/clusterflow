@@ -28,7 +28,7 @@ use CF::Helpers;
 
 my %requirements = (
 	'cores' 	=> '1',
-	'memory' 	=> '2G',
+	'memory' 	=> '8G',
 	'modules' 	=> ['phantompeakqualtools', 'samtools'],
 	'time' 		=> sub {
 
@@ -36,8 +36,8 @@ my %requirements = (
 		my $num_files = $cf->{'num_starting_merged_aligned_files'};
 		# Default to 1 if none were parsed for whatever reason
 		$num_files = ($num_files > 0) ? $num_files : 1;
-		# Picard usually takes around 30 minutes per BAM file?
-		return CF::Helpers::minutes_to_timestamp ($num_files * 1 * 60);
+		# Usually takes around 90 minutes per BAM file?
+		return CF::Helpers::minutes_to_timestamp ($num_files * 1 * 240);
 	}
 );
 
