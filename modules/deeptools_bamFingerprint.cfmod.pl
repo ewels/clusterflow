@@ -44,14 +44,13 @@ my %requirements = (
 
 # The help text
 my $helptext = "".("-"x15)."\n DeepTools bamFingerprint\n".("-"x15)."\n
-Takes two input files: a bam file and a _crosscorrelation.txt file,
+Takes two input files: a bam file and an (optional) _crosscorrelation.txt file,
 as created by phantompeaktools. Creates a \"fingerprint\" plot of
-the read coverage, using deepTools/bamFingerprint. Outputs are are
+the read coverage, using deepTools/plotFingerprint. Outputs are are
 plot files named basename_fingerprint.png. The fragment length is set
 using 1) the input parameter fragmentLength 2) the file _crosscorrelation.txt
 and 3) default fragment length of 200 (if no input parameter is set
-and the file _crosscorrelation.txt doesn't exist). Currently expects
-a locally installed bamFingerprint.\n\n";
+and the file _crosscorrelation.txt doesn't exist). \n\n";
 
 
 # Start your engines...
@@ -62,7 +61,7 @@ my $defaultFragLen = 200; # If fragment length not defined, use this value.
 
 # Print version information about the program to be executed.
 warn "---------- bamFingerprint  version information ----------\n";
-warn `bamFingerprint --version`;
+warn `plotFingerprint --version`;
 warn "\n------- End of bamFingerprint version information ------\n";
 
 # Open up our run file in append mode
@@ -109,7 +108,7 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 
     # Run bamFingerprint, to get bigWig file
 
-    my $cmd = "bamFingerprint -b $file -p $cf{cores} --fragmentLength $fragmentLength -plot $output_fn";
+    my $cmd = "plotFingerprint -b $file --numberOfProcessors $cf{cores} --extendReads $fragmentLength -plot $output_fn";
     warn "\n###CFCMD $cmd\n\n";
 
 
