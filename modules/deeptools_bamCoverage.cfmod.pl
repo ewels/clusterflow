@@ -104,7 +104,7 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 
     # Run bamCoverage, to get bigWig file
     # my $cmd = "bamCoverage -f $fragmentLength -p $cf{cores} -b $file -o $output_fn";
-    my $cmd = "bamCoverage --normalizeUsingRPKM= --extendReads $fragmentLength -p $cf{cores} -b $file -o $output_fn";  
+    my $cmd = "bamCoverage --normalizeUsingRPKM --extendReads $fragmentLength -p $cf{cores} -b $file -o $output_fn";  
     warn "\n###CFCMD $cmd\n\n";
 
     # Try to run the command - returns 0 on success (which evaluated to false)
