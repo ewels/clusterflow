@@ -831,13 +831,13 @@ sub build_emails {
 	my $cf_version = $CF::Constants::CF_VERSION;
 
 	# Put in our content
-	$html_email =~ s/{{ PAGE_TITLE }}/$title/g;
-	$html_email =~ s/{{ CONTENT }}/$html_content/g;
-	$html_email =~ s/{{ CF_VERSION }}/$cf_version/g;
+	$html_email =~ s/\{\{ PAGE_TITLE }}/$title/g;
+	$html_email =~ s/\{\{ CONTENT }}/$html_content/g;
+	$html_email =~ s/\{\{ CF_VERSION }}/$cf_version/g;
 
-	$text_email =~ s/{{ PAGE_TITLE }}/$title/g;
-	$text_email =~ s/{{ CONTENT }}/$plain_content/g;
-	$text_email =~ s/{{ CF_VERSION }}/$cf_version/g;
+	$text_email =~ s/\{\{ PAGE_TITLE }}/$title/g;
+	$text_email =~ s/\{\{ CONTENT }}/$plain_content/g;
+	$text_email =~ s/\{\{ CF_VERSION }}/$cf_version/g;
 
   return($html_email, $text_email);
 
