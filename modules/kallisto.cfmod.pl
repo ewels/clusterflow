@@ -45,7 +45,15 @@ my %requirements = (
 
 # Help text
 my $helptext = "".("-"x17)."\n Kallisto\n".("-"x17)."\n
-kallisto is a program for quantifying abundances of transcripts from RNA-Seq data, or more generally of target sequences using high-throughput sequencing reads. It is based on the novel idea of pseudoalignment for rapidly determining the compatibility of reads with targets, without the need for alignment. On benchmarks with standard RNA-Seq data, kallisto can quantify 30 million human reads in less than 3 minutes on a Mac desktop computer using only the read sequences and a transcriptome index that itself takes less than 10 minutes to build. Pseudoalignment of reads preserves the key information needed for quantification, and kallisto is therefore not only fast, but also as accurate as existing quantification tools. In fact, because the pseudoalignment procedure is robust to errors in the reads, in many benchmarks kallisto significantly outperforms existing tools.\n\n";
+kallisto is a program for quantifying abundances of transcripts from RNA-Seq 
+data, or more generally of target sequences using high-throughput sequencing 
+reads. It is based on the novel idea of pseudoalignment for rapidly 
+determining the compatibility of reads with targets, without the need for 
+alignment. Pseudoalignment of reads preserves the key information needed for 
+quantification, and kallisto is therefore not only fast, but also as accurate 
+as existing quantification tools. In fact, because the pseudoalignment 
+procedure is robust to errors in the reads, in many benchmarks kallisto 
+significantly outperforms existing tools.\n\n";
 
 # Setup
 my %cf = CF::Helpers::module_start(\%requirements, $helptext);
@@ -62,7 +70,7 @@ open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $
 
 # Print version information about the module.
 warn "---------- Kallisto version information ----------\n";
-warn `kallisto | grep "^kallisto"`;
+warn `kallisto version`;
 warn "\n------- End of Kallisto version information ------\n";
 
 # FastQ encoding type. Once found on one file will assume all others are the same
@@ -71,7 +79,7 @@ my $encoding = 0;
 # Separate file names into single end and paired end
 my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%cf, @{$cf{'prev_job_files'}});
 
-# Go through each single end files and run Bowtie
+# Go through each single end files and run kallisto
 if($se_files && scalar(@$se_files) > 0){
 	foreach my $file (@$se_files){
 		my $timestart = time;
@@ -92,7 +100,7 @@ if($se_files && scalar(@$se_files) > 0){
 		warn "\n###CFCMD $command\n\n";
 
 		if(!system ($command)){
-			# Bowtie worked - print out resulting filenames
+			# kallisto worked - print out resulting filenames
 			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 			warn "###CF kallisto (SE mode) successfully exited, took $duration..\n";
 			if(-e $output_fn){
@@ -106,7 +114,7 @@ if($se_files && scalar(@$se_files) > 0){
 	}
 }
 
-# Go through the paired end files and run Bowtie
+# Go through the paired end files and run kallisto
 if($pe_files && scalar(@$pe_files) > 0){
 	foreach my $files_ref (@$pe_files){
 		my @files = @$files_ref;
@@ -129,7 +137,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			warn "\n###CFCMD $command\n\n";
 
 			if(!system ($command)){
-				# Bowtie worked - print out resulting filenames
+				# kallisto worked - print out resulting filenames
 				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 				warn "###CF kallisto (PE mode) successfully exited, took $duration..\n";
 				if(-e $output_fn){
