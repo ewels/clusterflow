@@ -30,7 +30,7 @@ use POSIX;
 # Module requirements
 my %requirements = (
 	'cores' 	=> '1',
-	'memory' 	=> '3G',
+	'memory' 	=> '8G',
 	'modules' 	=> 'samtools',
 	'time' 		=> sub {
 		my $cf = $_[0];
