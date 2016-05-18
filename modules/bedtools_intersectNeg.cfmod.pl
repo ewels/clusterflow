@@ -55,6 +55,17 @@ warn "---------- Bedtools version information ----------\n";
 warn `bedtools --version`;
 warn "\n------- End of bedtools version information ------\n";
 
+# Check if a file with blacklist regions was provided.
+my $blacklistFile;
+if(defined($cf{'refs'}{'blacklist'})){
+    $blacklistFile = $cf{'refs'}{'blacklist'};
+    warn "###CF bedtools intersectNeg: Using blacklist file $blacklistFile.\n";
+}
+if(defined($cf{'params'}{'blacklistFile'})){
+    $blacklistFile = $cf{'params'}{'blacklistFile'};
+    warn "###CF bedtools intersectNeg: Using blacklist file $blacklistFile.\n";
+}
+
 # Open up our run file in append mode
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
@@ -68,23 +79,17 @@ foreach my $file (@{$cf{'prev_job_files'}}){
       warn "\n###CF Error! bedtools_intersectNeg failed: bam file expected, got $file\n\n";
       next;
   }
-
-  # Generate a nice output file name
-  (my $output_fn = $file) =~ s/\.bam//i;
-  $output_fn .= "_noblacklist.bam";
-
-
-  # Check if a file with blacklist regions was provided.
-  my $blacklistFile;
-  if(defined($cf{'params'}{'blacklistFile'})){
-      $blacklistFile = $cf{'params'}{'blacklistFile'};
-      warn "###CF bedtools intersectNeg: Using blacklist file $blacklistFile.\n";
-  } else {
-      warn "###CF bedtools intersectNeg: No blacklist file given. Skipping this step.\n";
+  
+  # Skip step in pipeline if no blacklist file given
+  if(!$blacklistFile) {
+      warn "###CF bedtools intersectNeg: Warning - no blacklist file given. Skipping this step.\n";
       print RUN "$cf{job_id}\t$file\n";
       next;
   }
 
+  # Generate a nice output file name
+  (my $output_fn = $file) =~ s/\.bam//i;
+  $output_fn .= "_noblacklist.bam";
 
   ## Run bedtools intersect to remove reads from blacklist regions
   my $cmd = "bedtools intersect -abam $file -b $blacklistFile -v > $output_fn";
