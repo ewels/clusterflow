@@ -30,7 +30,7 @@ use CF::Helpers;
 my %requirements = (
 	'cores' 	=> '1',
 	'memory' 	=> '2G',
-	'modules' 	=> ['multiqc'],
+	'modules' 	=> 'multiqc',
 	'time' 		=> '30'
 );
 
