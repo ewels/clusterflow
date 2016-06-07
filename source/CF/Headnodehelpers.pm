@@ -12,7 +12,7 @@ use Time::Local;
 use Term::ANSIColor;
 use CF::Helpers;
 use Data::Dumper;
-use LWP::Simple;
+use LWP::Simple qw($ua get);
 
 ##########################################################################
 # Copyright 2014, Philip Ewels (phil.ewels@scilifelab.se)                #
@@ -32,6 +32,9 @@ use LWP::Simple;
 # You should have received a copy of the GNU General Public License      #
 # along with Cluster Flow.  If not, see <http://www.gnu.org/licenses/>.  #
 ##########################################################################
+
+# Set the default timeout for LWP::Simple
+$ua->timeout(5);
 
 # Function to parse squeue results on a SLURM system
 sub parse_localjobs {
@@ -853,7 +856,7 @@ sub cf_check_updates {
 
 	# Get contents of Cluster Flow current version file using LWP::Simple
 	my $version_url = 'http://clusterflow.io/version.php';
-	my $avail_version = get($version_url) or return "Can't access address to check available version:\n$version_url\n\n";
+	my $avail_version = get($version_url) or return ("Can't access address to check available version:\n$version_url\n\n", 0);
 	my $timestamp = time();
 
 	# Update the .cfupdates files with the available version and checked timestamp
@@ -865,10 +868,10 @@ sub cf_check_updates {
 	}
 
 	if(cf_compare_version_numbers($current_version, $avail_version)){
-		return "".("="x45)."\n A new version of Cluster Flow is available!\n Running v$current_version, v$avail_version available.\n".("="x45)."\n
-You can download the latest version of Cluster Flow from\nhttps://github.com/ewels/clusterflow/releases/\n\n";
+		return ("".("="x45)."\n A new version of Cluster Flow is available!\n Running v$current_version, v$avail_version available.\n".("="x45)."\n
+You can download the latest version of Cluster Flow from\nhttps://github.com/ewels/clusterflow/releases/\n\n", 1);
 	} else {
-		return "Your copy of Cluster Flow is up to date. Running v$current_version, v$avail_version available.\n\n";
+		return ("Your copy of Cluster Flow is up to date. Running v$current_version, v$avail_version available.\n\n", 0);
 	}
 }
 

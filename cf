@@ -291,7 +291,8 @@ if($cl_version){
 # Check for updates - either by command line or config file
 if($cl_check_updates){
 	print "\nCurrent Cluster Flow version: v$CF_VERSION\n\n";
-	print CF::Headnodehelpers::cf_check_updates($CF_VERSION)."\n";
+	my ($message, $update_available) = CF::Headnodehelpers::cf_check_updates($CF_VERSION);
+	print "$message\n";
 	exit;
 } elsif($CHECK_UPDATES){
 	# Work out the check interval in seconds
@@ -304,7 +305,10 @@ if($cl_check_updates){
 	# See if it's been this many seconds since we last checked
 	if($check_interval){
 		if(!$UPDATES_LAST_CHECKED || (time - $UPDATES_LAST_CHECKED) > $check_interval){
-			my $message = CF::Headnodehelpers::cf_check_updates($CF_VERSION);
+			my ($message, $update_available) = CF::Headnodehelpers::cf_check_updates($CF_VERSION);
+			if ($update_available){
+				warn $message;
+			}
 		}
 	}
 }
