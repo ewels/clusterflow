@@ -28,8 +28,8 @@ use CF::Helpers;
 
 # Module requirements
 my %requirements = (
-	'cores' 	=> ['4', '64'],
-	'memory' 	=> ['64G', '160G'],
+	'cores' 	=> ['4', '6'],
+	'memory' 	=> ['18G', '25G'],
 	'modules' 	=> ['bowtie','bowtie2','bismark','samtools'],
 	'references'=> 'bismark',
 	'time' 		=> sub {
@@ -48,12 +48,12 @@ my $helptext = "".("-"x22)."\n Bismark Align Module\n".("-"x22)."\n
 The bismark_align module runs the main bismark script.
 Bismark is a program to map bisulfite treated sequencing reads
 to a genome of interest and perform methylation calls.\n
-PBAT, single cell and Bowtie 1/2 modes can be specified in
-pipelines with the pbat, single_cell bt1 and bt2 parameters. For example:
-#bismark_align	pbat2
-#bismark_align	bt1\n
-#bismark_align	bt2\n
-#bismark_align	single_cell\n
+PBAT, single cell and Bowtie 1 mode can be specified in
+pipelines with the pbat, single_cell bt1 parameters. For example:
+  #bismark_align	pbat\n
+  #bismark_align	bt1\n
+  #bismark_align	single_cell\n
+  #bismark_align	unmapped\n
 Use bismark --help for further information.\n\n";
 
 # Setup
@@ -99,6 +99,8 @@ if($multi > 1){
 
 # Read options from the pipeline parameters
 my $pbat = defined($cf{'params'}{'pbat'}) ? "--pbat" : '';
+my $unmapped = defined($cf{'params'}{'unmapped'}) ? "--unmapped" : '';
+my $bowtie = defined($cf{'params'}{'bt1'}) ? "--bowtie1" : "--bowtie2";
 my $non_directional = defined($cf{'params'}{'single_cell'}) ? "--non_directional" : '';
 my $subsample = defined($cf{'params'}{'subsample'}) ? "-u 1000000" : '';
 
@@ -128,10 +130,17 @@ if($se_files && scalar(@$se_files) > 0){
 		if($encoding eq 'phred33' || $encoding eq 'phred64' || $encoding eq 'solexa'){
 			$enc = '--'.$encoding.'-quals';
 		}
-
-		my $output_fn = $file."_bismark_bt2.bam";
-
-		my $command = "bismark $multicore --bam $pbat $non_directional $enc $cf{refs}{bismark} $file";
+		
+		my $output_fn = $file;
+		$output_fn =~ s/(\.fastq\.gz|\.fq\.gz|\.fastq|\.fq)$//; # attempting to remove fastq.gz etc to make filename a little shorter 05 02 2016. Felix
+		if($bowtie == '--bowtie2'){
+		    $output_fn .= "_bismark_bt2.bam";
+		} else {
+		    $output_fn .= "_bismark.bam";
+		}
+		
+		my $command = "bismark --bam $multicore $bowtie $pbat $unmapped $non_directional $enc $cf{refs}{bismark} $file";
+		
 		warn "\n###CFCMD $command\n\n";
 
 		if(!system ($command)){
@@ -165,10 +174,16 @@ if($pe_files && scalar(@$pe_files) > 0){
 			if($encoding eq 'phred33' || $encoding eq 'phred64' || $encoding eq 'solexa'){
 				$enc = '--'.$encoding.'-quals';
 			}
+			
+			my $output_fn = $files[0];
+			$output_fn =~ s/(\.fastq\.gz|\.fq\.gz|\.fastq|\.fq)$//; # attempting to remove fastq.gz etc to make filename a little shorter 05 02 2016. Felix
+			if($bowtie == '--bowtie2'){
+			    $output_fn .= "_bismark_bt2_pe.bam";
+			} else {
+			    $output_fn .= "_bismark_pe.bam";
+			}
 
-			my $output_fn = $files[0]."_bismark_bt2_pe.bam";
-
-			my $command = "bismark $multicore --bam $pbat $non_directional $enc $cf{refs}{bismark} -1 ".$files[0]." -2 ".$files[1];
+			my $command = "bismark --bam $multicore $bowtie $pbat $unmapped $non_directional $enc $cf{refs}{bismark} -1 ".$files[0]." -2 ".$files[1];
 			warn "\n###CFCMD $command\n\n";
 
 			if(!system ($command)){

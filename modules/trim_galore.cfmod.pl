@@ -73,10 +73,15 @@ my $q_cutoff = defined($cf{'params'}{'q'}) ? "-q ".$cf{'params'}{'q_cutoff'} : '
 my $stringency = defined($cf{'params'}{'stringency'}) ? "--stringency ".$cf{'params'}{'stringency'} : '';
 my $adapter = defined($cf{'params'}{'adapter'}) ? "--adapter ".uc($cf{'params'}{'adapter'}) : '';
 my $RRBS = defined($cf{'params'}{'RRBS'}) ? "--RRBS" : '';
+my $fqc = (defined($cf{'params'}{'nofastqc'})) ? '' : '--fastqc_args "-q"';
 
 my $clip_r1 = "";
 my $clip_r2 = "";
 if(defined($cf{'params'}{'pbat'})){
+	$clip_r1 = "--clip_r1 6";
+	$clip_r2 = "--clip_r2 6";
+}
+if(defined($cf{'params'}{'ATAC'})){
 	$clip_r1 = "--clip_r1 4";
 	$clip_r2 = "--clip_r2 4";
 }
@@ -134,8 +139,6 @@ if($se_files && scalar(@$se_files) > 0){
 
 		my $output_fn = trim_galore_basename($file).'_trimmed.fq.gz';
 
-		my $fqc = (defined($cf{'params'}{'nofastqc'})) ? '' : '--fastqc_args "-q"';
-
 		my $command = "trim_galore --gzip $enc $stringency $RRBS $adapter $q_cutoff $clip_r1 $fqc $file";
 
 		warn "\n###CFCMD $command\n\n";
@@ -177,8 +180,6 @@ if($pe_files && scalar(@$pe_files) > 0){
 
 			my $output_fn_1 = trim_galore_basename($files[0]).'_val_1.fq.gz';
 			my $output_fn_2 = trim_galore_basename($files[1]).'_val_2.fq.gz';
-
-			my $fqc = (defined($cf{'params'}{'nofastqc'})) ? '' : '--fastqc';
 
 			my $command = "trim_galore --paired --gzip $enc $stringency $RRBS $adapter $q_cutoff $clip_r1 $clip_r2 $fqc $files[0] $files[1]";
 

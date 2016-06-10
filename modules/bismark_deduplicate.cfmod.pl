@@ -29,7 +29,7 @@ use CF::Helpers;
 # Module requirements
 my %requirements = (
 	'cores' 	=> '1',
-	'memory' 	=> ['64G', '128G'],
+	'memory' 	=> ['3G', '30G'],
 	'modules' 	=> 'bismark',
 	'time' 		=> sub {
 		my $cf = $_[0];
@@ -64,45 +64,21 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 
 	my $output_fn = substr($file,0 ,-3)."deduplicated.bam";
 
-	# Find if PE or SE from input BAM file
-	if(CF::Helpers::is_bam_paired_end($file)){
+	my $command = "deduplicate_bismark --bam $file";
+	warn "\n###CFCMD $command\n\n";
 
-		my $command = "deduplicate_bismark -p --bam $file";
-		warn "\n###CFCMD $command\n\n";
-
-		# Paired End BAM file
-		if(!system ($command)){
-			# Bismark worked - print out resulting filenames
-			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-			warn "###CF Bismark deduplication (PE mode) successfully exited, took $duration..\n";
-			if(-e $output_fn){
-				print RUN "$cf{job_id}\t$output_fn\n";
-			} else {
-				warn "\n###CF Error! Bismark output file $output_fn not found..\n";
-			}
+	# Paired End BAM file
+	if(!system ($command)){
+		# Bismark worked - print out resulting filenames
+		my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+		warn "###CF Bismark deduplication successfully exited, took $duration..\n";
+		if(-e $output_fn){
+			print RUN "$cf{job_id}\t$output_fn\n";
 		} else {
-			warn "\n###CF Error!Bismark deduplication (PE mode) exited with an error state for file '$file': $? $!\n\n";
+			warn "\n###CF Error! Bismark output file $output_fn not found..\n";
 		}
-
 	} else {
-
-		my $command = "deduplicate_bismark -s --bam $file";
-		warn "\n###CFCMD $command\n\n";
-
-		# Single End BAM file
-		if(!system ($command)){
-			# Bismark worked - print out resulting filenames
-			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-			warn "###CF Bismark deduplication (SE mode) successfully exited, took $duration..\n";
-			if(-e $output_fn){
-				print RUN "$cf{job_id}\t$output_fn\n";
-			} else {
-				warn "\n###CF Error! Bismark output file $output_fn not found..\n";
-			}
-		} else {
-			warn "\n###CF Error! Bismark deduplication (SE mode) exited with an error state for file '$file': $? $!\n\n";
-		}
-
+		warn "\n###CF Error! Bismark deduplication exited with an error state for file '$file': $? $!\n\n";
 	}
 }
 
