@@ -32,7 +32,7 @@ my @rawargs = @ARGV;
 # Module requirements
 my %requirements = (
 	'cores' 	=> ['1', '8'],
-	'memory' 	=> ['4G', '5G'],
+	'memory' 	=> ['15G', '25G'],
 	'modules' 	=> ['bowtie','bowtie2','samtools'],
 	'references'=> ['bowtie','bowtie2'],
 	'time' 		=> sub {

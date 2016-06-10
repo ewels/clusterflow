@@ -29,7 +29,7 @@ use CF::Helpers;
 # Module requirements
 my %requirements = (
 	'cores' 	=> '1',
-	'memory' 	=> '2G',
+	'memory' 	=> '3G',
 	'modules' 	=> ['fastqc'],
 	'time' 		=> sub {
 		my $cf = $_[0];
