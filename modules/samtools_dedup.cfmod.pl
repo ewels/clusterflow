@@ -101,7 +101,7 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 
                 my $duration =  CF::Helpers::parse_seconds(time - $timestart);
                 warn "###CF Samtools dedup successfully exited, took $duration..\n";
-                print RUN "$job_id\t${dedup_resorted_fn}.bam\n"; 
+                print RUN "$cf{job_id}\t${dedup_resorted_fn}.bam\n"; 
             } else {
                 warn "\n###CF Error! Samtools dedup Name sort failed for input file '$file': $? $!\n\n";
             }

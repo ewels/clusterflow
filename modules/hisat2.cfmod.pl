@@ -64,7 +64,7 @@ if(!defined($cf{'refs'}{'hisat2'})){
 }
 
 # Use a splices file if we have one
-my $gtf = '';
+my $splices = '';
 if(defined($cf{'refs'}{'hisat2_splices'}) && -e $cf{'refs'}{'hisat2_splices'}){
 	$splices = " --known-splicesite-infile ".$cf{'refs'}{'hisat2_splices'};
 	warn "\nUsing GTF path: ".$cf{'refs'}{'hisat2_splices'}."\n\n";
@@ -80,7 +80,7 @@ warn `hisat2 --version`;
 warn "\n------- End of Tophat version information ------\n";
 
 # Separate file names into single end and paired end
-my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%config, @$files);
+my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%cf, @{$cf{'prev_job_files'}});
 
 # FastQ encoding type. Once found on one file will assume all others are the same
 my $encoding = 0;
@@ -114,7 +114,7 @@ if($se_files && scalar(@$se_files) > 0){
 			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 			warn "###CF Hisat2 (SE mode) successfully exited, took $duration..\n";
 			if(-e $output_fn){
-				print RUN "$job_id\t$output_fn\n"; 
+				print RUN "$cf{job_id}\t$output_fn\n"; 
 			} else {
 				warn "\n###CF Error! Hisat2 output file $output_fn not found..\n";
 			}
@@ -153,7 +153,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 				warn "###CF Hisat2 (PE mode) successfully exited, took $duration..\n";
 				if(-e $output_fn){
-					print RUN "$job_id\t$output_fn\n";
+					print RUN "$cf{job_id}\t$output_fn\n";
 				} else {
 					warn "\n###CF Error! Hisat2 output file $output_fn not found..\n";
 				}
