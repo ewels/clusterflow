@@ -27,82 +27,57 @@ use CF::Helpers;
 # along with Cluster Flow.  If not, see <http://www.gnu.org/licenses/>.  #
 ##########################################################################
 
-# Get Options
-my $required_cores;
-my $required_mem;
-my $required_modules;
-my $help;
-my $result = GetOptions ("cores=i" => \$required_cores, "mem=s" => \$required_mem, "modules" => \$required_modules, "help" => \$help);
+# Module requirements
+my %requirements = (
+	'cores' 	=> '7',
+	'memory' 	=> '8G',
+	'modules' 	=> ['hisat2', 'samtools'],
+	'references'=> 'hisat2',
+	'time' 		=> sub {
+		my $cf = $_[0];
+		my $num_files = $cf->{'num_starting_merged_aligned_files'};
+		$num_files = ($num_files > 0) ? $num_files : 1;
+		# Quicker than Tophat!
+		return CF::Helpers::minutes_to_timestamp ($num_files * 4 * 60);
+	}
+);
 
-# QSUB SETUP
-# --cores i = offered cores. Return number of required cores.
-if($required_cores){
-	print CF::Helpers::allocate_cores($required_cores, 7, 7);
-	exit;
-}
-# --mem. Return the required memory allocation.
-if($required_mem){
-	print CF::Helpers::allocate_memory($required_mem, '8G', '8G');
-	exit;
-}
-# --modules. Return csv names of any modules which should be loaded.
-if($required_modules){
-	print 'hisat2,samtools';
-	exit;
-}
-# --help. Print help.
-if($help){
-	print "".("-"x15)."\n Hisat2 Module\n".("-"x15)."\n
+# Help text
+my $helptext = "".("-"x15)."\n Hisat2 Module\n".("-"x15)."\n
 Hisat2 is a spliced aligner for RNA-Seq data.  It is fast and memory
 efficient.
 This script works out the encoding of input files, guesses whether they're
 paired end or not and runs hisat2. Output is piped through samtools to
 generate BAM files.\n
 For further information, please run hisat2 --help\n\n";
-	exit;
-}
+
+# Setup
+my %cf = CF::Helpers::module_start(\%requirements, $helptext);
+
 
 # MODULE
-my $timestart = time;
-
-# Read in the input files from the run file
-my ($files, $runfile, $job_id, $prev_job_id, $cores, $mem, $parameters, $config_ref) = CF::Helpers::load_runfile_params(@ARGV);
-my %config = %$config_ref;
-
 # Check that we have a genome defined
-
-# TODO: Define a proper hisat2 path variable, even though it will probably
-# end up being the same as the bowtie2 one.
-
-if(!defined($config{bowtie2_path})){
-    if (defined($config{bowtie_path})){
-		warn "\n\n### CF Error: No bowtie2 path found in run file $runfile for job $job_id.\n Exiting.. ###\n";
-		
-		exit;
-	}  else  {
-
-	    warn "\n\n###CF Error: No bowtie2 path found in run file $runfile for job $job_id. Exiting.. ###";
-	    exit;
-	}
+if(!defined($cf{'refs'}{'hisat2'})){
+	die "\n\n###CF Error: No hisat2 ref path found in run file $cf{run_fn} for job $cf{job_id}. Exiting..";
 } else {
-	warn "\nAligning against ".$config{bowtie2_path}."\n\n";
+	warn "\nAligning against hisat2 path: $cf{refs}{hisat2}\n\n";
 }
 
+# Use a splices file if we have one
 my $gtf = '';
-if(defined($config{gtf_path})){
-
-		my $splice_file = $config{gtf_path};
-		$splice_file =~ s/\.gtf$/_hisat2_splices.txt/;
-		warn "\nUsing GTF path: ".$splice_file."\n\n";
-		$gtf = " --known-splicesite-infile ".$splice_file;
+if(defined($cf{'refs'}{'hisat2_splices'}) && -e $cf{'refs'}{'hisat2_splices'}){
+	$splices = " --known-splicesite-infile ".$cf{'refs'}{'hisat2_splices'};
+	warn "\nUsing GTF path: ".$cf{'refs'}{'hisat2_splices'}."\n\n";
+} elsif(defined($cf{'refs'}{'hisat2_splices'})){
+	warn "\nWarning! Splice file reference ".$cf{'refs'}{'hisat2_splices'}." specified, but file doesn't exist. Ignoring.\n\n";
 }
 
+open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
-if(!defined($cores) || $cores < 1){
-	$cores = 1;
-}
-
-open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
+# Print version information about the module.
+warn "---------- Tophat version information ----------\n";
+warn `hisat2 --version`;
+warn "\n------- End of Tophat version information ------\n";
 
 # Separate file names into single end and paired end
 my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%config, @$files);
@@ -113,6 +88,7 @@ my $encoding = 0;
 # Go through each single end files and run Hisat2
 if($se_files && scalar(@$se_files) > 0){
 	foreach my $file (@$se_files){
+		my $timestart = time;
 		
 		# Figure out the encoding if we don't already know
 		if(!$encoding){
@@ -128,13 +104,13 @@ if($se_files && scalar(@$se_files) > 0){
 		# we are currently using a very high penalty score for soft-clipping (--sp 1000,1000) because Hisat2 seems to soft-clip even when it should run in --end-to-end mode
 		# we are also filtering out unmapped reads (-F 4)
 		# we are also filtering non-primary alignments (-F 256)
-		my $command = "hisat2 --sp 1000,1000 -p $cores -t $enc -x ".$config{bowtie2_path}." $gtf -U $file | samtools view -bS -F 4 -F 256 - > $output_fn";
+		my $command = "hisat2 --sp 1000,1000 -p $cf{cores} -t $enc -x $cf{refs}{hisat2} $splices -U $file | samtools view -bS -F 4 -F 256 - > $output_fn";
 		# allowing softclipping 
-		# my $command = "hisat2 -p $cores -t $enc -x ".$config{bowtie2_path}." $gtf -U $file | samtools view -bS -F 4 -F 256 - > $output_fn"; 		
+		# my $command = "hisat2 -p $cf{cores} -t $enc -x $cf{refs}{hisat2} $splices -U $file | samtools view -bS -F 4 -F 256 - > $output_fn"; 		
 		warn "\n###CFCMD $command\n\n";
 		
 		if(!system ($command)){
-			# Hisat worked - print out resulting filenames
+			# Hisat2 worked - print out resulting filenames
 			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 			warn "###CF Hisat2 (SE mode) successfully exited, took $duration..\n";
 			if(-e $output_fn){
@@ -153,6 +129,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 	foreach my $files_ref (@$pe_files){
 		my @files = @$files_ref;
 		if(scalar(@files) == 2){
+			my $timestart = time;
 			
 			# Figure out the encoding if we don't already know
 			if(!$encoding){
@@ -168,11 +145,11 @@ if($pe_files && scalar(@$pe_files) > 0){
 			#  we are currently using a very high penalty score for soft-clipping (--sp 1000,1000) because Hisat2 seems to soft-clip even when it shoudl run in --end-to-end mode
 			# we are also filtering out unmapped reads (-F 4), or reads where the mate was unmapped (-F 8)
 			# we are also filtering non-primary alignments (-F 256)
-			my $command = "hisat2 --sp 1000,1000 -p $cores -t $enc -x ".$config{bowtie_path}." --no-mixed --no-discordant $gtf -1 ".$files[0]." -2 ".$files[1]." | samtools view -bS -F 4 -F 8 -F 256 - > $output_fn";
+			my $command = "hisat2 --sp 1000,1000 -p $cf{cores} -t $enc -x $cf{refs}{hisat2} --no-mixed --no-discordant $splices -1 ".$files[0]." -2 ".$files[1]." | samtools view -bS -F 4 -F 8 -F 256 - > $output_fn";
 			warn "\n###CFCMD $command\n\n";
 			
 			if(!system ($command)){
-				# Bowtie worked - print out resulting filenames
+				# Hisat2 worked - print out resulting filenames
 				my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 				warn "###CF Hisat2 (PE mode) successfully exited, took $duration..\n";
 				if(-e $output_fn){

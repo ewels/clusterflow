@@ -58,7 +58,7 @@ my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 
 # MODULE
-open (RUN,'>>',$runfile) or die "Can't write to $runfile: $!";
+open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
 warn "---------- Samtools version information ----------\n";
