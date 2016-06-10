@@ -100,8 +100,8 @@ foreach my $parameter (@$parameters){
 		$RRBS = "--RRBS";
 	}
 	if($parameter eq "pbat"){
-		$clip_r1 = "--clip_r1 4";
-		$clip_r2 = "--clip_r2 4";
+		$clip_r1 = "--clip_r1 6";
+		$clip_r2 = "--clip_r2 6";
 	}
 	if($parameter eq "ATAC"){
 		$clip_r1 = "--clip_r1 4";

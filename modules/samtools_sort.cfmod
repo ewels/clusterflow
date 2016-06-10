@@ -48,7 +48,7 @@ if($required_mem){
 }
 # --modules. Return csv names of any modules which should be loaded.
 if($required_modules){
-	print 'samtools';
+	print 'samtools/0.1.18';
 	exit;
 }
 # --help. Print help.

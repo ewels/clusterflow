@@ -41,12 +41,12 @@ if($required_cores){
 }
 # --mem. Return the required memory allocation.
 if($required_mem){
-	print "2G";
+	print "20G";
 	exit;
 }
 # --modules. Return csv names of any modules which should be loaded.
 if($required_modules){
-	print 'hicup_cluster/0.0.1.clusterdev';
+	#print 'hicup_cluster/0.0.1.clusterdev';
 	exit;
 }
 # --help. Print help.
@@ -103,7 +103,7 @@ my $encoding = 0;
 # Pipeline Parameters
 ##############################
 my $longest = 800;
-my $shortest = 150;
+my $shortest = 100;
 my $re1 = "A^AGCTT,HindIII";
 foreach my $parameter (@$parameters){
 	if($parameter =~ /longest=(\d+)/){
@@ -149,7 +149,7 @@ foreach my $dir (keys (%dirs)){
 # Sort out the digest file
 ##############################
 my $digest;
-my @digest_files = glob($config{genome_path}."Digest_*.txt");
+my @digest_files = glob($config{genome_path}."Digest_*.txt.gz");
 foreach my $digest_file (@digest_files){
 	if(index($digest_file, $re1_parts[1]) > 0){
 		$digest = $digest_file;
@@ -205,9 +205,9 @@ for (my $i = 0; $i <= $num_files; $i++){
 				($encoding) = CF::Helpers::fastq_encoding_type($p_files[0]);
 			}
 			my $enc = "";
-			if($encoding eq 'phred33' || $encoding eq 'phred64' || $encoding eq 'solexa'){
-				$enc = '--format '.$encoding.'-quals';
-			}
+		#	if($encoding eq 'phred33' || $encoding eq 'phred64' || $encoding eq 'solexa'){
+		#		$enc = '--format '.$encoding.'-quals';
+		#	}
 			
 			# Work out directory
 			# my $outputdir = $p_files[0];
@@ -215,17 +215,51 @@ for (my $i = 0; $i <= $num_files; $i++){
 			
 			# Work out the output filename
 			my $fn1_base = $p_files[0];
-			$fn1_base =~ s/.gz$//;
-			$fn1_base =~ s/.fq$//;
-			$fn1_base =~ s/.fastq$//;
+			$fn1_base =~ s/\.gz$|\.bz2$//;
+            $fn1_base =~ s/\.fastq$|\.fq$//;
 			my $fn2_base = $p_files[1];
-			$fn2_base =~ s/.gz$//;
-			$fn2_base =~ s/.fq$//;
-			$fn2_base =~ s/.fastq$//;
-			my $output_fn = "uniques_".$fn1_base."_trunc_".$fn2_base."_trunc.bam";
+			$fn2_base =~ s/\.gz$|\.bz2$//;
+            $fn2_base =~ s/\.fastq$|\.fq$//;
+			#my $output_fn = "uniques_".$fn1_base."_trunc_".$fn2_base."_trunc.bam";
 			
+			my $output_fn;
+			my %filePairs = ($fn1_base, $fn2_base);
+            foreach my $file1 ( keys %filePairs ) {
+                my $file2 = $filePairs{$file1};
+                my $pairedFilename;
+						
+                #If the filenames are the same length and differ at one position, one filename shall be used, with
+                #the position of difference substituted with an the differing positions separated by '_'
+                #e.g. file1.sam, file2.sam -> file1_2.sam
+                #else, the two file names are combined
+                #e.g. fileABC.sam, fileDEF.sam -> fileABC.fileDEF.sam
+                if ( length $file1 == length $file2 ) {
+                    my @elementsFile1 = split( //, $file1 );
+                    my @elementsFile2 = split( //, $file2 );
+
+                    my @differences;
+                    for ( my $i = 0 ; $i < length $file1 ; $i++ ) {
+                        if ( $elementsFile1[$i] ne $elementsFile2[$i] ) {
+                            push( @differences, $i );
+                        }
+                    }
+
+                    if ( scalar @differences == 1 ) {
+                        my $position2change = $differences[0];
+                        $elementsFile1[$position2change] = $elementsFile1[$position2change] . '_' . $elementsFile2[$position2change];
+                        $pairedFilename = join( '', @elementsFile1 );
+                    }
+                }
+
+                unless ( defined $pairedFilename ) {
+                    $pairedFilename = "$file1.$file2";
+                }		
+				$pairedFilename .= '.hicup.bam';
+				$output_fn = $pairedFilename;
+            }
+					
 			# removed -o $outputdir  from command
-			my $command = "hicup --zip --bowtie bowtie --digest $digest $enc --index ".$config{bowtie_path}." --longest $longest --shortest $shortest --re1 $re1 --threads $cores --filenames ".$p_files[0].",".$p_files[1];
+			my $command = "hicup --zip --bowtie2 bowtie --digest $digest $enc --index ".$config{bowtie_path}." --longest $longest --shortest $shortest  --threads $cores " . $p_files[0] . " "  . $p_files[1];
 			warn "\n###CFCMD $command\n\n";
 			
 			if(!system ($command)){
@@ -246,6 +280,5 @@ for (my $i = 0; $i <= $num_files; $i++){
 	}
 	$i++;
 }
-
 
 close (RUN);
