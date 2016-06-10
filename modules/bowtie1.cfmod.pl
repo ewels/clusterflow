@@ -29,7 +29,7 @@ use CF::Helpers;
 # Module requirements
 my %requirements = (
 	'cores' 	=> ['1', '8'],
-	'memory' 	=> ['3G', '4G'],
+	'memory' 	=> '10G',
 	'modules' 	=> ['bowtie','samtools'],
 	'references'=> 'bowtie',
 	'time' 		=> sub {
@@ -101,9 +101,9 @@ if($se_files && scalar(@$se_files) > 0){
 			$file = "-";
 		}
 
-		my $command = "$gzip bowtie -p $cf{cores} -t -m 1 $enc --strata --best -S --chunkmbs 2048 $cf{refs}{bowtie} $file | samtools view -bS - > $output_fn";
+		my $command = "$gzip bowtie -p $cf{cores} -t -m 1 $enc --strata --best -S --chunkmbs 512 $cf{refs}{bowtie} $file | samtools view -bS - > $output_fn";
 		if (defined($cf{'params'}{'mirna'})) {
-		    $command = "$gzip bowtie -p $cf{cores} -t -n 0 -l 15 -e 99999 -k 200 $enc --best -S --chunkmbs 2048 $cf{refs}{bowtie} $file | samtools view -bS - > $output_fn"
+		    $command = "$gzip bowtie -p $cf{cores} -t -n 0 -l 15 -e 99999 -k 200 $enc --best -S --chunkmbs 512 $cf{refs}{bowtie} $file | samtools view -bS - > $output_fn"
 		}
 		warn "\n###CFCMD $command\n\n";
 
@@ -149,10 +149,10 @@ if($pe_files && scalar(@$pe_files) > 0){
 
 			my $output_fn = $files[0]."_bowtie.bam";
 
-			my $command = "bowtie -p $cf{cores} -t -m 1 $enc --strata --best --maxins 700 -S --chunkmbs 2048 $cf{refs}{bowtie} -1 ".$files[0]." -2 ".$files[1]." | samtools view -bSh 2>/dev/null - > $output_fn";
+			my $command = "bowtie -p $cf{cores} -t -m 1 $enc --strata --best --maxins 700 -S --chunkmbs 512 $cf{refs}{bowtie} -1 ".$files[0]." -2 ".$files[1]." | samtools view -bSh 2>/dev/null - > $output_fn";
 
 			if (defined($cf{'params'}{'mirna'})) {
-			    $command = "bowtie -p $cf{cores} -t -n 0 -l 15 -e 99999 -k 200 $enc --best --maxins 700 -S --chunkmbs 2048 $cf{refs}{bowtie} -1 ".$files[0]." -2 ".$files[1]." | samtools view -bSh 2>/dev/null - > $output_fn";
+			    $command = "bowtie -p $cf{cores} -t -n 0 -l 15 -e 99999 -k 200 $enc --best --maxins 700 -S --chunkmbs 512 $cf{refs}{bowtie} -1 ".$files[0]." -2 ".$files[1]." | samtools view -bSh 2>/dev/null - > $output_fn";
 			}
 			warn "\n###CFCMD $command\n\n";
 

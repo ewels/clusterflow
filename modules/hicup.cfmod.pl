@@ -34,7 +34,7 @@ my %requirements = (
 	},
 	'memory' 	=> sub {
 		my $cf = $_[0];
-		return defined($cf->{'force_paired_end'}) ? '10G' : '5G';
+		return defined($cf->{'force_paired_end'}) ? '20G' : '10G';
 	},
 	'modules' 	=> ['hicup'],
 	'references'=> ['fasta','bowtie'],
@@ -96,7 +96,7 @@ warn "\n------- End of HiCUP version information ------\n";
 # Pipeline Parameters
 ##############################
 my $longest = defined($cf{'params'}{'longest'}) ? $cf{'params'}{'longest'} : 800;
-my $shortest = defined($cf{'params'}{'shortest'}) ? $cf{'params'}{'shortest'} : 150;
+my $shortest = defined($cf{'params'}{'shortest'}) ? $cf{'params'}{'shortest'} : 100;
 my $re1 = defined($cf{'params'}{'re1'}) ? $cf{'params'}{'re1'} : "A^AGCTT,HindIII";
 my @re1_parts = split(",", $re1);
 
@@ -127,7 +127,7 @@ foreach my $dir (keys (%dirs)){
 # Sort out the digest file
 ##############################
 my $digest;
-my @digest_files = glob($cf{'refs'}{'fasta'}."Digest_*.txt");
+my @digest_files = glob($cf{'refs'}{'fasta'}."Digest_*.txt.gz");
 foreach my $digest_file (@digest_files){
 	if(index($digest_file, $re1_parts[1]) > 0){
 		$digest = $digest_file;
@@ -175,9 +175,6 @@ if(!$digest){
 ##############################
 # Loop through Files
 ##############################
-# FastQ encoding type. Once found on one file will assume all others are the same
-my $encoding = 0;
-
 my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%cf, @{$cf{'prev_job_files'}});
 if($se_files && scalar(@$se_files) > 0){
 	warn "\n###CF Error! HiCUP found ".scalar(@$se_files)." single-end files as input..\n";
@@ -188,29 +185,53 @@ if($pe_files && scalar(@$pe_files) > 0){
 		my @files = @$files_ref;
 		if(scalar(@files) == 2){
 			my $timestart = time;
-
-			# Figure out the encoding if we don't already know
-			if(!$encoding){
-				($encoding) = CF::Helpers::fastq_encoding_type($files[0]);
-			}
-			my $enc = "";
-			if($encoding eq 'phred33' || $encoding eq 'phred64' || $encoding eq 'solexa'){
-				$enc = '--format '.$encoding.'-quals';
-			}
-
+			
 			# Work out the output filename
 			my $fn1_base = $files[0];
-			$fn1_base =~ s/.gz$//;
-			$fn1_base =~ s/.fq$//;
-			$fn1_base =~ s/.fastq$//;
+			$fn1_base =~ s/\.gz$|\.bz2$//;
+            $fn1_base =~ s/\.fastq$|\.fq$//;
 			my $fn2_base = $files[1];
-			$fn2_base =~ s/.gz$//;
-			$fn2_base =~ s/.fq$//;
-			$fn2_base =~ s/.fastq$//;
-			my $output_fn = "uniques_".$fn1_base."_trunc_".$fn2_base."_trunc.bam";
+			$fn2_base =~ s/\.gz$|\.bz2$//;
+            $fn2_base =~ s/\.fastq$|\.fq$//;
+			
+			my $output_fn;
+			my %filePairs = ($fn1_base, $fn2_base);
+            foreach my $file1 ( keys %filePairs ) {
+                my $file2 = $filePairs{$file1};
+                my $pairedFilename;
+						
+                # If the filenames are the same length and differ at one position, one filename shall be used, with
+                # the position of difference substituted with an the differing positions separated by '_'
+                # e.g. file1.sam, file2.sam -> file1_2.sam
+                # else, the two file names are combined
+                # e.g. fileABC.sam, fileDEF.sam -> fileABC.fileDEF.sam
+                if ( length $file1 == length $file2 ) {
+                    my @elementsFile1 = split( //, $file1 );
+                    my @elementsFile2 = split( //, $file2 );
 
-			# build command
-			my $command = "hicup --zip --bowtie bowtie --digest $digest $enc --index $cf{refs}{bowtie} --longest $longest --shortest $shortest --re1 $re1 --threads $cf{cores} --filenames $files[0],$files[1]";
+                    my @differences;
+                    for ( my $i = 0 ; $i < length $file1 ; $i++ ) {
+                        if ( $elementsFile1[$i] ne $elementsFile2[$i] ) {
+                            push( @differences, $i );
+                        }
+                    }
+
+                    if ( scalar @differences == 1 ) {
+                        my $position2change = $differences[0];
+                        $elementsFile1[$position2change] = $elementsFile1[$position2change] . '_' . $elementsFile2[$position2change];
+                        $pairedFilename = join( '', @elementsFile1 );
+                    }
+                }
+
+                unless ( defined $pairedFilename ) {
+                    $pairedFilename = "$file1.$file2";
+                }		
+				$pairedFilename .= '.hicup.bam';
+				$output_fn = $pairedFilename;
+            }
+					
+			# removed -o $outputdir  from command
+			my $command = "hicup --zip --bowtie2 bowtie --digest $digest --index $cf{refs}{bowtie} --longest $longest --shortest $shortest --threads $cf{cores} $files[0] $files[1]";
 			warn "\n###CFCMD $command\n\n";
 
 			if(!system ($command)){
@@ -232,6 +253,5 @@ if($pe_files && scalar(@$pe_files) > 0){
 } else {
 	warn "\n###CF Error! No input files found for HiCUP..\n";
 }
-
 
 close (RUN);

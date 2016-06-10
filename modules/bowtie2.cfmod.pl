@@ -29,7 +29,7 @@ use CF::Helpers;
 # Module requirements
 my %requirements = (
 	'cores' 	=> ['1', '8'],
-	'memory' 	=> ['4G', '5G'],
+	'memory' 	=> ['5G', '7G'],
 	'modules' 	=> ['bowtie2','samtools'],
 	'references'=> 'bowtie2',
 	'time' 		=> sub {

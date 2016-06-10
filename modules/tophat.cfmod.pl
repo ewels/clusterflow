@@ -30,7 +30,7 @@ use File::Copy qw(move);
 # Module requirements
 my %requirements = (
 	'cores' 	=> ['1', '6'],
-	'memory' 	=> ['8G', '12G'],
+	'memory' 	=> '20G',
 	'modules' 	=> ['tophat', 'samtools'],
 	'references'=> 'bowtie2',
 	'time' 		=> sub {
@@ -140,7 +140,7 @@ if($se_files && scalar(@$se_files) > 0){
 				warn "\n###CF Error! Tophat output file $output_fn not found..\n";
 			}
 		} else {
-			warn "\n###CF Error! Tophat (SE mode) failed for input file '$file': $? $!\n\n";
+		    warn "\n###CF Error! Tophat (SE mode) failed for input file '$file': $? $!\n\n";
 		}
 
 	}
