@@ -65,7 +65,7 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 
 	# Find if PE or SE from input BAM file
 	if(CF::Helpers::is_bam_paired_end($file)){
-		my $command = "bismark_methylation_extractor --multi $cf{cores} --ignore_r2 1 --ignore_3prime_r2 2 --bedGraph --counts --buffer_size $cf{memory} --gzip -p --no_overlap --report $file";
+		my $command = "bismark_methylation_extractor --ignore_r2 1 --ignore_3prime_r2 2 --bedGraph --counts --buffer_size $cf{memory} --gzip -p --no_overlap --report $file";
 		warn "\n###CFCMD $command\n\n";
 
 		# Paired End BAM file
@@ -87,7 +87,7 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 
 	} else {
 
-		my $command = "bismark_methylation_extractor --multi $cf{cores} --bedGraph --counts --buffer_size $cf{memory} --gzip -s --report $file";
+		my $command = "bismark_methylation_extractor --bedGraph --counts --buffer_size $cf{memory} --gzip -s --report $file";
 		warn "\n###CFCMD $command\n\n";
 
 		# Single End BAM file

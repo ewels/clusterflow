@@ -80,22 +80,7 @@ open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $
 warn "---------- Bismark version information ----------\n";
 warn `bismark --version`;
 warn "\n------- End of Bismark version information ------\n";
-
-# Work out how to parallelise bismark
 warn "Allocated $cf{cores} cores and $cf{memory} memory.\n";
-my $multi_cores = $cf{'cores'} / 8;
-my $multi_mem = CF::Helpers::human_readable_to_bytes($cf{'memory'})/ CF::Helpers::human_readable_to_bytes('20G');
-my $multi;
-$multi = int($multi_cores) if ($multi_cores > $multi_mem); # Really Perl, no min()?
-$multi = int($multi_mem) if ($multi_mem > $multi_cores);
-my $multicore;
-if($multi > 1){
-	$multicore = "--multicore $multi";
-	warn "Multi-threading alignment with $multicore\n";
-} else {
-	warn "Running in regular non multi-threaded mode.\n";
-}
-
 
 # Read options from the pipeline parameters
 my $pbat = defined($cf{'params'}{'pbat'}) ? "--pbat" : '';
@@ -139,7 +124,7 @@ if($se_files && scalar(@$se_files) > 0){
 		    $output_fn .= "_bismark.bam";
 		}
 		
-		my $command = "bismark --bam $multicore $bowtie $pbat $unmapped $non_directional $enc $cf{refs}{bismark} $file";
+		my $command = "bismark --bam $bowtie $pbat $unmapped $non_directional $enc $cf{refs}{bismark} $file";
 		
 		warn "\n###CFCMD $command\n\n";
 
@@ -183,7 +168,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			    $output_fn .= "_bismark_pe.bam";
 			}
 
-			my $command = "bismark --bam $multicore $bowtie $pbat $unmapped $non_directional $enc $cf{refs}{bismark} -1 ".$files[0]." -2 ".$files[1];
+			my $command = "bismark --bam $bowtie $pbat $unmapped $non_directional $enc $cf{refs}{bismark} -1 ".$files[0]." -2 ".$files[1];
 			warn "\n###CFCMD $command\n\n";
 
 			if(!system ($command)){
