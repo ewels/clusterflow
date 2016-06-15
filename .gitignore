@@ -1,4 +1,7 @@
 # /
 /dev
+/scripts
 /clusterflow.config
 /genomes.config
+*.pyc
+.DS_Store

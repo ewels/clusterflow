@@ -3,15 +3,16 @@ Clusterflow Config
 -------------------
 Default static variables for clusterflow.
 Syntax - @key	value
-These will be overwritten by any with the same name in ~/clusterflow/clusterflow.config
+These will be overwritten by any with the same name in ~/.clusterflow/clusterflow.config
 -------------------
 */
 
 /****************/
 /* Core Options */
 /****************/
-/* See the Cluster Flow manual for descriptions */
+/* See the Cluster Flow documentation for descriptions */
 @email	0
+@colourful	0
 @check_updates	1d
 @notification	suspend
 @notification	abort
@@ -21,15 +22,17 @@ These will be overwritten by any with the same name in ~/clusterflow/clusterflow
 @total_cores	64
 @total_mem	128G
 @max_runs       12
+@time_multiplier    1
+@max_time	10-00
 
 /***********************/
 /* Cluster Environment */
 /***********************/
-/* Options: GRIDEngine, SLURM or LSF */
-@cluster_environment	GRIDEngine
+/* Options: local, GRIDEngine, SLURM or LSF */
+/* @cluster_environment	GRIDEngine */
 
 /* Custom Job Submit Command - uncomment to customise parameters for job submission */
-/* Accepted variable placeholders: {{command}} {{job_id}} {{outfn}} {{cores}} {{mem}} {{priority}} {{email}} */
+/* Accepted variable placeholders: {{command}} {{job_id}} {{outfn}} {{cores}} {{mem}} {{time}} {{priority}} {{email}} {{project}} */
 /* @custom_job_submit_command qsub -cwd -V -S /bin/bash -MY --CUSTOM --PARAMS -pe orte {{cores}} {{command}} */
 
 
@@ -39,9 +42,26 @@ These will be overwritten by any with the same name in ~/clusterflow/clusterflow
 /* To stop cluster flow trying to load environment modules, uncomment the following line: */
 /* @ignore_modules	true */
 
+/* Sometimes, you always need to load certain modules. Add these here. */
+/* @environment_module_always <mod name> */
+
 /* If your modules have a different name to those being requested in a module, you can create aliases */
 /* You can also use aliases to specify particular module versions */
 /* @environment_module_alias <requested> <replacement> */
+
+
+/****************/
+/* File Merging */
+/****************/
+/* Many sequencing centres split samples across lanes, meaning starting FastQ files should */
+/* be concatenated before processing. You can uncomment the following line and set a regex */
+/* below to automatically do this at the start of every Cluster Flow run.                  */
+/* If input files don't match the regex, the pipeline continues without any merging. Use   */
+/* one set of brackets to define the resulting merged file names.                          */
+
+/* @merge_regex	[1-6]_[0-9]{6}_[a-zA-Z0-9]+_(P\d+_\d+_[12]).fastq.gz */
+
+
 
 /**********************/
 /* Pipeline Reporting */
