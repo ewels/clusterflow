@@ -341,7 +341,7 @@ if(length($CLUSTER_ENVIRONMENT) == 0){
 		die ("Error - Cluster Environment not set. Please run 'cf --setup' to create a global config file.\n\n");
 	}
 } elsif($CLUSTER_ENVIRONMENT !~ /^($environtments_regex)$/i){
-	die ("Error - Cluster Environment not recognised. Valid values: ".join(', ', @valid_environments)."\n\n");
+	die ("Error - Cluster Environment ($CLUSTER_ENVIRONMENT) not recognised. Valid values: ".join(', ', @valid_environments)."\n\n");
 }
 if(!$pipeline){
 	die ("Error - no pipeline specified. Use --help for instructions.\nSyntax: cf [flags] pipeline_name file_1 file_2..\n\n");
