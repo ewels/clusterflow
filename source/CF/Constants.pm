@@ -112,7 +112,7 @@ sub parse_conf_file {
                     $config{substr($sections[0], 1)} = $sections[1];
                     my $name = substr($sections[0], 1);
                     my $val = $sections[1];
-										$val =~ s/\s+$//;
+                    $val =~ s/\s+$//;
 
                     if($name eq 'email'){
                         $EMAIL = $val;
