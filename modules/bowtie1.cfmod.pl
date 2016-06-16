@@ -92,7 +92,11 @@ if($se_files && scalar(@$se_files) > 0){
 			$enc = '--'.$encoding.'-quals';
 		}
 
-		my $output_fn = $file."_bowtie.bam";
+		my $output_fn = $file;
+		$output_fn =~ s/\.gz$//i;
+		$output_fn =~ s/\.(fq|fastq)$//i;
+		$output_fn .= "_".$cf{config}{genome};
+		$output_fn .= "_bowtie.bam";
 
 		my $gzip = "";
 		if($file =~ /\.gz$/){
@@ -147,7 +151,11 @@ if($pe_files && scalar(@$pe_files) > 0){
 				$files[1] =~ s/.gz$//;
 			}
 
-			my $output_fn = $files[0]."_bowtie.bam";
+			my $output_fn = $files[0];
+			$output_fn =~ s/\.gz$//i;
+			$output_fn =~ s/\.(fq|fastq)$//i;
+			$output_fn .= "_".$cf{config}{genome};
+			$output_fn .= "_bowtie.bam";
 
 			my $command = "bowtie -p $cf{cores} -t -m 1 $enc --strata --best --maxins 700 -S --chunkmbs 512 $cf{refs}{bowtie} -1 ".$files[0]." -2 ".$files[1]." | samtools view -bSh 2>/dev/null - > $output_fn";
 

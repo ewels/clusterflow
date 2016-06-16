@@ -75,9 +75,9 @@ if(defined($cf{'refs'}{'hisat2_splices'}) && -e $cf{'refs'}{'hisat2_splices'}){
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
-warn "---------- Tophat version information ----------\n";
+warn "---------- Hisat2 version information ----------\n";
 warn `hisat2 --version`;
-warn "\n------- End of Tophat version information ------\n";
+warn "\n------- End of Hisat2 version information ------\n";
 
 # Separate file names into single end and paired end
 my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%cf, @{$cf{'prev_job_files'}});
@@ -99,7 +99,11 @@ if($se_files && scalar(@$se_files) > 0){
 			$enc = '--'.$encoding.'-quals';
 		}
 		
-		my $output_fn = $file."_hisat2.bam";
+    my $output_fn = $file;
+		$output_fn =~ s/\.gz$//i;
+		$output_fn =~ s/\.(fq|fastq)$//i;
+		$output_fn .= "_".$cf{config}{genome};
+		$output_fn .= "_hisat2.bam";
 		
 		# we are currently using a very high penalty score for soft-clipping (--sp 1000,1000) because Hisat2 seems to soft-clip even when it should run in --end-to-end mode
 		# we are also filtering out unmapped reads (-F 4)
@@ -140,7 +144,11 @@ if($pe_files && scalar(@$pe_files) > 0){
 				$enc = '--'.$encoding.'-quals';
 			}
 			
-			my $output_fn = $files[0]."_hisat2.bam";
+			my $output_fn = $files[0];
+			$output_fn =~ s/\.gz$//i;
+			$output_fn =~ s/\.(fq|fastq)$//i;
+			$output_fn .= "_".$cf{config}{genome};
+			$output_fn .= "_hisat2.bam";
 			
 			#  we are currently using a very high penalty score for soft-clipping (--sp 1000,1000) because Hisat2 seems to soft-clip even when it shoudl run in --end-to-end mode
 			# we are also filtering out unmapped reads (-F 4), or reads where the mate was unmapped (-F 8)

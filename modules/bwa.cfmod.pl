@@ -76,7 +76,11 @@ if($se_files && scalar(@$se_files) > 0){
 	foreach my $file (@$se_files){
 		my $timestart = time;
 
-        my $output_fn = $file."_bwa.bam";
+		my $output_fn = $file;
+		$output_fn =~ s/\.gz$//i;
+		$output_fn =~ s/\.(fq|fastq)$//i;
+		$output_fn .= "_".$cf{config}{genome};
+		$output_fn .= "_bwa.bam";
 
 		my $command = "bwa mem -t $cf{cores} $cf{refs}{bwa} $file | samtools view -bS - > $output_fn";
 		warn "\n###CFCMD $command\n\n";
@@ -103,7 +107,11 @@ if($pe_files && scalar(@$pe_files) > 0){
 		if(scalar(@files) == 2){
 			my $timestart = time;
 
-            my $output_fn = $files[0]."_bwa.bam";
+			my $output_fn = $files[0];
+			$output_fn =~ s/\.gz$//i;
+			$output_fn =~ s/\.(fq|fastq)$//i;
+			$output_fn .= "_".$cf{config}{genome};
+			$output_fn .= "_bwa.bam";
 
     		my $command = "bwa mem -t $cf{cores} $cf{refs}{bwa} $files[0] $files[1] | samtools view -bS - > $output_fn";
     		warn "\n###CFCMD $command\n\n";

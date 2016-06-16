@@ -93,10 +93,14 @@ if($se_files && scalar(@$se_files) > 0){
 			$enc = '--'.$encoding.'-quals';
 		}
 
-                my $output_dir = $file."_kallisto_output";
-		my $output_fn  = $file."_kallisto.bam";
+		my $output_dir = $file."_kallisto_output";
+		my $output_fn = $file;
+		$output_fn =~ s/\.gz$//i;
+		$output_fn =~ s/\.(fq|fastq)$//i;
+		$output_fn .= "_".$cf{config}{genome};
+		$output_fn .= "_kallisto.bam";
                 
-                my $command = "kallisto quant -t $cf{cores} --pseudobam --single -i $cf{refs}{kallisto} -o $output_dir -b 100 $file | samtools view -Sb - > $output_fn";
+		my $command = "kallisto quant -t $cf{cores} --pseudobam --single -i $cf{refs}{kallisto} -o $output_dir -b 100 $file | samtools view -Sb - > $output_fn";
 		warn "\n###CFCMD $command\n\n";
 
 		if(!system ($command)){
@@ -130,10 +134,14 @@ if($pe_files && scalar(@$pe_files) > 0){
 				$enc = '--'.$encoding.'-quals';
 			}
 
-                        my $output_dir = $files[0]."_kallisto_output";
-                        my $output_fn  = $files[0]."_kallisto.bam";
+			my $output_dir = $files[0]."_kallisto_output";
+			my $output_fn = $files[0];
+			$output_fn =~ s/\.gz$//i;
+			$output_fn =~ s/\.(fq|fastq)$//i;
+			$output_fn .= "_".$cf{config}{genome};
+			$output_fn .= "_kallisto.bam";
 
-                        my $command = "kallisto quant -t $cf{cores} --pseudobam -i $cf{refs}{kallisto} -o $output_dir -b 100 $files[0] $files[1] | samtools view -Sb - > $output_fn";
+			my $command = "kallisto quant -t $cf{cores} --pseudobam -i $cf{refs}{kallisto} -o $output_dir -b 100 $files[0] $files[1] | samtools view -Sb - > $output_fn";
 			warn "\n###CFCMD $command\n\n";
 
 			if(!system ($command)){
