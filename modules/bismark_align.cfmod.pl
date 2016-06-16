@@ -118,6 +118,7 @@ if($se_files && scalar(@$se_files) > 0){
 		
 		my $output_fn = $file;
 		$output_fn =~ s/(\.fastq\.gz|\.fq\.gz|\.fastq|\.fq)$//; # attempting to remove fastq.gz etc to make filename a little shorter 05 02 2016. Felix
+		$output_fn .= "_".$cf{config}{genome};
 		if($bowtie == '--bowtie2'){
 		    $output_fn .= "_bismark_bt2.bam";
 		} else {
@@ -162,6 +163,8 @@ if($pe_files && scalar(@$pe_files) > 0){
 			
 			my $output_fn = $files[0];
 			$output_fn =~ s/(\.fastq\.gz|\.fq\.gz|\.fastq|\.fq)$//; # attempting to remove fastq.gz etc to make filename a little shorter 05 02 2016. Felix
+			$output_fn .= "_".$cf{config}{genome};
+
 			if($bowtie == '--bowtie2'){
 			    $output_fn .= "_bismark_bt2_pe.bam";
 			} else {
