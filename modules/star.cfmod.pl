@@ -118,7 +118,8 @@ foreach my $file (@$se_files){
 	$prefix =~ s/\_R1_001$//;
 	$prefix =~ s/\_R1$//i;
 	$prefix =~ s/\_val_1$//;
-	my $output_fn = $prefix."_star_aligned.bam";
+	$prefix .= "_".$cf{config}{genome};
+	my $output_fn = $prefix."_star.bam";
 
 	my $command = "STAR --runThreadN $cf{cores} $enc --outSAMattributes $sam_attributes --genomeLoad $genomeLoad $zcat --genomeDir $cf{refs}{star} --readFilesIn $file --outFileNamePrefix $prefix --outStd SAM | samtools view -bS - > $output_fn";
 	warn "\n###CFCMD $command\n\n";
@@ -161,7 +162,8 @@ foreach my $files_ref (@$pe_files){
 		$prefix =~ s/\_R1_001$//;
 		$prefix =~ s/\_R1$//i;
 		$prefix =~ s/\_val_1$//;
-		my $output_fn = $prefix."_star_aligned.bam";
+		$prefix .= "_".$cf{config}{genome};
+		my $output_fn = $prefix."_star.bam";
 
 		# Do we need to zcat this?
 		my $zcat = '';
