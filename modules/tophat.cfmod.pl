@@ -121,6 +121,7 @@ if($se_files && scalar(@$se_files) > 0){
 		$output_dir =~ s/.fastq$//;
 		$output_dir =~ s/_[1-4]$//;
 		$output_dir =~ s/_R[1-4]//;
+		$output_dir .= "_".$cf{config}{genome};
 		$output_dir .= '_tophat';
 
 		my $output_fn = $output_dir."/accepted_hits.bam";
@@ -175,6 +176,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			$output_dir =~ s/.fastq$//;
 			$output_dir =~ s/_[1-4]$//;
 			$output_dir =~ s/_R[1-4]//;
+			$output_dir .= "_".$cf{config}{genome};
 			$output_dir .= '_tophat';
 
 			my $output_fn = $output_dir."/accepted_hits.bam";
