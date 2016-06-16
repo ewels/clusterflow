@@ -323,7 +323,8 @@ sub load_environment_modules {
 				eval($mod_cmd);
 				if ($@){
 					warn "WARNING - Got error whilst trying to parse the module load code for module $mod:" .
-					"\t$@\n\nTHIS MODULE HAS NOT BEEN LOADED. Skipping..\n\n";
+					"\n\t$@\nTried to execute following code:\n---------------\n$mod_cmd\n---------------\n" .
+					"THIS MODULE HAS NOT BEEN LOADED. Skipping..\n\n";
 					sleep(2);
 				} else {
 					# Everything worked. Remember so we don't try again.
