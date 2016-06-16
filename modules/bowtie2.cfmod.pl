@@ -91,7 +91,11 @@ if($se_files && scalar(@$se_files) > 0){
 			$enc = '--'.$encoding.'-quals';
 		}
 
-		my $output_fn = $file."_bowtie2.bam";
+		my $output_fn = $file;
+		$output_fn =~ s/\.gz$//i;
+		$output_fn =~ s/\.(fq|fastq)$//i;
+		$output_fn .= "_".$cf{config}{genome};
+		$output_fn .= "_bowtie2.bam";
 
 		my $command = "bowtie2 -p $cf{cores} -t $enc -x $cf{refs}{bowtie2} -U $file | samtools view -bS - > $output_fn";
 		warn "\n###CFCMD $command\n\n";
@@ -127,7 +131,11 @@ if($pe_files && scalar(@$pe_files) > 0){
 				$enc = '--'.$encoding.'-quals';
 			}
 
-			my $output_fn = $files[0]."_bowtie2.bam";
+			my $output_fn = $files[0];
+			$output_fn =~ s/\.gz$//i;
+			$output_fn =~ s/\.(fq|fastq)$//i;
+			$output_fn .= "_".$cf{config}{genome};
+			$output_fn .= "_bowtie2.bam";
 
 			my $command = "bowtie2 -p $cf{cores} -t $enc -x $cf{refs}{bowtie2} -1 ".$files[0]." -2 ".$files[1]." | samtools view -bS - > $output_fn";
 			warn "\n###CFCMD $command\n\n";
