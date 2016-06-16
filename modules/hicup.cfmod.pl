@@ -225,7 +225,8 @@ if($pe_files && scalar(@$pe_files) > 0){
 
                 unless ( defined $pairedFilename ) {
                     $pairedFilename = "$file1.$file2";
-                }		
+                }
+				$pairedFilename .= "_".$cf{config}{genome};				
 				$pairedFilename .= '.hicup.bam';
 				$output_fn = $pairedFilename;
             }
