@@ -5,3 +5,4 @@
 /genomes.config
 *.pyc
 .DS_Store
+/genomes.d/*config
