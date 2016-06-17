@@ -119,13 +119,16 @@ if($se_files && scalar(@$se_files) > 0){
 		my $output_fn = $file;
 		$output_fn =~ s/(\.fastq\.gz|\.fq\.gz|\.fastq|\.fq)$//; # attempting to remove fastq.gz etc to make filename a little shorter 05 02 2016. Felix
 		$output_fn .= "_".$cf{config}{genome};
+		my $basename = $output_fn;
 		if($bowtie == '--bowtie2'){
 		    $output_fn .= "_bismark_bt2.bam";
+		    $basename .= "_bismark_bt2";
 		} else {
 		    $output_fn .= "_bismark.bam";
+		    $basename .= "_bismark";
 		}
 		
-		my $command = "bismark --bam $bowtie $pbat $unmapped $non_directional $enc $cf{refs}{bismark} $file";
+		my $command = "bismark --bam --basename $basename $bowtie $pbat $unmapped $non_directional $enc $cf{refs}{bismark} $file";
 		
 		warn "\n###CFCMD $command\n\n";
 
@@ -164,14 +167,17 @@ if($pe_files && scalar(@$pe_files) > 0){
 			my $output_fn = $files[0];
 			$output_fn =~ s/(\.fastq\.gz|\.fq\.gz|\.fastq|\.fq)$//; # attempting to remove fastq.gz etc to make filename a little shorter 05 02 2016. Felix
 			$output_fn .= "_".$cf{config}{genome};
+			my $basename = $output_fn;
 
 			if($bowtie == '--bowtie2'){
 			    $output_fn .= "_bismark_bt2_pe.bam";
+			    $basename .= "_bismark_bt2_pe";
 			} else {
 			    $output_fn .= "_bismark_pe.bam";
+			    $basename .= "_bismark_pe";
 			}
 
-			my $command = "bismark --bam $bowtie $pbat $unmapped $non_directional $enc $cf{refs}{bismark} -1 ".$files[0]." -2 ".$files[1];
+			my $command = "bismark --bam --basename $basename $bowtie $pbat $unmapped $non_directional $enc $cf{refs}{bismark} -1 ".$files[0]." -2 ".$files[1];
 			warn "\n###CFCMD $command\n\n";
 
 			if(!system ($command)){
