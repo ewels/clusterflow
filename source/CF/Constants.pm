@@ -207,7 +207,7 @@ sub parse_genomes_file {
 
     # Read genomes config variables in. Do in order so that local prefs overwrite.
 
-    my @genome_files = ("$FindBin::Bin/genomes.config", "$homedir/.clusterflow/genomes.config", './genomes.config');
+    my @genome_files = ("$FindBin::Bin/genomes.config",glob("$FindBin::Bin/genomes.d/*config"),"$homedir/.clusterflow/genomes.config",glob("$homedir/.clusterflow/genomes.d/*config"), './genomes.config');
     foreach my $genome_file (@genome_files){
         if(-e $genome_file){
             open (GCONFIG, $genome_file) or die "Can't read $genome_file: $!";
@@ -266,7 +266,7 @@ sub list_clusterflow_genomes {
 
     my $returnstring = "";
 
-    my @config_files = ("$FindBin::Bin/genomes.config", "$homedir/.clusterflow/genomes.config", './genomes.config');
+    my @config_files = ("$FindBin::Bin/genomes.config","$FindBin::Bin/genomes.d/","$homedir/.clusterflow/genomes.config","$homedir/.clusterflow/genomes.d/",'./genomes.config');
 
     foreach my $config_file (@config_files){
 
@@ -276,7 +276,7 @@ sub list_clusterflow_genomes {
         my %conf_lines;
         foreach my $ref_type ( keys %REFERENCES){
             foreach my $genome_key ( keys %{$REFERENCES{$ref_type}}){
-                if(defined($REFERENCES{$ref_type}{$genome_key}{'config_file'}) && $REFERENCES{$ref_type}{$genome_key}{'config_file'} eq $config_file){
+                if(defined($REFERENCES{$ref_type}{$genome_key}{'config_file'}) && index($REFERENCES{$ref_type}{$genome_key}{'config_file'},$config_file)==0){
                     my $t_species = defined($REFERENCES{$ref_type}{$genome_key}{'species'}) ? substr($REFERENCES{$ref_type}{$genome_key}{'species'}, 0, 24) : (" " x 24);
                     my $t_assembly = defined($REFERENCES{$ref_type}{$genome_key}{'species'}) ? substr($REFERENCES{$ref_type}{$genome_key}{'assembly'}, 0, 14) : (" " x 14);
                     my $t_path = defined($REFERENCES{$ref_type}{$genome_key}{'species'}) ? $REFERENCES{$ref_type}{$genome_key}{'path'} : '';

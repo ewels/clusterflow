@@ -1,0 +1,14 @@
+/*
+Clusterflow Genomes
+-------------------
+
+The genomes.d directory can be used to create genome configuration files
+with the same structure as the main genomes.config file.  These files
+will be treated as an extension of the main genomes.config file, so you can
+put multiple files in this directory (eg one per species or assembly) if 
+you find this makes it easier to manage your genomes.
+
+Files in this directory can have any name, but must end with .config otherwise
+they will be ignored.
+
+*/
