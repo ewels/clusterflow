@@ -1,5 +1,3 @@
-# Pipelines
-
 ## Pipeline syntax
 All pipelines conform to a standard syntax. The name of the pipeline is given by the filename, which should end in `.config`. The top of the file should contain a title and description surrounded by `/*` and `*/`
 

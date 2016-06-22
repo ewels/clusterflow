@@ -1,13 +1,12 @@
-# Cluster Flow Setup
-
-## 1. Installation
-### 1a. Environment Module
+## Installation
+### Environment Module
 If you have Cluster Flow installed on your cluster as an environment module,
 you can load it using:
+```
+module load clusterflow
+```
 
-	module load clusterflow
-
-### 1b. Manual Installation
+### Manual Installation
 If you want to install Cluster Flow yourself manually, follow these steps:
 
 1. [Download Cluster Flow](https://github.com/ewels/clusterflow/releases)
@@ -27,7 +26,7 @@ nano clusterflow.config
 You must specify your environment (running locally, or the type of cluster).
 See the comments in the config file for explanation of the other options.
 
-## 2. Configuration
+## Configuration
 Once Cluster Flow has been set up site-wide, you need to configure it for your
 personal use:
 
@@ -36,7 +35,7 @@ personal use:
 This will launch a wizard to write a config file for you, with details such
 as e-mail address and notification settings.
 
-## 3. Adding Reference Genomes
+## Adding Reference Genomes
 Most analysis pipelines need a reference genome. This can exist in a central
 location or in your personal setup (or both).
 
@@ -47,7 +46,7 @@ You can add your reference genome paths with the following wizard:
 
 	cf --add_genome
 
-## 4. Do a test run!
+## Do a test run!
 That should be it! If you added some bash aliases such as `qs`, you should
 log out and log in again. Then you can try running a test run:
 

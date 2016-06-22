@@ -1,5 +1,3 @@
-# Modules
-
 ## Module syntax
 Modules do not conform to any syntax _per se_ – they can be written in any language and in any style, though they must conform to a common API so that cluster flow can interact with them.
 

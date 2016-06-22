@@ -1,5 +1,3 @@
-# Troubleshooting
-
 ## Bugs and Errors
 If you come across a strange looking error message or find a bug, please do let us know. You submit new issues here: [https://github.com/ewels/clusterflow/issues](https://github.com/ewels/clusterflow/issues "Browse and submit new issues about Cluster Flow on github")
 

@@ -1,4 +1,3 @@
-# Reference
 ## Cluster Flow config files
 Cluster flow will search three locations for a config file every time it is run. Variables found in each file can override those read from a previous config file. They are, in order of priority:
 
@@ -141,8 +140,7 @@ For example:
 
 
 
-# Command Line Reference
-## Command Line Parameter Overview
+## Command Line Reference
 
 
 Flag                      | Description
