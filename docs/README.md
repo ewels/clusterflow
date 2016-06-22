@@ -2,10 +2,11 @@
 Using Cluster Flow:
   Installation: installation.md
   General Usage: usage.md
-  Command Line Reference: cl_reference.md
+  Command Line Reference: reference.md
   Troubleshooting: troubleshooting.md
 Coding with Cluster Flow:
-  Writing new pipelines and modules: writing_pipelines_modules.md
+  Writing new pipelines: pipelines.md
+  Writing new modules: modules.md
 ---
 
 # Welcome!
