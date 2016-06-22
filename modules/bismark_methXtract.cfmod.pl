@@ -67,8 +67,14 @@ my $buffer_mem = CF::Helpers::bytes_to_human_readable($alloc_mem - $overhead_mem
 # Go through each file and deduplicate
 foreach my $file (@{$cf{'prev_job_files'}}){
 	my $timestart = time;
+	
+	# Is this PE? Should we try to trim r2?
+	my $ignore_r2 = '';
+	if(CF::Helpers::is_bam_paired_end($file)){
+		$ignore_r2 = '--ignore_r2 1 --ignore_3prime_r2 2';
+	}
 
-	my $command = "bismark_methylation_extractor --ignore_r2 1 --ignore_3prime_r2 2 --multi $cf{cores} --buffer_size $buffer_mem --bedGraph --gzip --report $file";
+	my $command = "bismark_methylation_extractor $ignore_r2 --multi $cf{cores} --buffer_size $buffer_mem --bedGraph --gzip --report $file";
 	warn "\n###CFCMD $command\n\n";
 
 	if(!system ($command)){
