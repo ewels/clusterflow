@@ -1,8 +1,3 @@
----
-title: Modules
-layout: toc
----
-
 # Modules
 
 ## Module syntax

@@ -1,8 +1,3 @@
----
-title: Usage
-layout: toc
----
-
 # General Usage
 ## Listing what's available
 Once Cluster Flow is [up and running](installation), you can list the pipelines,

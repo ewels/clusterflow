@@ -1,8 +1,3 @@
----
-title: Troubleshooting
-layout: toc
----
-
 # Troubleshooting
 
 ## Bugs and Errors

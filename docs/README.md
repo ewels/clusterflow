@@ -1,20 +1,38 @@
-# Cluster Flow Documentation
+---
+Using Cluster Flow:
+  Installation: installation.md
+  General Usage: usage.md
+  Command Line Reference: reference.md
+  Troubleshooting: troubleshooting.md
+Coding with Cluster Flow:
+  Writing new pipelines: pipelines.md
+  Writing new modules: modules.md
+---
 
-You've found the Cluster Flow docs, nice! These are written in markdown and
-are now bundled with the source code for easier access.
+# Welcome!
+## Cluster Flow v0.4 Documentation
 
-Whilst the raw markdown looks lovely (especially on GitHub), you may prefer
-to view these docs on the [Cluster Flow website](http://clusterflow.io),
-where they are rendered into an aesthetically pleasing website for
-your delectation: [clusterflow.io](http://clusterflow.io)
+Cluster Flow is simple package
+designed to run bioinformatics pipelines. It is operated through a single command
+`cf`, which can be used to launch, configure, monitor and cancel pipelines.
 
-If you'd rather stick with the raw docs, here's what's available:
+When you run Cluster Flow, you choose a pipeline. This has a list of modules
+in order. Each module is a wrapper around a bioinformatics tool.
+When the pipeline has finished, a notification e-mail is sent to you with
+status messages from the log.
 
-- [Docs Homepage](index.md)
-- [Installation Instructions](installation.md)
-- [General Usage](usage.md)
-- [Command Line Reference](cl_reference.md)
-- [Writing Pipelines & Modules](writing_pipelines_modules.md)
-- [Troubleshooting](troubleshooting.md)
+## Tutorial Videos
 
-If you're curious how the website works, see [_site](_site) for the source code.
+[Usage / Installation Tutorial](http://youtu.be/b2g_zQiz9ys) | [Advanced Tutorial](http://youtu.be/aBHOcsA2M6w)
+-------------------------------------------------------------|-------------------------------------------------------
+<iframe width="300" height="169" src="https://www.youtube.com/embed/b2g_zQiz9ys?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe> | <iframe width="300" height="169" src="https://www.youtube.com/embed/aBHOcsA2M6w?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>
+
+See the Installation page for setup instructions.
+
+## Contributing to Cluster Flow
+If you write a module or pipeline which could be of use to others, it would be
+great to merge those changes back into the core Cluster Flow project.
+
+For instructions on how best to do this, please see the
+[contributing instructions](https://github.com/ewels/clusterflow/blob/master/CONTRIBUTING.md).
+
