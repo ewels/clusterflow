@@ -29,7 +29,7 @@ use CF::Helpers;
 # Module requirements
 my %requirements = (
 	'cores' 	=> '4',
-	'memory' 	=> ['3G', '10G'],
+	'memory' 	=> ['5G', '10G'],
 	'modules' 	=> 'bismark',
 	'time' 		=> sub {
 		my $cf = $_[0];
@@ -59,54 +59,32 @@ warn "---------- bismark_methylation_extractor version information ----------\n"
 warn `bismark_methylation_extractor --version`;
 warn "\n------- End of bismark_methylation_extractor version information ------\n";
 
+# Adjust maximum buffer memory
+my $alloc_mem = CF::Helpers::human_readable_to_bytes($cf{'memory'});
+my $overhead_mem = CF::Helpers::human_readable_to_bytes('2G');
+my $buffer_mem = CF::Helpers::bytes_to_human_readable($alloc_mem - $overhead_mem);
+
 # Go through each file and deduplicate
 foreach my $file (@{$cf{'prev_job_files'}}){
 	my $timestart = time;
 
-	# Find if PE or SE from input BAM file
-	if(CF::Helpers::is_bam_paired_end($file)){
-		my $command = "bismark_methylation_extractor --ignore_r2 1 --ignore_3prime_r2 2 --bedGraph --counts --buffer_size $cf{memory} --gzip -p --no_overlap --report $file";
-		warn "\n###CFCMD $command\n\n";
+	my $command = "bismark_methylation_extractor --ignore_r2 1 --ignore_3prime_r2 2 --multi $cf{cores} --buffer_size $buffer_mem --bedGraph --gzip --report $file";
+	warn "\n###CFCMD $command\n\n";
 
-		# Paired End BAM file
-		if(!system ($command)){
-			# Bismark worked - print out resulting filenames
-			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-			warn "\n###CF Bismark methylation extractor (PE mode) successfully exited, took $duration..\n";
-			my @output_fns = find_Xtracted_fns($file);
-			if(scalar(@output_fns) > 0){
-				foreach(@output_fns){
-					print RUN "$cf{job_id}\t$_\n";
-				}
-			} else {
-				warn "\n###CF Error! No bismark meth extrator output files found for input file '$file'..\n";
+	if(!system ($command)){
+		# Bismark worked - print out resulting filenames
+		my $duration =  CF::Helpers::parse_seconds(time - $timestart);
+		warn "\n###CF Bismark methylation extractor successfully exited, took $duration..\n";
+		my @output_fns = find_Xtracted_fns($file);
+		if(scalar(@output_fns) > 0){
+			foreach(@output_fns){
+				print RUN "$cf{job_id}\t$_\n";
 			}
 		} else {
-			die "\n###CF Error! Bismark MethXtractor (PE mode) exited with an error state for file '$file': $? $!\n\n";
+			warn "\n###CF Error! No bismark meth extrator output files found for input file '$file'..\n";
 		}
-
 	} else {
-
-		my $command = "bismark_methylation_extractor --bedGraph --counts --buffer_size $cf{memory} --gzip -s --report $file";
-		warn "\n###CFCMD $command\n\n";
-
-		# Single End BAM file
-		if(!system ($command)){
-			# Bismark worked - print out resulting filenames
-			my $duration =  CF::Helpers::parse_seconds(time - $timestart);
-			warn "\n###CF Bismark methylation extractor (SE mode) successfully exited, took $duration..\n";
-			my @output_fns = find_Xtracted_fns($file);
-			if(scalar(@output_fns) > 0){
-				foreach(@output_fns){
-					print RUN "$cf{job_id}\t$_\n";
-				}
-			} else {
-				warn "\n###CF Error! No bismark meth extrator output files found for input file '$file'..\n";
-			}
-		} else {
-			die "\n###CF Error! Bismark MethXtractor (SE mode) exited with an error state for input file '$file': $? $!\n\n";
-		}
-
+		die "\n###CF Error! Bismark MethXtractor exited with an error state for file '$file': $? $!\n\n";
 	}
 }
 
