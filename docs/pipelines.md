@@ -1,8 +1,3 @@
----
-title: Pipelines
-layout: toc
----
-
 # Pipelines
 
 ## Pipeline syntax

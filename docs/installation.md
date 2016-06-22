@@ -1,10 +1,4 @@
----
-title: Setup
-layout: toc
----
-
 # Cluster Flow Setup
-
 
 ## 1. Installation
 ### 1a. Environment Module
