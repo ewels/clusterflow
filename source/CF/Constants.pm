@@ -112,7 +112,7 @@ sub parse_conf_file {
                     $config{substr($sections[0], 1)} = $sections[1];
                     my $name = substr($sections[0], 1);
                     my $val = $sections[1];
-										$val =~ s/\s+$//;
+                    $val =~ s/\s+$//;
 
                     if($name eq 'email'){
                         $EMAIL = $val;
@@ -169,8 +169,7 @@ sub parse_conf_file {
                         $CF_MODULES = 0;
                     }
                     if($name eq 'environment_module_always'){
-                        my @always_mods = split(/\w+/, $val);
-                        &CF::Helpers::load_environment_modules(\@always_mods, \%LOADED_MODULES)
+                        &CF::Helpers::load_environment_modules($val, \%LOADED_MODULES)
                     }
                     if($name eq 'environment_module_alias'){
                         my ($search, $replace) = split(/\s+/, $val, 2);

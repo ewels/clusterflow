@@ -323,7 +323,9 @@ sub load_environment_modules {
 				eval($mod_cmd);
 				if ($@){
 					warn "WARNING - Got error whilst trying to parse the module load code for module $mod:" .
-					"\t$@\n\nTHIS MODULE HAS NOT BEEN LOADED. Skipping..\n\n";
+					"\n\t$@\nTried to execute following code:\n---------------\n$mod_cmd\n---------------\n" .
+					"Command used to get module code:\n\tmodulecmd perl load $mod 2> /dev/null\n".
+					"THIS MODULE MAY NOT HAVE BEEN LOADED.\n\n";
 					sleep(2);
 				} else {
 					# Everything worked. Remember so we don't try again.
