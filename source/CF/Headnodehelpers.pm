@@ -272,12 +272,18 @@ sub parse_qstat {
 		$qstat_command .= ' -u "*"';
 	}
 
-	my $qstat = `$qstat_command`;
+	if (eval {require XML::Parser}) {
+			$ENV{XML_SIMPLE_PREFERRED_PARSER} = 'XML::Parser';
+	}
+	else {
+			warn "XML::Parser not available - cf --qstat could be slow\n";
+	}
 
+	my $qstat = `$qstat_command`;
 	my $xml = new XML::Simple;
 	my $data = $xml->XMLin($qstat);
 
-	# print Dumper $data; exit;
+#	print Dumper $data; exit;
 
 	my %jobs;
 	my %pipelines;
