@@ -29,7 +29,7 @@ use CF::Helpers;
 # Module requirements
 my %requirements = (
 	'cores' 	=> '1',
-	'memory' 	=> ['3G', '30G'],
+	'memory' 	=> '30G',
 	'modules' 	=> 'bismark',
 	'time' 		=> sub {
 		my $cf = $_[0];
