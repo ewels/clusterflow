@@ -171,10 +171,10 @@ if($pe_files && scalar(@$pe_files) > 0){
 
 			if($bowtie == '--bowtie2'){
 			    $output_fn .= "_bismark_bt2_pe.bam";
-			    $basename .= "_bismark_bt2_pe";
+			    $basename .= "_bismark_bt2";
 			} else {
 			    $output_fn .= "_bismark_pe.bam";
-			    $basename .= "_bismark_pe";
+			    $basename .= "_bismark";
 			}
 
 			my $command = "bismark --bam --basename $basename $bowtie $pbat $unmapped $non_directional $enc $cf{refs}{bismark} -1 ".$files[0]." -2 ".$files[1];
