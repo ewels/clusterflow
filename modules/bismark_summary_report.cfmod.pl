@@ -51,7 +51,7 @@ open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $
 
 # Print version information about the module.
 warn "---------- Bismark version information ----------\n";
-warn `bismark --version`;
+warn `bismark2summary --version`;
 warn "\n------- End of Bismark version information ------\n";
 
 # Find the original bismark aligned BAM files
@@ -71,16 +71,15 @@ if($num_samples == 0){
 }
 
 # Run bismark2summary
-my $command = "bismark2summary ".join(' ', @bam_files);
+my $output_fn = "${pipeline_id}_bismark_summary_report.html";
+my $command = "bismark2summary --title $pipeline_id -o $output_fn ".join(' ', @bam_files);
 warn "\n###CFCMD $command\n\n";
-
-my $output_fn = "bismark_summary_report.html";
 
 if(!system ($command)){
     if(-e $output_fn){
         print RUN "$cf{job_id}\t$output_fn\n";
     } else {
-        warn "\n###CF Error! bismark2summary report $output_fn not found..\n";
+        warn "\n###CF Error! bismark2summary report '$output_fn' not found..\n";
     }
 	my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 	warn "###CF bismark2summary successfully ran, took $duration\n";
