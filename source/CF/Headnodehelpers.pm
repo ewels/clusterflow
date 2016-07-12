@@ -558,13 +558,13 @@ sub print_jobs_pipeline_output {
 		${$output} .= " ".(" " x ($depth*5))."- ";
 
 		if(${$hashref}{$key}{'state'} =~ /running/i && $cols){
-			${$output} .= color 'red on_white';
+			${$output} .= color 'green';
 			${$output} .= " ";
 		} elsif(${$hashref}{$key}{'state'} =~ /deleting/i && $cols){
 			${$output} .= color 'white on_red';
 			${$output} .= " ";
 		} elsif ($depth == 0 && $cols) {
-			${$output} .= color 'yellow on_white';
+			${$output} .= color 'cyan';
 			${$output} .= " ";
 		}
 
