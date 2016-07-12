@@ -564,7 +564,7 @@ sub print_jobs_pipeline_output {
 			${$output} .= color 'white on_red';
 			${$output} .= " ";
 		} elsif ($depth == 0 && $cols) {
-			${$output} .= color 'cyan';
+			${$output} .= color 'yellow';
 			${$output} .= " ";
 		}
 
