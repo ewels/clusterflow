@@ -32,7 +32,7 @@ These will be overwritten by any with the same name in ~/.clusterflow/clusterflo
 /* @cluster_environment	GRIDEngine */
 
 /* Custom Job Submit Command - uncomment to customise parameters for job submission */
-/* Accepted variable placeholders: {{command}} {{job_id}} {{outfn}} {{cores}} {{mem}} {{time}} {{priority}} {{email}} {{project}} */
+/* Accepted variable placeholders: {{command}} {{job_id}} {{outfn}} {{cores}} {{mem}} {{time}} {{priority}} {{email}} {{notifications}} {{project}} {{qname}} */
 /* @custom_job_submit_command qsub -cwd -V -S /bin/bash -MY --CUSTOM --PARAMS -pe orte {{cores}} {{command}} */
 
 
@@ -59,7 +59,7 @@ These will be overwritten by any with the same name in ~/.clusterflow/clusterflo
 /* If input files don't match the regex, the pipeline continues without any merging. Use   */
 /* one set of brackets to define the resulting merged file names.                          */
 
-/* @merge_regex	[1-6]_[0-9]{6}_[a-zA-Z0-9]+_(P\d+_\d+_[12]).fastq.gz */
+/* @merge_regex	[1-8]_[0-9]{6}_[a-zA-Z0-9]+_(P\d+_\d+_[12]).fastq.gz */
 
 
 
