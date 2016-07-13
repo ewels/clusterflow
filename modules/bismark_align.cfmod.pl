@@ -120,7 +120,7 @@ if($se_files && scalar(@$se_files) > 0){
 		$output_fn =~ s/(\.fastq\.gz|\.fq\.gz|\.fastq|\.fq)$//; # attempting to remove fastq.gz etc to make filename a little shorter 05 02 2016. Felix
 		$output_fn .= "_".$cf{config}{genome};
 		my $basename = $output_fn;
-		if($bowtie == '--bowtie2'){
+		if($bowtie eq '--bowtie2'){
 		    $output_fn .= "_bismark_bt2.bam";
 		    $basename .= "_bismark_bt2";
 		} else {
@@ -169,12 +169,12 @@ if($pe_files && scalar(@$pe_files) > 0){
 			$output_fn .= "_".$cf{config}{genome};
 			my $basename = $output_fn;
 
-			if($bowtie == '--bowtie2'){
+			if($bowtie eq '--bowtie2'){
 			    $output_fn .= "_bismark_bt2_pe.bam";
-			    $basename .= "_bismark_bt2_pe";
+			    $basename .= "_bismark_bt2";
 			} else {
 			    $output_fn .= "_bismark_pe.bam";
-			    $basename .= "_bismark_pe";
+			    $basename .= "_bismark";
 			}
 
 			my $command = "bismark --bam --basename $basename $bowtie $pbat $unmapped $non_directional $enc $cf{refs}{bismark} -1 ".$files[0]." -2 ".$files[1];
