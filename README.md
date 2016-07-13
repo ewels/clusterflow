@@ -1,4 +1,4 @@
-# ![Cluster Flow](docs/_site/img/Cluster_Flow_logo.png)
+# ![Cluster Flow](docs/assets/Cluster_Flow_logo.png)
 
 > Cluster Flow is a pipelining tool to automate and standardise bioinformatics analyses on high-performance cluster environments. It is designed to be easy to use, quick to set up and flexible to configure.
 
