@@ -300,7 +300,7 @@ if(-e $output_fn){
 }
 ```
 
-## Job Completion
+## Job Completion
 ### Run File Output
 A run file is created by Cluster Flow for each batch of files. It describes
 variables to be used, the pipeline specified and the filenames used by each
