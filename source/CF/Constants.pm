@@ -30,7 +30,7 @@ use CF::Helpers;
 # along with Cluster Flow.  If not, see <http://www.gnu.org/licenses/>.  #
 ##########################################################################
 
-our $CF_VERSION = "0.4";
+our $CF_VERSION = "0.5dev";
 
 our $homedir = $ENV{"HOME"};
 
