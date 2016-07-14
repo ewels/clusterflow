@@ -596,7 +596,7 @@ sub clusterflow_add_genome {
 
     # Get Species and assembly
     print "To help identify genomes when using cf --genomes, you can specify\n".
-          "a species and an assembly.This are both optional - just\n".
+          "a species and an assembly. These are both optional - just\n".
           "leave blank and press enter to ignore.\n";
 
     print "Please enter the species name (eg. Human):\n";
