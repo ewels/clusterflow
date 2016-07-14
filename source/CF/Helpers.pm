@@ -362,7 +362,7 @@ sub is_paired_end {
 			}
 		}
 		return (\@se_files, \@pe_files);
-	} elsif(exists($cf->{'config'}{'force_paired_end'})){
+	} elsif(exists($cf->{'config'}{'force_single_end'})){
 		for (my $i = 0; $i <= $#files; $i++){
 			push (@se_files, $files[$i]);
 		}
