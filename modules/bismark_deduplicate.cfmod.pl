@@ -30,7 +30,7 @@ use CF::Helpers;
 my %requirements = (
 	'cores' 	=> '1',
 	'memory' 	=> '30G',
-	'modules' 	=> 'bismark',
+	'modules' 	=> ['bismark','samtools'],
 	'time' 		=> sub {
 		my $cf = $_[0];
 		my $num_files = $cf->{'num_starting_merged_aligned_files'};

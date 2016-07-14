@@ -65,8 +65,8 @@ use File::Copy qw(move);
 # subroutine. Subroutines will supplied with a single variable - the %cf hash
 # reference with all available info at the time.
 my %requirements = (
-	'cores' 	=> ('1', '8'), # number in this range will be chosen according to --cores
-	'memory' 	=> ('1G', '10G'), # number in this range will be chosen according to --mem
+	'cores' 	=> ['1', '8'], # number in this range will be chosen according to --cores
+	'memory' 	=> ['1G', '10G'], # number in this range will be chosen according to --mem
 	'modules' 	=> 'bowtie', # can be supplied as an array of multiple modules
 	'references'=> 'bismark', # the types of reference genome needed
 	'time' 		=> sub {
