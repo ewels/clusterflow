@@ -362,7 +362,7 @@ sub is_paired_end {
 			}
 		}
 		return (\@se_files, \@pe_files);
-	} elsif(exists($cf->{'config'}{'force_paired_end'})){
+	} elsif(exists($cf->{'config'}{'force_single_end'})){
 		for (my $i = 0; $i <= $#files; $i++){
 			push (@se_files, $files[$i]);
 		}
@@ -841,7 +841,7 @@ sub build_emails {
 	$text_email =~ s/\{\{ CONTENT }}/$plain_content/g;
 	$text_email =~ s/\{\{ CF_VERSION }}/$cf_version/g;
 
-  return($html_email, $text_email);
+	return($html_email, $text_email);
 
 }
 
@@ -849,7 +849,7 @@ sub send_email {
 
 	my ($subject, $to, $title, $html_content, $plain_content) = @_;
 
-  my ($html_email, $text_email) = build_emails($title, $html_content, $plain_content);
+	my ($html_email, $text_email) = build_emails($title, $html_content, $plain_content);
 
 	# Do we have the Perl modules that we need?
 	my $mail;

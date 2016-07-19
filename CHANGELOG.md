@@ -1,6 +1,12 @@
 # Cluster Flow Version History
 
-#### v0.4 devel
+#### v0.5dev
+..nothing yet!
+
+#### [v0.4](https://github.com/ewels/clusterflow/releases/tag/v0.4) - 2016-07-14
+This is a huge release that got lost on it's way. A great number of things have changed since the
+v0.3 release, so please be prepared for a bit of tinkering if you're updating.
+
 * **Warning: Break of backwards compatability**
 	* The way that genome references are handled has been rewritten.
 		* Genome references are no longer tied to specific types, they are now agnostic.

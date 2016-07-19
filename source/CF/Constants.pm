@@ -30,7 +30,7 @@ use CF::Helpers;
 # along with Cluster Flow.  If not, see <http://www.gnu.org/licenses/>.  #
 ##########################################################################
 
-our $CF_VERSION = "0.4 devel";
+our $CF_VERSION = "0.5 dev";
 
 our $homedir = $ENV{"HOME"};
 
@@ -596,7 +596,7 @@ sub clusterflow_add_genome {
 
     # Get Species and assembly
     print "To help identify genomes when using cf --genomes, you can specify\n".
-          "a species and an assembly.This are both optional - just\n".
+          "a species and an assembly. These are both optional - just\n".
           "leave blank and press enter to ignore.\n";
 
     print "Please enter the species name (eg. Human):\n";
