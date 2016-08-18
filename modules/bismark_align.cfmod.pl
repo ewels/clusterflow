@@ -29,7 +29,7 @@ use CF::Helpers;
 # Module requirements
 my %requirements = (
 	'cores' 	=> ['4', '6'],
-	'memory' 	=> ['18G', '25G'],
+	'memory' 	=> ['22G', '25G'], # upped this to 22 because non-directional alignments to GRCh38 may fail with 18
 	'modules' 	=> ['bowtie','bowtie2','bismark','samtools'],
 	'references'=> 'bismark',
 	'time' 		=> sub {
@@ -169,7 +169,7 @@ if($pe_files && scalar(@$pe_files) > 0){
 			$output_fn .= "_".$cf{config}{genome};
 			my $basename = $output_fn;
 
-			if($bowtie == '--bowtie2'){
+			if($bowtie eq '--bowtie2'){
 			    $output_fn .= "_bismark_bt2_pe.bam";
 			    $basename .= "_bismark_bt2";
 			} else {
