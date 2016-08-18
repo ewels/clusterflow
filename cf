@@ -481,7 +481,7 @@ if(!$cl_paired_end && !$cl_single_end && $fastq_count > 1){
 # Make an array of file groups for each parallel run
 my %file_sets_hash;
 if($cl_merge){
-	@MERGE_REGEXES = [$cl_merge];
+	@MERGE_REGEXES = ($cl_merge);
 }
 if(@MERGE_REGEXES){
 
@@ -519,9 +519,9 @@ my $num_file_groups = scalar keys %file_sets_hash;
 
 # Did we find any files to merge?
 if($num_file_groups < $num_files){
-	print "Found $num_file_groups groups of files from $num_files using merge regex:\n".$config{merge_regex}."\n\n";
+	print "Found $num_file_groups groups of files from $num_files using merge regexes:\n".join("\n", @MERGE_REGEXES)."\n\n";
 } elsif(@MERGE_REGEXES){
-	print "No file groups found with merge regex.\n\n";
+	print "No file groups found with merge regexes:\n".join("\n", @MERGE_REGEXES)."\n\n";
 	@MERGE_REGEXES = ();
 }
 
