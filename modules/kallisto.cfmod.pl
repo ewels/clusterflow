@@ -45,14 +45,14 @@ my %requirements = (
 
 # Help text
 my $helptext = "".("-"x17)."\n Kallisto\n".("-"x17)."\n
-kallisto is a program for quantifying abundances of transcripts from RNA-Seq 
-data, or more generally of target sequences using high-throughput sequencing 
-reads. It is based on the novel idea of pseudoalignment for rapidly 
-determining the compatibility of reads with targets, without the need for 
-alignment. Pseudoalignment of reads preserves the key information needed for 
-quantification, and kallisto is therefore not only fast, but also as accurate 
-as existing quantification tools. In fact, because the pseudoalignment 
-procedure is robust to errors in the reads, in many benchmarks kallisto 
+kallisto is a program for quantifying abundances of transcripts from RNA-Seq
+data, or more generally of target sequences using high-throughput sequencing
+reads. It is based on the novel idea of pseudoalignment for rapidly
+determining the compatibility of reads with targets, without the need for
+alignment. Pseudoalignment of reads preserves the key information needed for
+quantification, and kallisto is therefore not only fast, but also as accurate
+as existing quantification tools. In fact, because the pseudoalignment
+procedure is robust to errors in the reads, in many benchmarks kallisto
 significantly outperforms existing tools.\n\n";
 
 # Setup
@@ -73,8 +73,9 @@ warn "---------- Kallisto version information ----------\n";
 warn `kallisto version`;
 warn "\n------- End of Kallisto version information ------\n";
 
-# FastQ encoding type. Once found on one file will assume all others are the same
-my $encoding = 0;
+# Load parameters
+my $estFragmentLength = (defined($cf{'params'}{'estFragmentLength'})) ? $cf{'params'}{'estFragmentLength'} : '200';
+my $est_sd = (defined($cf{'params'}{'est_sd'})) ? $cf{'params'}{'est_sd'} : '20';
 
 # Separate file names into single end and paired end
 my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%cf, @{$cf{'prev_job_files'}});
@@ -84,24 +85,12 @@ if($se_files && scalar(@$se_files) > 0){
 	foreach my $file (@$se_files){
 		my $timestart = time;
 
-		# Figure out the encoding if we don't already know
-		if(!$encoding){
-			($encoding) = CF::Helpers::fastq_encoding_type($file);
-		}
-		my $enc = "";
-		if($encoding eq 'phred33' || $encoding eq 'phred64' || $encoding eq 'solexa'){
-			$enc = '--'.$encoding.'-quals';
-		}
-
 		my $output_dir = $file."_kallisto_output";
 		my $output_fn = $file;
 		$output_fn =~ s/\.gz$//i;
 		$output_fn =~ s/\.(fq|fastq)$//i;
 		$output_fn .= "_".$cf{config}{genome};
 		$output_fn .= "_kallisto.bam";
-                
-                my $estFragmentLength = 200;
-                my $est_sd            = 20;
                 
 		my $command = "kallisto quant -t $cf{cores} --pseudobam --single --fragment-length=$estFragmentLength  --sd=$est_sd -i $cf{refs}{kallisto} -o $output_dir -b 100 $file | samtools view -Sb - > $output_fn";
 		warn "\n###CFCMD $command\n\n";
@@ -127,15 +116,6 @@ if($pe_files && scalar(@$pe_files) > 0){
 		my @files = @$files_ref;
 		if(scalar(@files) == 2){
 			my $timestart = time;
-
-			# Figure out the encoding if we don't already know
-			if(!$encoding){
-				($encoding) = CF::Helpers::fastq_encoding_type($files[0]);
-			}
-			my $enc = "";
-			if($encoding eq 'phred33' || $encoding eq 'phred64' || $encoding eq 'solexa'){
-				$enc = '--'.$encoding.'-quals';
-			}
 
 			my $output_dir = $files[0]."_kallisto_output";
 			my $output_fn = $files[0];
