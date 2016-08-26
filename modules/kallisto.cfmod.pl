@@ -100,7 +100,10 @@ if($se_files && scalar(@$se_files) > 0){
 		$output_fn .= "_".$cf{config}{genome};
 		$output_fn .= "_kallisto.bam";
                 
-		my $command = "kallisto quant -t $cf{cores} --pseudobam --single -i $cf{refs}{kallisto} -o $output_dir -b 100 $file | samtools view -Sb - > $output_fn";
+                my $estFragmentLength = 200;
+                my $est_sd            = 20;
+                
+		my $command = "kallisto quant -t $cf{cores} --pseudobam --single --fragment-length=$estFragmentLength  --sd=$est_sd -i $cf{refs}{kallisto} -o $output_dir -b 100 $file | samtools view -Sb - > $output_fn";
 		warn "\n###CFCMD $command\n\n";
 
 		if(!system ($command)){
