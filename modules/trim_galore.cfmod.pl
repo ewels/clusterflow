@@ -77,13 +77,16 @@ my $fqc = (defined($cf{'params'}{'nofastqc'})) ? '' : '--fastqc_args "-q"';
 
 my $clip_r1 = defined($cf{'params'}{'clip_r1'}) ? "--clip_r1 ".$cf{'params'}{'clip_r1'} : '';
 my $clip_r2 = defined($cf{'params'}{'clip_r2'}) ? "--clip_r2 ".$cf{'params'}{'clip_r2'} : '';
+if(defined($cf{'params'}{'trim'})){
+	$clip_r1 = "--clip_r1 $cf{'params'}{'trim'}";
+	$clip_r2 = "--clip_r2 $cf{'params'}{'trim'}";
+}
 if(defined($cf{'params'}{'three_prime_clip_r1'})){
 	$clip_r1 .= " --three_prime_clip_r1 ".$cf{'params'}{'three_prime_clip_r1'};
 }
 if(defined($cf{'params'}{'three_prime_clip_r2'})){
 	$clip_r2 .= " --three_prime_clip_r2 ".$cf{'params'}{'three_prime_clip_r2'};
 }
-
 if(defined($cf{'params'}{'pbat'})){
 	$clip_r1 = "--clip_r1 6";
 	$clip_r2 = "--clip_r2 6";
@@ -97,8 +100,8 @@ if(defined($cf{'params'}{'single_cell'})){
 	$clip_r2 = "--clip_r2 9";
 }
 if(defined($cf{'params'}{'epignome'})){
-	$clip_r1 = "--clip_r1 6 --three_prime_clip_r1 6";
-	$clip_r2 = "--clip_r2 6 --three_prime_clip_r2 6";
+	$clip_r1 = "--clip_r1 7 --three_prime_clip_r1 7"; # more often than not the first 7bp are affected rather than 6
+	$clip_r2 = "--clip_r2 7 --three_prime_clip_r2 7";
 }
 if(defined($cf{'params'}{'accel'})){
 	$clip_r1 = "--clip_r1 10 --three_prime_clip_r1 10";
