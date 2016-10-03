@@ -29,7 +29,7 @@ use CF::Helpers;
 # Module requirements
 my %requirements = (
 	'cores' 	=> ['4', '6'],
-	'memory' 	=> ['18G', '25G'],
+	'memory' 	=> ['22G', '25G'], # upped this to 22 because non-directional alignments to GRCh38 may fail with 18
 	'modules' 	=> ['bowtie','bowtie2','bismark','samtools'],
 	'references'=> 'bismark',
 	'time' 		=> sub {
