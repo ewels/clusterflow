@@ -145,7 +145,7 @@ _Default: (config file - typically none)_
 
 Specify a custom cluster queue to use for this run.
 
-### --environment
+### --environment
 _Default: (config file - custom)_
 
 Override the default environment to use for this pipeline run. Useful for

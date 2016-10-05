@@ -188,7 +188,7 @@ if(!defined($cf{'refs'}{'star'})){
 }
 ```
 
-### Version logging
+### Version logging
 Again not necessary, but good practice - modules log the version of software
 that they're about to run for future reference:
 ```perl
