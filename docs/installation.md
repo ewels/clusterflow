@@ -1,3 +1,18 @@
+## Requirements
+Cluster Flow is designed to work with a computing cluster. It currently supports
+the Sun GRIDEngine, LSF and SLURM job managers (not PBS, Torque or others).
+
+If you don't have a cluster with a supported manager, you can run Cluster Flow on
+any command-line machine in `local` mode. This writes a bash script and runs it as
+a job in the background.
+
+To run analyses, you will also need the required tools to be installed. Cluster Flow
+is designed to work with the environment module system and load tools as required, but
+if software is available on the `PATH` it can work without this.
+
+Cluster Flow itself is written in Perl. It has minimal dependencies, all of which are
+core Perl packages.
+
 ## Installation
 ### Environment Module
 If you are a user on a HPC cluster, you may already have Cluster Flow installed
