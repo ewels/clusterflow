@@ -78,7 +78,12 @@ foreach my $file (@{$cf{'prev_job_files'}}){
   my $metricsFile = $file."_picardDupMetrics.txt";
 
   # Remove duplicates
-  my $cmd = "java -Xmx2g -jar $md INPUT=$file OUTPUT=$output_fn ASSUME_SORTED=true REMOVE_DUPLICATES=true METRICS_FILE=$metricsFile VALIDATION_STRINGENCY=LENIENT";
+  my $cmd;
+  if ($ENV{'TMPDIR'}) {
+	$cmd = "java -Xmx2g -jar $md TMP_DIR=\$TMPDIR INPUT=$file OUTPUT=$output_fn ASSUME_SORTED=true REMOVE_DUPLICATES=true METRICS_FILE=$metricsFile VALIDATION_STRINGENCY=LENIENT";
+  } else {
+    $cmd = "java -Xmx2g -jar $md INPUT=$file OUTPUT=$output_fn ASSUME_SORTED=true REMOVE_DUPLICATES=true METRICS_FILE=$metricsFile VALIDATION_STRINGENCY=LENIENT";
+  }
   warn "\n###CFCMD $cmd\n\n";
 
   # Try to run the command - returns 0 on success (which evaluated to false)

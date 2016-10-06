@@ -2,6 +2,7 @@
 
 #### v0.5dev
 * Fixed a bug in parsing command line merge regexes.
+* picard_dedup uses the environment TMPDIR if available
 
 #### [v0.4](https://github.com/ewels/clusterflow/releases/tag/v0.4) - 2016-07-14
 This is a huge release that got lost on it's way. A great number of things have changed since the
