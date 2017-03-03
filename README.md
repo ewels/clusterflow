@@ -69,6 +69,36 @@ cf --qdel [id]   # Cancel jobs for a running pipeline
 ```
 
 
+## Supported Tools
+Cluster Flow comes with modules and pipelines for the following tools:
+
+* Read QC & pre-processing
+  * [FastQ Screen](http://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/)
+  * [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
+  * [TrimGalore!](http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
+  * [SRA Toolkit](https://github.com/ncbi/sra-tools) (`abidump`, `fqdump`)
+* Aligners / quantifiers
+  * [Bismark](http://www.bioinformatics.babraham.ac.uk/projects/bismark/)
+  * [Bowtie 1](http://bowtie-bio.sourceforge.net/index.shtml) and [Bowtie 2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
+  * [BWA](http://bio-bwa.sourceforge.net/)
+  * [HiCUP](http://www.bioinformatics.babraham.ac.uk/projects/hicup/)
+  * [HISAT2](http://ccb.jhu.edu/software/hisat2/index.shtml)
+  * [Kallisto](https://pachterlab.github.io/kallisto/)
+  * [STAR](https://github.com/alexdobin/STAR)
+  * [TopHat](http://ccb.jhu.edu/software/tophat/index.shtml)
+* Post-alignment processing
+  * [bedtools](http://bedtools.readthedocs.io/en/latest/) (`bamToBed` and `intersectNeg`)
+  * [subread featureCounts](http://bioinf.wehi.edu.au/featureCounts/)
+  * [HTSeq Count](http://www-huber.embl.de/HTSeq/doc/count.html)
+  * [Picard](https://broadinstitute.github.io/picard/) (`MarkDuplicates`)
+  * [Samtools](http://www.htslib.org/) (`bam2sam`, `dedup`, `sort_index`)
+* Post-alignment QC
+  * [deepTools](https://deeptools.github.io/) (`bamCoverage` and `bamFingerprint`)
+  * [MultiQC](http://multiqc.info)
+  * [phantompeaktools](https://code.google.com/archive/p/phantompeakqualtools/) (`runSpp`)
+  * [Preseq](http://smithlabresearch.org/software/preseq/)
+  * [RSeQC](http://rseqc.sourceforge.net/) (`geneBody_coverage`, `inner_distance`, `junction_annotation`, `junction_saturation`, `read_GC`)
+
 ## Citation
 Please consider citing Cluster Flow if you use it in your analysis.
 
