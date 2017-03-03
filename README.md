@@ -72,32 +72,17 @@ cf --qdel [id]   # Cancel jobs for a running pipeline
 ## Supported Tools
 Cluster Flow comes with modules and pipelines for the following tools:
 
-* Read QC & pre-processing
-  * [FastQ Screen](http://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/)
-  * [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
-  * [TrimGalore!](http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
-  * [SRA Toolkit](https://github.com/ncbi/sra-tools) (`abidump`, `fqdump`)
-* Aligners / quantifiers
-  * [Bismark](http://www.bioinformatics.babraham.ac.uk/projects/bismark/)
-  * [Bowtie 1](http://bowtie-bio.sourceforge.net/index.shtml) and [Bowtie 2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
-  * [BWA](http://bio-bwa.sourceforge.net/)
-  * [HiCUP](http://www.bioinformatics.babraham.ac.uk/projects/hicup/)
-  * [HISAT2](http://ccb.jhu.edu/software/hisat2/index.shtml)
-  * [Kallisto](https://pachterlab.github.io/kallisto/)
-  * [STAR](https://github.com/alexdobin/STAR)
-  * [TopHat](http://ccb.jhu.edu/software/tophat/index.shtml)
-* Post-alignment processing
-  * [bedtools](http://bedtools.readthedocs.io/en/latest/) (`bamToBed` and `intersectNeg`)
-  * [subread featureCounts](http://bioinf.wehi.edu.au/featureCounts/)
-  * [HTSeq Count](http://www-huber.embl.de/HTSeq/doc/count.html)
-  * [Picard](https://broadinstitute.github.io/picard/) (`MarkDuplicates`)
-  * [Samtools](http://www.htslib.org/) (`bam2sam`, `dedup`, `sort_index`)
-* Post-alignment QC
-  * [deepTools](https://deeptools.github.io/) (`bamCoverage` and `bamFingerprint`)
-  * [MultiQC](http://multiqc.info)
-  * [phantompeaktools](https://code.google.com/archive/p/phantompeakqualtools/) (`runSpp`)
-  * [Preseq](http://smithlabresearch.org/software/preseq/)
-  * [RSeQC](http://rseqc.sourceforge.net/) (`geneBody_coverage`, `inner_distance`, `junction_annotation`, `junction_saturation`, `read_GC`)
+Read QC & pre-processing     | Aligners / quantifiers | Post-alignment processing | Post-alignment QC
+-----------------------------|------------------------|---------------------------|-------------------
+[FastQ Screen](fastqscreen)  |[Bismark](bismark)      | [bedtools](bedtools) (`bamToBed`, `intersectNeg`) | [deepTools](deeptools) (`bamCoverage`, `bamFingerprint`)
+[FastQC](fastqc)             |[Bowtie 1](bowtie1)     | [subread featureCounts](featurecounts) | [MultiQC](multiqc)
+[TrimGalore!](trimgalore)    |[Bowtie 2](bowtie2)     | [HTSeq Count](htseq_count) | [phantompeaktools](phantompeaktools) (`runSpp`)
+[SRA Toolkit](sratoolkit)    |[BWA](bwa)              | [Picard](picard) (`MarkDuplicates`) | [Preseq](preseq)
+                             |[HiCUP](hicup) |[Samtools](samtools) (`bam2sam`, `dedup`, `sort_index`) | [RSeQC](rseqc) (`geneBody_coverage`, `inner_distance`, `junction_annotation`, `junction_saturation`, `read_GC`)
+                             |[HISAT2](hisat2) | | 
+                             |[Kallisto](kallisto) | | 
+                             |[STAR](star) | | 
+                             |[TopHat](tophat) | | 
 
 ## Citation
 Please consider citing Cluster Flow if you use it in your analysis.
@@ -138,3 +123,28 @@ redistribute it and/or modify it under the terms of the GNU General Public Licen
 published by the Free Software Foundation, either version 3 of the License, or (at your
 option) any later version. For more information, see the licence that comes bundled with
 Cluster Flow.
+
+[bedtools]:          http://bedtools.readthedocs.io/en/latest/
+[bismark]:           http://www.bioinformatics.babraham.ac.uk/projects/bismark/
+[bowtie1]:           http://bowtie-bio.sourceforge.net/index.shtml
+[bowtie2]:           http://bowtie-bio.sourceforge.net/bowtie2/index.shtml
+[bwa]:               http://bio-bwa.sourceforge.net/
+[deeptools]:         https://deeptools.github.io/
+[fastqscreen]:       http://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/
+[fastqc]:            http://www.bioinformatics.babraham.ac.uk/projects/fastqc/
+[featurecounts]:     http://bioinf.wehi.edu.au/featureCounts/
+[hicup]:             http://www.bioinformatics.babraham.ac.uk/projects/hicup/
+[hisat2]:            http://ccb.jhu.edu/software/hisat2/index.shtml
+[htseq_count]:       http://www-huber.embl.de/HTSeq/doc/count.html
+[kallisto]:          https://pachterlab.github.io/kallisto/
+[multiqc]:           http://multiqc.info
+[phantompeaktools]:  https://code.google.com/archive/p/phantompeakqualtools/
+[picard]:            https://broadinstitute.github.io/picard/
+[preseq]:            http://smithlabresearch.org/software/preseq/
+[rseqc]:             http://rseqc.sourceforge.net/
+[samtools]:          http://www.htslib.org/
+[sratoolkit]:        https://github.com/ncbi/sra-tools
+[star]:              https://github.com/alexdobin/STAR
+[tophat]:            http://ccb.jhu.edu/software/tophat/index.shtml
+[trimgalore]:        http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/
+
