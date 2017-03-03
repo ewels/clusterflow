@@ -4,7 +4,7 @@ use strict;
 use Getopt::Long;
 use POSIX qw(strftime);
 use FindBin qw($RealBin);
-use lib "$FindBin::Bin/source";
+use lib "$FindBin::RealBin/source";
 use CF::Constants;
 use CF::Helpers;
 use CF::Headnodehelpers;
@@ -334,7 +334,7 @@ if($cl_help){
 my @valid_environments = ('local', 'GRIDEngine', 'SLURM', 'LSF');
 my $environtments_regex = join('|', @valid_environments);
 if(length($CLUSTER_ENVIRONMENT) == 0){
-	my $global_fn = "$FindBin::Bin/clusterflow.config";
+	my $global_fn = "$FindBin::RealBin/clusterflow.config";
 	if(-e $global_fn){
 		die ("Error - Cluster Environment not set.\nPlease configure \@cluster_environment in your global config file:\n$global_fn\n\n");
 	} else {

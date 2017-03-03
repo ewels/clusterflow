@@ -379,7 +379,7 @@ use in the main `cf` script. You can include the Helpers package by
 adding the following to the top of your module file:
 ```perl
 use FindBin qw($RealBin);
-use lib "$FindBin::Bin/../source";
+use lib "$FindBin::RealBin/../source";
 use CF::Helpers;
 ```
 

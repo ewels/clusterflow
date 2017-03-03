@@ -2,7 +2,7 @@
 use warnings;
 use strict;
 use FindBin qw($RealBin);
-use lib "$FindBin::Bin/../source";
+use lib "$FindBin::RealBin/../source";
 use CF::Constants;
 use CF::Helpers;
 

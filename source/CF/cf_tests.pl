@@ -4,7 +4,7 @@ use strict;
 use FindBin qw($RealBin);
 use Getopt::Long qw(GetOptionsFromArray);
 use IPC::Open3;
-use lib "$FindBin::Bin/../";
+use lib "$FindBin::RealBin/../";
 use CF::Constants;
 use CF::Helpers;
 
