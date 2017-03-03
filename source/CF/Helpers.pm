@@ -187,10 +187,10 @@ sub parse_runfile {
 
     # Set up new hash variables if we need them
     $cf->{'refs'} = {}                             if(!defined($cf->{'refs'}));
-	$cf->{'config'} = {}                           if(!defined($cf->{'config'}));
-	$cf->{'config'}{'notifications'} = {}          if(!defined($cf->{'config'}{'notifications'}));
-	$cf->{'prev_job_files'} = ()                   if(!defined($cf->{'prev_job_files'}));
-	$cf->{'starting_files'} = ()                   if(!defined($cf->{'starting_files'}));
+    $cf->{'config'} = {}                           if(!defined($cf->{'config'}));
+    $cf->{'config'}{'notifications'} = {}          if(!defined($cf->{'config'}{'notifications'}));
+    $cf->{'prev_job_files'} = ()                   if(!defined($cf->{'prev_job_files'}));
+    $cf->{'starting_files'} = ()                   if(!defined($cf->{'starting_files'}));
     $cf->{'files'} = {}                            if(!defined($cf->{'files'}));
     $cf->{'num_starting_files'} = 0                if(!defined($cf->{'num_starting_files'}));
     $cf->{'num_starting_merged_files'} = 0         if(!defined($cf->{'num_starting_merged_files'}));

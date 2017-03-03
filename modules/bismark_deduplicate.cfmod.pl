@@ -54,9 +54,13 @@ my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
+my $version = `deduplicate_bismark --version`;
 warn "---------- deduplicate_bismark version information ----------\n";
-warn `deduplicate_bismark --version`;
+warn $version;
 warn "\n------- End of deduplicate_bismark version information ------\n";
+if($version =~ /Deduplicator Version: (v[\d\.]+)/){
+  warn "###CFVERS Bismark Deduplicator\t$1\n\n";
+}
 
 # Go through each file and deduplicate
 foreach my $file (@{$cf{'prev_job_files'}}){

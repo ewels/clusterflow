@@ -47,9 +47,14 @@ my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 
 # --version. Returns version information about the module.
+my $version = `bismark2report --version`;
 warn "---------- bismark2report version information ----------\n";
-warn `bismark2report --version`;
+warn $version;
 warn "\n------- End of bismark2report version information ------\n";
+if($version =~ /bismark2report version: (v[\d\.]+)/){
+  warn "###CFVERS Bismark Report\t$1\n\n";
+}
+
 
 if(!system ("bismark2report")){
 	warn "###CF Bismark report successfully created\n";
