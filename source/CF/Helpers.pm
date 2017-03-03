@@ -4,7 +4,7 @@ package CF::Helpers;
 use warnings;
 use strict;
 use Exporter;
-use FindBin qw($Bin);
+use FindBin qw($RealBin);
 use Getopt::Long;
 use POSIX qw(ceil strftime);
 use Time::Local;
@@ -826,9 +826,9 @@ sub build_emails {
 	# Get the e-mail templates
 	# Assume that we're running from the installation directory/modules
 	my $html_email;
-	{ local $/ = undef; local *FILE; open FILE, "<$Bin/../source/CF/html_email_template.html"; $html_email = <FILE>; close FILE }
+	{ local $/ = undef; local *FILE; open FILE, "<$RealBin/../source/CF/html_email_template.html"; $html_email = <FILE>; close FILE }
 	my $text_email;
-	{ local $/ = undef; local *FILE; open FILE, "<$Bin/../source/CF/plaintext_email_template.txt"; $text_email = <FILE>; close FILE }
+	{ local $/ = undef; local *FILE; open FILE, "<$RealBin/../source/CF/plaintext_email_template.txt"; $text_email = <FILE>; close FILE }
 
 	my $cf_version = $CF::Constants::CF_VERSION;
 

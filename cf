@@ -3,7 +3,7 @@ use warnings;
 use strict;
 use Getopt::Long;
 use POSIX qw(strftime);
-use FindBin qw($Bin);
+use FindBin qw($RealBin);
 use lib "$FindBin::Bin/source";
 use CF::Constants;
 use CF::Helpers;
@@ -33,8 +33,8 @@ no warnings qw(once);
 my $CF_VERSION = $CF::Constants::CF_VERSION;
 my $homedir = $ENV{"HOME"};
 my %config = %CF::Constants::config;
-my @pipeline_folders = ('./', "$homedir/.clusterflow/pipelines/", "$Bin/pipelines/");
-my @module_folders = ('./', "$homedir/.clusterflow/modules/", "$Bin/modules/");
+my @pipeline_folders = ('./', "$homedir/.clusterflow/pipelines/", "$RealBin/pipelines/");
+my @module_folders = ('./', "$homedir/.clusterflow/modules/", "$RealBin/modules/");
 my $pipeline;
 
 # Get command line parameters
@@ -824,7 +824,7 @@ foreach my $file_set (@file_sets){
 
 			# URL - set up download module qsub job, dependent on previous download job
 			$job_id = $jid_base.'download_'.sprintf("%03d", rand(999));
-			my $dlcmd = "$Bin/modules/cf_download.cfmod.pl --run_fn $runfn --job_id $job_id --prev_job_id null --cores 1 --mem 1G --param url=$fn --param dl_fn=$dl_fn";
+			my $dlcmd = "$RealBin/modules/cf_download.cfmod.pl --run_fn $runfn --job_id $job_id --prev_job_id null --cores 1 --mem 1G --param url=$fn --param dl_fn=$dl_fn";
 			my @dlhjid = ();
 			if(length($prev_dl_id) > 0){
 				@dlhjid = ($prev_dl_id);
@@ -863,7 +863,7 @@ foreach my $file_set (@file_sets){
 
 	# Qsub job to execute on completion of this run
 	$run_finish_id = $jid_base."email_run_complete_".sprintf("%03d", rand(999));
-	my $run_finish_cmd = "$Bin/modules/cf_run_finished.cfmod.pl --run_fn $runfn --job_id $run_finish_id --prev_job_id null --cores 1 --mem 4G --param hide_log_header=true --param outfn=$outfn";
+	my $run_finish_cmd = "$RealBin/modules/cf_run_finished.cfmod.pl --run_fn $runfn --job_id $run_finish_id --prev_job_id null --cores 1 --mem 4G --param hide_log_header=true --param outfn=$outfn";
 	my $run_finish_qsub = make_submit_cmd($run_finish_cmd, $run_finish_id, \@{$run_job_ids{$runfn}}, 0, '1', '4G', '12:00', $outfn, 1);
 
 	push @qsubs, $run_finish_qsub;
@@ -907,7 +907,7 @@ for my $s_mod (@summary_modules){
 
 # Cluster Flow module to send pipeline completion e-mail
 my $all_runs_finish_id = $jid_base."email_pipeline_complete_".sprintf("%03d", rand(999));
-my $all_runs_finish_cmd = "$Bin/modules/cf_runs_all_finished.cfmod.pl --run_fn $runfn --job_id $all_runs_finish_id --prev_job_id $run_finish_id --cores 1 --mem 4G --param summary_module=true --param hide_log_header=true";
+my $all_runs_finish_cmd = "$RealBin/modules/cf_runs_all_finished.cfmod.pl --run_fn $runfn --job_id $all_runs_finish_id --prev_job_id $run_finish_id --cores 1 --mem 4G --param summary_module=true --param hide_log_header=true";
 for my $i (0 .. $#outfns) {
 	$all_runs_finish_cmd .= " --param outfn_".$i."=".$outfns[$i];
 }

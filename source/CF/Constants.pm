@@ -4,7 +4,7 @@ package CF::Constants;
 use warnings;
 use strict;
 use Exporter;
-use FindBin qw($Bin);
+use FindBin qw($RealBin);
 use File::Find;
 use File::Basename;
 use Cwd;
