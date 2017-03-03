@@ -46,33 +46,36 @@ information.
 Pipelines are launched by naming a pipeline or module and the input files. A simple
 example could look like this:
 ```bash
-cf fastqc *.fastq.gz
+cf sra_trim *.fastq.gz
 ```
 
 Most pipelines need reference genomes, and Cluster Flow has built in reference
-genome management.
+genome management. Parameters can be passed to modify tool behaviour.
+
+For example, to run the `fastq_bowtie` pipeline (FastQC, TrimGalore! and Bowtie)
+with Human data, trimming the first 6bp of read 1, the command would be:
 
 ```bash
-cf --genome GRCh37 fastq_bowtie *.fastq.gz
+cf --genome GRCh37 --params "clip_r1=6" fastq_bowtie *.fastq.gz
 ```
 
 Additional common Cluster Flow commands are as follows:
 ```bash
-cf --genomes   # List available reference genomes
-cf --pipelines # List available pipelines
-cf --modules   # List available modules
-cf --qstat     # List running pipelines
-cf --qdel [id] # Cancel jobs for a running pipeline
+cf --genomes     # List available reference genomes
+cf --pipelines   # List available pipelines
+cf --modules     # List available modules
+cf --qstat       # List running pipelines
+cf --qdel [id]   # Cancel jobs for a running pipeline
 ```
 
 
 ## Citation
-Please consider citing MultiQC if you use it in your analysis.
+Please consider citing Cluster Flow if you use it in your analysis.
 
-> **Ewels P, Krueger F, Käller M and Andrews S. Cluster Flow: A user-friendly bioinformatics workflow tool [version 1; referees: 3 approved].** <br/>
-> _Philip Ewels, Felix Krueger, Max Käller, Simon Andrews_ <br/>
+> **Cluster Flow: A user-friendly bioinformatics workflow tool [version 1; referees: 3 approved].** <br/>
+> Philip Ewels, Felix Krueger, Max Käller, Simon Andrews <br/>
 > _F1000Research_ 2016, **5**:2824 <br/>
-> doi: [10.12688/f1000research.10335.1](http://dx.doi.org/10.12688/f1000research.10335.1
+> doi: [10.12688/f1000research.10335.1](http://dx.doi.org/10.12688/f1000research.10335.1)
 
 
 ## Contributions & Support
