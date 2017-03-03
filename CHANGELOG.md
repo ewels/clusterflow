@@ -3,6 +3,10 @@
 #### v0.5dev
 * Fixed a bug in parsing command line merge regexes.
 * picard_dedup uses the environment TMPDIR if available
+* Made use of `$RealBin` instead of `$Bin`
+  * Cluster Flow now works when the main `cf` executable is symlinked
+* Launch logfile `cf_[pipeline_id]_submissionlog.txt` now lists environment information
+  * Prints loaded environment modules, current `PATH`, user and system information
 
 #### [v0.4](https://github.com/ewels/clusterflow/releases/tag/v0.4) - 2016-07-14
 This is a huge release that got lost on it's way. A great number of things have changed since the
