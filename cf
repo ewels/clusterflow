@@ -1353,4 +1353,20 @@ else {
     	}
     }
 }
+
+# Print information about the current environment
+if($CF_MODULES) {
+  my $module_list = `module list`;
+  my $exitcode = $?;
+  if($exitcode && $module_list && length($module_list) > 0){
+    print SUBMIT "\n\nEnvironment Modules Loaded:\n$module_list\n";
+  }
+}
+print SUBMIT "\n\nCurrent PATH:\n".`echo \$PATH`."\n";
+my $system_info = `uname -a`;
+my $exitcode = $?;
+if($exitcode && $system_info && length($system_info) > 0){
+	print SUBMIT "\n\nSystem Information:\n$system_info\n";
+}
+
 close (SUBMIT);
