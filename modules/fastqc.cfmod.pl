@@ -53,9 +53,13 @@ my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
+my $version = `fastqc --version`;
 warn "---------- FastQC version information ----------\n";
-warn `fastqc --version`;
+warn $version;
 warn "\n------- End of FastQC version information ------\n";
+if($version =~ /FastQC (v[\d\.]+)/){
+  warn "###CFVERS FastQC\t$1\n\n";
+}
 
 # Read any options from the pipeline parameters
 my $nogroup = defined($cf{'params'}{'nogroup'}) ? "--nogroup" : '';

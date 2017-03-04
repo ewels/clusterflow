@@ -794,7 +794,7 @@ foreach my $file_set (@file_sets){
 	# Make the run file
 	$runfn = $cl_runfile_prefix.$files[0]."_$pipeline.run";
 	my $date = strftime "%H:%M, %d-%m-%Y", localtime;
-	my $this_runfile = "/*\nCluster Flow Run File\nPipeline: $pipeline\nCreated at $date\n*/\n\n".$runfile."\n\n";
+	my $this_runfile = "/*\nCluster Flow Run File\nPipeline: $pipeline\nPipeline ID: cf_$cfid\nCreated at $date\n*/\n\n".$runfile."\n\n";
 
 	# Loop through each file in file group
 	foreach my $fn (@files){

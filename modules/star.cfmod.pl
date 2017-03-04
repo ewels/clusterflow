@@ -75,9 +75,14 @@ if(!defined($cf{'refs'}{'star'})){
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
+my $version = `STAR --version`;
 warn "---------- STAR version information ----------\n";
-warn `STAR --version`;
+warn $version;
 warn "\n------- End of STAR version information ------\n";
+if($version =~ /STAR_(\.+)/){
+  warn "###CFVERS STAR\t$1\n\n";
+}
+
 
 # Load parameters
 my $genomeLoad = (defined($cf{'params'}{'LoadAndRemove'})) ? "LoadAndRemove" : 'NoSharedMemory';
