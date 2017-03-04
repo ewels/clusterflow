@@ -69,7 +69,7 @@ my $tg_version = `trim_galore --version`;
 warn "---------- Trim Galore! version information ----------\n";
 warn $tg_version;
 warn "\n------- End of Trim Galore! version information ------\n";
-if($version =~ /version ([\d\.]+)/){
+if($tg_version =~ /version ([\d\.]+)/){
   warn "###CFVERS Trim Galore!\t$1\n\n";
 }
 
