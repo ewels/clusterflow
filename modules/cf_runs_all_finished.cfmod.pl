@@ -83,6 +83,7 @@ my %commands;
 my %warninglines;
 my %highlightlines;
 my @summarylines;
+my @softwareversions;
 my $errors = 0;
 my $warnings = 0;
 my $highlights = 0;
@@ -113,6 +114,11 @@ foreach my $outfile (@outfns){
         elsif(/^###CFSUMMARY/){
     	    push (@summarylines, substr($_, 13));
         }
+
+		# Software versions
+		elsif(/^###CFVERS/){
+			push (@softwareversions, substr($_, 10));
+		}
 
 		# Highlight statuses
 		elsif(/^###CF/){
@@ -221,6 +227,14 @@ $plain_content .= "\n\n\n\n\n
 foreach my $file (sort keys %commands) {
 	$plain_content .= "\n".("=" x 30)."\n- Output file $file\n".("=" x 30)."\n";
 	$plain_content .= join("\n\n", @{$commands{$file}});
+}
+if(scalar @softwareversions > 0){
+	$plain_content .= "\n\n\n\n\n
+	=======================
+	== Software Versions ==
+	=======================
+	";
+	$plain_content .= join("\n - ", @softwareversions);
 }
 
 
@@ -380,6 +394,16 @@ foreach my $file (sort keys %commands) {
 		$html_content .= '</ul>';
 	}
 	$html_content .= '</li>';
+}
+
+if(scalar @softwareversions > 0){
+	$html_content .= '
+	<hr style="color: #d9d9d9; height: 1px; background: #d9d9d9; border: none;" />
+	<h3 style="color: #222222; font-family: \'Helvetica\', \'Arial\', sans-serif; font-weight: normal; text-align: left; line-height: 1.3; word-break: normal; font-size: 32px; margin: 0; padding: 0;" align="left">Software Versions</h3>
+
+	<ul class="status-messages software-versions">';
+	$html_content .= '<li>'.join("</li><li>", @softwareversions).'</li>';
+	$html_content .= '</ul>';
 }
 
 $html_content .= '</ul><hr style="color: #d9d9d9; height: 1px; background: #d9d9d9; border: none;" />';
