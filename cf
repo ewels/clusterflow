@@ -119,8 +119,6 @@ my @files = @ARGV;
 # Set up parameters
 my $CL_COLOURS = $CF::Constants::CL_COLOURS;
 my $CHECK_UPDATES = $CF::Constants::CHECK_UPDATES;
-my $AVAILABLE_VERSION = $CF::Constants::AVAILABLE_VERSION;
-my $UPDATES_LAST_CHECKED = $CF::Constants::UPDATES_LAST_CHECKED;
 my @NOTIFICATIONS = @CF::Constants::NOTIFICATIONS;
 my @MERGE_REGEXES = @CF::Constants::MERGE_REGEXES;
 my $CUSTOM_JOB_SUBMIT_COMMAND = $CF::Constants::CUSTOM_JOB_SUBMIT_COMMAND;
@@ -295,28 +293,9 @@ if($cl_check_updates){
 	print "$message\n";
 	exit;
 } elsif($CHECK_UPDATES){
-	# Work out the check interval in seconds
-	my $check_interval = 0;
-	$check_interval += $1 * 86400 if ($CHECK_UPDATES =~ /(\d+)d/i);
-	$check_interval += $1 * 604800 if ($CHECK_UPDATES =~ /(\d+)w/i);
-	$check_interval += $1 * 2628000 if ($CHECK_UPDATES =~ /(\d+)m/i);
-	$check_interval += $1 * 31536000 if ($CHECK_UPDATES =~ /(\d+)y/i);
-
-	# See if it's been this many seconds since we last checked
-	if($check_interval){
-		if(!$UPDATES_LAST_CHECKED || (time - $UPDATES_LAST_CHECKED) > $check_interval){
-			my ($message, $update_available) = CF::Headnodehelpers::cf_check_updates($CF_VERSION);
-			if ($update_available){
-				warn $message;
-			}
-		}
-	}
-}
-# Print warning if we're running a version of Cluster Flow that is out of date
-if($CHECK_UPDATES){
-	if(CF::Headnodehelpers::cf_compare_version_numbers($CF_VERSION, $AVAILABLE_VERSION)){
-		print "\n".("="x45)."\n A new version of Cluster Flow is available!\n Running v$CF_VERSION, v$AVAILABLE_VERSION available.\n".("="x45)."\n".
-			  "You can download the latest version of Cluster Flow from\nhttps://github.com/ewels/clusterflow/releases/\n\n";
+	my ($message, $update_available) = CF::Headnodehelpers::cf_check_updates($CF_VERSION);
+	if ($update_available){
+		warn $message;
 	}
 }
 

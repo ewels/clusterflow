@@ -41,7 +41,7 @@ our %config;
 our $EMAIL;
 our $C_PROJECT;
 our $CL_COLOURS = 0;
-our $CHECK_UPDATES;
+our $CHECK_UPDATES = 1;
 our @NOTIFICATIONS;
 our $SPLIT_FILES = 1;
 our @MERGE_REGEXES;
@@ -64,7 +64,6 @@ our %REFERENCES;
 
 # Update checking variables
 our $AVAILABLE_VERSION;
-our $UPDATES_LAST_CHECKED = 0;
 
 # Get the git hash if we're a development version
 if($CF_VERSION =~ /devel/){
@@ -77,7 +76,6 @@ if($CF_VERSION =~ /devel/){
 
 parse_conf_file ();
 parse_genomes_file();
-parse_updates_file();
 
 sub parse_conf_file {
     # Read global config variables in. Do in order so that local prefs overwrite.
@@ -123,14 +121,8 @@ sub parse_conf_file {
                     if($name eq 'colourful' or $name eq 'colorful'){
                         $CL_COLOURS = $val;
                     }
-                    if($name eq 'check_updates'){
-                        $CHECK_UPDATES = $val;
-                    }
-                    if($name eq 'available_version'){
-                        $AVAILABLE_VERSION = $val;
-                    }
-                    if($name eq 'updates_last_checked'){
-                        $UPDATES_LAST_CHECKED = $val;
+                    if($name eq 'disable_update_check'){
+                        $CHECK_UPDATES = 0;
                     }
                     if($name eq 'notification'){
                         push @NOTIFICATIONS, $val;
@@ -239,19 +231,6 @@ sub parse_genomes_file {
             }
             close(GCONFIG);
         }
-    }
-}
-
-
-sub parse_updates_file {
-    my $updates_file = $ENV{"HOME"}."/.clusterflow/.cfupdates";
-    if(-e $updates_file){
-        open (UPDATES, $updates_file) or die "Can't read $updates_file: $!";
-        $AVAILABLE_VERSION = <UPDATES>;
-        $AVAILABLE_VERSION =~ s/[\n\r]//;
-        $UPDATES_LAST_CHECKED = <UPDATES>;
-        $UPDATES_LAST_CHECKED =~ s/[\n\r]//;
-        close (UPDATES);
     }
 }
 

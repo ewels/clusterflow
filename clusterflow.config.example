@@ -13,7 +13,7 @@ These will be overwritten by any with the same name in ~/.clusterflow/clusterflo
 /* See the Cluster Flow documentation for descriptions */
 @email	0
 @colourful	0
-@check_updates	1d
+/* @disable_update_check */
 @notification	suspend
 @notification	abort
 @notification	complete

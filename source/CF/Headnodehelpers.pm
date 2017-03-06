@@ -861,9 +861,10 @@ sub cf_check_updates {
 	my ($current_version) = @_;
 
 	# Get contents of Cluster Flow current version file using LWP::Simple
-	my $version_url = 'http://clusterflow.io/version.php';
+	my $version_url = 'http://clusterflow.io/version.php?v='.$current_version;
 	my $avail_version = get($version_url) or return ("Can't access address to check available version:\n$version_url\n\n", 0);
 	my $timestamp = time();
+	$avail_version =~ s/^\s+|\s+$//g; # trim whitespace
 
 	# Update the .cfupdates files with the available version and checked timestamp
 	my $updates_file = $ENV{"HOME"}."/.clusterflow/.cfupdates";
@@ -875,7 +876,7 @@ sub cf_check_updates {
 
 	if(cf_compare_version_numbers($current_version, $avail_version)){
 		return ("".("="x45)."\n A new version of Cluster Flow is available!\n Running v$current_version, v$avail_version available.\n".("="x45)."\n
-You can download the latest version of Cluster Flow from\nhttps://github.com/ewels/clusterflow/releases/\n\n", 1);
+You can download the latest version of Cluster Flow from\nhttp://clusterflow.io\n\n", 1);
 	} else {
 		return ("Your copy of Cluster Flow is up to date. Running v$current_version, v$avail_version available.\n\n", 0);
 	}
