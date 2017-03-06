@@ -3,8 +3,8 @@ package CF::Headnodehelpers;
 
 use warnings;
 use strict;
-use FindBin qw($Bin);
-use lib "$FindBin::Bin/source";
+use FindBin qw($RealBin);
+use lib "$FindBin::RealBin/source";
 use Exporter;
 use POSIX qw(strftime);
 use XML::Simple;

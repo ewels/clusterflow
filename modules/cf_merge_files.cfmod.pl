@@ -2,8 +2,8 @@
 use warnings;
 use strict;
 use Getopt::Long;
-use FindBin qw($Bin);
-use lib "$FindBin::Bin/../source";
+use FindBin qw($RealBin);
+use lib "$FindBin::RealBin/../source";
 use CF::Constants;
 use CF::Helpers;
 use POSIX;

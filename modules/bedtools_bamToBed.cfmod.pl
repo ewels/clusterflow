@@ -2,8 +2,8 @@
 use warnings;
 use strict;
 use Getopt::Long;
-use FindBin qw($Bin);
-use lib "$FindBin::Bin/../source";
+use FindBin qw($RealBin);
+use lib "$FindBin::RealBin/../source";
 use CF::Constants;
 use CF::Helpers;
 
@@ -50,9 +50,13 @@ Outputs are sorted bed files named basename.bed.\n\n";
 my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 # Print version information about the program to be executed.
+my $version = `bedtools --version`;
 warn "---------- Bedtools version information ----------\n";
-warn `bedtools --version`;
+warn $version;
 warn "\n------- End of bedtools version information ------\n";
+if($version =~ /bedtools (v[\d\.]+)/){
+  warn "###CFVERS BEDTools\t$1\n\n";
+}
 
 # Open up our run file in append mode
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";

@@ -2,8 +2,8 @@
 use warnings;
 use strict;
 use Getopt::Long;
-use FindBin qw($Bin);
-use lib "$FindBin::Bin/../source";
+use FindBin qw($RealBin);
+use lib "$FindBin::RealBin/../source";
 use CF::Constants;
 use CF::Helpers;
 
@@ -55,9 +55,13 @@ my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
+my $version = `bismark_methylation_extractor --version`;
 warn "---------- bismark_methylation_extractor version information ----------\n";
-warn `bismark_methylation_extractor --version`;
+warn $version;
 warn "\n------- End of bismark_methylation_extractor version information ------\n";
+if($version =~ /Extractor Version: (v[\d\.]+)/){
+  warn "###CFVERS Bismark Extractor\t$1\n\n";
+}
 
 # Adjust maximum buffer memory
 my $alloc_mem = CF::Helpers::human_readable_to_bytes($cf{'memory'});

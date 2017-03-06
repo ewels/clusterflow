@@ -4,7 +4,7 @@ package CF::Constants;
 use warnings;
 use strict;
 use Exporter;
-use FindBin qw($Bin);
+use FindBin qw($RealBin);
 use File::Find;
 use File::Basename;
 use Cwd;
@@ -83,7 +83,7 @@ sub parse_conf_file {
     # by /cf and by /modules/module.cfmod
 
     my $num_configs = 0;
-    my @config_files = ("$FindBin::Bin/clusterflow.config", "$FindBin::Bin/../clusterflow.config", "$homedir/.clusterflow/clusterflow.config", './clusterflow.config');
+    my @config_files = ("$FindBin::RealBin/clusterflow.config", "$FindBin::RealBin/../clusterflow.config", "$homedir/.clusterflow/clusterflow.config", './clusterflow.config');
     foreach my $config_file (@config_files){
         if(-e $config_file){
             $num_configs++;
@@ -199,7 +199,7 @@ sub parse_genomes_file {
 
     # Read genomes config variables in. Do in order so that local prefs overwrite.
 
-    my @genome_files = ("$FindBin::Bin/genomes.config",glob("$FindBin::Bin/genomes.d/*config"),"$homedir/.clusterflow/genomes.config",glob("$homedir/.clusterflow/genomes.d/*config"), './genomes.config');
+    my @genome_files = ("$FindBin::RealBin/genomes.config",glob("$FindBin::RealBin/genomes.d/*config"),"$homedir/.clusterflow/genomes.config",glob("$homedir/.clusterflow/genomes.d/*config"), './genomes.config');
     foreach my $genome_file (@genome_files){
         if(-e $genome_file){
             open (GCONFIG, $genome_file) or die "Can't read $genome_file: $!";
@@ -245,7 +245,7 @@ sub list_clusterflow_genomes {
 
     my $returnstring = "";
 
-    my @config_files = ("$FindBin::Bin/genomes.config","$FindBin::Bin/genomes.d/","$homedir/.clusterflow/genomes.config","$homedir/.clusterflow/genomes.d/",'./genomes.config');
+    my @config_files = ("$FindBin::RealBin/genomes.config","$FindBin::RealBin/genomes.d/","$homedir/.clusterflow/genomes.config","$homedir/.clusterflow/genomes.d/",'./genomes.config');
 
     foreach my $config_file (@config_files){
 
@@ -309,8 +309,8 @@ sub clusterflow_pipeline_help {
 
     my $help = "";
 
-    my @pipelines = ("./$pipeline.config", "$homedir/.clusterflow/pipelines/$pipeline.config", "$FindBin::Bin/pipelines/$pipeline.config");
-    my @module_folders = ("./", "$homedir/.clusterflow/modules/", "$FindBin::Bin/modules/");
+    my @pipelines = ("./$pipeline.config", "$homedir/.clusterflow/pipelines/$pipeline.config", "$FindBin::RealBin/pipelines/$pipeline.config");
+    my @module_folders = ("./", "$homedir/.clusterflow/modules/", "$FindBin::RealBin/modules/");
     foreach my $pipeline (@pipelines){
         if(-e $pipeline){
             open (PIPELINE, $pipeline) or die "Can't read $pipeline: $!";
@@ -542,7 +542,7 @@ sub clusterflow_add_genome {
     my $cwd = Cwd::getcwd();
     print "First off, which config file would you like to add these references to?\n\n".
           "1 - Cluster Flow Installation directory, will be visible for all users\n".
-          "       $FindBin::Bin/genomes.config\n\n".
+          "       $FindBin::RealBin/genomes.config\n\n".
           "2 - Your home directory, will be visible for you whenever you run Cluster Flow\n".
           "       $homedir/.clusterflow/genomes.config\n\n".
           "3 - This directory, will only be visible when running Cluster Flow here\n".
@@ -553,7 +553,7 @@ sub clusterflow_add_genome {
     while ($fn = <STDIN>){
         chomp ($fn);
         if ($fn =~ /^1$/){
-            $fn = "$FindBin::Bin/genomes.config";
+            $fn = "$FindBin::RealBin/genomes.config";
             last;
         } elsif ($fn =~ /^2$/){
             $fn = "$homedir/.clusterflow/genomes.config";
@@ -806,8 +806,8 @@ sub clusterflow_add_genome {
 sub clusterflow_setup {
 
     # First of all - check we have a global config file
-    my $global_fn = "$FindBin::Bin/clusterflow.config";
-    if(!-e $global_fn and -e $global_fn.".example" and  -w "$FindBin::Bin/"){
+    my $global_fn = "$FindBin::RealBin/clusterflow.config";
+    if(!-e $global_fn and -e $global_fn.".example" and  -w "$FindBin::RealBin/"){
         print "\n\nCluster Flow Setup Wizard\n".('='x37)."\nRunning Cluster Flow version $CF_VERSION\n\n";
         print "There is no global config file for Cluster Flow:\n$global_fn\n\n";
         print "Would you like to create a global config file before\nconfiguring a personal config file for just you? (y/n)\n\n";
@@ -1151,7 +1151,7 @@ These will overwrite any with the same name in the centralised config file
 		open (BASHRC, '<', $bashrc) or die "Couldn't open $bashrc for reading: $!";
 		while(<BASHRC>){
 			$has_path = 1 if(/module load clusterflow/);
-			$has_path = 1 if(/$FindBin::Bin/);
+			$has_path = 1 if(/$FindBin::RealBin/);
 			$has_qs = 1 if(/alias qs='cf --qstat'/);
 			$has_qsa = 1 if(/alias qsa='cf --qstatall'/);
 		}
@@ -1164,7 +1164,7 @@ These will overwrite any with the same name in the centralised config file
             if($CF_MODULES){
                 print "\tmodule load clusterflow\n\n";
             } else {
-                print "\t".'export PATH="'.$FindBin::Bin.':$PATH"'."\n\n";
+                print "\t".'export PATH="'.$FindBin::RealBin.':$PATH"'."\n\n";
             }
             print "Would you like this to be appended to $bashrc ?\n\n";
             my $add_to_path;
@@ -1175,7 +1175,7 @@ These will overwrite any with the same name in the centralised config file
                     if($CF_MODULES){
                         $alias .= "module load clusterflow\n";
                     } else {
-                        $alias .= 'export PATH="'.$FindBin::Bin.':$PATH"'."\n";
+                        $alias .= 'export PATH="'.$FindBin::RealBin.':$PATH"'."\n";
                     }
                     sleep(1); last;
                 } elsif ($add_to_path =~ /^n(o)?/i){
@@ -1235,7 +1235,7 @@ These will overwrite any with the same name in the centralised config file
 
     # Check that we have some genomes and fire the genomes wizard if not
     my $has_genomes = 0;
-    my @genome_files = ("$FindBin::Bin/genomes.config", "$homedir/.clusterflow/genomes.config", './genomes.config');
+    my @genome_files = ("$FindBin::RealBin/genomes.config", "$homedir/.clusterflow/genomes.config", './genomes.config');
     foreach my $genome_file (@genome_files){
         if(-e $genome_file){
             $has_genomes = 1;

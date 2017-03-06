@@ -2,8 +2,8 @@
 use warnings;
 use strict;
 use Getopt::Long;
-use FindBin qw($Bin);
-use lib "$FindBin::Bin/../source";
+use FindBin qw($RealBin);
+use lib "$FindBin::RealBin/../source";
 use CF::Constants;
 use CF::Helpers;
 
@@ -60,12 +60,18 @@ my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
+my $cutadapt_version = `cutadapt --version`;
 warn "---------- Cutadapt version information ----------\n";
-warn `cutadapt --version`;
+warn $cutadapt_version;
 warn "\n------- End of Cutadapt version information ------\n";
+warn "###CFVERS Cutadapt\n$cutadapt_version\n\n";
+my $tg_version = `trim_galore --version`;
 warn "---------- Trim Galore! version information ----------\n";
-warn `trim_galore --version`;
+warn $tg_version;
 warn "\n------- End of Trim Galore! version information ------\n";
+if($tg_version =~ /version ([\d\.]+)/){
+  warn "###CFVERS Trim Galore!\t$1\n\n";
+}
 
 # Read options from the pipeline parameters
 my $min_readlength = defined($cf{'params'}{'min_readlength'}) ? $cf{'params'}{'min_readlength'} : 50;

@@ -2,8 +2,8 @@
 use warnings;
 use strict;
 use Getopt::Long;
-use FindBin qw($Bin);
-use lib "$FindBin::Bin/../source";
+use FindBin qw($RealBin);
+use lib "$FindBin::RealBin/../source";
 use CF::Constants;
 use CF::Helpers;
 
@@ -65,7 +65,7 @@ my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 if(!CF::Helpers::fastq_min_length($cf{'prev_job_files'}[0], 50)){
 	warn "\n\n###CF First file has reads < 50bp long. Using bowtie 1 for alignment.\n";
 
-	my $command = "$FindBin::Bin/bowtie1.cfmod.pl ".join(" ", @rawargs);
+	my $command = "$FindBin::RealBin/bowtie1.cfmod.pl ".join(" ", @rawargs);
 	warn "\nBowtie 1 module command: $command\n\n";
 
 	system($command);
@@ -73,7 +73,7 @@ if(!CF::Helpers::fastq_min_length($cf{'prev_job_files'}[0], 50)){
 } else {
 	warn "\n\n###CF First file has reads >= 50bp long. Using bowtie 2 for alignment.\n";
 
-	my $command = "$FindBin::Bin/bowtie2.cfmod.pl ".join(" ", @rawargs);
+	my $command = "$FindBin::RealBin/bowtie2.cfmod.pl ".join(" ", @rawargs);
 	warn "\nBowtie 2 module command: $command\n\n";
 
 	system($command);

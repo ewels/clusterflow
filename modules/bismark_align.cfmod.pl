@@ -2,8 +2,8 @@
 use warnings;
 use strict;
 use Getopt::Long;
-use FindBin qw($Bin);
-use lib "$FindBin::Bin/../source";
+use FindBin qw($RealBin);
+use lib "$FindBin::RealBin/../source";
 use CF::Constants;
 use CF::Helpers;
 
@@ -77,9 +77,13 @@ if(!defined($cf{'refs'}{'bismark'})){
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
+my $version = `bismark --version`;
 warn "---------- Bismark version information ----------\n";
-warn `bismark --version`;
+warn $version;
 warn "\n------- End of Bismark version information ------\n";
+if($version =~ /Bismark Version: (v[\d\.]+)/){
+  warn "###CFVERS Bismark\t$1\n\n";
+}
 warn "Allocated $cf{cores} cores and $cf{memory} memory.\n";
 
 # Read options from the pipeline parameters

@@ -2,8 +2,8 @@
 use warnings;
 use strict;
 use Getopt::Long;
-use FindBin qw($Bin);
-use lib "$FindBin::Bin/../source";
+use FindBin qw($RealBin);
+use lib "$FindBin::RealBin/../source";
 use CF::Constants;
 use CF::Helpers;
 
@@ -50,9 +50,13 @@ my $timestart = time;
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
-warn "---------- Bismark version information ----------\n";
-warn `bismark2summary --version`;
-warn "\n------- End of Bismark version information ------\n";
+my $version = `bismark2summary --version`;
+warn "---------- bismark2summary version information ----------\n";
+warn $version;
+warn "\n------- End of bismark2summary version information ------\n";
+if($version =~ /bismark2summary version: (v[\d\.]+)/){
+  warn "###CFVERS Bismark Summary\t$1\n\n";
+}
 
 # Find the original bismark aligned BAM files
 my $pipeline_id = $cf{'pipeline_id'};

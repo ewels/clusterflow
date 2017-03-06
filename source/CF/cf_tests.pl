@@ -1,10 +1,10 @@
 #!/usr/bin/env perl
 use warnings;
 use strict;
-use FindBin qw($Bin);
+use FindBin qw($RealBin);
 use Getopt::Long qw(GetOptionsFromArray);
 use IPC::Open3;
-use lib "$FindBin::Bin/../";
+use lib "$FindBin::RealBin/../";
 use CF::Constants;
 use CF::Helpers;
 
@@ -31,9 +31,9 @@ use CF::Helpers;
 my $cf_version = $CF::Constants::CF_VERSION;
 my $homedir = $ENV{"HOME"};
 my %config = %CF::Constants::config;
-my $base_dir = "$Bin/../../";
-my @pipeline_folders = ("$homedir/.clusterflow/pipelines/", "$Bin/../../pipelines/");
-my @module_folders = ("$homedir/.clusterflow/modules/", "$Bin/../../modules/");
+my $base_dir = "$RealBin/../../";
+my @pipeline_folders = ("$homedir/.clusterflow/pipelines/", "$RealBin/../../pipelines/");
+my @module_folders = ("$homedir/.clusterflow/modules/", "$RealBin/../../modules/");
 
 my $exit_status = 0;
 
@@ -131,7 +131,7 @@ print "$num_passed modules passed, $num_failed failed and $unrecognised_filetype
 # STEP THREE - TRY TO GET REQUIREMENTS FROM PASSED MODULES
 #
 print "\n## Step Three: Get requirements from $num_passed passed modules.\n";
-my $runfn = "$Bin/../../clusterflow.config"; # cheatin'
+my $runfn = "$RealBin/../../clusterflow.config"; # cheatin'
 my $num_requirements_failed = 0;
 foreach my $module_fn (@modules){
 

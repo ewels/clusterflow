@@ -2,8 +2,8 @@
 use warnings;
 use strict;
 use Getopt::Long;
-use FindBin qw($Bin);
-use lib "$FindBin::Bin/../source";
+use FindBin qw($RealBin);
+use lib "$FindBin::RealBin/../source";
 use CF::Constants;
 use CF::Helpers;
 
@@ -67,9 +67,13 @@ if(!defined($cf{'refs'}{'bowtie2'})){
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
+my $version = `bowtie2 --version`;
 warn "---------- Bowtie 2 version information ----------\n";
-warn `bowtie2 --version`;
+warn $version;
 warn "\n------- End of Bowtie 2 version information ------\n";
+if($version =~ /version ([\d\.]+)/){
+  warn "###CFVERS Bowtie 2\t$1\n\n";
+}
 
 # FastQ encoding type. Once found on one file will assume all others are the same
 my $encoding = 0;

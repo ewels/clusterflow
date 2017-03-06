@@ -4,7 +4,7 @@ package CF::Helpers;
 use warnings;
 use strict;
 use Exporter;
-use FindBin qw($Bin);
+use FindBin qw($RealBin);
 use Getopt::Long;
 use POSIX qw(ceil strftime);
 use Time::Local;
@@ -187,10 +187,10 @@ sub parse_runfile {
 
     # Set up new hash variables if we need them
     $cf->{'refs'} = {}                             if(!defined($cf->{'refs'}));
-	$cf->{'config'} = {}                           if(!defined($cf->{'config'}));
-	$cf->{'config'}{'notifications'} = {}          if(!defined($cf->{'config'}{'notifications'}));
-	$cf->{'prev_job_files'} = ()                   if(!defined($cf->{'prev_job_files'}));
-	$cf->{'starting_files'} = ()                   if(!defined($cf->{'starting_files'}));
+    $cf->{'config'} = {}                           if(!defined($cf->{'config'}));
+    $cf->{'config'}{'notifications'} = {}          if(!defined($cf->{'config'}{'notifications'}));
+    $cf->{'prev_job_files'} = ()                   if(!defined($cf->{'prev_job_files'}));
+    $cf->{'starting_files'} = ()                   if(!defined($cf->{'starting_files'}));
     $cf->{'files'} = {}                            if(!defined($cf->{'files'}));
     $cf->{'num_starting_files'} = 0                if(!defined($cf->{'num_starting_files'}));
     $cf->{'num_starting_merged_files'} = 0         if(!defined($cf->{'num_starting_merged_files'}));
@@ -826,9 +826,9 @@ sub build_emails {
 	# Get the e-mail templates
 	# Assume that we're running from the installation directory/modules
 	my $html_email;
-	{ local $/ = undef; local *FILE; open FILE, "<$Bin/../source/CF/html_email_template.html"; $html_email = <FILE>; close FILE }
+	{ local $/ = undef; local *FILE; open FILE, "<$RealBin/../source/CF/html_email_template.html"; $html_email = <FILE>; close FILE }
 	my $text_email;
-	{ local $/ = undef; local *FILE; open FILE, "<$Bin/../source/CF/plaintext_email_template.txt"; $text_email = <FILE>; close FILE }
+	{ local $/ = undef; local *FILE; open FILE, "<$RealBin/../source/CF/plaintext_email_template.txt"; $text_email = <FILE>; close FILE }
 
 	my $cf_version = $CF::Constants::CF_VERSION;
 

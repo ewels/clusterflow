@@ -2,8 +2,8 @@
 use warnings;
 use strict;
 use Getopt::Long;
-use FindBin qw($Bin);
-use lib "$FindBin::Bin/../source";
+use FindBin qw($RealBin);
+use lib "$FindBin::RealBin/../source";
 use CF::Constants;
 use CF::Helpers;
 
@@ -64,8 +64,16 @@ open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $
 
 # Print version information about the module.
 warn "---------- BWA version information ----------\n";
-warn `bwa 2>&1 | head -n 5`;
+warn `bwa`;
 warn "\n------- End of BWA version information ------\n";
+
+my $version = `bwa`;
+warn "---------- BWA version information ----------\n";
+warn $version;
+warn "\n------- End of BWA version information ------\n";
+if($version =~ /Version: ([\S\.]+)/){
+  warn "###CFVERS BWA\t$1\n\n";
+}
 
 # Separate file names into single end and paired end
 my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%cf, @{$cf{'prev_job_files'}});
