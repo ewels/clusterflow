@@ -57,6 +57,12 @@ while(defined($cf{'params'}{'outfn_'.$i})){
 my $date = strftime ("%H:%M %d-%m-%Y", localtime);
 warn "\n###CF Pipeline $pipeline finished at $date\n\n";
 
+# Print out Cluster Flow Version
+warn "---------- Cluster Flow version information ----------\n";
+warn "Cluster Flow v".$CF::Constants::CF_VERSION."\n";
+warn "\n------- End of Cluster Flow version information ------\n";
+warn "###CFVERS cf\t".$CF::Constants::CF_VERSION."\n\n";
+
 # Dig out pipeline ID and start from job ID
 my $startdate = "?";
 my $duration = "?";
