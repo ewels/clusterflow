@@ -31,7 +31,6 @@ my %requirements = (
 	'memory' 	=> ['8G', '16G'],
 	'modules' 	=> 'BEDTools',
 	'time' 		=> sub {
-
 		my $cf = $_[0];
 		my $num_files = $cf->{'num_starting_merged_aligned_files'};
 		# Default to 1 if none were parsed for whatever reason
@@ -54,8 +53,8 @@ my $version = `bedtools --version`;
 warn "---------- Bedtools version information ----------\n";
 warn $version;
 warn "\n------- End of bedtools version information ------\n";
-if($version =~ /bedtools (v[\d\.]+)/){
-  warn "###CFVERS BEDTools\t$1\n\n";
+if($version =~ /bedtools v([\d\.]+)/){
+  warn "###CFVERS bedtools\t$1\n\n";
 }
 
 # Open up our run file in append mode

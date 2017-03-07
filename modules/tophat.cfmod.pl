@@ -83,9 +83,13 @@ if(defined($cf{'refs'}{'gtf'}) && -e $cf{'refs'}{'gtf'}){
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
+my $version = `tophat --version`;
 warn "---------- Tophat version information ----------\n";
-warn `tophat --version`;
-warn "\n------- End of Tophat version information ------\n";
+warn $version;
+warn "------- End of Tophat version information ------\n";
+if($version =~ /TopHat v([\d\.]+)/){
+  warn "###CFVERS tophat\t$1\n\n";
+}
 
 # Separate file names into single end and paired end
 my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%cf, @{$cf{'prev_job_files'}});

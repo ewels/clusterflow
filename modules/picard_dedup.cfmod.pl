@@ -59,6 +59,12 @@ warn "---------- Picard version information ----------\n";
 warn `java -jar $md --version`;
 warn "\n------- End of picard version information ------\n";
 
+my $version = `java -jar $md --version`;
+warn "---------- Picard MarkDuplicates version information ----------\n";
+warn $version;
+warn "\n------- End of Picard MarkDuplicates version information ------\n";
+warn "###CFVERS MarkDuplicates\t$version\n\n";
+
 # Open up our run file in append mode
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 

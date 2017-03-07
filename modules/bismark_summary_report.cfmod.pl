@@ -54,8 +54,8 @@ my $version = `bismark2summary --version`;
 warn "---------- bismark2summary version information ----------\n";
 warn $version;
 warn "\n------- End of bismark2summary version information ------\n";
-if($version =~ /bismark2summary version: (v[\d\.]+)/){
-  warn "###CFVERS Bismark Summary\t$1\n\n";
+if($version =~ /bismark2summary version: v([\d\.]+)/){
+  warn "###CFVERS bismark2summary\t$1\n\n";
 }
 
 # Find the original bismark aligned BAM files

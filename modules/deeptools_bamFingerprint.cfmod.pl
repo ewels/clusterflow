@@ -60,9 +60,13 @@ my $defaultFragLen = 200; # If fragment length not defined, use this value.
 
 
 # Print version information about the program to be executed.
-warn "---------- bamFingerprint  version information ----------\n";
-warn `plotFingerprint --version`;
-warn "\n------- End of bamFingerprint version information ------\n";
+my $version = `plotFingerprint --version`;
+warn "---------- plotFingerprint version information ----------\n";
+warn $version;
+warn "\n------- End of plotFingerprint version information ------\n";
+if($version =~ /plotFingerprint ([\d\.]+)/){
+  warn "###CFVERS plotFingerprint\t$1\n\n";
+}
 
 # Open up our run file in append mode
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";

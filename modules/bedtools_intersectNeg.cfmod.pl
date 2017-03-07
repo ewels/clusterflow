@@ -55,8 +55,8 @@ my $version = `bedtools --version`;
 warn "---------- Bedtools version information ----------\n";
 warn $version;
 warn "\n------- End of bedtools version information ------\n";
-if($version =~ /bedtools (v[\d\.]+)/){
-  warn "###CFVERS BEDTools\t$1\n\n";
+if($version =~ /bedtools v([\d\.]+)/){
+  warn "###CFVERS bedtools\t$1\n\n";
 }
 
 # Check if a file with blacklist regions was provided.

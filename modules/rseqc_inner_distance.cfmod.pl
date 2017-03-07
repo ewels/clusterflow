@@ -67,9 +67,13 @@ if(!defined($cf{'refs'}{'bed12'})){
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
-warn "---------- RSeQC version information ----------\n";
-warn `inner_distance.py --version`;
-warn "------- End of RSeQC version information ------\n";
+my $version = `inner_distance.py --version`;
+warn "---------- RSeQC inner_distance.py version information ----------\n";
+warn $version;
+warn "\n------- End of RSeQC inner_distance.py version information ------\n";
+if($version =~ /inner_distance.py ([\d\.]+)/){
+  warn "###CFVERS inner_distance.py\t$1\n\n";
+}
 
 # Set up optional parameters
 my $keep_intermediate = (defined($cf{'params'}{'keep_intermediate'})) ? 1 : 0;

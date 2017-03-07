@@ -61,9 +61,13 @@ my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
+my $version = `samtools 2>&1`;
 warn "---------- Samtools version information ----------\n";
-warn `samtools 2>&1 | head -n 4`;
+warn $version;
 warn "------- End of Samtools version information ------\n";
+if($version =~ /Version: ([\S\.]+)/){
+  warn "###CFVERS samtools\t$1\n\n";
+}
 
 
 # Go through each file and run Tophat

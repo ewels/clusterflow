@@ -52,9 +52,13 @@ my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
+my $version = `abi-dump --version`;
 warn "---------- ABI Dump version information ----------\n";
-warn `abi-dump --version`;
-warn "\n------- End of ABI Dump version information ------\n";
+warn $version;
+warn "------- End of ABI Dump version information ------\n";
+if($version =~ /abi-dump : ([\d\.]+)/){
+  warn "###CFVERS abi-dump\t$1\n\n";
+}
 
 # Go through each supplied file and run abi-dump.
 foreach my $file (@{$cf{'prev_job_files'}}){

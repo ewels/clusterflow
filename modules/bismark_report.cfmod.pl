@@ -51,8 +51,8 @@ my $version = `bismark2report --version`;
 warn "---------- bismark2report version information ----------\n";
 warn $version;
 warn "\n------- End of bismark2report version information ------\n";
-if($version =~ /bismark2report version: (v[\d\.]+)/){
-  warn "###CFVERS Bismark Report\t$1\n\n";
+if($version =~ /bismark2report version: v([\d\.]+)/){
+  warn "###CFVERS bismark2report\t$1\n\n";
 }
 
 

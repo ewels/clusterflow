@@ -75,9 +75,13 @@ if(defined($cf{'refs'}{'hisat2_splices'}) && -e $cf{'refs'}{'hisat2_splices'}){
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
+my $version = `hisat2 --version`;
 warn "---------- Hisat2 version information ----------\n";
-warn `hisat2 --version`;
+warn $version;
 warn "\n------- End of Hisat2 version information ------\n";
+if($version =~ /version ([\d\.]+)/){
+  warn "###CFVERS hisat2\t$1\n\n";
+}
 
 # Separate file names into single end and paired end
 my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%cf, @{$cf{'prev_job_files'}});

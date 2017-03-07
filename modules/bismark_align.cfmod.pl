@@ -81,8 +81,8 @@ my $version = `bismark --version`;
 warn "---------- Bismark version information ----------\n";
 warn $version;
 warn "\n------- End of Bismark version information ------\n";
-if($version =~ /Bismark Version: (v[\d\.]+)/){
-  warn "###CFVERS Bismark\t$1\n\n";
+if($version =~ /Bismark Version: v([\d\.]+)/){
+  warn "###CFVERS bismark\t$1\n\n";
 }
 warn "Allocated $cf{cores} cores and $cf{memory} memory.\n";
 

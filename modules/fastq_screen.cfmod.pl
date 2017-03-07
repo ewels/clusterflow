@@ -65,9 +65,13 @@ my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 
 # MODULE
 # Print version information about the module.
-warn "---------- FastQ Screen version information ----------\n";
-warn `fastq_screen --version`;
-warn "\n------- End of FastQ Screen version information ------\n";
+my $version = `fastq_screen --version`;
+warn "---------- fastq_screen version information ----------\n";
+warn $version;
+warn "\n------- End of fastq_screen version information ------\n";
+if($version =~ /fastq_screen v([\d\.]+)/){
+  warn "###CFVERS fastq_screen\t$1\n\n";
+}
 
 # Parameters
 my $conf = defined($cf{'params'}{'fastq_screen_config'}) ? "--conf ".$cf{'params'}{'fastq_screen_config'} : '';

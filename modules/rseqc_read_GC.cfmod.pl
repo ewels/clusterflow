@@ -55,9 +55,13 @@ my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
-warn "---------- RSeQC version information ----------\n";
-warn `read_GC.py --version`;
-warn "------- End of RSeQC version information ------\n";
+my $version = `read_GC.py --version`;
+warn "---------- RSeQC read_GC.py version information ----------\n";
+warn $version;
+warn "\n------- End of RSeQC read_GC.py version information ------\n";
+if($version =~ /read_GC.py ([\d\.]+)/){
+  warn "###CFVERS read_GC.py\t$1\n\n";
+}
 
 # Set up optional parameters
 my $keep_intermediate = (defined($cf{'params'}{'keep_intermediate'})) ? 1 : 0;

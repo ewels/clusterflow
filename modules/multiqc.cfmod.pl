@@ -48,9 +48,13 @@ my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
+my $version = `multiqc --version`;
 warn "---------- MultiQC version information ----------\n";
-warn `multiqc --version`;
+warn $version;
 warn "\n------- End of MultiQC version information ------\n";
+if($version =~ /multiqc, version (.+)$/){
+  warn "###CFVERS multiqc\t$1\n\n";
+}
 
 # Read any options from the pipeline parameters
 my $template = defined($cf{'params'}{'template'}) ? "-t ".$cf{'params'}{'template'} : '';

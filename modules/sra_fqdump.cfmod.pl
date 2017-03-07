@@ -54,9 +54,13 @@ my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
+my $version = `fastq-dump --version`;
 warn "---------- FastQ Dump version information ----------\n";
-warn `fastq-dump --version`;
-warn "\n------- End of FastQ Dump version information ------\n";
+warn $version;
+warn "------- End of FastQ Dump version information ------\n";
+if($version =~ /fastq-dump : ([\d\.]+)/){
+  warn "###CFVERS fastq-dump\t$1\n\n";
+}
 
 # Go through each supplied file and run fastq-dump.
 foreach my $file (@{$cf{'prev_job_files'}}){

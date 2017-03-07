@@ -60,17 +60,18 @@ my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
-my $cutadapt_version = `cutadapt --version`;
+my $ca_version = `cutadapt --version`;
 warn "---------- Cutadapt version information ----------\n";
-warn $cutadapt_version;
+warn $ca_version;
 warn "\n------- End of Cutadapt version information ------\n";
-warn "###CFVERS Cutadapt\n$cutadapt_version\n\n";
+warn "###CFVERS cutadapt\$ca_version\n\n";
+
 my $tg_version = `trim_galore --version`;
 warn "---------- Trim Galore! version information ----------\n";
 warn $tg_version;
-warn "\n------- End of Trim Galore! version information ------\n";
+warn "------- End of Trim Galore! version information ------\n";
 if($tg_version =~ /version ([\d\.]+)/){
-  warn "###CFVERS Trim Galore!\t$1\n\n";
+  warn "###CFVERS trim_galore\t$1\n\n";
 }
 
 # Read options from the pipeline parameters

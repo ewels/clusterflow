@@ -88,9 +88,13 @@ warn "\nUsing the following references:\n  $cf{refs}{fasta}\n  $cf{refs}{bowtie}
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
+my $version = `hicup --version`;
 warn "---------- HiCUP version information ----------\n";
-warn `hicup --version`;
+warn $version;
 warn "\n------- End of HiCUP version information ------\n";
+if($version =~ /HiCUP v([\d\.]+)/){
+  warn "###CFVERS hicup\t$1\n\n";
+}
 
 ##############################
 # Pipeline Parameters

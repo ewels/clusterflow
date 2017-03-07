@@ -31,14 +31,14 @@ my %requirements = (
     'memory'        => ['4G', '8G'],
     'modules'       => 'deepTools',
     'time'          => sub {
-	my $cf = $_[0];
-	my $num_files = $cf->{'num_starting_merged_aligned_files'};
-	# Default to 1 if none were parsed for whatever reason
-	$num_files = ($num_files > 0) ? $num_files : 1;
-	# Ususally takes around 5 mins per file. Set to 30 mins just to be sure.
-	return CF::Helpers::minutes_to_timestamp ($num_files * 1 * 30);
+        my $cf = $_[0];
+        my $num_files = $cf->{'num_starting_merged_aligned_files'};
+        # Default to 1 if none were parsed for whatever reason
+        $num_files = ($num_files > 0) ? $num_files : 1;
+        # Ususally takes around 5 mins per file. Set to 30 mins just to be sure.
+        return CF::Helpers::minutes_to_timestamp ($num_files * 1 * 30);
     }
-    );
+);
 
 
 # The help text
@@ -56,9 +56,13 @@ my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 my $defaultFragLen = 200; # If fragment length not defined, use this value.
 
 # Print version information about the program to be executed.
-warn "---------- bamCoverage  version information ----------\n";
-warn `bamCoverage --version`;
+my $version = `bamCoverage --version`;
+warn "---------- bamCoverage version information ----------\n";
+warn $version;
 warn "\n------- End of bamCoverage version information ------\n";
+if($version =~ /bamCoverage ([\d\.]+)/){
+  warn "###CFVERS bamCoverage\t$1\n\n";
+}
 
 # Open up our run file in append mode
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";

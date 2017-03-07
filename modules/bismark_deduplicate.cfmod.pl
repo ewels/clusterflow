@@ -58,8 +58,8 @@ my $version = `deduplicate_bismark --version`;
 warn "---------- deduplicate_bismark version information ----------\n";
 warn $version;
 warn "\n------- End of deduplicate_bismark version information ------\n";
-if($version =~ /Deduplicator Version: (v[\d\.]+)/){
-  warn "###CFVERS Bismark Deduplicator\t$1\n\n";
+if($version =~ /Deduplicator Version: v([\d\.]+)/){
+  warn "###CFVERS deduplicate_bismark\t$1\n\n";
 }
 
 # Go through each file and deduplicate

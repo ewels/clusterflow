@@ -64,9 +64,13 @@ if(!defined($cf{'refs'}{'gtf'})){
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
+my $version = `hisat2 --help`;
 warn "---------- HTSeq version information ----------\n";
-warn `htseq-count --help 2>&1 | tail -n 4`;
+warn $version;
 warn "\n------- End of HTSeq version information ------\n";
+if($version =~ /version ([\S\.]+)/){
+  warn "###CFVERS hisat2\t$1\n\n";
+}
 
 # Read any options from the pipeline parameters
 my $stranded = defined($cf{'params'}{'stranded'}) ? "-s yes" : '-s no';

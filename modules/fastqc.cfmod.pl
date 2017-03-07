@@ -57,8 +57,8 @@ my $version = `fastqc --version`;
 warn "---------- FastQC version information ----------\n";
 warn $version;
 warn "\n------- End of FastQC version information ------\n";
-if($version =~ /FastQC (v[\d\.]+)/){
-  warn "###CFVERS FastQC\t$1\n\n";
+if($version =~ /FastQC v([\d\.]+)/){
+  warn "###CFVERS fastqc\t$1\n\n";
 }
 
 # Read any options from the pipeline parameters

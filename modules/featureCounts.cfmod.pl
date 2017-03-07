@@ -65,9 +65,13 @@ if(!defined($cf{'refs'}{'gtf'})){
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
+my $version = `featureCounts -v`;
 warn "---------- featureCounts version information ----------\n";
-warn `featureCounts -v`;
+warn $version;
 warn "\n------- End of featureCounts version information ------\n";
+if($version =~ /featureCounts v([\d\.]+)/){
+  warn "###CFVERS featureCounts\t$1\n\n";
+}
 
 # Read any options from the pipeline parameters
 my $stranded = defined($cf{'params'}{'stranded'}) ? "-s 1" : '';

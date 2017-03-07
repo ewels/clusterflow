@@ -126,9 +126,13 @@ if(!defined($cf{'refs'}{'fasta'})){
 }
 
 # Print version information about the program to be executed.
+my $version = `MY_COMMAND --version`;
 warn "---------- < module > version information ----------\n";
-warn `MY_COMMAND --version`;
+warn $version;
 warn "\n------- End of < module > version information ------\n";
+if($version =~ /MY_COMMAND v([\d\.]+)/){
+  warn "###CFVERS MY_COMMAND\t$1\n\n";
+}
 
 # Read any options from the pipeline parameters - these can come from
 # pipeline files (eg #mymodule	myparameter) or from the command line

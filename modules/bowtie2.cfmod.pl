@@ -72,7 +72,7 @@ warn "---------- Bowtie 2 version information ----------\n";
 warn $version;
 warn "\n------- End of Bowtie 2 version information ------\n";
 if($version =~ /version ([\d\.]+)/){
-  warn "###CFVERS Bowtie 2\t$1\n\n";
+  warn "###CFVERS bowtie2\t$1\n\n";
 }
 
 # FastQ encoding type. Once found on one file will assume all others are the same

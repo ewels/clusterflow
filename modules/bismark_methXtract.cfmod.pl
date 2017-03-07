@@ -59,8 +59,8 @@ my $version = `bismark_methylation_extractor --version`;
 warn "---------- bismark_methylation_extractor version information ----------\n";
 warn $version;
 warn "\n------- End of bismark_methylation_extractor version information ------\n";
-if($version =~ /Extractor Version: (v[\d\.]+)/){
-  warn "###CFVERS Bismark Extractor\t$1\n\n";
+if($version =~ /Extractor Version: v([\d\.]+)/){
+  warn "###CFVERS bismark_methylation_extractor\t$1\n\n";
 }
 
 # Adjust maximum buffer memory

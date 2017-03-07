@@ -65,10 +65,18 @@ if(!defined($cf{'refs'}{'bed12'})){
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
+my $j_anno_version = `junction_annotation.py --version`;
+my $j_sat_version = `junction_saturation.py --version`;
 warn "---------- RSeQC version information ----------\n";
-warn `junction_annotation.py --version`;
-warn `junction_saturation.py --version`;
-warn "------- End of RSeQC version information ------\n";
+warn $j_anno_version;
+warn $j_sat_version;
+warn "\n------- End of RSeQC version information ------\n";
+if($j_anno_version =~ /junction_annotation.py ([\d\.]+)/){
+  warn "###CFVERS junction_annotation.py\t$1\n\n";
+}
+if($j_sat_version =~ /junction_saturation.py ([\d\.]+)/){
+  warn "###CFVERS junction_saturation.py\t$1\n\n";
+}
 
 # Set up optional parameters
 my $keep_intermediate = (defined($cf{'params'}{'keep_intermediate'})) ? 1 : 0;

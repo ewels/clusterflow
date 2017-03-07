@@ -55,9 +55,13 @@ my %cf = CF::Helpers::module_start(\%requirements, $helptext);
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # --version. Returns version information about the module.
+my $version = `preseq version 2>&1`;
 warn "---------- Preseq version information ----------\n";
-warn `preseq 2>&1 | head -n 4`;
+warn $version;
 warn "\n------- End of Preseq version information ------\n";
+if($version =~ /Version: ([\d\.]+)/){
+  warn "###CFVERS preseq\t$1\n\n";
+}
 
 # Go through each file and run Preseq
 foreach my $file (@{$cf{'prev_job_files'}}){

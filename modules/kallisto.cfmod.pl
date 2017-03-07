@@ -69,9 +69,13 @@ if(!defined($cf{'refs'}{'kallisto'})){
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
+my $version = `kallisto version`;
 warn "---------- Kallisto version information ----------\n";
-warn `kallisto version`;
+warn $version;
 warn "\n------- End of Kallisto version information ------\n";
+if($version =~ /kallisto, version ([\d\.]+)/){
+  warn "###CFVERS kallisto\t$1\n\n";
+}
 
 # Load parameters
 my $estFragmentLength = (defined($cf{'params'}{'estFragmentLength'})) ? $cf{'params'}{'estFragmentLength'} : '200';

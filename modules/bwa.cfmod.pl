@@ -63,16 +63,12 @@ if(!defined($cf{'refs'}{'bwa'})){
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
-warn "---------- BWA version information ----------\n";
-warn `bwa`;
-warn "\n------- End of BWA version information ------\n";
-
 my $version = `bwa`;
 warn "---------- BWA version information ----------\n";
 warn $version;
 warn "\n------- End of BWA version information ------\n";
 if($version =~ /Version: ([\S\.]+)/){
-  warn "###CFVERS BWA\t$1\n\n";
+  warn "###CFVERS bwa\t$1\n\n";
 }
 
 # Separate file names into single end and paired end
