@@ -236,10 +236,10 @@ foreach my $file (sort keys %commands) {
 }
 if(scalar @softwareversions > 0){
 	$plain_content .= "\n\n\n\n\n
-	=======================
-	== Software Versions ==
-	=======================
-	";
+=======================
+== Software Versions ==
+=======================
+ - ";
 	$plain_content .= join("\n - ", @softwareversions);
 }
 
@@ -403,12 +403,17 @@ foreach my $file (sort keys %commands) {
 }
 
 if(scalar @softwareversions > 0){
+	my @html_softwareversions;
+	foreach my $vers (@softwareversions) {
+		$vers = '<span style="font-family: \'Lucida Console\', Monaco, monospace; font-size: 12px; background: #efefef; padding: 3px 5px;">'.join( '</span>  - version ', split("\t", $vers) );
+		push(@html_softwareversions, $vers);
+	}
 	$html_content .= '
 	<hr style="color: #d9d9d9; height: 1px; background: #d9d9d9; border: none;" />
 	<h3 style="color: #222222; font-family: \'Helvetica\', \'Arial\', sans-serif; font-weight: normal; text-align: left; line-height: 1.3; word-break: normal; font-size: 32px; margin: 0; padding: 0;" align="left">Software Versions</h3>
 
 	<ul class="status-messages software-versions">';
-	$html_content .= '<li>'.join("</li><li>", @softwareversions).'</li>';
+	$html_content .= '<li>'.join("</li><li>", @html_softwareversions).'</li>';
 	$html_content .= '</ul>';
 }
 

@@ -79,7 +79,7 @@ my $version = `STAR --version`;
 warn "---------- STAR version information ----------\n";
 warn $version;
 warn "\n------- End of STAR version information ------\n";
-if($version =~ /STAR_(\.+)/){
+if($version =~ /STAR_(.+)/){
   warn "###CFVERS STAR\t$1\n\n";
 }
 

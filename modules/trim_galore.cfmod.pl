@@ -64,7 +64,7 @@ my $ca_version = `cutadapt --version`;
 warn "---------- Cutadapt version information ----------\n";
 warn $ca_version;
 warn "\n------- End of Cutadapt version information ------\n";
-warn "###CFVERS cutadapt\$ca_version\n\n";
+warn "###CFVERS cutadapt\n$ca_version\n\n";
 
 my $tg_version = `trim_galore --version`;
 warn "---------- Trim Galore! version information ----------\n";
