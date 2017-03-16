@@ -76,7 +76,7 @@ if($tg_version =~ /version ([\d\.]+)/){
 
 # Read options from the pipeline parameters
 my $min_readlength = defined($cf{'params'}{'min_readlength'}) ? $cf{'params'}{'min_readlength'} : 50;
-my $q_cutoff = defined($cf{'params'}{'q'}) ? "-q ".$cf{'params'}{'q_cutoff'} : '';
+my $q_cutoff = defined($cf{'params'}{'q_cutoff'}) ? "-q ".$cf{'params'}{'q_cutoff'} : '';
 my $stringency = defined($cf{'params'}{'stringency'}) ? "--stringency ".$cf{'params'}{'stringency'} : '';
 my $adapter = defined($cf{'params'}{'adapter'}) ? "--adapter ".uc($cf{'params'}{'adapter'}) : '';
 my $RRBS = defined($cf{'params'}{'RRBS'}) ? "--RRBS" : '';

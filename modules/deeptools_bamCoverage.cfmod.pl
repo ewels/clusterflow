@@ -85,22 +85,22 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 
     # If paramater fragmentLength is set, use this value
     if(defined($cf{'params'}{'fragmentLength'})){
-	$fragmentLength = $cf{'params'}{'fragmentLength'};
-	warn "###CF bamCoverage: Using fragment length set as parameter: $fragmentLength.\n";
+      $fragmentLength = $cf{'params'}{'fragmentLength'};
+      warn "###CF bamCoverage: Using fragment length set as parameter: $fragmentLength.\n";
     } elsif(-e $crossCorrelationFile){ # Else, look for fragment length in _crosscorrelation.txt file
-	open(IN,"$crossCorrelationFile") or die "Cannot open $crossCorrelationFile";
-	my $line1 = <IN>; # Just reads first line
-	my @entries = split(/\s+/, $line1);
-	my $crossCorrelationStr = $entries[2];
-	my @crossCorrelations  = split(/\,/, $crossCorrelationStr);
+      open(IN,"$crossCorrelationFile") or die "Cannot open $crossCorrelationFile";
+      my $line1 = <IN>; # Just reads first line
+      my @entries = split(/\s+/, $line1);
+      my $crossCorrelationStr = $entries[2];
+      my @crossCorrelations  = split(/\,/, $crossCorrelationStr);
 
-	## my $nrPeaks = @crossCorrelations;
-	## $fragmentLength = $crossCorrelations[floor($nrPeaks/2)]; ## use the middle peak
-	$fragmentLength = $crossCorrelations[0]; ## use the first peak (the peaks are ordered on height?
-	warn "###CF bamCoverage: Using fragment length from phantompeaktools cross correlation analysis: $fragmentLength.\n";
+      ## my $nrPeaks = @crossCorrelations;
+      ## $fragmentLength = $crossCorrelations[floor($nrPeaks/2)]; ## use the middle peak
+      $fragmentLength = $crossCorrelations[0]; ## use the first peak (the peaks are ordered on height?
+      warn "###CF bamCoverage: Using fragment length from phantompeaktools cross correlation analysis: $fragmentLength.\n";
     } else { # Else, use default value and give warning
-	$fragmentLength = $defaultFragLen;
-	warn "###CF bamCoverage: WARINING! No fragment length was set. Using default value of $fragmentLength.\n";
+      $fragmentLength = $defaultFragLen;
+      warn "###CF bamCoverage: WARINING! No fragment length was set. Using default value of $fragmentLength.\n";
     }
 
     # Generate a nice output file name

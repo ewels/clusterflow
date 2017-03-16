@@ -3,6 +3,7 @@ Installation: installation.md
 Usage: usage.md
 Command Line: command_line.md
 Configuration: configuration.md
+Module Options: module_options.md
 Writing Pipelines: pipelines.md
 Writing Modules: modules.md
 Troubleshooting: troubleshooting.md
