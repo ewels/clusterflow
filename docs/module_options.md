@@ -271,17 +271,29 @@ The following params are presets which are easier to remember and use:
 * `cf --params trim=<int>`
   * Trim from 5' of R1 and R2. Equivalent to `clip_r1=<int> clip_r2=<int>`.
 * `cf --params pbat`
-  * `clip_r1 6`, `clip_r2 6`
+  * `clip_r1 6`
+  * `clip_r2 6`
 * `cf --params ATAC`
-  * `clip_r1 4`, `clip_r2 4`
+  * `clip_r1 4`
+  * `clip_r2 4`
 * `cf --params single_cell`
-  * `clip_r1 9`, `clip_r2 9`
+  * `clip_r1 9`
+  * `clip_r2 9`
 * `cf --params epignome`
-  * `clip_r1 7`, `three_prime_clip_r1 7`, `clip_r2 7`, `three_prime_clip_r2 7`
+  * `clip_r1 7`
+  * `clip_r2 7`
+  * `three_prime_clip_r1 7`
+  * `three_prime_clip_r2 7`
 * `cf --params accel`
-  * `clip_r1 10`, `three_prime_clip_r1 10`, `clip_r2 15`, `three_prime_clip_r2 10`
+  * `clip_r1 10`
+  * `clip_r2 15`
+  * `three_prime_clip_r1 10`
+  * `three_prime_clip_r2 10`
 * `cf --params cegx`
-  * `clip_r1 6`, `three_prime_clip_r1 2`, `clip_r2 6`, `three_prime_clip_r2 2`
+  * `clip_r1 6`
+  * `clip_r2 6`
+  * `three_prime_clip_r1 2`
+  * `three_prime_clip_r2 2`
 
 
 
