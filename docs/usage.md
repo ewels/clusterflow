@@ -1,7 +1,7 @@
 ## Listing what's available
 Once Cluster Flow is up and running, you can list available pipelines,
 modules and reference genomes which are available using the following commands:
-```
+```bash
 cf --pipelines            # List pipelines
 cf --modules              # List modules
 cf --genomes              # List reference genomes
@@ -9,36 +9,64 @@ cf --genomes              # List reference genomes
 
 ## Getting help
 To get instructions for how to use Cluster Flow on the command line, use:
-```
+```bash
 cf --help
 ```
 
 You can also use this command to find out more information about
 pipelines and modules:
-```
-cf --help <module-name>
-cf --help <pipeline-name>
+```bash
+cf --help [module-name]
+cf --help [pipeline-name]
 ```
 
 ## Starting a run
 In its most basic form, analyses are run as follows:
-```
-cf <pipeline> <files>
+```bash
+cf [pipeline] [files]
 ```
 
 Single modules can also be specified instead of a pipeline:
-```
-cf <module> *.bam
+```bash
+cf [module] *.bam
 ```
 
 Most pipelines and modules will need a reference genome, specified
 using `--genome`:
-```
+```bash
 cf --genome GRCh37 sra_bowtie *.sra
 ```
 
 The ID following `--genome` is the ID assigned when adding the reference
 genome to Cluster Flow. This can be seen when listing genomes with `cf --genomes`.
+
+## Module Parameters
+The default execution of different tools can be modified by using module
+_parameters_. These can be set within pipeline scripts or on the command line.
+Specifying `--param [example]` will apply the `[example]` parameter to every
+module in the pipeline.
+
+Different module support different parameters. Some are flags, some are key pairs.
+To find out more, see the Modules documentation.
+
+Typical things you can do are to set adapter trimming preferences with TrimGalore!:
+```bash
+cf --genome GRCh37 --param clip_r1=6 --param min_readlength=15 sra_bowtie *sra
+```
+
+or run Bismark in PBAT mode:
+```cf
+cf --genome GRCm38 --param pbat fastq_bismark *.fastq.gz
+```
+
+When setting in pipeline scripts, simply add the paramters after the module
+names (tab-delimited). For example, this is the `trim_bowtie_miRNA` pipeline:
+```
+#trim_galore adapter=ATGGAATTCTCG
+	#bowtie mirna
+```
+This sets a custom adapter for trimming and tells the bowtie module to use
+the `mirna` parameter.
 
 
 ## Filename checking

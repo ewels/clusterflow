@@ -8,14 +8,12 @@ tracker system mentioned above can be used for enhancement requests too.
 
 ### E-mail
 If you don't want to set up a GitHub account, feel free to drop the author an
-e-mail at [mailto:phil.ewels@scilifelab.se](phil.ewels@scilifelab.se)
+e-mail at [phil.ewels@scilifelab.se](mailto:phil.ewels@scilifelab.se)
 
 
 ## Frequently Asked Questions
 
-### General
-
-#### Permission Errors
+### Permission Errors
 A number of errors can be caused by scripts not having executable file
 privileges. You can see the file permissions with `ls -l`, you should see
 something like this:
@@ -44,9 +42,7 @@ dos2unix *
 ```
 
 
-### Errors from environment modules
-
-#### ERROR:105: Unable to locate a modulefile for 'clusterflow'
+### ERROR:105: Unable to locate a modulefile for 'clusterflow'
 This error probably means that Cluster Flow isn't installed in your
 environment module system, and you're trying to run `module load clusterflow`
 
@@ -54,9 +50,7 @@ You can skip this step if you have another way of accessing the `cf` file,
 or see the [Installation Instructions](installation/#environment_modules)
 for details about how to set Cluster Flow up with environment modules.
 
-### Errors from job submission
-
-#### Unable to run job: job rejected: the requested parallel environment "orte" does not exist.
+### Unable to run job: job rejected: the requested parallel environment "orte" does not exist.
 This message means that your GRIDEngine setup doesn't have the default
 `orte` environment set up.  If you have different environments set up you
 can list them with:
@@ -75,7 +69,7 @@ to the name of your local environment and that should make things work again.
 
 _(Answered by Simon Andrews)_
 
-#### Unable to run job: job rejected (other reasons)
+### Unable to run job: job rejected (other reasons)
 There may be other differences in the job submission requests that cause
 them to fail. If you see errors such as this, you can use the
 `@custom_job_submit_command` configuration variable to customise the way

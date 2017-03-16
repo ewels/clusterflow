@@ -13,27 +13,26 @@ if software is available on the `PATH` it can work without this.
 Cluster Flow itself is written in Perl. It has minimal dependencies, all of which are
 core Perl packages.
 
-## Installation
-### Environment Module
+## Environment Module
 If you are a user on a HPC cluster, you may already have Cluster Flow installed
 on your cluster as an environment module. If so, you may be able to load it using:
 ```
 module load clusterflow
 ```
 
-### Manual Installation
+## Manual Installation
 Cluster Flow is a collection of stand-alone scripts, mostly written in Perl.
 
 1. Download Cluster Flow (see the [releases page](https://github.com/ewels/clusterflow/releases))
-```
+```bash
 wget https://github.com/ewels/clusterflow/archive/v0.4.tar.gz
 ```
 2. Extract the files
-```
+```bash
 tar -C clusterflow -zxvf v0.4.tar.gz
 ```
 3. Create & configure the site-wide configuration file
-```
+```bash
 cd clusterflow
 cp clusterflow.config.example clusterflow.config
 vi clusterflow.config
@@ -42,10 +41,16 @@ vi clusterflow.config
 You must specify your environment in the config file (`@cluster_environment`:
 `local`, `GRIDEngine`, `SLURM` or `LSF`), most other things are optional.
 
+The `cf` executable must be in your system `PATH`, so that you can run it easily
+from any directory. Ensure that you run the Configuration Wizard (described below)
+so that this config is created in your `~/.bashrc` file.
+
+If you prefer, you can symlink the `cf` executable to `~/bin`.
+
 ## Configuration Wizard
 Once Cluster Flow has been set up site-wide, you need to configure it for your
 personal use:
-```
+```bash
 cf --setup
 ```
 
@@ -60,14 +65,14 @@ location or in your personal setup (or both).
 > [these instructions](https://github.com/ewels/clusterflow-uppmax).
 
 You can add your reference genome paths with the following wizard:
-```
+```bash
 cf --add_genome
 ```
 
 ## Do a test run!
-That should be it! If you added some bash aliases such as `qs`, you should
-log out and log in again. Then you can try running a test run:
-```
+That should be it! Log out of your session and in again to activate any new
+bash settings. Then try launching a test run:
+```bash
 cf --genome GRCh37 sra_bowtie ftp://ftp.ddbj.nig.ac.jp/ddbj_database/dra/sralite/ByExp/litesra/SRX/SRX031/SRX031398/SRR1068378/SRR1068378.sra
 ```
 

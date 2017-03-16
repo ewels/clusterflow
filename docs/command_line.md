@@ -1,4 +1,4 @@
-## Launching Cluster Flow
+## Cluster Flow Command Line Reference
 Cluster Flow pipelines are launched as follows:
 ```
 cf [flags] <pipeline> <input-files>

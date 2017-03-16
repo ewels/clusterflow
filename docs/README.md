@@ -1,10 +1,10 @@
 ---
-Setting up CF: installation.md
+Installation: installation.md
 Usage: usage.md
-Configuration: configuration.md
 Command Line: command_line.md
-Pipelines: pipelines.md
-Modules: modules.md
+Configuration: configuration.md
+Writing Pipelines: pipelines.md
+Writing Modules: modules.md
 Troubleshooting: troubleshooting.md
 ---
 
