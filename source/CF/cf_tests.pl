@@ -38,9 +38,11 @@ my @module_folders = ("$homedir/.clusterflow/modules/", "$RealBin/../../modules/
 my $exit_status = 0;
 
 # Command line options
+my $print_modules;
 my $version;
 my $help;
 my $config_result = GetOptions(
+	"print_modules" => \$print_modules,
 	"version" => \$version,
 	"help" => \$help
 );
@@ -54,7 +56,8 @@ if($help){
     print "".("-"x25)."\n Cluster Flow Test Suite\n".("-"x25)."\nCluster Flow v$cf_version\n\n";
     print "This is a stand-alone script with a test-suite for Cluster Flow.\n".
         "It is designed to aid development by making it easier to check\n".
-        "for bugs in the code before pushing updates.\n\n";
+        "for bugs in the code before pushing updates.\n\n".
+        "Specify --print_modules to print all requested environment module names.\n\n";
     exit;
 }
 
@@ -133,6 +136,7 @@ print "$num_passed modules passed, $num_failed failed and $unrecognised_filetype
 print "\n## Step Three: Get requirements from $num_passed passed modules.\n";
 my $runfn = "$RealBin/../../clusterflow.config"; # cheatin'
 my $num_requirements_failed = 0;
+my @env_modules;
 foreach my $module_fn (@modules){
 
     # Stolen and modified from core cf - note, needs to be kept up to date
@@ -165,7 +169,7 @@ foreach my $module_fn (@modules){
 				$mem = $val;
 			}
 			if($key eq 'modules'){
-				my @modules = split(/[\s,]+/, $val);
+                push(@env_modules, split(/[\s,]+/, $val));
 			}
 			if($key eq 'time'){
 				$time = $val;
@@ -222,6 +226,12 @@ foreach my $module_fn (@modules){
     }
 }
 print "".($num_passed - $num_requirements_failed)." modules passed requirements check, $num_requirements_failed failed.\n";
+
+if($print_modules){
+    print "\nEnvironment Variables\n=====================\n";
+    my @unique_env_modules = do { my %seen; grep { !$seen{$_}++ } @env_modules };
+    print join("\n", sort(@unique_env_modules))."\n\n";
+}
 
 print "\nDone.\n\n";
 
