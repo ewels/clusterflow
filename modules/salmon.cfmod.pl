@@ -37,7 +37,7 @@ my %requirements = (
                 my $cf = $_[0];
                 my $num_files = $cf->{'num_starting_merged_aligned_files'};
                 $num_files = ($num_files > 0) ? $num_files : 1;
-                return CF::Helpers::minutes_to_timestamp ($num_files * 2 * 60);
+                return CF::Helpers::minutes_to_timestamp ($num_files * 3 * 60);
         }
 );
 
