@@ -34,7 +34,7 @@ my %requirements = (
         'modules'       => ['salmon', 'samtools'],
         'time'          => sub {
                 my $cf = $_[0];
-                my $num_files = $cf->{'num_starting_merged_aligned_files'};
+                my $num_files = $cf->{'num_starting_merged_files'};
                 $num_files = ($num_files > 0) ? $num_files : 1;
                 return CF::Helpers::minutes_to_timestamp ($num_files * 3 * 60);
         }
@@ -65,13 +65,13 @@ if(!defined($cf{'refs'}{'salmon'})){
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
-#my $version = `salmon --version`;
-#warn "---------- Salmon version information ----------\n";
-#warn $version;
-#warn "\n------- End of Salmon version information ------\n";
-#if($version =~ /version : ([\d\.]+)/){
-#  warn "###CFVERS salmon\t$1\n\n";
-#  }
+my $version = `salmon --version`;
+warn "---------- Salmon version information ----------\n";
+warn $version;
+warn "\n------- End of Salmon version information ------\n";
+if($version =~ /version : ([\d\.]+)/){
+  warn "###CFVERS salmon\t$1\n\n";
+  }
 
 # Separate file names into single end and paired end
 my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%cf, @{$cf{'prev_job_files'}});
