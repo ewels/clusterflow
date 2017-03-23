@@ -32,7 +32,6 @@ my %requirements = (
         'cores'         => '8',
         'memory'        => '15G',
         'modules'       => ['salmon', 'samtools'],
-        'references'=> 'salmon',
         'time'          => sub {
                 my $cf = $_[0];
                 my $num_files = $cf->{'num_starting_merged_aligned_files'};
