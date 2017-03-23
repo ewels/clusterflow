@@ -42,7 +42,7 @@ my %requirements = (
 );
 
 # Help text
-my $helptext = "".("-"x17)."\n Kallisto\n".("-"x17)."\n
+my $helptext = "".("-"x17)."\n Salmon\n".("-"x17)."\n
 Salmon is a tool for quantifying the expression of transcripts using 
 RNA-seq data. Salmon uses new algorithms (specifically, coupling the 
 concept of quasi-mapping with a two-phase inference procedure) to 
@@ -66,12 +66,13 @@ if(!defined($cf{'refs'}{'salmon'})){
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
+my $version = `salmon --version`;
 warn "---------- Salmon version information ----------\n";
-warn `salmon --version`;
+warn $version;
 warn "\n------- End of Salmon version information ------\n";
-
-# FastQ encoding type. Once found on one file will assume all others are the same
-my $encoding = 0;
+if($version =~ /version : ([\d\.]+)/){
+  warn "###CFVERS salmon\t$1\n\n";
+}
 
 # Separate file names into single end and paired end
 my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%cf, @{$cf{'prev_job_files'}});
@@ -80,15 +81,6 @@ my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%cf, @{$cf{'prev_job_fil
 if($se_files && scalar(@$se_files) > 0){
         foreach my $file (@$se_files){
                 my $timestart = time;
-
-                # Figure out the encoding if we don't already know
-                if(!$encoding){
-                        ($encoding) = CF::Helpers::fastq_encoding_type($file);
-                }
-                my $enc = "";
-                if($encoding eq 'phred33' || $encoding eq 'phred64' || $encoding eq 'solexa'){
-                        $enc = '--'.$encoding.'-quals';
-                }
 
                 my $output_dir = $file."_salmon_output";
                 my $output_fn  = $file."_salmon.bam";
@@ -118,15 +110,6 @@ if($pe_files && scalar(@$pe_files) > 0){
                 my @files = @$files_ref;
                 if(scalar(@files) == 2){
                         my $timestart = time;
-
-                        # Figure out the encoding if we don't already know
-                        if(!$encoding){
-                                ($encoding) = CF::Helpers::fastq_encoding_type($files[0]);
-                        }
-                        my $enc = "";
-                        if($encoding eq 'phred33' || $encoding eq 'phred64' || $encoding eq 'solexa'){
-                                $enc = '--'.$encoding.'-quals';
-                        }
 
                         my $output_dir = $files[0]."_salmon_output";
                         my $output_fn  = $files[0]."_salmon.bam";
