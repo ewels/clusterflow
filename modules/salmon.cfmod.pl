@@ -66,13 +66,13 @@ if(!defined($cf{'refs'}{'salmon'})){
 open (RUN,'>>',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";
 
 # Print version information about the module.
-my $version = `salmon --version`;
-warn "---------- Salmon version information ----------\n";
-warn $version;
-warn "\n------- End of Salmon version information ------\n";
-if($version =~ /version : ([\d\.]+)/){
-  warn "###CFVERS salmon\t$1\n\n";
-  }
+#my $version = `salmon --version`;
+#warn "---------- Salmon version information ----------\n";
+#warn $version;
+#warn "\n------- End of Salmon version information ------\n";
+#if($version =~ /version : ([\d\.]+)/){
+#  warn "###CFVERS salmon\t$1\n\n";
+#  }
 
 # Separate file names into single end and paired end
 my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%cf, @{$cf{'prev_job_files'}});
