@@ -115,6 +115,7 @@ Code contributions from:
 [@FelixKrueger](https://github.com/FelixKrueger),
 [@stu2](https://github.com/stu2),
 [@orzechoj](https://github.com/orzechoj)
+[@darogan](https://github.com/darogan)
 and others. Thanks for your support!
 
 ## License
