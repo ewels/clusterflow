@@ -1,5 +1,8 @@
 # Cluster Flow Version History
 
+#### v0.6dev
+..Nothing yet!..
+
 #### [v0.5](https://github.com/ewels/clusterflow/releases/tag/v0.5) - 2017-04-10
 * **[Salmon](https://combine-lab.github.io/salmon/) - New module!**
   * Written by [@darogan](https://github.com/darogan)
