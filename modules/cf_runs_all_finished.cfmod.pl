@@ -123,7 +123,8 @@ foreach my $outfile (@outfns){
 
 		# Software versions
 		elsif(/^###CFVERS/){
-			push (@softwareversions, substr($_, 10));
+			my $vers =  substr($_, 10);
+			push(@softwareversions, $vers) unless grep{$_ == $vers} @softwareversions;
 		}
 
 		# Highlight statuses
