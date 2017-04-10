@@ -122,6 +122,7 @@ my $CHECK_UPDATES = $CF::Constants::CHECK_UPDATES;
 my @NOTIFICATIONS = @CF::Constants::NOTIFICATIONS;
 my @MERGE_REGEXES = @CF::Constants::MERGE_REGEXES;
 my $CUSTOM_JOB_SUBMIT_COMMAND = $CF::Constants::CUSTOM_JOB_SUBMIT_COMMAND;
+my $JOB_SUBMIT_ENV = $CF::Constants::JOB_SUBMIT_ENV;
 my $PROJECT_ID = $CF::Constants::PROJECT_ID;
 my $JOB_TIMELIMIT = $CF::Constants::JOB_TIMELIMIT;
 my $CF_MODULES = $CF::Constants::CF_MODULES;
@@ -1208,7 +1209,7 @@ sub make_submit_cmd {
 		if($CUSTOM_JOB_SUBMIT_COMMAND && length($CUSTOM_JOB_SUBMIT_COMMAND) > 0){
 			$qsub = $CUSTOM_JOB_SUBMIT_COMMAND;
 		} else {
-			$qsub = 'echo "{{command}}" | qsub -clear -b n -cwd -V -S /bin/bash -pe orte {{cores}} {{qname}} -l h_vmem={{mem}} -o {{outfn}} -j y -N {{job_id}} {{notifications}}';
+			$qsub = 'echo "{{command}}" | qsub -clear -b n -cwd -V -S /bin/bash -pe {{pe_env}} {{cores}} {{qname}} -l h_vmem={{mem}} -o {{outfn}} -j y -N {{job_id}} {{notifications}}';
 			# Do we have a priority?
 			if($PRIORITY && $PRIORITY <= 0){
 				$qsub .= " -p {{priority}}";
@@ -1249,6 +1250,7 @@ sub make_submit_cmd {
 		$qsub =~ s/\{\{notifications}}/$notification_string/;
 		$qsub =~ s/\{\{email}}/$EMAIL/;
 		$qsub =~ s/\{\{project}}/$C_PROJECT/;
+		$qsub =~ s/\{\{pe_env}}/$JOB_SUBMIT_ENV/;
 
 		# Job dependencies
 		if(scalar @{$holdjid} > 0 && $prev_job ne 'start_000'){

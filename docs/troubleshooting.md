@@ -64,10 +64,12 @@ qconf -sp [name]
 ```
 
 If you find one which assigns slots to a single node (`allocation_rule`
-should be `$fill_up`) then you can just do a find & replace for `orte`
-to the name of your local environment and that should make things work again.
+should be `$fill_up`).
 
-_(Answered by Simon Andrews)_
+Once you've found your named environment, set `@cluster_queue_environment` in
+your Cluster Flow config file.
+
+_(Thanks to Simon Andrews for help with this)_
 
 ### Unable to run job: job rejected (other reasons)
 There may be other differences in the job submission requests that cause

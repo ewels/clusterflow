@@ -53,6 +53,7 @@ our $TIME_MULTIPLIER = 1;
 our $JOB_TIMELIMIT;
 our $CLUSTER_ENVIRONMENT = '';
 our $CUSTOM_JOB_SUBMIT_COMMAND;
+our $JOB_SUBMIT_ENV = 'orte';
 our $CF_MODULES = 1;
 our %LOADED_MODULES;
 our %ENV_MODULE_ALIASES;
@@ -156,6 +157,9 @@ sub parse_conf_file {
                     }
                     if($name eq 'custom_job_submit_command'){
                         $CUSTOM_JOB_SUBMIT_COMMAND = $val;
+                    }
+                    if($name eq 'cluster_queue_environment'){
+                        $JOB_SUBMIT_ENV = $val;
                     }
                     if($name eq 'ignore_modules'){
                         $CF_MODULES = 0;
