@@ -29,11 +29,11 @@ wget https://github.com/ewels/clusterflow/archive/v0.5.tar.gz
 ```
 2. Extract the files
 ```bash
-tar -C clusterflow -zxvf v0.5.tar.gz
+tar xvzf v0.5.tar.gz
 ```
 3. Create & configure the site-wide configuration file
 ```bash
-cd clusterflow
+cd clusterflow-0.5
 cp clusterflow.config.example clusterflow.config
 vi clusterflow.config
 ```
