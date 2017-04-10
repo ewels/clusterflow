@@ -72,17 +72,17 @@ cf --qdel [id]   # Cancel jobs for a running pipeline
 ## Supported Tools
 Cluster Flow comes with modules and pipelines for the following tools:
 
-Read QC & pre-processing     | Aligners / quantifiers | Post-alignment processing | Post-alignment QC
------------------------------|------------------------|---------------------------|-------------------
-[FastQ Screen](fastqscreen)  |[Bismark](bismark)      | [bedtools](bedtools) (`bamToBed`, `intersectNeg`) | [deepTools](deeptools) (`bamCoverage`, `bamFingerprint`)
-[FastQC](fastqc)             |[Bowtie 1](bowtie1)     | [subread featureCounts](featurecounts) | [MultiQC](multiqc)
-[TrimGalore!](trimgalore)    |[Bowtie 2](bowtie2)     | [HTSeq Count](htseq_count) | [phantompeaktools](phantompeaktools) (`runSpp`)
-[SRA Toolkit](sratoolkit)    |[BWA](bwa)              | [Picard](picard) (`MarkDuplicates`) | [Preseq](preseq)
-                             |[HiCUP](hicup) |[Samtools](samtools) (`bam2sam`, `dedup`, `sort_index`) | [RSeQC](rseqc) (`geneBody_coverage`, `inner_distance`, `junction_annotation`, `junction_saturation`, `read_GC`)
-                             |[HISAT2](hisat2) | | 
-                             |[Kallisto](kallisto) | | 
-                             |[STAR](star) | | 
-                             |[TopHat](tophat) | | 
+| Read QC & pre-processing     | Aligners / quantifiers  | Post-alignment processing                               | Post-alignment QC                                                                                               |
+| ---------------------------- | ----------------------- | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| [FastQ Screen](fastqscreen)  | [Bismark](bismark)      | [bedtools](bedtools) (`bamToBed`, `intersectNeg`)       | [deepTools](deeptools) (`bamCoverage`, `bamFingerprint`)                                                        |
+| [FastQC](fastqc)             | [Bowtie 1](bowtie1)     | [subread featureCounts](featurecounts)                  | [MultiQC](multiqc)                                                                                              |
+| [TrimGalore!](trimgalore)    | [Bowtie 2](bowtie2)     | [HTSeq Count](htseq_count)                              | [phantompeaktools](phantompeaktools) (`runSpp`)                                                                 |
+| [SRA Toolkit](sratoolkit)    | [BWA](bwa)              | [Picard](picard) (`MarkDuplicates`)                     | [Preseq](preseq)                                                                                                |
+|                              | [HiCUP](hicup)          | [Samtools](samtools) (`bam2sam`, `dedup`, `sort_index`) | [RSeQC](rseqc) (`geneBody_coverage`, `inner_distance`, `junction_annotation`, `junction_saturation`, `read_GC`) |
+|                              | [HISAT2](hisat2)        |                                                         |                                                                                                                 |
+|                              | [Kallisto](kallisto)    |                                                         |                                                                                                                 |
+|                              | [STAR](star)            |                                                         |                                                                                                                 |
+|                              | [TopHat](tophat)        |                                                         |                                                                                                                 |
 
 ## Citation
 Please consider citing Cluster Flow if you use it in your analysis.
