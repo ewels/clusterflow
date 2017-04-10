@@ -1,19 +1,20 @@
 # Cluster Flow Version History
 
-#### v0.5dev
-* Fixed a bug in parsing command line merge regexes.
-* picard_dedup uses the environment TMPDIR if available
-* Increased memory requirement for BWA alignment module.
-* Made use of `$RealBin` instead of `$Bin`
-  * Cluster Flow now works when the main `cf` executable is symlinked
-* Launch logfile `cf_[pipeline_id]_submissionlog.txt` now lists environment information
-  * Prints loaded environment modules, current `PATH`, user and system information
-* [Salmon](https://combine-lab.github.io/salmon/) - New module! Written by [@darogan](https://github.com/darogan)
+#### [v0.5](https://github.com/ewels/clusterflow/releases/tag/v0.5) - 2017-04-10
+* **[Salmon](https://combine-lab.github.io/salmon/) - New module!**
+  * Written by [@darogan](https://github.com/darogan)
 * Software versions now explicitly cleaned and printed to logs for all tools.
   * Final summary e-mails list versions at bottom.
-	* New [MultiQC](http://multiqc.info/) module parses these, plus more.
+  * New [MultiQC](http://multiqc.info/) module parses these, plus more.
+* Launch logfile `cf_[pipeline_id]_submissionlog.txt` now lists environment information
+  * Prints loaded environment modules, current `PATH`, user and system information
+* Made use of `$RealBin` instead of `$Bin`
+  * Cluster Flow now works when the main `cf` executable is symlinked
 * Additional optional trimming parameters for TrimGalore! module
 * Entirely new section of documentation describing module parameters
+* Fixed a bug in parsing command line merge regexes.
+* picard_dedup uses the environment `TMPDIR` if available
+* Increased memory requirement for BWA alignment module.
 * Many minor bugfixes
 
 

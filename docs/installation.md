@@ -25,11 +25,11 @@ Cluster Flow is a collection of stand-alone scripts, mostly written in Perl.
 
 1. Download Cluster Flow (see the [releases page](https://github.com/ewels/clusterflow/releases))
 ```bash
-wget https://github.com/ewels/clusterflow/archive/v0.4.tar.gz
+wget https://github.com/ewels/clusterflow/archive/v0.5.tar.gz
 ```
 2. Extract the files
 ```bash
-tar -C clusterflow -zxvf v0.4.tar.gz
+tar -C clusterflow -zxvf v0.5.tar.gz
 ```
 3. Create & configure the site-wide configuration file
 ```bash
