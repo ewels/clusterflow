@@ -68,8 +68,9 @@ cd clusterflow-0.5/
 export PATH=$PATH:$(pwd)
 ```
 
-> NOTE: Couple of Alces-Flight specific things have crept in since the above
-> release. Grab the `master` branch instead.
+> TODO: Release v0.5.1 when this has settled down. Has a few nice things such
+> as `@cluster_queue_environment` which means that we don't have to specify
+> `@custom_job_submit_command`. Hopefully other bugfixes too?
 
 #### Configure Cluster Flow
 Find the [Alces Flight Cluster Flow config file](https://raw.githubusercontent.com/ewels/clusterflow/alces-flight/clusterflow_aws.config)
