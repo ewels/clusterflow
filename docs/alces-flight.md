@@ -68,6 +68,9 @@ cd clusterflow-0.5/
 export PATH=$PATH:$(pwd)
 ```
 
+> NOTE: Couple of Alces-Flight specific things have crept in since the above
+> release. Grab the `master` branch instead.
+
 #### Configure Cluster Flow
 Find the [Alces Flight Cluster Flow config file](https://raw.githubusercontent.com/ewels/clusterflow/alces-flight/clusterflow_aws.config)
 and copy the contents.
@@ -85,15 +88,41 @@ cf --setup
 #### Install required Alces Flight Gridware Software
 ```bash
 # Install and load required software
-alces gridware install main/apps/fastqc/0.11.3
-alces gridware install main/apps/trimgalore/0.4.2
-alces gridware install main/apps/samtools/1.4
-alces gridware install main/apps/star/2.5.2a
+alces gridware install main/apps/bedtools/2.25.0    BEDTools
+alces gridware install main/apps/star/2.5.2a    STAR
+alces gridware install main/apps/bismark/0.16.3 bismark
+alces gridware install main/apps/bowtie/1.1.0   bowtie
+alces gridware install main/apps/bowtie2/2.3.0  bowtie2
+alces gridware install main/apps/bwa/0.7.15 bwa
+alces gridware install main/apps/cutadapt/1.8   cutadapt
+alces gridware install main/apps/fastqscreen/0.6.1  fastq_screen
+alces gridware install main/apps/fastqc/0.11.3  fastqc
+alces gridware install main/apps/htseq/0.6.1p1  htseq
+alces gridware install main/apps/kallisto/0.43.0    kallisto
+alces gridware install main/apps/phantompeakqualtools/1.1   phantompeakqualtools
+alces gridware install main/apps/picard/2.6.0   picard
+alces gridware install main/apps/samtools/1.4   samtools
+alces gridware install main/apps/sra/2.3.5-2    sratoolkit
+alces gridware install main/apps/subread/1.5.0-p3   subread
+alces gridware install main/apps/tophat/2.1.0   tophat
+alces gridware install main/apps/trimgalore/0.4.2   trim_galore
 
-# .. plus everything else. Exhaustive list coming soon.
+# Missing:
+# - deepTools
+# - hicup
+# - hisat2
+# - multiqc
+# - preseq
+# - rseqc
+# - salmon
 ```
 
 ## Step 3: Set up your reference genomes
+We're looking into making a public S3 bucket full of common reference genomes
+and indices (based on [illumina iGenomes](https://support.illumina.com/sequencing/sequencing_software/igenome.html))
+so that you don't have to do this. If / when this is created, you'll be able
+to mount this bucket in the cluster setup _(or in the Cluster Flow install step??)_
+and everything will be magically available already.
 
 ```bash
 # Download some test data
@@ -107,19 +136,23 @@ pwd # copy path
 cf --add_genome
 # (all users, Yeast, test, test, paste, y,y,y,y,y,.... enter)
 cf --genomes
+```
 
-# ================================
-# Cluster Flow - available genomes
-# ================================
-# 
-# -----------------------------------------------------------------------------------------------------------------
-#  /home/phil/clusterflow/clusterflow-master/genomes.config
-#  Name           Type      Species                  Assembly       Path
-# -----------------------------------------------------------------------------------------------------------------
-#  test           fasta     Yeast                    test           /home/phil/genomes/ngi-rna_test_set
-#  test           gtf       Yeast                    test           /home/phil/genomes/ngi-rna_test_set/genes.gtf
-#  test           star      Yeast                    test           /home/phil/genomes/ngi-rna_test_set/star
-# -----------------------------------------------------------------------------------------------------------------
+If everything has worked properly, you should see something like this:
+
+```
+================================
+Cluster Flow - available genomes
+================================
+
+-----------------------------------------------------------------------------------------------------------------
+ /home/alces/clusterflow/clusterflow-master/genomes.config
+ Name           Type      Species                  Assembly       Path
+-----------------------------------------------------------------------------------------------------------------
+ test           fasta     Yeast                    test           /home/alces/genomes/ngi-rna_test_set
+ test           gtf       Yeast                    test           /home/alces/genomes/ngi-rna_test_set/genes.gtf
+ test           star      Yeast                    test           /home/alces/genomes/ngi-rna_test_set/star
+-----------------------------------------------------------------------------------------------------------------
 ```
 
 ## Step 4: Get your raw data and run Cluster Flow
