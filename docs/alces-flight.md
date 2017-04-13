@@ -161,3 +161,24 @@ Cluster Flow - available genomes
 # Run test run
 cf --genome test fastq_star *.fastq.gz
 ```
+
+## Step 5: Shut down the cluster
+
+Hopefully if everything goes well, you will get an e-mail appear in your inbox
+as normal saying that the analysis is complete. You can use `scp` or something
+to pull down your results files, and you're done!
+
+Except for one last thing: **you must shut down your cluster!**. If you don't,
+then it will keep running for ages and cost you loads of money.
+
+> TODO: Investigate whether running the head node alone on a micro instance
+> costs any money on the free tier. Would be great if that could be left alive,
+> just kicking off compute nodes when required and killing them when things are
+> done..
+
+1. Go back to your AWS CloudFormation console page, with the _Stacks_ page showing your Alces Flight cluster stack.
+2. Select the row with your stack and click the _Actions_ dropdown. Click _Delete Stack_.
+3. Hope that you pulled off everything you needed and wait for everything to be killed!
+
+
+
