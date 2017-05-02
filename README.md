@@ -87,11 +87,23 @@ Cluster Flow comes with modules and pipelines for the following tools:
 ## Citation
 Please consider citing Cluster Flow if you use it in your analysis.
 
-> **Cluster Flow: A user-friendly bioinformatics workflow tool [version 1; referees: 3 approved].** <br/>
+> **Cluster Flow: A user-friendly bioinformatics workflow tool [version 2; referees: 3 approved].** <br/>
 > Philip Ewels, Felix Krueger, Max Käller, Simon Andrews <br/>
 > _F1000Research_ 2016, **5**:2824 <br/>
-> doi: [10.12688/f1000research.10335.1](http://dx.doi.org/10.12688/f1000research.10335.1)
+> doi: [10.12688/f1000research.10335.2](http://dx.doi.org/10.12688/f1000research.10335.2)
 
+```
+@article{Ewels2016,
+author = {Ewels, Philip and Krueger, Felix and K{\"{a}}ller, Max and Andrews, Simon},
+title = {Cluster Flow: A user-friendly bioinformatics workflow tool [version 2; referees: 3 approved].},
+journal = {F1000Research},
+volume = {5},
+pages = {2824},
+year = {2016},
+doi = {10.12688/f1000research.10335.2},
+URL = { + http://dx.doi.org/10.12688/f1000research.10335.2}
+}
+```
 
 ## Contributions & Support
 Contributions and suggestions for new features are welcome, as are bug reports!
