@@ -4,7 +4,7 @@
 
 [![Build Status](https://img.shields.io/travis/ewels/clusterflow.svg?style=flat-square)](https://travis-ci.org/ewels/clusterflow)
 [![Gitter](https://img.shields.io/badge/gitter-%20join%20chat%20%E2%86%92-4fb99a.svg?style=flat-square)](https://gitter.im/ewels/clusterflow)
-[![DOI](https://img.shields.io/badge/DOI-10.12688%2Ff1000research.10335.1-lightgrey.svg?style=flat-square)](http://dx.doi.org/10.12688/f1000research.10335.1)
+[![DOI](https://img.shields.io/badge/DOI-10.12688%2Ff1000research.10335.2-lightgrey.svg?style=flat-square)](http://dx.doi.org/10.12688/f1000research.10335.2)
 
 **Find Cluster Flow documentation with information and examples at
 [http://clusterflow.io](http://clusterflow.io)**
