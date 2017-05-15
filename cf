@@ -1105,15 +1105,15 @@ sub make_submit_cmd {
 		$mem = CF::Helpers::mem_return_mbs($mem);
 
 		# Swap in real values
-		$qsub =~ s/\{\{command}}/$cmd/;
-		$qsub =~ s/\{\{job_id}}/$job_id/;
-		$qsub =~ s/\{\{outfn}}/$outfn/;
-		$qsub =~ s/\{\{cores}}/$cores/;
-		$qsub =~ s/\{\{mem}}/$mem/;
-		$qsub =~ s/\{\{time}}/$time/;
-		$qsub =~ s/\{\{priority}}/$PRIORITY/;
-		$qsub =~ s/\{\{email}}/$EMAIL/;
-		$qsub =~ s/\{\{project}}/$C_PROJECT/;
+		$qsub =~ s/\{\{command}}/$cmd/g;
+		$qsub =~ s/\{\{job_id}}/$job_id/g;
+		$qsub =~ s/\{\{outfn}}/$outfn/g;
+		$qsub =~ s/\{\{cores}}/$cores/g;
+		$qsub =~ s/\{\{mem}}/$mem/g;
+		$qsub =~ s/\{\{time}}/$time/g;
+		$qsub =~ s/\{\{priority}}/$PRIORITY/g;
+		$qsub =~ s/\{\{email}}/$EMAIL/g;
+		$qsub =~ s/\{\{project}}/$C_PROJECT/g;
 
 		# Job dependencies
 		if(scalar @{$holdjid} > 0 && $prev_job ne 'start_000'){
@@ -1160,16 +1160,16 @@ sub make_submit_cmd {
 		# $mem = int(CF::Helpers::human_readable_to_bytes($mem)/1000000);
 
 		# Swap in real values
-		$qsub =~ s/\{\{command}}/$cmd/;
-		$qsub =~ s/\{\{job_id}}/$job_id/;
-		$qsub =~ s/\{\{outfn}}/$outfn/;
-		$qsub =~ s/\{\{cores}}/$cores/;
-		$qsub =~ s/\{\{mem}}/$mem/;
-		$qsub =~ s/\{\{time}}/$time/;
-		$qsub =~ s/\{\{priority}}/$PRIORITY/;
-		$qsub =~ s/\{\{notifications}}/$notification_string/;
-		$qsub =~ s/\{\{email}}/$EMAIL/;
-		$qsub =~ s/\{\{project}}/$C_PROJECT/;
+		$qsub =~ s/\{\{command}}/$cmd/g;
+		$qsub =~ s/\{\{job_id}}/$job_id/g;
+		$qsub =~ s/\{\{outfn}}/$outfn/g;
+		$qsub =~ s/\{\{cores}}/$cores/g;
+		$qsub =~ s/\{\{mem}}/$mem/g;
+		$qsub =~ s/\{\{time}}/$time/g;
+		$qsub =~ s/\{\{priority}}/$PRIORITY/g;
+		$qsub =~ s/\{\{notifications}}/$notification_string/g;
+		$qsub =~ s/\{\{email}}/$EMAIL/g;
+		$qsub =~ s/\{\{project}}/$C_PROJECT/g;
 
 		# Job dependencies
 		# This is horrible on SLURM (depends on capturing job submission STDOUT)
@@ -1239,18 +1239,18 @@ sub make_submit_cmd {
 			$qname = "-q $cl_qname ";
 		}
 		# Swap in real values
-		$qsub =~ s/\{\{command}}/$cmd/;
-		$qsub =~ s/\{\{job_id}}/$job_id/;
-		$qsub =~ s/\{\{outfn}}/$outfn/;
-		$qsub =~ s/\{\{cores}}/$cores/;
-		$qsub =~ s/\{\{qname}}/$qname/;
-		$qsub =~ s/\{\{mem}}/$mem/;
-		$qsub =~ s/\{\{time}}/$time/;
-		$qsub =~ s/\{\{priority}}/$PRIORITY/;
-		$qsub =~ s/\{\{notifications}}/$notification_string/;
-		$qsub =~ s/\{\{email}}/$EMAIL/;
-		$qsub =~ s/\{\{project}}/$C_PROJECT/;
-		$qsub =~ s/\{\{pe_env}}/$JOB_SUBMIT_ENV/;
+		$qsub =~ s/\{\{command}}/$cmd/g;
+		$qsub =~ s/\{\{job_id}}/$job_id/g;
+		$qsub =~ s/\{\{outfn}}/$outfn/g;
+		$qsub =~ s/\{\{cores}}/$cores/g;
+		$qsub =~ s/\{\{qname}}/$qname/g;
+		$qsub =~ s/\{\{mem}}/$mem/g;
+		$qsub =~ s/\{\{time}}/$time/g;
+		$qsub =~ s/\{\{priority}}/$PRIORITY/g;
+		$qsub =~ s/\{\{notifications}}/$notification_string/g;
+		$qsub =~ s/\{\{email}}/$EMAIL/g;
+		$qsub =~ s/\{\{project}}/$C_PROJECT/g;
+		$qsub =~ s/\{\{pe_env}}/$JOB_SUBMIT_ENV/g;
 
 		# Job dependencies
 		if(scalar @{$holdjid} > 0 && $prev_job ne 'start_000'){
