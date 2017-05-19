@@ -94,10 +94,21 @@ To help running analyses on AWS, we have created an S3 bucket containing the ref
 
 Pulling your required references from this is the fastest and easiest way to run alignments on Alces Flight using Cluster Flow. Note that the S3 bucket is set to use _Requester Pays_ policy. We pay to keep the data hosted, but you will pay for any fees associated with accessing the resource. The S3 bucket is in _EU (Ireland)_ - if your cluster is in the same region then any transfers should be free. Our hosting costs for this are kindly paid by Amazon through a research grant.
 
-You can find more information and documentation about this resource at https://github.com/ewels/AWS-iGenomes
+1. First, you need to configure the `s3cmd` on your cluster with your authentication.
+    * Run the following command and follow the prompts:
+        ```
+        s3cmd --configure
+        ```
+2. Next, run the AWS-iGenomes command line wizard to sync the required genomes:
+    ```bash
+    curl -fsSL https://ewels.github.io/AWS-iGenomes/aws-igenomes.sh | bash
+    ```
+3. Once downloaded, configure Cluster Flow so that it knows about these genomes:
+    ```bash
+    cf --add_genome
+    ```
 
-> _Coming soon:_ Scripts to automate syncing of this data for you. More info and examples soon.
-> See [below](#appendix-downloading-reference-genomes-from-aws-igenomes-manually) for manual instructions.
+You can find more information and documentation about this resource at https://github.com/ewels/AWS-iGenomes
 
 ### Adding a reference manually
 If AWS-iGenomes doesn't have the reference you need, you will need to fetch your
@@ -169,50 +180,4 @@ then it will keep running for ages and cost you loads of money.
 > If you're running the tiny head node, have no compute nodes running and are on
 > the AWS free tier, then it may not cost you any money to leave the head node
 > running, which could be convenient. But try this at your own risk!
-
-
-
-
-## Appendix: Downloading reference genomes from AWS-iGenomes manually
-
-First, pull your required data from the S3 bucket. What you will need depends on what species you want to
-align to and what tools you will be using. You can find the available species and references in the repository linked to above. Each reference listed contains the following files
-_(may vary a little - Human Ensembl GRCh37 shown below)_:
-
-```
-Annotation/README.txt
-Annotation/Genes/
-Annotation/SmallRNA/
-Annotation/Variation/
-Sequence/AbundantSequences/
-Sequence/BismarkIndex/
-Sequence/Bowtie2Index/
-Sequence/BowtieIndex/
-Sequence/BWAIndex/
-Sequence/Chromosomes/
-Sequence/STARIndex/
-Sequence/WholeGenomeFasta/
-```
-
-You now need to sync the required files to your local disk space. For example, if you intend to run
-the `fastq_star` pipeline to align Human RNA-seq reads, you will need the following commands:
-```bash
-# Make a directory to hold your references
-mkdir references
-
-# Configure s3 access
-s3cmd --configure
-# Use User access key from AWS IAM Users console
-
-# Sync the s3 bucket data to your local disk
-s3cmd --region eu-west-1 sync s3://ngi-igenomes/igenomes/Homo_sapiens/Ensembl/GRCh37/Annotation/Genes/ references/Homo_sapiens/Ensembl/GRCh37/Annotation/Genes/
-s3cmd --region eu-west-1 sync s3://ngi-igenomes/igenomes/Homo_sapiens/Ensembl/GRCh37/Sequence/STARIndex/ references/Homo_sapiens/Ensembl/GRCh37/Sequence/STARIndex/
-
-# Tell Cluster Flow about your reference indices
-cf --add_genome
-# ..use the wizard to search this folder and find references automatically
-```
-
-
-
 
