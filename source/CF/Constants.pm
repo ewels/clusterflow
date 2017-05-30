@@ -52,6 +52,7 @@ our $MAX_RUNS = 12;
 our $TIME_MULTIPLIER = 1;
 our $JOB_TIMELIMIT;
 our $CLUSTER_ENVIRONMENT = '';
+our $CLUSTER_MEM_PER_CPU;
 our $CUSTOM_JOB_SUBMIT_COMMAND;
 our $JOB_SUBMIT_ENV = 'orte';
 our $CF_MODULES = 1;
@@ -159,6 +160,9 @@ sub parse_conf_file {
                         $CUSTOM_JOB_SUBMIT_COMMAND = $val;
                     }
                     if($name eq 'cluster_queue_environment'){
+                        $CLUSTER_MEM_PER_CPU = 1;
+                    }
+                    if($name eq 'cluster_mem_per_cpu'){
                         $JOB_SUBMIT_ENV = $val;
                     }
                     if($name eq 'ignore_modules'){

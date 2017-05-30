@@ -43,6 +43,7 @@ my $SPLIT_FILES = $CF::Constants::SPLIT_FILES;
 my $MAX_RUNS = $CF::Constants::MAX_RUNS;
 my $TIME_MULTIPLIER = $CF::Constants::TIME_MULTIPLIER;
 my $CLUSTER_ENVIRONMENT = $CF::Constants::CLUSTER_ENVIRONMENT;
+my $CLUSTER_MEM_PER_CPU = $CF::Constants::CLUSTER_MEM_PER_CPU;
 my $PRIORITY = $CF::Constants::PRIORITY;
 my $C_PROJECT = $CF::Constants::C_PROJECT;
 my $TOTAL_CORES = $CF::Constants::TOTAL_CORES;
@@ -1083,6 +1084,11 @@ sub make_submit_cmd {
 	unless(defined($noprefix) && $noprefix){
 		$cmd = "$cmd 2>&1 | sed s/^/###CF_$job_id:/";
 	}
+
+  # Divide memory by number of CPUs if configured
+  if( $CLUSTER_MEM_PER_CPU ){
+    $mem = CF::Helpers::human_readable_to_bytes($mem) / $cores;
+  }
 
 	my $qsub = "";
 

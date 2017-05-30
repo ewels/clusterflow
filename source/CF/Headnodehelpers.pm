@@ -874,6 +874,7 @@ sub cf_check_updates {
 		close $fh;
 	}
 
+    cf_compare_version_numbers('0.1 devel', '0.1.1');
 	if(cf_compare_version_numbers($current_version, $avail_version)){
 		return ("".("="x45)."\n A new version of Cluster Flow is available!\n Running v$current_version, v$avail_version available.\n".("="x45)."\n
 You can download the latest version of Cluster Flow from\nhttp://clusterflow.io\n\n", 1);
@@ -901,14 +902,20 @@ sub cf_compare_version_numbers {
 			# Numeric checks
 			if($vn1_parts[$i] =~ /^\d+$/ && $vn2_parts[$i] =~ /^\d+$/){
 				if($vn2_parts[$i] > $vn1_parts[$i]){
-					return 1;
+                    return 1;
 				}
 			} elsif($vn1_parts[$i] !~ /^\d+$/ && $vn2_parts[$i] =~ /^\d+$/){
-				# 0.1.1 beats 0.1 devel
-				return 1;
+                # 0.1.1 should beat 0.1 devel
+                (my $vn1_num = $vn1_parts[$i]) =~ s/\D//g;
+                (my $vn2_num = $vn2_parts[$i]) =~ s/\D//g;
+                if($vn2_num ne '' && $vn1_num eq ''){
+                    return 1;
+                } elsif($vn2_num > $vn1_num){
+                    return 1;
+                }
 			}
 		} else {
-			return 1;
+            return 1;
 		}
 	}
 

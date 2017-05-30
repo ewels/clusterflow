@@ -34,6 +34,9 @@ These will be overwritten by any with the same name in ~/.clusterflow/clusterflo
 /* GRIDEngine parallel environment (default orte) */
 /* @cluster_queue_environment  mpislots */
 
+/* GRIDEngine - specify memory per CPU (default false) */
+/* @cluster_mem_per_cpu	true */
+
 /* Custom Job Submit Command - uncomment to customise parameters for job submission */
 /* Accepted variable placeholders: {{command}} {{job_id}} {{outfn}} {{cores}} {{mem}} {{time}} {{priority}} {{email}} {{notifications}} {{project}} {{qname}} */
 /* @custom_job_submit_command qsub -cwd -V -S /bin/bash -MY --CUSTOM --PARAMS -pe orte {{cores}} {{command}} */
