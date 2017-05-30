@@ -1,7 +1,9 @@
 # Cluster Flow Version History
 
 #### v0.6dev
-..Nothing yet!..
+* New `@cluster_mem_per_cpu` option to divide cluster memory request by number of cores requested.
+* Fixed warnings that were printed when `--dry_run` used
+* Stopped "new version available" message from showing when running dev.
 
 #### [v0.5](https://github.com/ewels/clusterflow/releases/tag/v0.5) - 2017-04-10
 * **[Salmon](https://combine-lab.github.io/salmon/) - New module!**
