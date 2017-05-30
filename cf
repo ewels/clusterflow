@@ -1090,6 +1090,7 @@ sub make_submit_cmd {
   # Divide memory by number of CPUs if configured
   if( $CLUSTER_MEM_PER_CPU ){
     $mem = CF::Helpers::human_readable_to_bytes($mem) / $cores;
+    $mem = CF::Helpers::bytes_to_human_readable($mem);
   }
 
 	my $qsub = "";

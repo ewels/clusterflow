@@ -159,7 +159,7 @@ sub parse_conf_file {
                     if($name eq 'custom_job_submit_command'){
                         $CUSTOM_JOB_SUBMIT_COMMAND = $val;
                     }
-                    if($name eq 'cluster_queue_environment'){
+                    if($name eq 'cluster_mem_per_cpu'){
                         $CLUSTER_MEM_PER_CPU = 1;
                     }
                     if($name eq 'cluster_mem_per_cpu'){
