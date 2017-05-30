@@ -741,7 +741,9 @@ my $submit_log = $jid_base.'submissionlog.txt';
 if($CLUSTER_ENVIRONMENT =~ /local/i){
     $submit_log = '/dev/null';
 }
-unless($cl_dryrun){
+if($cl_dryrun){
+		*SUBMIT = *STDOUT;
+} else {
     open (SUBMIT,'>>',$submit_log) or die "Can't write to $submit_log: $!";
     print SUBMIT "Output from $CLUSTER_ENVIRONMENT when submitting Cluster Flow jobs:\n".("="x52)."\n\n";
 }
