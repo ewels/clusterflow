@@ -115,7 +115,7 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 	}
 
 	my $cfcores = $cf{'cores'};
-	my $command = "samtools sort -m $mem_per_thread -@ $cfcores $namesort -o $output_fn";
+	my $command = "samtools sort $file -m $mem_per_thread -@ $cfcores $namesort -o $output_fn";
 	warn "\n###CFCMD $command\n\n";
 
 	if(!system ($command)){
