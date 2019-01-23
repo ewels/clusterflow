@@ -114,8 +114,8 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 		warn "Parameter 'forcesort' set, so not checking BAM to see if it's sorted..\n";
 	}
 
-	$cfcores = $cf{'cores'};
-	$command = "samtools sort -m $mem_per_thread -@ $cfcores $namesort $sortfile -o $output_fn";
+	my $cfcores = $cf{'cores'};
+	my $command = "samtools sort -m $mem_per_thread -@ $cfcores $namesort -o $output_fn";
 	warn "\n###CFCMD $command\n\n";
 
 	if(!system ($command)){
