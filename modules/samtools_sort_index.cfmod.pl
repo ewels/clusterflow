@@ -84,7 +84,7 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 		warn "\n$file looks like a $filetype file\n";
 		# Recreate the output filename with the BAM extension after the suffix
 		($output_fn = $file) =~ s/\.[sb]am$//;
-		$output_fn .= $output_suffix.$filetype;
+		$output_fn .= $output_suffix.'.'.$filetype;
 	} else {
 		warn "\n Can't determine file-type for $file. Assuming sam... \n";
 		$filetype = "sam";
