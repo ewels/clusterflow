@@ -43,8 +43,6 @@ my %requirements = (
 my $helptext = "".("-"x30)."\n Samtools Sort & Index Module\n".("-"x30)."\n
 Tries to index BAM / SAM files. If fails, assumes that file is not sorted
 and runs samtools sort, then attempts to index again.
-Will assume anything not ending in .bam is a SAM file and will convert to
-BAM. Output is basename_srtd.bam if sorted.
 Index files are written to disk but not written to CF run files.
 Using parameter 'byname' or '-n' in pipeline forces sorting by read name.\n";
 
@@ -71,7 +69,6 @@ if($version =~ /Version: ([\S\.]+)/){
   warn "###CFVERS samtools\t$1\n\n";
 }
 
-# we want e.g. samtools view -bS ./input.sam | samtools sort - outfile
 foreach my $file (@{$cf{'prev_job_files'}}){
 	my $timestart = time;
 
@@ -85,9 +82,9 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 	if (lc($file) =~ /\.([sb]am$)/){
 		$filetype = $1;
 		warn "\n$file looks like a $filetype file\n";
-		# Recreate the output filename without the BAM extension.
+		# Recreate the output filename with the BAM extension after the suffix
 		($output_fn = $file) =~ s/\.[sb]am$//;
-		$output_fn .= $output_suffix;
+		$output_fn .= $output_suffix.'.'.$filetype;
 	} else {
 		warn "\n Can't determine file-type for $file. Assuming sam... \n";
 		$filetype = "sam";
@@ -117,26 +114,14 @@ foreach my $file (@{$cf{'prev_job_files'}}){
 		warn "Parameter 'forcesort' set, so not checking BAM to see if it's sorted..\n";
 	}
 
-	# Pipe BAM stream if we need it
-	my $command = '';
-	my $sortfile = $file;
-	if ($filetype eq "sam"){
-		$command .= "samtools view -bS -u $file | ";
-		$sortfile = "-";
-	}
-
-	$command .= "samtools sort -m $mem_per_thread $namesort $sortfile $output_fn";
+	my $cfcores = $cf{'cores'};
+	my $command = "samtools sort $file -m $mem_per_thread -@ $cfcores $namesort -o $output_fn";
 	warn "\n###CFCMD $command\n\n";
 
 	if(!system ($command)){
 		# samtools worked - print out resulting filenames
 		my $duration =  CF::Helpers::parse_seconds(time - $timestart);
 		warn "###CF samtools sort successfully exited, took $duration..\n";
-
-		# Did we add .bam to the filename?
-		if (-e "$output_fn.bam"){
-			$output_fn = "$output_fn.bam";
-		}
 
 		if(-e $output_fn){
 			print RUN $cf{'job_id'}."\t$output_fn\n";
