@@ -116,9 +116,9 @@ def module_start (reqs=False, helptext=False):
 
             # Been given an array
             if type(reqs[key]) is list:
-                if key is 'cores':
+                if key == 'cores':
                     print ("cores: {}".format(allocate_cores(kwargs['cores'], int(reqs[key][0]), int(reqs[key][1]))), file=sys.stout)
-                elif key is 'memory':
+                elif key == 'memory':
                     print ("memory: {}".bytes_to_human_readable(allocate_memory(kwargs['mem'], reqs[key][0], reqs[key][1])), file=sys.stout)
                 else:
                     print ("{}: {}".format(key, ', '.join(reqs[key])), file=sys.stout)
@@ -172,7 +172,7 @@ def module_start (reqs=False, helptext=False):
 
     # If we don't have any input files, bail now
     if ('prev_job_files' not in cf or len(cf['prev_job_files']) == 0) \
-        and (kwargs['prev_job_id'] and kwargs['prev_job_id'] is not 'null' and 'summary_module' not in params):
+        and (kwargs['prev_job_id'] and kwargs['prev_job_id'] != 'null' and 'summary_module' not in params):
             print ("\n###CF Error! No file names found from job {}. Exiting...\n\n".format(kwargs['prev_job_id']))
             raise TypeError
 
@@ -216,26 +216,26 @@ def parse_runfile (cf):
                     line = line.strip()
 
                     # Ignore comment blocks
-                    if line[:2] is '/*':
+                    if line[:2] == '/*':
                         comment_block = True
                         continue
-                    if line[:2] is '*/':
+                    if line[:2] == '*/':
                         comment_block = False
                         continue
 
                     # Helper stuff
-                    if line[:9] is 'Pipeline:':
+                    if line[:9] == 'Pipeline:':
                         cf['pipeline_name'] = line[10:]
 
                     # Get config variables
-                    elif line[:1] is '@' and comment_block is False:
+                    elif line[:1] == '@' and comment_block is False:
                         sections = line.split(None, 2)
                         cname = sections[0][1:]
                         if not sections[1]:
                             sections[1] = 1
-                        if cname is 'notification':
+                        if cname == 'notification':
                             cf['config']['notifications'][sections[1]] = 1
-                        elif cname is 'reference':
+                        elif cname == 'reference':
                             ref_sections = sections[1].split(None, 2)
                             cf['refs'][ref_sections[0]] = ref_sections[1]
                         else:
@@ -252,7 +252,7 @@ def parse_runfile (cf):
                             cf['prev_job_files'].append(sections[1])
 
                         # Starting files
-                        if sections[0] is 'start_000':
+                        if sections[0] == 'start_000':
                             cf['starting_files'].append(sections[1])
                             cf['num_starting_files'] += 1
 
@@ -397,13 +397,13 @@ def human_readable_to_bytes(memory):
     # Remove non-numeric (except decimal places)
 	memory = re.sub('[^\d\.]', '', memory)
 
-	if suffix is 't':
+	if suffix == 't':
 		return memory * 1000000000000
-	elif suffix is 'g':
+	elif suffix == 'g':
 		return memory * 1000000000
-	elif suffix is 'm':
+	elif suffix == 'm':
 		return memory * 1000000
-	elif suffix is 'k':
+	elif suffix == 'k':
 		return memory * 1000
 
 
