@@ -333,8 +333,16 @@ if(!$file_list && scalar(@files) == 0){
 }
 
 # If we're using environment modules, check we can find modulecmd (system returns 1 on error)
+
+my $modulecmd = 'modulecmd';
+
 if($CF_MODULES){
-	if (system('which modulecmd > /dev/null 2>&1')){
+
+	# Check for Lmod
+	if (exists $ENV{LMOD_CMD}) {
+		$modulecmd = $ENV{LMOD_CMD};
+	}
+	if (system('which $modulecmd > /dev/null 2>&1')){
 		die( "ERROR - could not find modulecmd on the PATH. Aborting run.\n" .
 		"If you don't use environment modules, please set \@ignore_modules\n" .
 		"in your Cluster Flow configuration file.\n\n");
@@ -1349,7 +1357,7 @@ else {
 # Print information about the current environment
 print SUBMIT "\n\n\nCurrent Environment Information:\n".('='x32)."\n\n";
 if($CF_MODULES) {
-	my $mod_list = `modulecmd sh list 2>&1`;
+	my $mod_list = `$modulecmd sh list 2>&1`;
 	if($mod_list){
 		print SUBMIT "== Environment Modules Loaded ==\n$mod_list\n";
 	}
