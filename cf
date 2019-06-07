@@ -1149,9 +1149,11 @@ sub make_submit_cmd {
 			if($time){
 				$qsub .= " -t {{time}}";
 			}
-			# Add the actual command
-			$qsub .= ' --wrap="{{command}}"';
 		}
+
+    # Add the actual command
+		$qsub .= ' --wrap="{{command}}"';
+
 
 		# Work out notification settings
 		my $notification_string = "";
