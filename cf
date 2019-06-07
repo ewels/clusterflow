@@ -342,8 +342,8 @@ if($CF_MODULES){
 	if (exists $ENV{LMOD_CMD}) {
 		$modulecmd = $ENV{LMOD_CMD};
 	}
-	if (system('which $modulecmd > /dev/null 2>&1')){
-		die( "ERROR - could not find modulecmd on the PATH. Aborting run.\n" .
+	if (system("which $modulecmd > /dev/null 2>&1")){
+		die( "ERROR - could not find $modulecmd on the PATH. Aborting run.\n" .
 		"If you don't use environment modules, please set \@ignore_modules\n" .
 		"in your Cluster Flow configuration file.\n\n");
 	}
