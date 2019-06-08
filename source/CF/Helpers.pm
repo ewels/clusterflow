@@ -318,13 +318,18 @@ sub load_environment_modules {
 			# Skip modules that have already been loaded
 			next if defined($loaded_modules->{$mod});
 			# Get perl code needed to load module
-			my $mod_cmd = `modulecmd perl load $mod 2> /dev/null`;
+
+			my $modulecmd = 'modulecmd';
+			if (exists $ENV{LMOD_CMD}) {
+					$modulecmd = $ENV{LMOD_CMD};
+			}
+			my $mod_cmd = `$modulecmd perl load $mod 2> /dev/null`;
 			if($mod_cmd && length($mod_cmd) > 0){
 				eval($mod_cmd);
 				if ($@){
 					warn "WARNING - Got error whilst trying to parse the module load code for module $mod:" .
 					"\n\t$@\nTried to execute following code:\n---------------\n$mod_cmd\n---------------\n" .
-					"Command used to get module code:\n\tmodulecmd perl load $mod 2> /dev/null\n".
+					"Command used to get module code:\n\t$modulecmd perl load $mod 2> /dev/null\n".
 					"THIS MODULE MAY NOT HAVE BEEN LOADED.\n\n";
 					sleep(2);
 				} else {
