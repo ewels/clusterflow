@@ -877,7 +877,7 @@ sub cf_check_updates {
     cf_compare_version_numbers('0.1 devel', '0.1.1');
 	if(cf_compare_version_numbers($current_version, $avail_version)){
 		return ("".("="x45)."\n A new version of Cluster Flow is available!\n Running v$current_version, v$avail_version available.\n".("="x45)."\n
-You can download the latest version of Cluster Flow from\nhttp://clusterflow.io\n\n", 1);
+You can download the latest version of Cluster Flow from\nhttps://ewels.github.io/clusterflow\n\n", 1);
 	} else {
 		return ("Your copy of Cluster Flow is up to date. Running v$current_version, v$avail_version available.\n\n", 0);
 	}

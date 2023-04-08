@@ -521,7 +521,7 @@ AUTHOR
 
 SEE ALSO
     There is a full Cluster Flow manual available at
-    http://clusterflow.io/
+    https://ewels.github.io/clusterflow/
 
 EOT
 
@@ -1262,7 +1262,7 @@ These will overwrite any with the same name in the centralised config file
                 last;
             } elsif ($add_some_genomes =~ /^n(o)?/i){
                 print "\nNo problem. That's it from this wizard! If you have\n".
-                      "any questions, please visit http://clusterflow.io\n".
+                      "any questions, please visit https://ewels.github.io/clusterflow\n".
                       "or e-mail phil.ewels\@scilifelab.se\n\n".('-'x55)."\n\n";
                 $add_some_genomes = 0;
                 sleep(1); last;

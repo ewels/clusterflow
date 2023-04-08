@@ -7,7 +7,7 @@
 [![DOI](https://img.shields.io/badge/DOI-10.12688%2Ff1000research.10335.2-lightgrey.svg?style=flat-square)](http://dx.doi.org/10.12688/f1000research.10335.2)
 
 **Find Cluster Flow documentation with information and examples at
-[http://clusterflow.io](http://clusterflow.io)**
+[https://ewels.github.io/clusterflow/](https://ewels.github.io/clusterflow/)**
 
 ---
 
@@ -109,7 +109,7 @@ URL = { + http://dx.doi.org/10.12688/f1000research.10335.2}
 Contributions and suggestions for new features are welcome, as are bug reports!
 Please create a new [issue](https://github.com/ewels/clusterflow/issues).
 Cluster Flow has extensive
-[documentation](http://clusterflow.io/docs) describing how to write new modules
+[documentation](https://ewels.github.io/clusterflow/docs) describing how to write new modules
 and pipelines.
 
 There is a chat room for the package hosted on Gitter where you can discuss

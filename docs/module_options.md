@@ -1,7 +1,7 @@
 Many modules can have their default behaviour modified through the use of
 Cluster Flow `--params`. These are described below.
 
-See the documentation about [Module Paramters](http://clusterflow.io/docs/#module-parameters)
+See the documentation about [Module Paramters](https://ewels.github.io/clusterflow/docs/#module-parameters)
 for more information about how to specify these options.
 
 ## BEDTools intersectNeg
