@@ -2,6 +2,17 @@
 
 ### A user-friendly bioinformatics workflow tool
 
+---
+
+# Cluster Flow is now archived
+
+_This project is no longer under active maintenance. You're welcome to use it, but no updates or bug fixes will be posted. We recommend using [Nextflow](https://nextflow.io/) together with [nf-core](https://nf-co.re/) instead._
+
+_Many thanks to everyone who used and supported Cluster Flow over the years._
+
+---
+
+
 [![Build Status](https://img.shields.io/travis/ewels/clusterflow.svg?style=flat-square)](https://travis-ci.org/ewels/clusterflow)
 [![Gitter](https://img.shields.io/badge/gitter-%20join%20chat%20%E2%86%92-4fb99a.svg?style=flat-square)](https://gitter.im/ewels/clusterflow)
 [![DOI](https://img.shields.io/badge/DOI-10.12688%2Ff1000research.10335.2-lightgrey.svg?style=flat-square)](http://dx.doi.org/10.12688/f1000research.10335.2)
