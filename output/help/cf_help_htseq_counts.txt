@@ -1,0 +1,12 @@
+
+---------------
+ HTSeq Module
+---------------
+
+Counts reads overlapping exons in a GTF file. Takes an aligned BAM
+file as input and returns an annotated BAM file plus a counts file.
+
+Use parameter stranded or stranded_rev to count in stranded or reverse
+stranded modes. Defaults to not stranded.
+
+

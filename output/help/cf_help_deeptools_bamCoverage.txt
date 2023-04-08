@@ -1,0 +1,13 @@
+
+---------------
+ DeepTools bamCoverage
+---------------
+
+Takes two input files: a bam file and an (optional) _crosscorrelation.txt file,
+as created by phantompeaktools. Creates a bigWig coverage file,
+using deepTools/bamCoverage. Outputs are are bw files named basename.bw.
+The fragment length is set using 1) the input parameter fragmentLength
+2) the file _crosscorrelation.txt and 3) default fragment length of 200
+(if no input parameter is set and the file _crosscorrelation.txt doesn't exist).
+
+

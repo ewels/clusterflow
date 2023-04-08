@@ -1,0 +1,21 @@
+
+--------------------
+ Trim Galore Module
+--------------------
+
+Trim Galore is a wrapper tool around Cutadapt and FastQC
+to consistently apply quality and adapter trimming to FastQ files.
+
+This module intelligently works on single end and paired end input files
+and tries to calculate input file fastq encoding.
+
+By default, it will not trim files with reads shorter than 50bp
+(it checks the first file). This behaviour can be overwritten
+with the min_readlength pipeline parameter. For example:
+#trim_galore min_readlength=0
+
+The module will use the default
+Illumina common adapter sequence to trim with, but this can be
+overridden by specifying adapter=[Sequence] in the options.
+
+

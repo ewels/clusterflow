@@ -1,0 +1,12 @@
+
+------------------------------
+ RSeQC - Inner Distance
+------------------------------
+
+Module to run RSeQC 'read GC' script:
+http://rseqc.sourceforge.net/#read-gc-py
+Calculates a histogram showing the GC content of reads in a library.
+
+Use the 'keep_intermediate' parameter to keep the GC_plot.r
+file, otherwise this will be deleted.
+

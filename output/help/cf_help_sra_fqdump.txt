@@ -1,0 +1,10 @@
+
+-----------------------
+ SRA FastQ Dump Module
+-----------------------
+
+This module uses the sra toolkit fastq-dump package
+to extract .fastq files from .sra input. It gzips the fastq
+files once produced.
+
+

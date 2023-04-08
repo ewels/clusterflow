@@ -1,0 +1,12 @@
+
+-----------------
+ BWA Module
+-----------------
+
+BWA (Burrows-Wheeler Alignment Tool) is a software package for mapping
+low-divergent sequences against a large reference genome, such as the
+human genome. The BWA-MEM algorithm is used in this module.
+
+The module needs a reference of type bwa.
+
+

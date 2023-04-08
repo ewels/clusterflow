@@ -1,0 +1,16 @@
+
+------------------------------
+ RSeQC - Inner Distance
+------------------------------
+
+Module to run RSeQC 'Gene Body Coverage' script:
+http://rseqc.sourceforge.net/#genebody-coverage-py
+Calculates the average coverage across genes > 100bp long and plots
+a histogram. Takes aligned BAM files as input. Requires a
+BED12 reference gene model.
+
+Can be run as a normal module (#rseqc_geneBody_coverage), which will
+make one histogram per file. Or run as a summary module
+(>rseqc_geneBody_coverage) which will plot a single histogram for
+all BAM files found in the run files.
+

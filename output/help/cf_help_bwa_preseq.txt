@@ -1,0 +1,16 @@
+
+------------------------
+BWA to preseq
+------------------------
+This pipeline takes FastQ files as input, runs BWA to align, sorts
+the alignments using samtools sort and indexes using samtools index.
+Preseq lc_extrap is then run on the alignments.
+
+--------------------
+ Pipeline:
+--------------------
+
+#bwa
+	#samtools_sort_index
+		#preseq_calc
+

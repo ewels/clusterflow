@@ -1,0 +1,11 @@
+
+---------------
+ BedToNrf
+---------------
+
+Takes bed file and computes the NRF (non-redundant fraction). Uses code taken from
+https://github.com/mel-astar/mel-ngs/blob/master/mel-chipseq/chipseq-metrics/CalBedNrf.pl
+Output is a txt file with the total number of reads, the number of unique reads and the NRF.
+This file is named basename_nrf.txt.
+
+

@@ -1,0 +1,15 @@
+
+------------------------
+preseq
+------------------------
+This pipeline takes BAM / SAM files and, uses samtools to sort and
+index the files (skipping sorting if already done).
+Preseq lc_extrap is then run on the alignments.
+
+--------------------
+ Pipeline:
+--------------------
+
+#samtools_sort_index	forcesort
+	#preseq_calc
+

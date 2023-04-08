@@ -1,0 +1,10 @@
+
+---------------
+ Bedtools intersectNeg
+---------------
+
+Takes a bam file and a bed file with regions, given by the flag blacklistFile. 
+Filters the bam file, so the only reads not present in the blacklist regions 
+are included in the output. Usees bedtools intesect for this.
+
+

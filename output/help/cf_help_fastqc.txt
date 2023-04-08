@@ -1,0 +1,9 @@
+
+---------------
+ FastQC Module
+---------------
+
+FastQC is a quality control tool for high throughput sequence data.
+For further information, please run fastqc --help
+
+

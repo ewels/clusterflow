@@ -1,0 +1,9 @@
+
+---------------
+ Bedtools bamToBed
+---------------
+
+Converts bam files to bed format and sorts the bed file, using bedtools.
+Outputs are sorted bed files named basename.bed.
+
+

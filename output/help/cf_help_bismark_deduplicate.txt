@@ -1,0 +1,12 @@
+
+----------------------------
+ Bismark Deduplicate Module
+----------------------------
+
+The bismark_deduplicate module runs the deduplicate_bismark script.
+This removes alignments to the same position in the genome from the
+Bismark mapping output which can arise by e.g. excessive PCR amplification.
+
+For further information please run deduplicate_bismark --help 
+
+

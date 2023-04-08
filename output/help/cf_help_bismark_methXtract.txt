@@ -1,0 +1,12 @@
+
+--------------------------------------
+ Bismark Methylation Extractor Module
+--------------------------------------
+
+The bismark_methXtract module runs the bismark_methylation_extractor script.
+This reads in a bisulfite read alignment results file produced by the Bismark bisulfite
+mapper and extracts the methylation information for individual cytosines in CpG, CHG
+and CHH context.
+Use bismark_methylation_extractor --help for more information.
+
+

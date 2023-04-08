@@ -1,0 +1,21 @@
+
+-----------------------
+Bismark Pipeline
+-----------------------
+This pipeline takes FastQ files as input and processes them
+with Bismark (alignment, deduplication, methlyation extractor
+then tidying up and report generation). It requires a genome
+index with a corresponding genome folder and bismark converted
+genome.
+
+--------------------
+ Pipeline:
+--------------------
+
+
+#bismark_align
+	#bismark_deduplicate
+		#bismark_methXtract
+			#bismark_report
+				>bismark_summary_report
+

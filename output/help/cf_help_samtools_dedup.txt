@@ -1,0 +1,16 @@
+
+---------------
+ Samtools dedup Module
+---------------
+
+This module uses the samtools package to mark and remove duplicated
+sequences from mapped BAM files.  The process is actually 3 steps
+
+1)samtools sort
+2)samtools rmdup
+3)samtools sort -n
+
+The output will be deduplicated BAM files sorted by sequence name.
+
+
+

@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Documentation: Cluster Flow</title>
+	<meta name="description" content="A pipelining tool to automate and standardise bioinformatics analyses on cluster environments"/>
+	<meta name="author" content="Phil Ewels"/>
+	<link rel="shortcut icon" href="https://clusterflow.io/favicon.ico">
+
+	<!-- CSS -->
+	<link href="../css/bootstrap.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="../css/code_highlighting/github.css">
+	<link rel="stylesheet" href="../css/style.css">
+
+	<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+	<!--[if lt IE 9]>
+		<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+		<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+	<![endif]-->
+
+</head>
+<body id="cf_docs" data-spy="scroll" data-target="#toc" data-offset="100">
+
+<div class="header container">
+  <div class="row">
+    <div class="col-sm-3 col-sm-push-9 top_logo">
+      <a href="../index.html"><img src="../img/Cluster_Flow.png" alt="Cluster Flow"></a><br>
+      <a href="../index.html">Back to homepage</a>
+    </div>
+    <div class="col-sm-9 col-sm-pull-3">
+      <h1>CF Documentation</h1>
+    </div>
+  </div>
+  
+  
+  <p>This documentation is written in markdown and comes bundled with the
+    <a href="https://github.com/ewels/clusterflow/tree/master/docs">Cluster Flow source code</a>.</p>
+  
+</div>
+
+<div class="container docs-container">
+  <div class="row">
+    <div class="col-sm-9 docs-content">
+      <div class="docs_block" id="welcome"><h1 id="introduction"><a href="#introduction" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Introduction</h1>
+<p>Cluster Flow is workflow manager designed to run bioinformatics pipelines.
+It is operated through a single command <code>cf</code>, which can be used to launch,
+configure, monitor and cancel pipelines.</p>
+<h2 id="tutorial-videos"><a href="#tutorial-videos" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Tutorial Videos</h2>
+<p>To get you started with Cluster Flow, there are a few tutorial videos on YouTube.
+<a href="https://www.youtube.com/watch?v=FusdI-QvbJo&amp;list=PLIA2-lqNuhvH6fog0ctm5ZpdtPoUOun-l">Click here to watch</a>.</p></div><div class="docs_section">
+<h1 class="section-header" id="installation"><a href="#installation" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Installation</h1>
+<div class="docs_block" id="installation.md"><h2 id="requirements"><a href="#requirements" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Requirements</h2>
+<p>Cluster Flow is designed to work with a computing cluster. It currently supports
+the Sun GRIDEngine, LSF and SLURM job managers (not PBS, Torque or others).</p>
+<p>If you don't have a cluster with a supported manager, you can run Cluster Flow on
+any command-line machine in <code>local</code> mode. This writes a bash script and runs it as
+a job in the background.</p>
+<p>To run analyses, you will also need the required tools to be installed. Cluster Flow
+is designed to work with the environment module system and load tools as required, but
+if software is available on the <code>PATH</code> it can work without this.</p>
+<p>Cluster Flow itself is written in Perl. It has minimal dependencies, all of which are
+core Perl packages.</p>
+<h2 id="environment-module"><a href="#environment-module" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Environment Module</h2>
+<p>If you are a user on a HPC cluster, you may already have Cluster Flow installed
+on your cluster as an environment module. If so, you may be able to load it using:</p>
+<pre><code>module load clusterflow</code></pre>
+<h2 id="manual-installation"><a href="#manual-installation" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Manual Installation</h2>
+<p>Cluster Flow is a collection of stand-alone scripts, mostly written in Perl.</p>
+<ol>
+<li>Download Cluster Flow (see the <a href="https://github.com/ewels/clusterflow/releases">releases page</a>)
+<pre><code class="language-bash">wget https://github.com/ewels/clusterflow/archive/v0.5.tar.gz</code></pre></li>
+<li>Extract the files
+<pre><code class="language-bash">tar xvzf v0.5.tar.gz</code></pre></li>
+<li>Create &amp; configure the site-wide configuration file
+<pre><code class="language-bash">cd clusterflow-0.5
+cp clusterflow.config.example clusterflow.config
+vi clusterflow.config</code></pre></li>
+</ol>
+<p>You must specify your environment in the config file (<code>@cluster_environment</code>:
+<code>local</code>, <code>GRIDEngine</code>, <code>SLURM</code> or <code>LSF</code>), most other things are optional.</p>
+<p>The <code>cf</code> executable must be in your system <code>PATH</code>, so that you can run it easily
+from any directory. Ensure that you run the Configuration Wizard (described below)
+so that this config is created in your <code>~/.bashrc</code> file.</p>
+<p>If you prefer, you can symlink the <code>cf</code> executable to <code>~/bin</code>.</p>
+<h2 id="configuration-wizard"><a href="#configuration-wizard" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Configuration Wizard</h2>
+<p>Once Cluster Flow has been set up site-wide, you need to configure it for your
+personal use:</p>
+<pre><code class="language-bash">cf --setup</code></pre>
+<p>This will launch a wizard to write a config file for you, with details such
+as e-mail address and notification settings.</p>
+<h2 id="adding-reference-genomes"><a href="#adding-reference-genomes" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Adding Reference Genomes</h2>
+<p>Most analysis pipelines need a reference genome. This can exist in a central
+location or in your personal setup (or both).</p>
+<blockquote>
+<p>If you're using the Swedish UPPMAX cluster, please see
+<a href="https://github.com/ewels/clusterflow-uppmax">these instructions</a>.</p>
+</blockquote>
+<p>You can add your reference genome paths with the following wizard:</p>
+<pre><code class="language-bash">cf --add_genome</code></pre>
+<h2 id="do-a-test-run"><a href="#do-a-test-run" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Do a test run!</h2>
+<p>That should be it! Log out of your session and in again to activate any new
+bash settings. Then try launching a test run:</p>
+<pre><code class="language-bash">cf --genome GRCh37 sra_bowtie ftp://ftp.ddbj.nig.ac.jp/ddbj_database/dra/sralite/ByExp/litesra/SRX/SRX031/SRX031398/SRR1068378/SRR1068378.sra</code></pre>
+<p>This will download <a href="http://www.ncbi.nlm.nih.gov/sra/?term=SRR1068378">SRR1068378</a>
+<em>(Human H3K4me3 ChIP-Seq data)</em>, convert to FastQ, run FastQC, Trim Galore! and align with bowtie.</p></div></div><div class="docs_section">
+<h1 class="section-header" id="usage"><a href="#usage" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Usage</h1>
+<div class="docs_block" id="usage.md"><h2 id="listing-whats-available"><a href="#listing-whats-available" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Listing what's available</h2>
+<p>Once Cluster Flow is up and running, you can list available pipelines,
+modules and reference genomes which are available using the following commands:</p>
+<pre><code class="language-bash">cf --pipelines            # List pipelines
+cf --modules              # List modules
+cf --genomes              # List reference genomes</code></pre>
+<h2 id="getting-help"><a href="#getting-help" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Getting help</h2>
+<p>To get instructions for how to use Cluster Flow on the command line, use:</p>
+<pre><code class="language-bash">cf --help</code></pre>
+<p>You can also use this command to find out more information about
+pipelines and modules:</p>
+<pre><code class="language-bash">cf --help [module-name]
+cf --help [pipeline-name]</code></pre>
+<h2 id="starting-a-run"><a href="#starting-a-run" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Starting a run</h2>
+<p>In its most basic form, analyses are run as follows:</p>
+<pre><code class="language-bash">cf [pipeline] [files]</code></pre>
+<p>Single modules can also be specified instead of a pipeline:</p>
+<pre><code class="language-bash">cf [module] *.bam</code></pre>
+<p>Most pipelines and modules will need a reference genome, specified
+using <code>--genome</code>:</p>
+<pre><code class="language-bash">cf --genome GRCh37 sra_bowtie *.sra</code></pre>
+<p>The ID following <code>--genome</code> is the ID assigned when adding the reference
+genome to Cluster Flow. This can be seen when listing genomes with <code>cf --genomes</code>.</p>
+<h2 id="module-parameters"><a href="#module-parameters" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Module Parameters</h2>
+<p>The default execution of different tools can be modified by using module
+<em>parameters</em>. These can be set within pipeline scripts or on the command line.
+Specifying <code>--param [example]</code> will apply the <code>[example]</code> parameter to every
+module in the pipeline.</p>
+<p>Different module support different parameters. Some are flags, some are key pairs.
+To find out more, see the Modules documentation.</p>
+<p>Typical things you can do are to set adapter trimming preferences with TrimGalore!:</p>
+<pre><code class="language-bash">cf --genome GRCh37 --param clip_r1=6 --param min_readlength=15 sra_bowtie *sra</code></pre>
+<p>or run Bismark in PBAT mode:</p>
+<pre><code class="language-cf">cf --genome GRCm38 --param pbat fastq_bismark *.fastq.gz</code></pre>
+<p>When setting in pipeline scripts, simply add the paramters after the module
+names (tab-delimited). For example, this is the <code>trim_bowtie_miRNA</code> pipeline:</p>
+<pre><code>#trim_galore adapter=ATGGAATTCTCG
+    #bowtie mirna</code></pre>
+<p>This sets a custom adapter for trimming and tells the bowtie module to use
+the <code>mirna</code> parameter.</p>
+<h2 id="filename-checking"><a href="#filename-checking" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Filename checking</h2>
+<p>When launching Cluster Flow, a number of filename checks are performed. If input
+files are FastQ and the filenames look like paired-end files, it launches in
+paired-end mode (this can be overridden with <code>--single</code>).</p>
+<p>If a mixture of file types or paired end / single end FastQ files are found,
+Cluster Flow will show an error and exit. This step can be skipped by using the
+<code>--no_fn_check</code> parameter.</p>
+<p>If <code>@merge_regex</code> is configured in the configuration file, matching input files
+will be merged before processing.</p>
+<h2 id="downloading-files"><a href="#downloading-files" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Downloading files</h2>
+<p>As well as supplying Cluster Flow with input files, you can give URLs. This will
+cause Cluster Flow to add the <code>cf_download</code> module to the start of your pipeline
+to download the data.</p>
+<p>Cluster Flow will recognise anything starting with <code>http</code>, <code>https</code> or <code>ftp</code> as
+a URL. Downloads are processes in series to avoid overwhelming the internet connection.</p>
+<p>If using the <code>--file-list</code> parameter you can also specify a filename for each download.
+This should be added after the download URL, separated by a tab character. This is
+particularly useful when downloading arbitrarily named SRA files and is compatible
+with the <a href="https://github.com/ewels/labrador">Labrador Dataset Manager</a>. See also
+the stand-alone <a href="http://ewels.github.io/sra-explorer/">SRA-Explorer</a> tool if you
+don't have Labrador installed.</p>
+<h2 id="avoiding-cluster-overload"><a href="#avoiding-cluster-overload" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Avoiding cluster overload</h2>
+<p>Cluster Flow has a number of features built in to avoid swamping your cluster
+with jobs.</p>
+<p>Firstly, Cluster Flow limits the number of parallel runs created. Defaults are
+set in the config file with <code>@split_files</code> (default 1) and <code>@max_runs</code> (default 12).
+<code>@split_files</code> defines the minimum number of files per run, <code>@max_runs</code> defines
+the maximum number of parallel runs and adds more files per run if needed.</p>
+<p>Cluster Flow also try to intelligently limit the memory usage and number of
+cores each module uses. The config options <code>@total_cores</code> and <code>@total_mem</code>
+specify the maximum resources to be used by each Cluster Flow pipeline. These
+are split up amongst the max simultaneous jobs and presented to each module.
+The modules can then request resources, making use of optional parallelisation
+where available.</p></div></div><div class="docs_section">
+<h1 class="section-header" id="command-line"><a href="#command-line" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Command Line</h1>
+<div class="docs_block" id="command_line.md"><h2 id="cluster-flow-command-line-reference"><a href="#cluster-flow-command-line-reference" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Cluster Flow Command Line Reference</h2>
+<p>Cluster Flow pipelines are launched as follows:</p>
+<pre><code>cf [flags] &lt;pipeline&gt; &lt;input-files&gt;</code></pre>
+<p>These flags are used to customise run-time parameters for the pipeline that
+Cluster Flow will launch.</p>
+<h3 id="--genome"><a href="#--genome" class="header-link"><span class="glyphicon glyphicon-link"></span></a>--genome</h3>
+<p><em>Default: none</em></p>
+<p>Some pipelines which carry out a reference genome alignment require a genome
+directory path to be set. Requirements for format may vary between modules.</p>
+<h3 id="--paired"><a href="#--paired" class="header-link"><span class="glyphicon glyphicon-link"></span></a>--paired</h3>
+<p><em>Default: Auto-detect</em></p>
+<p>If specified, Cluster Flow will send two files to each run, assuming that the
+order that the file list is supplied in corresponds to two read files. If an
+odd number of files is supplied, the final file is submitted as single end.</p>
+<h3 id="--single"><a href="#--single" class="header-link"><span class="glyphicon glyphicon-link"></span></a>--single</h3>
+<p><em>Default: Auto-detect</em></p>
+<p>If specified, Cluster Flow will ignore its auto-detection of paired end input
+files and force the single end processing of each input file.</p>
+<h3 id="--no_fn_check"><a href="#--no_fn_check" class="header-link"><span class="glyphicon glyphicon-link"></span></a>--no_fn_check</h3>
+<p><em>Default: none</em></p>
+<p>Cluster Flow will make sure that all of the input files have the same file
+extension to avoid accidentally submitting files that aren’t part of the run.
+Specifying this parameter disables this check.</p>
+<h3 id="--file_list"><a href="#--file_list" class="header-link"><span class="glyphicon glyphicon-link"></span></a>--file_list</h3>
+<p><em>Default: none</em></p>
+<p>If specified, you can define a file containing a list of filenames to pass to
+the pipeline (one per line). This is particularly useful when supplying a list
+of download URLs.</p>
+<h3 id="--params"><a href="#--params" class="header-link"><span class="glyphicon glyphicon-link"></span></a>--params</h3>
+<p><em>Default: none</em></p>
+<p>Pipelines and their modules are configured to run with sensible defaults. Some
+modules accept parameters which change their behaviour. Typically, these are
+set within a pipeline config file. By using <code>--params</code>, you can add extra
+parameters at run time. These will be set for every module in the pipeline
+(though they probably won’t all recognise them).</p>
+<h3 id="--split_files"><a href="#--split_files" class="header-link"><span class="glyphicon glyphicon-link"></span></a>--split_files</h3>
+<p><em>Default: (config file - typically 1)</em></p>
+<p>Cluster Flow generates multiple parallel runs for the supplied input files when
+run. This is typically a good thing, the cluster is designed to run jobs in
+parallel. Some jobs may involve many small tasks with a large number of input
+files however, and 1:1 parallelisation may not be practical. In such cases, the
+number of input files to assign to each run can be set this flag.</p>
+<h3 id="--max_runs"><a href="#--max_runs" class="header-link"><span class="glyphicon glyphicon-link"></span></a>--max_runs</h3>
+<p><em>Default: none</em></p>
+<p>It can sometimes be a pain to count the number of input files and work out a
+sensible number to use with <code>--split_files</code>. Cluster Flow can take the
+<code>--max_runs</code> value and divide the input files into this number of runs, setting
+<code>--split_files</code> automatically.</p>
+<p>A default can be set for <code>--max_runs</code> in the <code>clusterflow.config</code> file, and
+this value is set to 12 if no value is found in the config files. Set to <code>0</code> to
+disable.</p>
+<p>This parameter will override anything set using <code>--split_files</code>.</p>
+<h3 id="--runfile_prefix"><a href="#--runfile_prefix" class="header-link"><span class="glyphicon glyphicon-link"></span></a>--runfile_prefix</h3>
+<p><em>Default: none</em></p>
+<p>Optional custom prefix for run file filenames. This is useful if you are
+running multiple instances of Cluster Flow with the same input file in
+the same directory, as it avoids potential clashes / mixups. For example:</p>
+<pre><code>cf --runfile_prefix bt1 --genome GRCh37 fastq_bowtie1 my_sample.fq
+cf --runfile_prefix bt2 --genome GRCh37 fastq_bowtie2 my_samplefq</code></pre>
+<h3 id="--ref"><a href="#--ref" class="header-link"><span class="glyphicon glyphicon-link"></span></a>--ref</h3>
+<p><em>Default: none</em></p>
+<p>Specify a reference genome without adding to the <code>genomes.config</code> file.
+Should be in the format <code>&lt;ref_type&gt;=&lt;path&gt;</code>, eg:</p>
+<pre><code>cf --ref bowtie=/path/to/bowtie/index &lt;pipeline&gt; &lt;files&gt;</code></pre>
+<h3 id="--dry_run"><a href="#--dry_run" class="header-link"><span class="glyphicon glyphicon-link"></span></a>--dry_run</h3>
+<p><em>Default: false</em></p>
+<p>Do everything except for actually launching cluster jobs. Useful for
+testing and checking that jobs will be created properly.</p>
+<h2 id="customising-behaviour"><a href="#customising-behaviour" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Customising Behaviour</h2>
+<p>Typically, Cluster Flow settings are set in static configuration files.
+However, sometimes it can be useful to specify parameters on a one-off
+basis on the command line.</p>
+<h3 id="--email"><a href="#--email" class="header-link"><span class="glyphicon glyphicon-link"></span></a>--email</h3>
+<p><em>Default: (config file)</em></p>
+<p>Cluster Flow can send notification e-mails regarding the status of runs.
+Typically, e-mail address should be set using <code>@email</code> in <code>~/clusterflow.config</code>
+(see above). This parameter allows you to override that setting on a one-off
+basis.</p>
+<h3 id="--priority"><a href="#--priority" class="header-link"><span class="glyphicon glyphicon-link"></span></a>--priority</h3>
+<p><em>Default: (config file - typically -500)</em></p>
+<p>Many cluster managers can use a priority system to manage jobs in the queue.
+Typically, GRIDEngine priorities can be set ranging from -1000 to 0.</p>
+<h3 id="--cores"><a href="#--cores" class="header-link"><span class="glyphicon glyphicon-link"></span></a>--cores</h3>
+<p><em>Default: (config file - typically 64)</em></p>
+<p>Override the maximum number of cores allowed for each Cluster Flow pipeline,
+typically set in the Cluster Flow config file. For more information see
+Avoiding cluster overload.</p>
+<h3 id="--mem"><a href="#--mem" class="header-link"><span class="glyphicon glyphicon-link"></span></a>--mem</h3>
+<p><em>Default: (config file - typically 128G)</em></p>
+<p>Setting <code>--mem</code> allows you to override the maximum amount of simultaneously
+assigned memory. For more information see Avoiding cluster overload.</p>
+<h3 id="--time"><a href="#--time" class="header-link"><span class="glyphicon glyphicon-link"></span></a>--time</h3>
+<p><em>Default: (config file - typically none)</em></p>
+<p>Override the maximum requested time assigned to jobs. For more information,
+see Avoiding cluster overload.</p>
+<h3 id="--project"><a href="#--project" class="header-link"><span class="glyphicon glyphicon-link"></span></a>--project</h3>
+<p><em>Default: (config file - typically none)</em></p>
+<p>Specify the project to use on the cluster for this run.</p>
+<h3 id="--qname"><a href="#--qname" class="header-link"><span class="glyphicon glyphicon-link"></span></a>--qname</h3>
+<p><em>Default: (config file - typically none)</em></p>
+<p>Specify a custom cluster queue to use for this run.</p>
+<h3 id="--environment"><a href="#--environment" class="header-link"><span class="glyphicon glyphicon-link"></span></a>--environment</h3>
+<p><em>Default: (config file - custom)</em></p>
+<p>Override the default environment to use for this pipeline run. Useful for
+testing or small jobs, can run using bash commands instead of submitting
+cluster jobs. For example:</p>
+<pre><code>cf --environment local test_pipeline *.txt</code></pre>
+<h3 id="--notifications"><a href="#--notifications" class="header-link"><span class="glyphicon glyphicon-link"></span></a>--notifications</h3>
+<p><em>Default: (config file - typically cea)</em></p>
+<p>Cluster Flow can e-mail you notifications about the progress of your runs.
+There are several levels of notification that you can choose using this flag.
+They are:</p>
+<ul>
+<li><code>c</code> - Send notification when all runs in a pipeline are completed</li>
+<li><code>r</code> - Send a notification when each run is completed</li>
+<li><code>e</code> - Send a notification when a cluster job ends</li>
+<li><code>s</code> - Send a notification if a cluster job is suspended</li>
+<li><code>a</code> - Send a notification if a cluster job is aborted</li>
+</ul>
+<p>Setting these options at run time with the <code>--notifications</code> flag will override
+the settings present in your clusterflow.config configuration files.
+Note: setting the <code>s</code> flag when using many input files with a long pipeline may
+cause your inbox to be flooded.</p>
+<h2 id="other-functions"><a href="#other-functions" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Other Functions</h2>
+<p>These flags instruct Cluster Flow to do something other than submit a
+pipeline.</p>
+<h3 id="--qstat--qstatall"><a href="#--qstat--qstatall" class="header-link"><span class="glyphicon glyphicon-link"></span></a>--qstat / --qstatall</h3>
+<p>When you have a lot of jobs running and queued, the qstat summary can get a
+little overwhelming. To combat this and show job hierarchy in an intuitive
+manner, you can enter into the console <code>cf --qstat</code>. This parses qstat output
+and displays it nicely. <code>cf --qstatall</code> does the same but for all jobs by all
+users.</p>
+<p>You'll probably find that you want to run this command quite a lot. To make it
+a little less clumsy, you can create aliases in your <code>.bashrc</code> or
+<code>.bash_profile</code> scripts, which run every time you log in.</p>
+<pre><code>alias qs='cf --qstat'
+alias qsa='cf --qstatall'</code></pre>
+<p>To append these lines to your <code>.bashrc</code> script you can use the following
+command:</p>
+<pre><code>echo -e "alias qs='cf --qstat'\nalias qsa='cf --qstatall'" &gt;&gt; ~/.bashrc</code></pre>
+<blockquote>
+<p><em>Note:</em> These tools don't work with LSF, as I don't have a LSF testing
+server to work on. Please get in touch if you can help.</p>
+</blockquote>
+<h3 id="--qdel"><a href="#--qdel" class="header-link"><span class="glyphicon glyphicon-link"></span></a>--qdel</h3>
+<p>Sometimes you may be running multiple pipelines and want to stop just one.
+It can be a pain to find the job numbers to do this manually, so instead
+you can use Cluster Flow to kill these jobs. When running <code>cf --qstat</code>,
+ID values are printed for each pipeline. For example:</p>
+<pre><code>$ qs
+
+======================================================================
+ Cluster Flow Pipeline: fastq_bowtie
+ Submitted:             17 hours, 1 minutes, 46 seconds ago
+ Working Directory:     /path/to/working/dir
+ Cluster Flow ID:       fastq_bowtie_1468357637
+ Submitted Jobs:        29
+ Running Jobs:          1
+ Queued Jobs:           2 (dependencies)
+ Completed Jobs:        26 (89%)
+======================================================================</code></pre>
+<p>You can then use this <em>Cluster Flow ID</em> to kill all jobs within that pipeline:</p>
+<pre><code>cf --qdel fastq_bowtie_1468357637</code></pre>
+<h3 id="--add_genome"><a href="#--add_genome" class="header-link"><span class="glyphicon glyphicon-link"></span></a>--add_genome</h3>
+<p>Run the Cluster Flow interactive wizard to add new genomes.</p>
+<h3 id="--setup"><a href="#--setup" class="header-link"><span class="glyphicon glyphicon-link"></span></a>--setup</h3>
+<p>Run the interactive setup wizard to create a configuration file for
+Cluster Flow.</p>
+<h3 id="--version"><a href="#--version" class="header-link"><span class="glyphicon glyphicon-link"></span></a>--version</h3>
+<p>Display the currently installed version of Cluster Flow.</p>
+<h3 id="--check_updates"><a href="#--check_updates" class="header-link"><span class="glyphicon glyphicon-link"></span></a>--check_updates</h3>
+<p>Check online for any available Cluster Flow updates.</p>
+<h3 id="--help"><a href="#--help" class="header-link"><span class="glyphicon glyphicon-link"></span></a>--help</h3>
+<p>Show a help message describing the different command line flags available.</p></div></div><div class="docs_section">
+<h1 class="section-header" id="configuration"><a href="#configuration" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Configuration</h1>
+<div class="docs_block" id="configuration.md"><h2 id="config-file-locations"><a href="#config-file-locations" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Config file locations</h2>
+<p>Cluster flow will search three locations for a config file every time it is
+run. Variables found in each file can override those read from a previous
+config file. They are, in order of priority:</p>
+<ul>
+<li><code>&lt;working directory&gt;/clusterflow.config</code>
+<ul>
+<li>A config file found in the current working directory when a pipeline is
+executed has top priority, trumped only by command line parameters.</li>
+</ul></li>
+<li><code>~/clusterflow.config</code>
+<ul>
+<li>A config file in your home directory can be used to set parameters such
+as notification level and e-mail address.</li>
+</ul></li>
+<li><code>&lt;installation directory&gt;/clusterflow.config</code>
+<ul>
+<li>A config file in the Cluster Flow installation directory is ideal for
+common settings specific to the environment.</li>
+</ul></li>
+</ul>
+<p>Config files contain key: value pairs. Syntax is as follows: <code>@key value</code>
+(tab delimited, one per line). The Cluster Flow source code comes with an
+example config file called
+<a href="https://github.com/ewels/clusterflow/blob/master/clusterflow.config.example"><code>clusterflow.config.example</code></a></p>
+<p>Typically, there will be a config file in the installation directory which
+contains the settings that make Cluster Flow work. Each user will then have a
+personal configuration file in their home directory containing settings such
+as a notification e-mail address.</p>
+<h2 id="environment-setup"><a href="#environment-setup" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Environment Setup</h2>
+<p>The key things to set up when installing Cluster Flow are the variables that
+dictate how CF should interact with your cluster - what commands it should use
+to submit jobs.</p>
+<p>Cluster Flow currently supports GRIDEngine (SGE), SLURM and LSF, as well as
+running locally using background bash jobs. You can specify which environment
+to use with <code>@cluster_environment</code>:</p>
+<pre><code>/* Options: local, GRIDEngine, SLURM or LSF */
+@cluster_environment    SLURM</code></pre>
+<p>In most cases, that should be enough to get Cluster Flow to work! However,
+some people have some specific variables that need to be submitted with
+batch jobs (eg. project identifiers, time limits, other custom flags). If this
+is the case, the job submission command can be customised with the
+<code>@custom_job_submit_command</code> config variable.</p>
+<p>To use this, enter your typical submission command with the following
+placeholders which will be replaced at run time:</p>
+<ul>
+<li><code>{{command}}</code>
+<ul>
+<li>The actual command which will be run to execute the module file</li>
+</ul></li>
+<li><code>{{job_id}}</code>
+<ul>
+<li>The unique identifier which will be assigned to use job dependencies</li>
+</ul></li>
+<li><code>{{outfn}}</code>
+<ul>
+<li>The filename of the log file to capture <code>STDOUT</code></li>
+</ul></li>
+<li><code>{{cores}}</code>
+<ul>
+<li>How many cores to assign</li>
+</ul></li>
+<li><code>{{mem}}</code>
+<ul>
+<li>How much memory to assign</li>
+</ul></li>
+<li><code>{{time}}</code>
+<ul>
+<li>How much time to assign</li>
+</ul></li>
+<li><code>{{priority}}</code>
+<ul>
+<li>A priority to set, defined in the config file</li>
+</ul></li>
+<li><code>{{project}}</code>
+<ul>
+<li>The cluster project to use</li>
+</ul></li>
+<li><code>{{qname}}</code>
+<ul>
+<li>The cluster queue name</li>
+</ul></li>
+<li><code>{{email}}</code>
+<ul>
+<li>The user's e-mail address for cluster job notifications (if set)</li>
+</ul></li>
+<li><code>{{notifications}}</code>
+<ul>
+<li>A string describing which notifications to be sent (syntax depends on
+environment set above)</li>
+</ul></li>
+</ul>
+<p>Simply omit any variables which are not needed on your cluster. For example:</p>
+<pre><code>@custom_job_submit_command      sbatch  -A MY_PROJECT_ID -t 2-00:00:00 -p core -n {{cores}} --open-mode=append -o {{outfn}} -J {{job_id}} {{notifications}} --wrap="{{command}}"</code></pre>
+<p>Cluster Flow will generate it's own sensible default if this isn't set, so
+it's worth trying it without first.</p>
+<blockquote>
+<p><em>Note:</em> Cluster Flow will append the job dependency strings to the end of
+your custom command which are system specific, so it's important that
+<code>@cluster_environment</code> is correct.</p>
+</blockquote>
+<h2 id="config-file-reference"><a href="#config-file-reference" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Config File reference</h2>
+<p>The following section describes the available variables that can be set in the
+config file. For an example, see the <code>clusterflow.config.example</code> file that
+comes bundled with Cluster Flow.</p>
+<h3 id="email"><a href="#email" class="header-link"><span class="glyphicon glyphicon-link"></span></a>@email</h3>
+<p>Sets your e-mail address, used for e-mail notifications.</p>
+<h3 id="colourful--colorful"><a href="#colourful--colorful" class="header-link"><span class="glyphicon glyphicon-link"></span></a>@colourful / @colorful</h3>
+<p>Set to true to make the output from <code>cf --qstat</code> and <code>cf --qstatall</code>
+colourful (and hopefully easier to read).</p>
+<pre><code>@colourful  1</code></pre>
+<h3 id="merge_regex"><a href="#merge_regex" class="header-link"><span class="glyphicon glyphicon-link"></span></a>@merge_regex</h3>
+<p>A regex used to automatically merge files before pipeline processing starts.
+This works by matching a single regex group within a filename. If multiple
+input files have the same matching group, they will be merged. The regex
+group is then used to give the output filename.</p>
+<p>For example, given the following config regex:</p>
+<pre><code>@merge_regex    [1-8]_[0-9]{6}_[a-zA-Z0-9]+_(P\d+_\d+_[12]).fastq.gz</code></pre>
+<p>These input files:</p>
+<pre><code>1_160312_CDSH32SDB3889_P1234_001_1.fastq.gz
+1_160312_CDSH32SDB3889_P1234_001_2.fastq.gz
+2_160312_CDSH32SDB3889_P1234_001_1.fastq.gz
+2_160312_CDSH32SDB3889_P1234_001_2.fastq.gz</code></pre>
+<p>Would give the resulting merged files:</p>
+<pre><code>P1234_001_1.fastq.gz
+P1234_001_2.fastq.gz</code></pre>
+<h3 id="split_files"><a href="#split_files" class="header-link"><span class="glyphicon glyphicon-link"></span></a>@split_files</h3>
+<p>The default number of input files to send to each run. Typically set to 1.</p>
+<h3 id="max_runs"><a href="#max_runs" class="header-link"><span class="glyphicon glyphicon-link"></span></a>@max_runs</h3>
+<p>The maximum number of parallel runs that cluster flow will set off in one go. Default is 12 to avoid swamping the cluster for all other users.</p>
+<h3 id="total_cores"><a href="#total_cores" class="header-link"><span class="glyphicon glyphicon-link"></span></a>@total_cores</h3>
+<p>The total number of cores available to a Cluster Flow pipeline. Modules are
+given a recommended number of cores so that resources can be allocated without
+swamping the cluster.</p>
+<h3 id="total_mem"><a href="#total_mem" class="header-link"><span class="glyphicon glyphicon-link"></span></a>@total_mem</h3>
+<p>The total amount of memory available to a Cluster Flow pipeline. Modules are
+given a recommended quota so that resources can be allocated without swamping
+the cluster.</p>
+<h3 id="max_time"><a href="#max_time" class="header-link"><span class="glyphicon glyphicon-link"></span></a>@max_time</h3>
+<p>The maximum time that a job should request in a Cluster Flow pipeline. For
+example, to prevent jobs from requesting more than 10 days:</p>
+<pre><code>@max_time   10-00</code></pre>
+<h3 id="time_multiplier"><a href="#time_multiplier" class="header-link"><span class="glyphicon glyphicon-link"></span></a>@time_multiplier</h3>
+<p>If your cluster is running slowly and the default time limits specified
+in Cluster Flow modules are not enough, jobs will fail due to timing out.
+<code>@time_multiplier</code> is a quick and dirty way to avoid this. Setting
+<code>@time_multiplier</code> to <code>2</code> will double the requested time for every job.
+Note that these times will still be capped by <code>@max_time</code>.</p>
+<h3 id="priority"><a href="#priority" class="header-link"><span class="glyphicon glyphicon-link"></span></a>@priority</h3>
+<p>The priority to give to cluster jobs.</p>
+<h3 id="cluster_environment--custom_job_submit_command"><a href="#cluster_environment--custom_job_submit_command" class="header-link"><span class="glyphicon glyphicon-link"></span></a>@cluster_environment / @custom_job_submit_command</h3>
+<p>See above docs: <em><a href="#environment-setup">Environment setup</a></em>.</p>
+<h3 id="ignore_modules"><a href="#ignore_modules" class="header-link"><span class="glyphicon glyphicon-link"></span></a>@ignore_modules</h3>
+<p>If you do not use environment modules on your system, you can prevent Cluster
+Flow from trying to use them (and giving a warning) by adding this line to
+your config file.</p>
+<h3 id="environment_module_always"><a href="#environment_module_always" class="header-link"><span class="glyphicon glyphicon-link"></span></a>@environment_module_always</h3>
+<p>Specify an environment module to always load for every Cluster Flow pipeline.
+Can be used multiple times.</p>
+<h3 id="environment_module_alias"><a href="#environment_module_alias" class="header-link"><span class="glyphicon glyphicon-link"></span></a>@environment_module_alias</h3>
+<p>If using environment modules, you may get some errors claiming that certain
+tools are not installed. If you think that you do have that tool installed,
+it could be because of a minor difference in the module name (eg. <code>fastqc</code>
+versus <code>FastQC</code>). You can configure aliases in your configuration file.
+You can also use these aliases to specify specific software versions for
+Cluster Flow.</p>
+<p>Aliases are added with the <code>@environment_module_alias</code> tag. For example:</p>
+<pre><code>@environment_module_alias   fastqc  FastQC/0.11.2
+@environment_module_alias   trim_galore TrimGalore</code></pre>
+<h3 id="log_highlight_string--log_warning_string"><a href="#log_highlight_string--log_warning_string" class="header-link"><span class="glyphicon glyphicon-link"></span></a>@log_highlight_string / @log_warning_string</h3>
+<p>To pull out specific highlights or warnings from log files, you can specify
+search strings with these tags. If found, the e-mail will be highlighted
+accordingly and the lines from the log file will be displayed at the top
+of the report e-mail.</p>
+<p>For example:</p>
+<pre><code>@log_highlight_string at least one reported alignment
+@log_warning_string job failed</code></pre>
+<h3 id="notification"><a href="#notification" class="header-link"><span class="glyphicon glyphicon-link"></span></a>@notification</h3>
+<p>Multiple <code>@notification</code> key pairs can be set with the following values:</p>
+<ul>
+<li><code>complete</code>
+<ul>
+<li>A Cluster Flow e-mail notification is sent when all processing for all
+files has finished</li>
+</ul></li>
+<li><code>run</code>
+<ul>
+<li>A Cluster Flow e-mail is sent when each run finishes (each set of input files)</li>
+</ul></li>
+<li><code>end</code>
+<ul>
+<li>A cluster notification e-mail is sent when each cluster job ends. Likely
+to result in a full inbox!</li>
+</ul></li>
+<li><code>suspend</code>
+<ul>
+<li>A cluster notification e-mail is sent if a job is suspended</li>
+</ul></li>
+<li><code>abort</code>
+<ul>
+<li>A cluster notification e-mail is sent if a job is aborted</li>
+</ul></li>
+</ul>
+<p>Cluster Flow sends the <code>run</code> and <code>complete</code> notifications using the
+<code>cf_run_finished</code> and <code>cf_runs_all_finished</code> modules. These modules handle
+several tasks, such as cleaning useless warning messages from log files.
+E-mails contain the contents of all log files, plus a section at the top
+of highlighted messages, specified within log messages by being prefixed
+with <code>###CF</code>.</p>
+<h3 id="check_updates"><a href="#check_updates" class="header-link"><span class="glyphicon glyphicon-link"></span></a>@check_updates</h3>
+<p>Cluster Flow can automatically check for new versions. If an update is
+available, it will print a notification each time you run a job. You can
+specify how often Cluster Flow should check for updates with this parameter.
+The syntax is a number followed by <code>d</code>, <code>w</code>, <code>m</code> or <code>y</code> for days, weeks,
+months or years. Cluster Flow will check for an update at runtime if this
+period or more has elapsed since you last ran it. You can disable update
+checks and alerts by setting <code>@check_updates 0</code> in your
+<code>~/clusterflow.config</code> file.</p>
+<p>You can manually get Cluster Flow to check for updates by running
+<code>cf --check_updates</code></p></div></div><div class="docs_section">
+<h1 class="section-header" id="module-params"><a href="#module-params" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Module Params</h1>
+<div class="docs_block" id="module_options.md"><p>Many modules can have their default behaviour modified through the use of
+Cluster Flow <code>--params</code>. These are described below.</p>
+<p>See the documentation about <a href="index.html#module-parameters">Module Paramters</a>
+for more information about how to specify these options.</p>
+<h2 id="bedtools-intersectneg"><a href="#bedtools-intersectneg" class="header-link"><span class="glyphicon glyphicon-link"></span></a>BEDTools intersectNeg</h2>
+<h3><code>blacklistFile</code></h3>
+<p>Use to define a blacklist file (overrides any set as a genome reference).</p>
+<pre><code class="language-bash">cf --params blacklistFile="/path/to/file"</code></pre>
+<h2 id="bismark-align"><a href="#bismark-align" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Bismark align</h2>
+<h3><code>pbat</code></h3>
+<p>Use the Bismark <code>--pbat</code> flag.</p>
+<pre><code class="language-bash">cf --params pbat</code></pre>
+<h3><code>unmapped</code></h3>
+<p>Save the unmapped reads to a file (Bismark <code>--unmapped</code> flag).</p>
+<pre><code class="language-bash">cf --params unmapped</code></pre>
+<h3><code>bt1</code></h3>
+<p>Align with Bowtie1 instead of Bowtie2 (default).</p>
+<pre><code class="language-bash">cf --params bt1</code></pre>
+<h3><code>single_cell</code></h3>
+<p>Use the <code>--non_directional</code> Bismark flag.</p>
+<pre><code class="language-bash">cf --params single_cell</code></pre>
+<h3><code>subsample</code></h3>
+<p>Only align the first 1000000 reads.</p>
+<pre><code class="language-bash">cf --params subsample</code></pre>
+<h2 id="bowtie-1"><a href="#bowtie-1" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Bowtie 1</h2>
+<h3><code>mirna</code></h3>
+<p>Use alignment paramters suitable for miRNA alignment against miRBase references,
+instead of the standard Bowtie1 command.
+Uses <code>-n 0 -l 15 -e 99999 -k 200</code> bowtie flags, instead of default <code>-m 1 --strata</code>.</p>
+<pre><code class="language-bash">cf --params mirna</code></pre>
+<h2 id="cf-merge-files"><a href="#cf-merge-files" class="header-link"><span class="glyphicon glyphicon-link"></span></a>CF merge files</h2>
+<h3><code>regex</code></h3>
+<p>Override any merge regex set in the Cluster Flow configuration and use this instead.</p>
+<pre><code class="language-bash">cf --params regex="/REMOVE_([KEEP]+).fastq.gz/"</code></pre>
+<h2 id="deeptools-bamcoverage"><a href="#deeptools-bamcoverage" class="header-link"><span class="glyphicon glyphicon-link"></span></a>deeptools bamCoverage</h2>
+<h3><code>fragmentLength</code></h3>
+<p>Set the fragment length to use for bamCoverage, instead of taking from the
+phantompeaktools cross correlation analysis or using the default (200).</p>
+<pre><code class="language-bash">cf --params fragmentLength=120</code></pre>
+<h2 id="deeptools-bamfingerprint"><a href="#deeptools-bamfingerprint" class="header-link"><span class="glyphicon glyphicon-link"></span></a>deeptools bamFingerprint</h2>
+<h3><code>fragmentLength</code></h3>
+<p>Set the fragment length to use for bamCoverage, instead of taking from the
+phantompeaktools cross correlation analysis or using the default (200).</p>
+<pre><code class="language-bash">cf --params fragmentLength=120</code></pre>
+<h2 id="fastq-screen"><a href="#fastq-screen" class="header-link"><span class="glyphicon glyphicon-link"></span></a>FastQ Screen</h2>
+<h3><code>fastq_screen_config</code></h3>
+<p>Use a specific FastQ Screen config file (with <code>--conf</code> FastQ Screen flag).</p>
+<pre><code class="language-bash">cf --params fastq_screen_config="/path/to/config"</code></pre>
+<h2 id="fastqc"><a href="#fastqc" class="header-link"><span class="glyphicon glyphicon-link"></span></a>FastQC</h2>
+<h3><code>nogroup</code></h3>
+<p>Use the <code>--nogroup</code> option with FastQC to prevent automatic grouping of
+base pair positions in plots. You can end up with some very large plots if
+you have long reads!</p>
+<pre><code class="language-bash">cf --params nogroup</code></pre>
+<h2 id="featurecounts"><a href="#featurecounts" class="header-link"><span class="glyphicon glyphicon-link"></span></a>featureCounts</h2>
+<h3><code>stranded</code></h3>
+<p>Set the <code>-s 1</code> flag for featureCounts.</p>
+<pre><code class="language-bash">cf --params stranded</code></pre>
+<h3><code>stranded_rev</code></h3>
+<p>Set the <code>-s 2</code> flag for featureCounts.</p>
+<pre><code class="language-bash">cf --params stranded_rev</code></pre>
+<h3><code>id_tag</code></h3>
+<p>Specify the tag to use for counting in the GTF file. If not specified,
+module tries to guess by looking for a field called <code>gene_id</code> or <code>ID</code>.</p>
+<pre><code class="language-bash">cf --params id_tag="Gene"</code></pre>
+<h2 id="hicup"><a href="#hicup" class="header-link"><span class="glyphicon glyphicon-link"></span></a>HiCUP</h2>
+<h3><code>longest</code></h3>
+<p>The longest fragment to accept (HiCUP parameter <code>--longest</code>). Default: <code>800</code></p>
+<pre><code class="language-bash">cf --params longest=900</code></pre>
+<h3><code>shortest</code></h3>
+<p>The shortest fragment to accept (HiCUP parameter <code>--shortest</code>). Default: <code>100</code></p>
+<pre><code class="language-bash">cf --params shortest=50</code></pre>
+<h3><code>re1</code></h3>
+<p>The restriction enzyme recognition pattern to use. Default: <code>"A^AGCTT,HindIII"</code></p>
+<pre><code class="language-bash">cf --params re1="A^GATCT,BglII"</code></pre>
+<h2 id="htseq-counts"><a href="#htseq-counts" class="header-link"><span class="glyphicon glyphicon-link"></span></a>HTSeq Counts</h2>
+<h3><code>stranded</code></h3>
+<p>Set the <code>-s yes</code> flag for HTSeq Counts. Default is to set <code>-s no</code></p>
+<pre><code class="language-bash">cf --params stranded</code></pre>
+<h3><code>stranded_rev</code></h3>
+<p>Set the <code>-s reverse</code> flag for HTSeq Counts. Default is to set <code>-s no</code>.</p>
+<pre><code class="language-bash">cf --params stranded_rev</code></pre>
+<h3><code>id_tag</code></h3>
+<p>Specify the tag to use for counting in the GTF file. If not specified,
+module tries to guess by looking for a field called <code>gene_id</code> or <code>ID</code>.</p>
+<pre><code class="language-bash">cf --params id_tag="Gene"</code></pre>
+<h2 id="kallisto"><a href="#kallisto" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Kallisto</h2>
+<h3><code>estFragmentLength</code></h3>
+<p>Specify the estimated fragment length (Kallisto <code>--fragment-length</code> option). Default: 200.</p>
+<pre><code class="language-bash">cf --params estFragmentLength=300</code></pre>
+<h3><code>est_sd</code></h3>
+<p>Specify the fragment length standard deviation (Kallisto <code>--sd</code> option). Default: 20.</p>
+<pre><code class="language-bash">cf --params est_sd=30</code></pre>
+<h2 id="multiqc"><a href="#multiqc" class="header-link"><span class="glyphicon glyphicon-link"></span></a>MultiQC</h2>
+<h3><code>template</code></h3>
+<p>Specify the MultiQC template to use. Default: <code>default</code></p>
+<pre><code class="language-bash">cf --params template=geo</code></pre>
+<h2 id="rseqc-all-modules"><a href="#rseqc-all-modules" class="header-link"><span class="glyphicon glyphicon-link"></span></a>RSeQC (all modules)</h2>
+<h3><code>keep_intermediate</code></h3>
+<p>Do not delete the R files used to generate the PDF figures. Useful when running
+downstream tools such as MultiQC, that use these intermediate files.</p>
+<pre><code class="language-bash">cf --params keep_intermediate</code></pre>
+<h2 id="samtools-sort--index"><a href="#samtools-sort--index" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Samtools sort + index</h2>
+<h3><code>byname</code></h3>
+<p>Sort by name instead of position (<code>-n</code> flag).</p>
+<pre><code class="language-bash">cf --params byname</code></pre>
+<h3><code>forcesort</code></h3>
+<p>Don't skip the sorting step, even if the file already seems to be sorted.</p>
+<pre><code class="language-bash">cf --params forcesort</code></pre>
+<h2 id="star"><a href="#star" class="header-link"><span class="glyphicon glyphicon-link"></span></a>STAR</h2>
+<h3><code>LoadAndRemove</code></h3>
+<p>Load and remove genome index (<code>--genomeLoad LoadAndRemove</code>). Default: <code>NoSharedMemory</code>.</p>
+<pre><code class="language-bash">cf --params LoadAndRemove</code></pre>
+<h3><code>LoadAndKeep</code></h3>
+<p>Load and keep genome index (<code>--genomeLoad LoadAndKeep</code>). Default: <code>NoSharedMemory</code>.</p>
+<pre><code class="language-bash">cf --params LoadAndKeep</code></pre>
+<h3><code>outSAMattributes</code></h3>
+<p>Specify SAM attributes (<code>--outSAMattributes [attr]</code>). Default: <code>Standard</code>.</p>
+<pre><code class="language-bash">cf --params outSAMattributes="attr"</code></pre>
+<h2 id="trimgalore"><a href="#trimgalore" class="header-link"><span class="glyphicon glyphicon-link"></span></a>TrimGalore!</h2>
+<h3><code>min_readlength</code></h3>
+<p>Minimum read length for trimming to run. If the first file in each run group
+has reads less than this length, trimming will be skipped. Default: 50</p>
+<pre><code class="language-bash">cf --params min_readlength=30</code></pre>
+<h3><code>force_trim</code></h3>
+<p>Force TrimGalore! to run, even if reads are below minimum read length.</p>
+<pre><code class="language-bash">cf --params force_trim</code></pre>
+<h3><code>q_cutoff</code></h3>
+<p>Specify quality for trimming low-quality ends from reads in addition to adapter removal.
+Default Phred score: 20.</p>
+<pre><code class="language-bash">cf --params q_cutoff=10</code></pre>
+<h3><code>stringency</code></h3>
+<p>Number of bases of overlap with adapter sequence required to trim a sequence.
+Default: 1</p>
+<pre><code class="language-bash">cf --params stringency=3</code></pre>
+<h3><code>adapter</code></h3>
+<p>Specify an adapter sequence to trim. Default: Auto-detect (<em>Illumina universal</em>,
+<em>Nextera transposase</em> or <em>Illumina small RNA adapter</em>).</p>
+<pre><code class="language-bash">cf --params adapter=ATACAGCTAGCAGTAC</code></pre>
+<h3><code>RRBS</code></h3>
+<p>Specifies that the input file was an MspI digested RRBS sample.</p>
+<pre><code class="language-bash">cf --params RRBS</code></pre>
+<h3><code>nofastqc</code></h3>
+<p>Do not run FastQC after trimming is complete.</p>
+<pre><code>cf --params nofastqc</code></pre>
+<h3 id="specific-trimming"><a href="#specific-trimming" class="header-link"><span class="glyphicon glyphicon-link"></span></a> Specific trimming</h3>
+<p>To remove a custom number of bases from reads after adapter removal,
+the following parameters can be set:</p>
+<ul>
+<li><code>cf --params clip_r1=&lt;int&gt;</code>
+<ul>
+<li>Remove bp from the 5' end of read 1 (or single-end reads).</li>
+</ul></li>
+<li><code>cf --params clip_r2=&lt;int&gt;</code>
+<ul>
+<li>Remove bp from the 5' end of read 2 (paired-end only).</li>
+</ul></li>
+<li><code>cf --params three_prime_clip_r1=&lt;int&gt;</code>
+<ul>
+<li>Remove bp from the 3' end of read 1 <em>AFTER</em> adapter/quality trimming has been performed.</li>
+</ul></li>
+<li><code>cf --params three_prime_clip_r2=&lt;int&gt;</code>
+<ul>
+<li>Remove bp from the 3' end of read 2 <em>AFTER</em> adapter/quality trimming has been performed.</li>
+</ul></li>
+</ul>
+<p>The following params are presets which are easier to remember and use:</p>
+<ul>
+<li><code>cf --params trim=&lt;int&gt;</code>
+<ul>
+<li>Trim from 5' of R1 and R2. Equivalent to <code>clip_r1=&lt;int&gt; clip_r2=&lt;int&gt;</code>.</li>
+</ul></li>
+<li><code>cf --params pbat</code>
+<ul>
+<li><code>clip_r1 6</code></li>
+<li><code>clip_r2 6</code></li>
+</ul></li>
+<li><code>cf --params ATAC</code>
+<ul>
+<li><code>clip_r1 4</code></li>
+<li><code>clip_r2 4</code></li>
+</ul></li>
+<li><code>cf --params single_cell</code>
+<ul>
+<li><code>clip_r1 9</code></li>
+<li><code>clip_r2 9</code></li>
+</ul></li>
+<li><code>cf --params epignome</code>
+<ul>
+<li><code>clip_r1 7</code></li>
+<li><code>clip_r2 7</code></li>
+<li><code>three_prime_clip_r1 7</code></li>
+<li><code>three_prime_clip_r2 7</code></li>
+</ul></li>
+<li><code>cf --params accel</code>
+<ul>
+<li><code>clip_r1 10</code></li>
+<li><code>clip_r2 15</code></li>
+<li><code>three_prime_clip_r1 10</code></li>
+<li><code>three_prime_clip_r2 10</code></li>
+</ul></li>
+<li><code>cf --params cegx</code>
+<ul>
+<li><code>clip_r1 6</code></li>
+<li><code>clip_r2 6</code></li>
+<li><code>three_prime_clip_r1 2</code></li>
+<li><code>three_prime_clip_r2 2</code></li>
+</ul></li>
+</ul></div></div><div class="docs_section">
+<h1 class="section-header" id="writing-pipelines"><a href="#writing-pipelines" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Writing Pipelines</h1>
+<div class="docs_block" id="pipelines.md"><h2 id="pipeline-syntax"><a href="#pipeline-syntax" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Pipeline syntax</h2>
+<p>All pipelines conform to a standard syntax. The name of the pipeline is
+given by the filename, which should end in <code>.config</code>. The top of the file
+should contain a title and description surrounded by <code>/*</code> and <code>*/</code></p>
+<p>Variables can be set using the same <code>@key value</code> syntax as in
+<code>clusterflow.config</code> files.</p>
+<p>Modules are described using <code>#</code> prefixes. Tab indentation denotes dependencies
+between modules. Syntax is <code>#module_name parameters</code>, where there can be any
+number of space separated parameters which will be passed on to the module
+at run time.</p>
+<h3 id="example-pipeline"><a href="#example-pipeline" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Example pipeline</h3>
+<p>Here is an example pipeline, which requires a genome path and uses
+three modules:</p>
+<pre><code>/*
+Example Pipeline
+================
+This pipeline is an example of running three modules which depend on
+each other. Module 2 is run with a parameter that modifies its behaviour.
+This block of text is used when cf --help example_pipeline is run
+*/
+#module1
+       #module2
+       #module2 parameter
+             #module3</code></pre>
+<p>Remember to run <code>dos2unix</code> on your pipeline before you run it, if you're
+working on a windows machine.</p>
+<h2 id="run-files"><a href="#run-files" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Run files</h2>
+<p>Cluster Flow works by creating <code>.run</code> files for each batch of input files.
+These are a copy of the pipeline file, with filenames appended for each
+step of the pipeline. These files are used by subsequent steps in the
+pipeline to know which input files to use.</p>
+<p>Inspecting run files is a quick way to see exactly what analysis was
+done in a directory.</p></div></div><div class="docs_section">
+<h1 class="section-header" id="writing-modules"><a href="#writing-modules" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Writing Modules</h1>
+<div class="docs_block" id="modules.md"><h2 id="overview"><a href="#overview" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Overview</h2>
+<p>Modules are the heart of Cluster Flow. Each module is a wrapper around
+a single bioinformatics tool. Each module has three modes of operation:</p>
+<ol>
+<li>Specifying the required resources for the job</li>
+<li>Running the bioinformatics tool</li>
+<li>Printing a help message about the module</li>
+</ol>
+<p>Modules are executed using system commands, so can be written in any
+language. However, most existing modules are written in Perl.</p>
+<p>Module filenames must be in the format <code>&lt;module_name&gt;.cfmod.&lt;extension&gt;</code>,
+eg. <code>mymod.cfmod.pl</code>. They can be stored in the following locations
+(chosen in this order of preference):</p>
+<ul>
+<li>Current working directory</li>
+<li><code>~/.clusterflow/modules/</code></li>
+<li><code>&lt;installation_dir&gt;/modules/</code></li>
+</ul>
+<h3 id="example-module"><a href="#example-module" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Example module</h3>
+<p>An example module comes bundled with Cluster Flow, containing some highly
+commented pseudocode which you can modify for your own uses. You can see
+it in your <code>modules</code> directory:
+<a href="https://github.com/ewels/clusterflow/blob/master/modules/example_module.pl"><code>example_module.pl</code></a></p>
+<h3 id="existing-perl-scripts"><a href="#existing-perl-scripts" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Existing Perl Scripts</h3>
+<p>If you have an existing script or tool, it's tempting to try to convert
+it into a Cluster Flow module. However, I recommend instead keeping it
+as a standalone script and creating a Cluster Flow module to launch this
+instead. In our experience, this is much easier. It also has the
+advantage that your script can still be run outside Cluster Flow.</p>
+<h2 id="specifying-resources"><a href="#specifying-resources" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Specifying resources</h2>
+<p>At the top of every Cluster Flow module is a hash that defines the resources
+needed by the tool. It looks something like this:</p>
+<pre><code class="language-perl">my %requirements = (
+    'cores'     =&gt; $cores,
+    'memory'    =&gt; $mem,
+    'modules'   =&gt; $modules,
+    'references'=&gt; $refs,
+    'time'      =&gt; $time
+);</code></pre>
+<p>Each of these variables can be specified as a string, an array specifying
+a range of appropriate values, or a subroutine to calculate a value based
+on information specific to the run.</p>
+<h3 id="cores"><a href="#cores" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Cores</h3>
+<p>The number of required cores can be specified either as a string or an array.
+If your tool always uses a fixed number of cpus (for example, 1 if it's not
+multi-threaded), just specify that number in quotes (<code>'cores' =&gt; '1'</code>).</p>
+<p>If your tool can be sped up by using multiple cpus, you can specify a minimum
+and maximum number in an array (<code>'cores' =&gt; ['3','8']</code>). Cluster Flow will
+then allocate a number within that range according to how many jobs are being
+created in parallel. This way, jobs will run as fast as possible for a handful
+of files, but not overwhelm the cluster if many are being run at once.</p>
+<h3 id="memory"><a href="#memory" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Memory</h3>
+<p>Memory works just like cores, above - either specify a string or an array with
+a minimum and maximum amount. Numbers with no suffix will be interpreted
+as bytes, then you can use <code>K</code>, <code>M</code> and <code>G</code> suffixes to specify kilobytes, megabytes
+and gigabytes (<code>'memory' =&gt; '8G'</code>).</p>
+<p>In some cases it can be useful to use a subroutine to dynamically calculate
+the required memory. For example, you could inspect the filesize of a fasta
+genome reference to determine the required memory:</p>
+<pre><code class="language-perl">'memory'    =&gt; sub {
+    my $cf = $_[0];
+    if (defined($cf-&gt;{'refs'}{'fasta'}) &amp;&amp; -e $cf-&gt;{'refs'}{'fasta'}) {
+        # Multiple the reference filesize (in bytes) by 1.2
+        my $mem_usage = int(1.2 * -s $cf-&gt;{'refs'}{'fasta'});
+        return CF::Helpers::bytes_to_human_readable($mem_usage);
+    } else {
+        # Sensible default
+        return '8G';
+    }
+},</code></pre>
+<h3 id="modules"><a href="#modules" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Modules</h3>
+<p>A string or array of strings describing environment modules that should be loaded.
+Try to keep this as generic as possible. People can specify specific versions or
+naming in personal config files using <code>@environment_module_alias</code>.</p>
+<h3 id="references"><a href="#references" class="header-link"><span class="glyphicon glyphicon-link"></span></a>References</h3>
+<p>Genome reference and annotation is labelled with a field to describe it's type.
+If a reference is required, you should specify its type here. This prevents Cluster
+Flow from being launched if the reference genome is not specified.</p>
+<p>For example, the bowtie2 module specifies <code>'references'=&gt; 'bowtie2'</code>; the
+featureCounts module specifies <code>'references' =&gt; 'gtf'</code>.</p>
+<h3 id="time"><a href="#time" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Time</h3>
+<p>Some HPC clusters require a time limit to be specified when launching jobs. Here
+you should predict approximately how long your module should run.</p>
+<p>Some modules will always take a fixed amount of time to run, in which case this
+can be specified as a string. For ten minutes, specify <code>'time' =&gt; '10'</code>.</p>
+<p>The execution time for most modules will depend on how many input files they
+are processing. <strong>Modules often run with multiple sets of input files.</strong>
+To cope with this, supply a subroutine to this variable which can flexibly
+request an amount of time according to how many input files will be processed.</p>
+<p>The helper function <code>minutes_to_timestamp</code> is useful here - it takes a number
+of minutes and returns a properly formatted timestamp (see below for more
+information about helper functions).</p>
+<p>If a module typically takes three hours to run, it could request it as follows:</p>
+<pre><code class="language-perl">'time' =&gt; sub {
+    my $cf = $_[0];
+    my $num_files = $cf-&gt;{'num_starting_merged_aligned_files'};
+    return CF::Helpers::minutes_to_timestamp ($num_files * 3 * 60);
+}</code></pre>
+<p>The <code>$cf</code> variable is a hash containing information about the job. See below
+for a description of the keys available.</p>
+<p>Remember to be conservative - high time requests can delay queue priority,
+but low time requests will result in job failure.</p>
+<h3 id="help-text"><a href="#help-text" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Help Text</h3>
+<p>Cluster Flow can request help text from a module if called with
+<code>cf --help &lt;module_name&gt;</code>. You should write some text describing what the
+module does, including any parameters or customisation available.</p>
+<pre><code class="language-perl">my $helptext = "".("-"x15)."\n My awesome module\n".("-"x15)."\n
+This module is brilliant and worked first time because the author
+read all of the Cluster Flow documentation! What a hero!\n\n";</code></pre>
+<h2 id="module-launch"><a href="#module-launch" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Module launch</h2>
+<p>Once the requirements hash and help text are written, we call a core
+helper function called <code>module_start</code>. If the module is being called to
+request resource requirements or help, the function will exit. If it is
+being executed in a cluster job, it will return as hash with useful
+information such as the input filenames.</p>
+<p>Requirements should be passed to the function as a reference:</p>
+<pre><code class="language-perl">my %cf = CF::Helpers::module_start(\%requirements, $helptext);</code></pre>
+<p>The returned hash contains the following keys:
+<em>(<strong>NB</strong>: Not all of these are available in request subroutines)</em></p>
+<pre><code class="language-perl">%cf = {
+    refs = '&lt;hash&gt;',                # Reference annotation for the specified genome. Keys are the reference type, values are the path to the annotation.
+    prev_job_files = '&lt;array&gt;',     # File names resulting from preceding job.
+    starting_files = '&lt;array&gt;',     # File names for the initial files that this thread of the pipeline was started with.
+    files = '&lt;hash&gt;',               # Hash of arrays with all files from this pipeline thread. Keys are the module job IDs, values are arrays of output files.
+    cores = '&lt;int&gt;',                # The number of cores allocated to the module.
+    memory = '&lt;str&gt;',               # The amount of memory allocated to the module.
+    params = '&lt;hash&gt;',              # A hash of key: value pairs. Value is `True` if only a flag.
+    config = '&lt;hash&gt;',              # Hash containing arbitrary key: value configuration pairs from the run file. Always contains hash with key `notifications`.
+    num_starting_files = '&lt;int&gt;',   # Number of files that this thread of the pipeline started with.
+    num_starting_merged_files = '&lt;int&gt;', # Number of files that this thread of the pipeline started with, after merging if matched merge regex.
+    num_starting_merged_aligned_files = '&lt;int&gt;',  # Guess at number of files after alignment, based on whether pipeline is running in paired end mode or not.
+    pipeline_id = '&lt;str&gt;',          # The unique Cluster Flow ID of this pipeline. Useful for generating filenames.
+    pipeline_name = '&lt;str&gt;',        # The name of the pipeline that was launched.
+    pipeline_started = '&lt;int&gt;',     # A unix timestamp of when the pipeline was started.
+    job_id = '&lt;str&gt;',               # The unique Cluster Flow ID for this job.
+    prev_job_id = '&lt;str&gt;',          # The unique Cluster Flow ID for the previous job in the pipeline.
+    run_fn = '&lt;str&gt;',               # The filename of the run file for this thread of the pipeline.
+    run_fns = '&lt;array&gt;',            # All run file filenames for this pipeline (summary modules only).
+    modname = '&lt;str&gt;',              # Name of this module
+    mod_fn = '&lt;str&gt;',               # Filename of this module
+}</code></pre>
+<h3 id="checks"><a href="#checks" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Checks</h3>
+<p>Although not necessary, most modules that use genome references do a sanity
+check to make sure that they have what they need after this point. For
+example, the STAR module checks that it has the required reference:</p>
+<pre><code class="language-perl"># Check that we have a genome defined
+if(!defined($cf{'refs'}{'star'})){
+    die "\n\n###CF Error: No star path found in run file $cf{run_fn} for job $cf{job_id}. Exiting..";
+} else {
+    warn "\nAligning against $cf{refs}{star}\n\n";
+}</code></pre>
+<h3 id="version-logging"><a href="#version-logging" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Version logging</h3>
+<p>Again not necessary, but good practice - modules log the version of software
+that they're about to run for future reference:</p>
+<pre><code class="language-perl">warn "---------- &lt; module &gt; version information ----------\n";
+warn `MY_COMMAND --version`;
+warn "\n------- End of &lt; module &gt; version information ------\n";</code></pre>
+<h3 id="parameters"><a href="#parameters" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Parameters</h3>
+<p>Modules are able to customise the way that they run depending on the presence
+of custom parameters are run time. These are used for a range of reasons, such
+as customising bowtie alignments for miRNA data, changing trimming settings
+depending on library preparation type and many others. You can basically use
+them however you like, though you'll find may modules doing this sort of thing:</p>
+<pre><code class="language-perl">my $extra_flag = (defined($cf{'params'}{'myflag'})) ? '--extra_flag' : '';
+my $specific_var = '';
+if(defined($cf{'params'}{'myvar'})){
+    $specific_var = '--myvar '.$cf{'params'}{'myvar'};
+}
+# ..later..
+$cmd = "mycommand --always $extra_flag $specific_var"</code></pre>
+<h3 id="opening-the-run-file"><a href="#opening-the-run-file" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Opening the run file</h3>
+<p>Each part of the pipeline has a <code>.run</code> file, used by the modules to track
+the configuration options and output filenames as the pipeline progresses.</p>
+<p>Your pipeline will need to open this run file in append mode so that it can
+add the file names of any output that it creates.</p>
+<pre><code class="language-perl">open (RUN,'&gt;&gt;',$cf{'run_fn'}) or die "###CF Error: Can't write to $cf{run_fn}: $!";</code></pre>
+<h2 id="command-execution"><a href="#command-execution" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Command execution</h2>
+<h3 id="looping-through-files"><a href="#looping-through-files" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Looping through files</h3>
+<p>Once you have everything ready, you'll want to actually run your tool.
+Remember that modules typically run with a collection of input files, so you
+will need to loop through these and process them in sequence.</p>
+<p>How you do this looping depends on what input your tool expects. If your
+tool takes a single file and doesn't care whether it's paired end or single,
+you can simply loop through all files from the previous job:</p>
+<pre><code class="language-perl">foreach my $file (@{$cf{'prev_job_files'}}){
+    # process $file
+}</code></pre>
+<p>Most preprocessing and alignment tools need either one single end FastQ
+file or two paired end FastQ files. To handle this, you can use the
+<code>is_paired_end</code> helper function to separate the input files into single end
+and paired end:</p>
+<pre><code class="language-perl">my ($se_files, $pe_files) = CF::Helpers::is_paired_end(\%cf, @{$cf{'prev_job_files'}});</code></pre>
+<p>These files can then be looped over in separate loops:</p>
+<pre><code class="language-perl"># Go through each single end files and run Bowtie
+if($se_files &amp;&amp; scalar(@$se_files) &gt; 0){
+    foreach my $file (@$se_files){
+        # process $file
+    }
+}
+if($pe_files &amp;&amp; scalar(@$pe_files) &gt; 0){
+    foreach my $files_ref (@$pe_files){
+        my @files = @$files_ref;
+        if(scalar(@files) == 2){
+            # process $files[0] and $files[1]
+        } else {
+            warn "\n###CF Error! Bowtie paired end files had ".scalar(@files)." input files instead of 2\n";
+        }
+    }
+}</code></pre>
+<h3 id="building-a-command"><a href="#building-a-command" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Building a command</h3>
+<p>Typically, Cluster Flow modules build a system command in a string. This is
+then printed to stderr with the <code>###CFCMD</code> prefix. This is picked up by
+Cluster Flow and added to the summary html report and e-mail.</p>
+<pre><code class="language-perl">my $command = "my_command -i $file -o $output_fn";
+warn "\n###CFCMD $command\n\n";</code></pre>
+<h3 id="running-the-command"><a href="#running-the-command" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Running the command</h3>
+<p>Once build, the command should be executed using the perl <code>system</code> command.
+This command returns the exit code once complete, which can be checked to
+see whether the module has worked or not:
+<em>(0 is success, which evaluates to false)</em></p>
+<pre><code class="language-perl">if(!system ($command)){
+    # command worked
+} else {
+    # Command returned a non-zero result, probably went wrong...
+    warn "\n###CF Error! Example module (SE mode) failed for input file '$file': $? $!\n\n";
+}</code></pre>
+<h3 id="adding-the-output-to-the-run-file"><a href="#adding-the-output-to-the-run-file" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Adding the output to the run file</h3>
+<p>If your command ran successfully, you should have created a new output
+file. This should be added to the <code>.run</code> file along with the current
+job id, so that it can be used by subsequent modules in the pipeline:</p>
+<pre><code class="language-perl">if(-e $output_fn){
+    print RUN "$cf{job_id}\t$output_fn\n";
+} else {
+    warn "\n###CF Error! Example module output file $output_fn not found..\n";
+}</code></pre>
+<h2 id="job-completion"><a href="#job-completion" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Job Completion</h2>
+<h3 id="run-file-output"><a href="#run-file-output" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Run File Output</h3>
+<p>A run file is created by Cluster Flow for each batch of files. It describes
+variables to be used, the pipeline specified and the filenames used by each
+module. The syntax of variables and pipeline is described in Pipeline syntax.</p>
+<p>File names are described by a job identifier followed by a tab then a filename.
+Each module is provided with its own job ID and the ID of the job that was run
+previously. By using these identifiers, the module can read which input files
+to use and write out the resulting filenames to the run file when complete.
+Example run file syntax:</p>
+<pre><code>first_job_938 filename_1.txt
+first_job_938 filename_2.txt
+second_job_375 filename_1_processed.txt
+second_job_375 filename_2_processed.txt</code></pre>
+<p>There can be any number of extra parameters, these are specific the module
+and are specified in the pipeline configuration.</p>
+<h3 id="e-mail-report-highlights"><a href="#e-mail-report-highlights" class="header-link"><span class="glyphicon glyphicon-link"></span></a>E-mail report highlights</h3>
+<p>Any <code>STDOUT</code> or <code>STDERR</code> that your module produces will be written to the
+Cluster Flow log file. At the end of each run and pipeline, an e-mail will
+be sent to the submitter with details of the run results (if specified by
+the config settings). Because the log file can be very long Cluster Flow pulls
+out any lines starting with <code>###CF</code>. Typically, such a line should be printed
+when a module finishes, with a concise summary of whether it worked or not.
+Messages including the word <code>Error</code> will be highlighted and cause the final
+e-mail to have warning colours. The configuration options <code>@log_highlight_string</code>
+and <code>@log_warning_string</code> can customise this reporting.</p>
+<p>Modules should print the command that they are going to run to STDERR so that
+this is recorded in the log file. These are also sent in the e-mail
+notification and should start with <code>###CFCMD</code>.</p>
+<h3 id="exit-codes"><a href="#exit-codes" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Exit codes</h3>
+<p>It's likely that your cluster will continue to fire off the dependent jobs as
+soon as the parent jobs finish, irrespective of their output. If a module
+fails, the cleanest way to exit is with a success code, but without printing
+any resulting output filename. The following modules will not find their
+input filenames and so should immediately exit.</p>
+<h2 id="appendices"><a href="#appendices" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Appendices</h2>
+<h3 id="command-line-flags"><a href="#command-line-flags" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Command line flags</h3>
+<p>Cluster Flow modules are expected to respond to the following command
+line flags:</p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Step</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--requirements</code></td>
+<td>1</td>
+<td>Request the cluster resources needed by the module</td>
+</tr>
+<tr>
+<td><code>--run_fn</code> <str></td>
+<td>2</td>
+<td>Path to the Cluster Flow run file(s) for this pipeline</td>
+</tr>
+<tr>
+<td><code>--job_id</code> <str></td>
+<td>2</td>
+<td>Cluster job ID for this job</td>
+</tr>
+<tr>
+<td><code>--prev_job_id</code> <str></td>
+<td>2</td>
+<td>Cluster job ID for the previous job</td>
+</tr>
+<tr>
+<td><code>--cores &lt;int&gt;</code></td>
+<td>2</td>
+<td>Number of cores allocated to the module</td>
+</tr>
+<tr>
+<td><code>--mem &lt;str&gt;</code></td>
+<td>2</td>
+<td>Amount of memory allocated to the module</td>
+</tr>
+<tr>
+<td><code>--param &lt;str&gt;</code></td>
+<td>2</td>
+<td>Extra parameters to be used</td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>3</td>
+<td>Print module help</td>
+</tr>
+</tbody>
+</table>
+<p>The step number refers to whether the module is being executed:</p>
+<ol>
+<li>By the core Cluster Flow script at pipeline launch</li>
+<li>Within a cluster job, executing the tool</li>
+<li>By the core Cluster Flow script, when <code>cf --help &lt;modname&gt;</code> is specified.</li>
+</ol>
+<h2 id="helper-functions"><a href="#helper-functions" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Helper Functions</h2>
+<p>If your module is written in Perl, there are some common Cluster Flow
+packages (perl modules) that you can use to provide some pre-written
+functions.</p>
+<p>There are currently three packages available to Cluster Flow modules.
+<code>Helpers</code> contains subroutines of general use for most modules.
+<code>Constants</code> and <code>Headnodehelpers</code> contain subroutines primarily for
+use in the main <code>cf</code> script. You can include the Helpers package by
+adding the following to the top of your module file:</p>
+<pre><code class="language-perl">use FindBin qw($RealBin);
+use lib "$FindBin::RealBin/../source";
+use CF::Helpers;</code></pre>
+<p>We use the package <code>FindBin</code> to add the binary directory to the path
+(where <code>cf</code> is executing from).</p>
+<p>Note that there is a Python version of the Helpers script which contains
+many of the same functions and works in a comparable way.</p>
+<h3 id="module_start"><a href="#module_start" class="header-link"><span class="glyphicon glyphicon-link"></span></a>module_start</h3>
+<p>Handles the initiation of all modules. See above for a description of use.</p>
+<h3 id="parse_runfile"><a href="#parse_runfile" class="header-link"><span class="glyphicon glyphicon-link"></span></a>parse_runfile</h3>
+<p>Parses <code>.run</code> files. Called by <code>module_start()</code> and not usually run directly.</p>
+<h3 id="load_environment_modules"><a href="#load_environment_modules" class="header-link"><span class="glyphicon glyphicon-link"></span></a>load_environment_modules</h3>
+<p>Used to load environment modules into the PATH. Typically used by the
+main <code>cf</code> script, though occasionally used elsewhere for special occasions.</p>
+<h3 id="is_paired_end"><a href="#is_paired_end" class="header-link"><span class="glyphicon glyphicon-link"></span></a>is_paired_end</h3>
+<p>This function takes an array of file names and returns an array of single
+end files and an array of arrays of paired end files.</p>
+<p>First, it checks the configuration set in the <code>.run</code> file.
+If <code>@force_paired_end</code> is set, it sorts the files from the last job into
+pairs and returns them. If <code>@force_single_end</code> is set it returns all
+previous files as single end.</p>
+<p>If neither variables are set, it sorts the files alphabetically, then
+removes any occurance of <code>_[1-4]</code> from the filename and compares the list.
+Identical pairs are returned as paired end.</p>
+<pre><code class="language-perl">my ($se_files, $pe_files) = CF::Helpers::is_paired_end(@$files);
+foreach my $file (@$se_files){
+    print "$file is single end\n";
+}
+foreach my $files_ref (@$pe_files){
+    my @files = @$files_ref;
+    print $files[0]." and ".$files[1]." are paired end.\n";
+}</code></pre>
+<h3 id="is_bam_paired_end"><a href="#is_bam_paired_end" class="header-link"><span class="glyphicon glyphicon-link"></span></a>is_bam_paired_end</h3>
+<p>Looks at BAM/SAM file headers and tries to determine whether it has been
+generated using paired end input files or single end. The function reads
+through the first 1000 reads of the file and counts how many <code>0x1</code> flags
+it finds (denoting a paired read). If <code>`&gt;= 800</code> of those first 1000 reads
+are paired end, it returns <code>true</code>.</p>
+<pre><code class="language-perl">if(CF::Helpers::is_bam_paired_end($file)){
+    ## do something with paired end BAM
+} else {
+    ## do something with single end BAM
+}</code></pre>
+<h3 id="fastq_encoding_type"><a href="#fastq_encoding_type" class="header-link"><span class="glyphicon glyphicon-link"></span></a>fastq_encoding_type</h3>
+<p>Scans a FastQ file and tries to determine the encoding type. Returns strings
+<code>integer</code>, <code>solexa</code>, <code>phred33</code>, <code>phred64</code> or <code>0</code> if too few reads to safely
+determine. This is done by observing the minimum and maximum quality scores.</p>
+<p>For more details, see the
+<a href="http://en.wikipedia.org/wiki/FASTQ_format#Encoding">Wikipedia page on FastQ encoding</a></p>
+<pre><code class="language-perl">($encoding) = CF::Helpers::fastq_encoding_type($file);</code></pre>
+<h3 id="fastq_min_length"><a href="#fastq_min_length" class="header-link"><span class="glyphicon glyphicon-link"></span></a>fastq_min_length</h3>
+<p>Scans the first 100000 reads of a FastQ file and returns the longest read
+length that it finds.</p>
+<pre><code class="language-perl">my $min_length = CF::Helpers::fastq_min_length($file);</code></pre>
+<h3 id="parse_seconds"><a href="#parse_seconds" class="header-link"><span class="glyphicon glyphicon-link"></span></a>parse_seconds</h3>
+<p>Takes time in seconds as an input and returns a human readable string.
+The optional second <code>$long</code> variable determines whether to use <code>h</code>/<code>m</code>/<code>s</code>
+(<code>0</code>, false) or <code>hours</code>/<code>minutes</code>/<code>seconds</code> (<code>1</code>, true, the default).</p>
+<pre><code class="language-perl">my $time = CF::Helpers::parse_seconds($seconds, $long);</code></pre>
+<h3 id="timestamp_to_minutes--minutes_to_timestamp"><a href="#timestamp_to_minutes--minutes_to_timestamp" class="header-link"><span class="glyphicon glyphicon-link"></span></a>timestamp_to_minutes / minutes_to_timestamp</h3>
+<p>Functions to convert between a SLURM / HPC style timestamp and minutes.
+Attempts string parsing in the following order:</p>
+<ol>
+<li>minutes</li>
+<li>minutes:seconds</li>
+<li>hours:minutes:seconds</li>
+<li>days-hours</li>
+<li>days-hours:minutes</li>
+<li>days-hours:minutes:seconds</li>
+</ol>
+<pre><code class="language-perl">my $minutes = CF::Helpers::timestamp_to_minutes($timestamp);
+my $timestamp = CF::Helpers::minutes_to_timestamp($minutes);</code></pre>
+<h3 id="human_readable_to_bytes--bytes_to_human_readable"><a href="#human_readable_to_bytes--bytes_to_human_readable" class="header-link"><span class="glyphicon glyphicon-link"></span></a>human_readable_to_bytes / bytes_to_human_readable</h3>
+<p>Two functions which convert between human readable memory strings
+(eg. <code>4G</code> or <code>100M</code>) and bytes.</p>
+<pre><code class="language-perl">my $bytes = CF::Helpers::human_readable_to_bytes('3G');
+my $size = CF::Helpers::bytes_to_human_readable('7728742');</code></pre>
+<h3 id="mem_return_mbs"><a href="#mem_return_mbs" class="header-link"><span class="glyphicon glyphicon-link"></span></a>mem_return_mbs</h3>
+<p>Takes a memory string and returns a number of megabytes, rounding
+up to the nearest MB.</p>
+<h3 id="allocate_cores"><a href="#allocate_cores" class="header-link"><span class="glyphicon glyphicon-link"></span></a>allocate_cores</h3>
+<p>Takes the suggested number of cores to use, a minimum and maximum number
+and returns a sensible result.</p>
+<pre><code class="language-perl">my $cores = CF::Helpers::allocate_cores($recommended, $min, $max);</code></pre>
+<h3 id="allocate_memory"><a href="#allocate_memory" class="header-link"><span class="glyphicon glyphicon-link"></span></a>allocate_memory</h3>
+<p>Takes the suggested number of memory to use, a minimum and maximum amount
+and returns a sensible result. Input can be human readable strings or bytes.
+Returns a value in bytes.</p>
+<pre><code class="language-perl">my $mem = CF::Helpers::allocate_memory($recommended, $min, $max);</code></pre>
+<h3 id="cf_compare_version_numbers"><a href="#cf_compare_version_numbers" class="header-link"><span class="glyphicon glyphicon-link"></span></a>cf_compare_version_numbers</h3>
+<p>Function to properly compare software version numbers. Correctly returns
+that <code>v0.10</code> is greater than <code>v0.9</code>.</p></div></div><div class="docs_section">
+<h1 class="section-header" id="troubleshooting"><a href="#troubleshooting" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Troubleshooting</h1>
+<div class="docs_block" id="troubleshooting.md"><h2 id="bugs-and-errors"><a href="#bugs-and-errors" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Bugs and Errors</h2>
+<p>If you come across a strange looking error message or find a bug, please do
+let us know. You submit new issues here: <a href="https://github.com/ewels/clusterflow/issues"><a href="https://github.com/ewels/clusterflow/issues">https://github.com/ewels/clusterflow/issues</a></a></p>
+<h3 id="feature-requests"><a href="#feature-requests" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Feature Requests</h3>
+<p>If you'd like Cluster Flow to do something it doesn't, log a request! The issue
+tracker system mentioned above can be used for enhancement requests too.</p>
+<h3 id="e-mail"><a href="#e-mail" class="header-link"><span class="glyphicon glyphicon-link"></span></a>E-mail</h3>
+<p>If you don't want to set up a GitHub account, feel free to drop the author an
+e-mail at <a href="mailto:phil.ewels@scilifelab.se">phil.ewels@scilifelab.se</a></p>
+<h2 id="frequently-asked-questions"><a href="#frequently-asked-questions" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Frequently Asked Questions</h2>
+<h3 id="permission-errors"><a href="#permission-errors" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Permission Errors</h3>
+<p>A number of errors can be caused by scripts not having executable file
+privileges. You can see the file permissions with <code>ls -l</code>, you should see
+something like this:</p>
+<pre><code>$ ls -l clusterflow/modules/
+total 608
+-rwxrwxr-x 1 phil phil 6770 May 20 16:40 bismark_align.cfmod
+-rwxrwxr-x 1 phil phil 4291 May 16 12:54 bismark_deduplicate.cfmod
+-rwxrwxr-x 1 phil phil 2748 May 16 12:54 bismark_messy.cfmod
+-rwxrwxr-x 1 phil phil 5652 May 16 12:54 bismark_methXtract.cfmod
+-rwxrwxr-x 1 phil phil 3553 May 16 12:54 bismark_tidy.cfmod
+-rwxrwxr-x 1 phil phil 7119 May 16 12:54 bowtie1.cfmod</code></pre>
+<p>This example is for the modules directory (all modules should have executable
+privileges for all), the same applies to the main <code>cf</code> file.</p>
+<h4>DOS carriage returns</h4>
+<p>If you've edited any files, you may get problems due to windows-based editors
+putting DOS-style <code>\r</code> carriage returns in.</p>
+<p>Most linux environments come with a package called <code>dos2unix</code> which will
+clean these up:</p>
+<pre><code>dos2unix *</code></pre>
+<h3 id="error105-unable-to-locate-a-modulefile-for-clusterflow"><a href="#error105-unable-to-locate-a-modulefile-for-clusterflow" class="header-link"><span class="glyphicon glyphicon-link"></span></a>ERROR:105: Unable to locate a modulefile for 'clusterflow'</h3>
+<p>This error probably means that Cluster Flow isn't installed in your
+environment module system, and you're trying to run <code>module load clusterflow</code></p>
+<p>You can skip this step if you have another way of accessing the <code>cf</code> file,
+or see the <a href="https://clusterflow.io/docs/installation/#environment_modules">Installation Instructions</a>
+for details about how to set Cluster Flow up with environment modules.</p>
+<h3 id="unable-to-run-job-job-rejected-the-requested-parallel-environment-quotortequot-does-not-exist"><a href="#unable-to-run-job-job-rejected-the-requested-parallel-environment-quotortequot-does-not-exist" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Unable to run job: job rejected: the requested parallel environment &quot;orte&quot; does not exist.</h3>
+<p>This message means that your GRIDEngine setup doesn't have the default
+<code>orte</code> environment set up.  If you have different environments set up you
+can list them with:</p>
+<pre><code>qconf -spl</code></pre>
+<p>You can get the details of any environment with:</p>
+<pre><code>qconf -sp [name]</code></pre>
+<p>If you find one which assigns slots to a single node (<code>allocation_rule</code>
+should be <code>$fill_up</code>).</p>
+<p>Once you've found your named environment, set <code>@cluster_queue_environment</code> in
+your Cluster Flow config file.</p>
+<p><em>(Thanks to Simon Andrews for help with this)</em></p>
+<h3 id="unable-to-run-job-job-rejected-other-reasons"><a href="#unable-to-run-job-job-rejected-other-reasons" class="header-link"><span class="glyphicon glyphicon-link"></span></a>Unable to run job: job rejected (other reasons)</h3>
+<p>There may be other differences in the job submission requests that cause
+them to fail. If you see errors such as this, you can use the
+<code>@custom_job_submit_command</code> configuration variable to customise the way
+that jobs are requested.</p></div></div>    </div>
+    <div class="col-sm-3" id="toc_column">
+      <div id="toc" data-spy="affix" data-offset-top="278">
+        
+<ul class="nav nav-stacked">
+<li><a href="#introduction">Introduction</a>
+<ul class="nav nav-stacked">
+<li><a href="#tutorial-videos">Tutorial Videos</a></li>
+</ul>
+</li>
+<li><a href="#installation">Installation</a>
+<ul class="nav nav-stacked">
+<li><a href="#requirements">Requirements</a></li>
+<li><a href="#environment-module">Environment Module</a></li>
+<li><a href="#manual-installation">Manual Installation</a></li>
+<li><a href="#configuration-wizard">Configuration Wizard</a></li>
+<li><a href="#adding-reference-genomes">Adding Reference Genomes</a></li>
+<li><a href="#do-a-test-run">Do a test run!</a></li>
+</ul>
+</li>
+<li><a href="#usage">Usage</a>
+<ul class="nav nav-stacked">
+<li><a href="#listing-whats-available">Listing what's available</a></li>
+<li><a href="#getting-help">Getting help</a></li>
+<li><a href="#starting-a-run">Starting a run</a></li>
+<li><a href="#module-parameters">Module Parameters</a></li>
+<li><a href="#filename-checking">Filename checking</a></li>
+<li><a href="#downloading-files">Downloading files</a></li>
+<li><a href="#avoiding-cluster-overload">Avoiding cluster overload</a></li>
+</ul>
+</li>
+<li><a href="#command-line">Command Line</a>
+<ul class="nav nav-stacked">
+<li><a href="#cluster-flow-command-line-reference">Cluster Flow Command Line Reference</a></li>
+<li><a href="#customising-behaviour">Customising Behaviour</a></li>
+<li><a href="#other-functions">Other Functions</a></li>
+</ul>
+</li>
+<li><a href="#configuration">Configuration</a>
+<ul class="nav nav-stacked">
+<li><a href="#config-file-locations">Config file locations</a></li>
+<li><a href="#environment-setup">Environment Setup</a></li>
+<li><a href="#config-file-reference">Config File reference</a></li>
+</ul>
+</li>
+<li><a href="#module-params">Module Params</a>
+<ul class="nav nav-stacked">
+<li><a href="#bedtools-intersectneg">BEDTools intersectNeg</a></li>
+<li><a href="#bismark-align">Bismark align</a></li>
+<li><a href="#bowtie-1">Bowtie 1</a></li>
+<li><a href="#cf-merge-files">CF merge files</a></li>
+<li><a href="#deeptools-bamcoverage">deeptools bamCoverage</a></li>
+<li><a href="#deeptools-bamfingerprint">deeptools bamFingerprint</a></li>
+<li><a href="#fastq-screen">FastQ Screen</a></li>
+<li><a href="#fastqc">FastQC</a></li>
+<li><a href="#featurecounts">featureCounts</a></li>
+<li><a href="#hicup">HiCUP</a></li>
+<li><a href="#htseq-counts">HTSeq Counts</a></li>
+<li><a href="#kallisto">Kallisto</a></li>
+<li><a href="#multiqc">MultiQC</a></li>
+<li><a href="#rseqc-all-modules">RSeQC (all modules)</a></li>
+<li><a href="#samtools-sort--index">Samtools sort + index</a></li>
+<li><a href="#star">STAR</a></li>
+<li><a href="#trimgalore">TrimGalore!</a></li>
+</ul>
+</li>
+<li><a href="#writing-pipelines">Writing Pipelines</a>
+<ul class="nav nav-stacked">
+<li><a href="#pipeline-syntax">Pipeline syntax</a></li>
+<li><a href="#run-files">Run files</a></li>
+</ul>
+</li>
+<li><a href="#writing-modules">Writing Modules</a>
+<ul class="nav nav-stacked">
+<li><a href="#overview">Overview</a></li>
+<li><a href="#specifying-resources">Specifying resources</a></li>
+<li><a href="#module-launch">Module launch</a></li>
+<li><a href="#command-execution">Command execution</a></li>
+<li><a href="#job-completion">Job Completion</a></li>
+<li><a href="#appendices">Appendices</a></li>
+<li><a href="#helper-functions">Helper Functions</a></li>
+</ul>
+</li>
+<li><a href="#troubleshooting">Troubleshooting</a>
+<ul class="nav nav-stacked">
+<li><a href="#bugs-and-errors">Bugs and Errors</a></li>
+<li><a href="#frequently-asked-questions">Frequently Asked Questions</a></li></ul></li></ul>        <p class="backtotop"><a href="#">Back to top</a></p>
+      </div>
+    </div>
+  </div>
+</div> <!-- /container -->
+  
+  
+
+
+<footer class="container">
+	<p>Cluster Flow was written by <a href="http://phil.ewels.co.uk" target="_blank">Phil Ewels</a> whilst
+    working at the <a href="http://www.babraham.ac.uk" target="_blank">Babraham Institute</a>.
+    He now maintains it from <a href="http://www.scilifelab.se" target="_blank">SciLifeLab</a> in Stockholm, Sweden.</p>
+	<p>This documentation is <a href="https://github.com/ewels/clusterflow/tree/master/docs" title="View the markdown source">
+    written using markdown</a> and is included with the Cluster Flow source code.</p>
+</footer>
+
+<script src="../js/jquery-1.11.3.min.js"></script>
+<script src="../js/bootstrap.min.js"></script>
+<script src="../js/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="../js/docs.js"></script>
+
+<!-- Google Analytics-->
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o), m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m) })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-51481908-1', 'ewels.github.io');
+  ga('send', 'pageview');
+</script>
+</body>
+</html>

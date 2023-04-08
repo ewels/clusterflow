@@ -1,0 +1,12 @@
+
+------------------------------
+ Samtools Sort & Index Module
+------------------------------
+
+Tries to index BAM / SAM files. If fails, assumes that file is not sorted
+and runs samtools sort, then attempts to index again.
+Will assume anything not ending in .bam is a SAM file and will convert to
+BAM. Output is basename_srtd.bam if sorted.
+Index files are written to disk but not written to CF run files.
+Using parameter 'byname' or '-n' in pipeline forces sorting by read name.
+

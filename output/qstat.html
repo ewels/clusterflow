@@ -1,0 +1,34 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+======================================================================
+ Cluster Flow Pipeline: fastq_bismark
+ Submitted:             14 seconds ago
+ Working Directory:     /home/clusterflow/public_html/demo/demofiles
+ Cluster Flow ID:       fastq_bismark_1432818534
+======================================================================
+
+ - <span style="background-color: #fdf6e3; color: #b58900;"> bismark_align </span>                     <span style="color:#268bd2;">[8 cores]</span>
+      - bismark_deduplicate
+           - bismark_methXtract
+               - bismark_report
+
+ - <span style="background-color: #fdf6e3; color: #b58900;"> trim_galore </span>                       <span style="color:#268bd2;">[3 cores]</span>
+      - bismark_align
+           - bismark_deduplicate
+                - bismark_methXtract
+                     - bismark_report
+
+ - <span style="background-color: #fdf6e3; color: #b58900;"> trim_galore </span>                       <span style="color:#268bd2;">[3 cores]</span>
+      - bismark_align
+           - bismark_deduplicate
+                - bismark_methXtract
+                     - bismark_report
+                          - email_run_complete
+                               - bismark_summary_report
+
+ - <span style="background-color: #fdf6e3; color: #b58900;"> trim_galore </span>                       <span style="color:#268bd2;">[3 cores]</span>  <span style="color: #b58900;">[queued, priority 100000]</span>
+      - bismark_align
+           - bismark_deduplicate
+                - bismark_methXtract
+                     - bismark_report

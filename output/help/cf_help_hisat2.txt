@@ -1,0 +1,14 @@
+
+---------------
+ Hisat2 Module
+---------------
+
+Hisat2 is a spliced aligner for RNA-Seq data.  It is fast and memory
+efficient.
+This script works out the encoding of input files, guesses whether they're
+paired end or not and runs hisat2. Output is piped through samtools to
+generate BAM files.
+
+For further information, please run hisat2 --help
+
+

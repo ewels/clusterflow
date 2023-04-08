@@ -1,0 +1,11 @@
+
+---------------------
+ FastQ Screen Module
+---------------------
+
+FastQ Screen is a quality control tool that allows you to
+take a sequence dataset and search it against a set of bowtie databases.
+
+For further information, please run fastq_screen --help
+
+

@@ -1,0 +1,10 @@
+
+---------------
+ MultiQC
+---------------
+
+MultiQC creates summary reports showing analysis results
+across multiple samples for any analysis pipeline.
+For further information, please run multiqc --help
+
+

@@ -1,0 +1,22 @@
+
+----------------------
+ Bismark Align Module
+----------------------
+
+The bismark_align module runs the main bismark script.
+Bismark is a program to map bisulfite treated sequencing reads
+to a genome of interest and perform methylation calls.
+
+PBAT, single cell and Bowtie 1 mode can be specified in
+pipelines with the pbat, single_cell bt1 parameters. For example:
+  #bismark_align	pbat
+
+  #bismark_align	bt1
+
+  #bismark_align	single_cell
+
+  #bismark_align	unmapped
+
+Use bismark --help for further information.
+
+

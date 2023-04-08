@@ -1,0 +1,14 @@
+
+------------------------------
+ RSeQC - Inner Distance
+------------------------------
+
+Module to run RSeQC 'inner distance' script:
+http://rseqc.sourceforge.net/#inner-distance-py
+Calculates the distance between reasd for an RNA-seq library, whilst
+considering introns. Takes aligned BAM files as input. Requires a
+BED12 reference gene model. Uses first 1000000 reads.
+
+Use the 'keep_intermediate' parameter to keep the inner_distance.txt
+and inner_distance_plot.r files, otherwise these will be deleted.
+

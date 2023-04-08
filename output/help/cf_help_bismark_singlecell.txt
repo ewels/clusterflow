@@ -1,0 +1,19 @@
+
+----------------------------
+Bismark Single Cell Pipeline
+----------------------------
+This pipeline takes FastQ files as input and processes
+with Bismark (alignment, deduplication, methylation
+extractor then report generation).
+It runs Bismark with the --non_directional parameter for alignment
+
+--------------------
+ Pipeline:
+--------------------
+
+#bismark_align single_cell
+	#bismark_deduplicate
+		#bismark_methXtract single_cell
+			#bismark_report
+				>bismark_summary_report
+

@@ -1,0 +1,7 @@
+
+------------------------------
+ Samtools bam2sam Module
+------------------------------
+
+Converts BAM to SAM files using samtools view.
+

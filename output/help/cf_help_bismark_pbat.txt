@@ -1,0 +1,19 @@
+
+----------------------------
+SRA to Bismark PBAT Pipeline
+----------------------------
+This pipeline takes FastQ files as input and processes
+ with Bismark (alignment, deduplication, methyaltion
+extractor then tidying up and report generation).
+It runs Bismark with the --pbat parameter as well as --ignore 4
+
+--------------------
+ Pipeline:
+--------------------
+
+#bismark_align pbat
+	#bismark_deduplicate
+		#bismark_methXtract pbat
+			#bismark_report
+            	>bismark_summary_report
+

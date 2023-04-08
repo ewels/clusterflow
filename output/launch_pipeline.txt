@@ -1,0 +1,13 @@
+==================================================
+ Cluster Flow v0.4
+ Launching pipeline {{pipeline}}_1432815138
+==================================================
+
+Filenames look like single-end input. Setting --single
+Specify --paired to prevent this behaviour.
+
+No file groups found with merge regex.
+
+Processing 4 files in 4 runs.
+
+Pipeline to be used:

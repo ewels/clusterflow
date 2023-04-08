@@ -1,0 +1,35 @@
+
+-----------------------
+CF Merge Files Module
+-----------------------
+This core Cluster Flow module merges files. It can be used in two ways:
+
+1. Setting --merge on the command line or @merge_regex in the configuration
+file. The core cf executable will use this string in a regex for each
+input file and try to group them. The module will automatically be
+prepended to your pipeline. This is useful for sequencing centres who
+split samples across lanes, for example.
+
+2. Using the module in the middle of a pipeline, with a parameter set as
+the merge regex. For example: #cf_merge_files regex="[a-z]_(P\d+)_[12]"
+This is useful when a pipeline generates multiple files from a step
+and you would like to merge them. Note that input file lists will be
+split into parallel runs by Cluster Flow, and the module will not be
+able to merge files in parallel threads.
+
+The module uses the regex to match filenames. A single set of parentheses
+should be used for the unique grouping factor. This will be used for the
+resulting output filename.
+
+For example, consider the following regex:
+[1-6]_[0-9]{6}_[a-zA-Z0-9]+_(P\d+_\d+_[12]).fastq.gz
+
+If used with the following files:
+1_120119_QOS3SBTASX_P8294_101_1.fastq.gz
+2_120119_QOS3SBTASX_P8294_101_1.fastq.gz
+
+Would result in the following merged file: P8294_101_1.fastq.gz
+
+As such, this module can also be used to clean up file names without
+actually merging anything.
+

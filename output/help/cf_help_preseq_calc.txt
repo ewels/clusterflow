@@ -1,0 +1,13 @@
+
+-----------------
+ Preseq Module
+-----------------
+
+Preseq is a tool to calculate the complexity of a sequencing library.
+The lc_extrap mode is used. See http://smithlabresearch.org/software/preseq/
+for more information.
+
+Input is a sorted and indexed BAM file. Only the BAM file should be
+in the run file, the .bai index file will be assumed.
+
+

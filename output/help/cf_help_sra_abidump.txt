@@ -1,0 +1,9 @@
+
+-----------------------
+ SRA SOLiD Dump Module
+-----------------------
+
+This module uses the sra toolkit abi-dump package
+to extract  csqual and csfasta files from .sra input.
+
+

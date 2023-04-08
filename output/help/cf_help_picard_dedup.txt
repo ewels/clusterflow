@@ -1,0 +1,10 @@
+
+---------------
+ Picard Deduplicate
+---------------
+
+Uses MarkDuplicates.jar from Picard to remove duplicates from a bam file.
+Input is a sorted bam file. Output is basename_dedup.bam.
+A file with metrics basename_picardDupMetrics.txt is also produced..
+
+

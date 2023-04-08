@@ -1,0 +1,12 @@
+
+---------------------
+ Bismark Report Module
+---------------------
+
+This script runs the bismark2report script to generate an
+overview report. It will run on everything in the directory,
+overwriting previously generated reports.
+
+For further information, please run bismark2report --help
+
+

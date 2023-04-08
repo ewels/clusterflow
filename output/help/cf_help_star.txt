@@ -1,0 +1,10 @@
+
+-----------------
+ STAR Module
+-----------------
+
+STAR aligner. Requires a minimum of ~30GB RAM for human genome.
+
+For further information, please run STAR --help
+
+

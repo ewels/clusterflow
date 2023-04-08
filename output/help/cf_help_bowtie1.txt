@@ -1,0 +1,19 @@
+
+-----------------
+ Bowtie 1 Module
+-----------------
+
+Bowtie is an ultrafast, memory-efficient short read aligner.
+It aligns short DNA sequences (reads) to a reference genome. This script
+works out the encoding of input files, guesses whether they're paired end
+or not and runs bowtie. Output is piped through samtools to generate BAM files.
+
+If input files are gzipped they will either be piped through zcat
+(single end) or gunzipped, processed and zipped again (paired end).
+
+To use this module to align microRNAs, use the parameter mirna, eg:
+#bowtie mirna
+
+For further information about bowtie, please run bowtie --help
+
+

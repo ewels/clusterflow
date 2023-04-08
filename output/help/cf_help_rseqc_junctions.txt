@@ -1,0 +1,12 @@
+
+------------------------------
+ RSeQC - Inner Distance
+------------------------------
+
+Module to run RSeQC 'junctions annotation' and 'junction saturation' scripts:
+http://rseqc.sourceforge.net/#junction-annotation-py
+http://rseqc.sourceforge.net/#junction-saturation-py
+
+Use the 'keep_intermediate' parameter to keep the r plotting files, otherwise
+these will be deleted.
+

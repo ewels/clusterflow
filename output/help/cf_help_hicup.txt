@@ -1,0 +1,21 @@
+
+----------------------
+ HiCUP Module
+----------------------
+
+HiCUP is a tool for mapping and performing quality
+control on Hi-C data. The module will look for existing
+digest files in the genome folder and create one if it
+doesn't yet exist.
+
+Three parameters can be set in CF for this module:
+restriction enzyme (default HindIII), shortest read
+length (default 150bp) and longest read length
+(default 800bp). For example:
+#hicup	longest=600
+#hicup	shortest=180
+#hicup	re1=A^GATCT,BglII
+
+Use hicup --help for further information.
+
+

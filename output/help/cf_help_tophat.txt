@@ -1,0 +1,23 @@
+
+---------------
+ Tophat Module
+---------------
+
+TopHat is a fast splice junction mapper for RNA-Seq reads.
+It can run with or without a supplied GTF path but requires
+a bowtie2 path.
+
+This module fixes a bug in tophat that relates to MAPQ values;
+by using –g 1 (as in the previous tophat module), ALL alignments will
+get a MAPQ score of 50, irrespective of whether they were unique
+alignments or not. This module uses –g 2 instead, so reporting up
+to 2 alignments for a given read. One of the alignments is considered
+the primary alignment, and the other one is flagged as secondary
+alignment, and both alignments now get a MAPQ value of 3 to indicate
+that there were multiple alignments. After Tophat has finished, this
+module uses samtools to filter out the secondary alignments.
+
+In short, this module produces a BAM file with an equivalent number
+of hits as the old module, but with fixed MAPQ values.
+
+
