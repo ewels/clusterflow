@@ -1,0 +1,33 @@
+/* Styles specifically for the Cluster Flow demo */
+@import url(http://fonts.googleapis.com/css?family=Source+Code+Pro);
+
+h1 img {
+  max-width: 200px;
+}
+
+code, pre, pre code {
+  font-family: 'Monaco', 'Source Code Pro', 'Consolas', 'Andale Mono', monospace;
+}
+
+.sans_font, .show-output {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+.show-output, .mod-modal-btn {
+  padding: 0 4px;
+}
+.cmd_ex {
+  margin: 10px 0 0;
+}
+.cmd_output {
+  display: none;
+  background-color: #ededed;
+  border-top:0;
+  padding-top:5px;
+  border-radius: 0 0 4px 4px;
+  font-size: 12px;
+}
+
+#mod-modal .modal-body {
+  white-space: pre;
+  padding: 7px 15px;
+}
